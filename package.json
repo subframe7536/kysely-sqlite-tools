@@ -1,0 +1,65 @@
+{
+  "name": "kysely-sqlite-tools",
+  "type": "module",
+  "version": "0.0.1",
+  "private": true,
+  "description": "",
+  "author": {
+    "name": "subframe7536",
+    "email": "1667077010@qq.com"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/subframe7536/kysely-sqlite-tools.git"
+  },
+  "scripts": {
+    "preinstall": "npx only-allow pnpm",
+    "clean": "del-cli \"packages/*/dist\"",
+    "dev": "pnpm -r -F \"./packages/*\" dev",
+    "build": "pnpm clean && pnpm -r -F \"./packages/*\" build",
+    "release": "bumpp package.json packages/**/package.json",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "coverage": "vitest run --coverage",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint . --fix",
+    "lint:check": "eslint .",
+    "prepare": "husky install",
+    "commit": "czg"
+  },
+  "devDependencies": {
+    "@commitlint/cli": "^17.6.1",
+    "@commitlint/config-conventional": "^17.6.1",
+    "@release-it/conventional-changelog": "^5.1.1",
+    "@subframe7536/eslint-config": "^0.1.1",
+    "@types/node": "^18.15.11",
+    "bumpp": "^9.1.0",
+    "changelogithub": "^0.12.9",
+    "cz-git": "^1.6.1",
+    "czg": "^1.6.1",
+    "del-cli": "^5.0.0",
+    "eslint": "^8.38.0",
+    "happy-dom": "^9.8.2",
+    "husky": "^8.0.3",
+    "kysely": "^0.24.2",
+    "lint-staged": "^13.2.1",
+    "release-it": "^15.10.1",
+    "tsx": "^3.12.6",
+    "typescript": "^5.0.4",
+    "unbuild": "^1.2.1",
+    "vite": "^4.3.1",
+    "vitest": "^0.30.1"
+  },
+  "lint-staged": {
+    "*": [
+      "eslint --fix"
+    ]
+  },
+  "config": {
+    "commitizen": {
+      "path": "node_modules/cz-git"
+    }
+  },
+  "packageManager": "pnpm@8.3.1"
+}

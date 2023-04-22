@@ -1,0 +1,4 @@
+node_modules
+packages/wrapper/src/jswasm
+playground/src/jswasm
+playground/src/wa-sqlite
