@@ -68,6 +68,20 @@ importers:
         specifier: ^0.30.1
         version: 0.30.1(happy-dom@9.8.2)
 
+  packages/dialect-tauri: {}
+
+  packages/dialect-wasm:
+    devDependencies:
+      '@types/sql.js':
+        specifier: ^1.4.4
+        version: 1.4.4
+      kysely-plugin-serialize:
+        specifier: workspace:*
+        version: link:../plugin-serialize
+      sql.js:
+        specifier: ^1.8.0
+        version: 1.8.0
+
   packages/plugin-serialize:
     devDependencies:
       '@types/better-sqlite3':
@@ -1224,6 +1238,10 @@ packages:
     resolution: {integrity: sha512-KnRanxnpfpjUTqTCXslZSEdLfXExwgNxYPdiO2WGUj8+HDjFi8R3k5RVKPeSCzLjCcshCAtVO2QBbVuAV4kTnw==}
     dev: true
 
+  /@types/emscripten@1.39.6:
+    resolution: {integrity: sha512-H90aoynNhhkQP6DRweEjJp5vfUVdIj7tdPLsu7pq89vODD/lcugKfZOsfgwpvM6XUewEp2N5dCg1Uf3Qe55Dcg==}
+    dev: true
+
   /@types/estree@1.0.1:
     resolution: {integrity: sha512-LG4opVs2ANWZ1TJoKc937iMmNstM/d0ae1vNbnBvBhqCSezgVUOzcLCqbI5elV8Vy6WKwKjaqR+zO9VKirBBCA==}
     dev: true
@@ -1264,6 +1282,13 @@ packages:
 
   /@types/semver@7.3.13:
     resolution: {integrity: sha512-21cFJr9z3g5dW8B0CVI9g2O9beqaThGQ6ZFBqHfwhzLDKUxaqTIy3vnfah/UPkfOiF2pLq+tGz+W8RyCskuslw==}
+    dev: true
+
+  /@types/sql.js@1.4.4:
+    resolution: {integrity: sha512-6EWU2wfiBtzgTy18WQoXZAGTreBjhZcBCfD8CDvyI1Nj0a4KNDDt41IYeAZ40cRUdfqWHb7VGx7t6nK0yBOI5A==}
+    dependencies:
+      '@types/emscripten': 1.39.6
+      '@types/node': 18.15.11
     dev: true
 
   /@types/unist@2.0.6:
@@ -6385,6 +6410,10 @@ packages:
     resolution: {integrity: sha512-mTyOoPbrivtXnwnIxZRFYRrPNtEFKlpB2fvjSnCQUiAA6qAZzqwna5envK4uk6OIeP17CsdF3rSBGYVBsU0Tkg==}
     dependencies:
       through: 2.3.8
+    dev: true
+
+  /sql.js@1.8.0:
+    resolution: {integrity: sha512-3HD8pSkZL+5YvYUI8nlvNILs61ALqq34xgmF+BHpqxe68yZIJ1H+sIVIODvni25+CcxHUxDyrTJUL0lE/m7afw==}
     dev: true
 
   /stackback@0.0.2:

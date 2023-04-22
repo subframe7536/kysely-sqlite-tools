@@ -89,6 +89,8 @@ module.exports = {
     themeColorCode: '',
     scopes: [
       'plugin',
+      'dialect-tauri',
+      'dialect-wasm',
       'workspace',
     ],
     allowCustomScopes: true,
