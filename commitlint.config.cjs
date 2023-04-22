@@ -88,6 +88,7 @@ module.exports = {
     emojiAlign: 'left',
     themeColorCode: '',
     scopes: [
+      'plugin',
       'workspace',
     ],
     allowCustomScopes: true,
