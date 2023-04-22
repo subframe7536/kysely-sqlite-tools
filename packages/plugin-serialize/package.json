@@ -1,0 +1,51 @@
+{
+  "name": "kysely-plugin-serialize",
+  "type": "module",
+  "version": "0.0.1",
+  "description": "kysely serialize plugin for sqlite",
+  "author": {
+    "name": "subframe7536",
+    "email": "1667077010@qq.com"
+  },
+  "license": "MIT",
+  "homepage": "https://github.com/subframe7536/kysely-sqlite-tools#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/subframe7536/kysely-sqlite-tools.git"
+  },
+  "bugs": "https://github.com/subframe7536/kysely-sqlite-tools/issues",
+  "keywords": [],
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "require": "./dist/index.cjs",
+      "import": "./dist/index.mjs"
+    }
+  },
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "typesVersions": {
+    "*": {
+      "*": [
+        "./dist/*",
+        "./dist/index.d.ts"
+      ]
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "dev": "unbuild --stub",
+    "build": "unbuild"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "devDependencies": {
+    "@types/better-sqlite3": "^7.6.3",
+    "better-sqlite3": "^8.2.0"
+  }
+}
