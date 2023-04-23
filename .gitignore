@@ -28,3 +28,4 @@ lib
 *.sw?
 
 .npmrc
+.eslintcache
