@@ -54,8 +54,8 @@ describe('test builder', async () => {
     expect(result![0].createAt).toBeInstanceOf(Date)
     expect(result![0].updateAt).toBeInstanceOf(Date)
   })
-  test('raw', () => {
-    const { sql, parameters } = db.toSQL(d => d
+  test('raw', async () => {
+    const { sql, parameters } = await db.toSQL(d => d
       .selectFrom('test')
       .where('person', '=', { name: '1' })
       .selectAll(),

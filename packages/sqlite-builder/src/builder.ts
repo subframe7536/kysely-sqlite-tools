@@ -149,15 +149,18 @@ export class SqliteBuilder<DB extends Record<string, any>> {
     this.status = DBStatus.ready
   }
 
-  public async transaction<T>(
-    cb: (trx: Transaction<DB>) => Promise<T>,
-    errorLog = false,
-  ): Promise<T | undefined> {
+  private async checkInit() {
     this.status !== DBStatus.ready && await this.init()
     if (this.status !== DBStatus.ready) {
       throw new Error('fail to init table')
     }
+  }
 
+  public async transaction<T>(
+    cb: (trx: Transaction<DB>) => Promise<T>,
+    errorLog = false,
+  ): Promise<T | undefined> {
+    await this.checkInit()
     return await this.kysely.transaction().execute(cb)
       .catch((err) => {
         errorLog && console.error(err)
@@ -169,11 +172,7 @@ export class SqliteBuilder<DB extends Record<string, any>> {
     cb: (db: Kysely<DB>) => Promise<T>,
     errorLog = false,
   ): Promise<T | undefined> {
-    this.status !== DBStatus.ready && await this.init()
-    if (this.status !== DBStatus.ready) {
-      throw new Error('fail to init table')
-    }
-
+    await this.checkInit()
     return cb(this.kysely)
       .catch((err) => {
         errorLog && console.error(err)
@@ -181,11 +180,13 @@ export class SqliteBuilder<DB extends Record<string, any>> {
       })
   }
 
-  public toSQL<T extends Compilable>(cb: (db: Kysely<DB>) => T): CompiledQuery<unknown> {
+  public async toSQL<T extends Compilable>(cb: (db: Kysely<DB>) => T): Promise<CompiledQuery<unknown>> {
+    await this.checkInit()
     return cb(this.kysely).compile()
   }
 
-  public raw<T = any>(rawSql: (s: Sql) => RawBuilder<T>): Promise<QueryResult<T>> {
+  public async raw<T = any>(rawSql: (s: Sql) => RawBuilder<T>): Promise<QueryResult<T>> {
+    await this.checkInit()
     return rawSql(sql).execute(this.kysely)
   }
 }

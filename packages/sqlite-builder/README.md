@@ -1,6 +1,6 @@
 # Kysely-sqlite-builder
 
-kysely wrapper for sqlite
+kysely typed table builder for sqlite
 
 ## features
 
@@ -11,7 +11,7 @@ kysely wrapper for sqlite
 ## install
 
 ```shell
-pnpm i better-sqlite3 kysely-wrapper-sqlite
+pnpm i better-sqlite3 kysely-sqlite-builder
 ```
 
 ## example
