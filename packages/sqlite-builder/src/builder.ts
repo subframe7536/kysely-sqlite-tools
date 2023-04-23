@@ -1,4 +1,4 @@
-import type { Compilable, KyselyPlugin, LogEvent, RawBuilder, Sql, Transaction } from 'kysely'
+import type { Compilable, CompiledQuery, KyselyPlugin, LogEvent, QueryResult, RawBuilder, Sql, Transaction } from 'kysely'
 import { Kysely, sql } from 'kysely'
 import type { DataTypeExpression } from 'kysely/dist/cjs/parser/data-type-parser'
 import { SqliteSerializePlugin } from 'kysely-plugin-serialize'
@@ -6,7 +6,7 @@ import { isBoolean, isString } from './util'
 import type { ITable, SqliteDBOption, TriggerEvent } from './types'
 import { DBStatus } from './types'
 
-export class SqliteDB<DB extends Record<string, any>> {
+export class SqliteBuilder<DB extends Record<string, any>> {
   public kysely!: Kysely<DB>
   private status!: DBStatus
   private tableMap!: Map<string, ITable<DB[Extract<keyof DB, string>]>>
@@ -36,7 +36,12 @@ export class SqliteDB<DB extends Record<string, any>> {
     }
   }
 
-  private async createTimeTrigger(table: keyof DB, event: TriggerEvent, column: string, key = 'rowid') {
+  private async createTimeTrigger(
+    table: keyof DB,
+    event: TriggerEvent,
+    column: string,
+    key = 'rowid',
+  ): Promise<void> {
     // datetime('now') will return UTC Time
     await sql`
       create trigger if not exists ${sql.raw(table as string)}_${sql.raw(column)}
@@ -53,7 +58,7 @@ export class SqliteDB<DB extends Record<string, any>> {
       })
   }
 
-  public async init(dropTableBeforeInit = false) {
+  public async init(dropTableBeforeInit = false): Promise<void> {
     for (const [tableName, table] of this.tableMap) {
       const { columns: columnList, property: tableProperty } = table
       if (dropTableBeforeInit || this.status === DBStatus.needDrop) {
@@ -144,10 +149,10 @@ export class SqliteDB<DB extends Record<string, any>> {
     this.status = DBStatus.ready
   }
 
-  public async transaction<Return>(
-    cb: (trx: Transaction<DB>) => Promise<Return>,
+  public async transaction<T>(
+    cb: (trx: Transaction<DB>) => Promise<T>,
     errorLog = false,
-  ) {
+  ): Promise<T | undefined> {
     this.status !== DBStatus.ready && await this.init()
     if (this.status !== DBStatus.ready) {
       throw new Error('fail to init table')
@@ -160,24 +165,27 @@ export class SqliteDB<DB extends Record<string, any>> {
       })
   }
 
-  public async exec<Return>(cb: (db: Kysely<DB>) => Promise<Return>) {
+  public async exec<T>(
+    cb: (db: Kysely<DB>) => Promise<T>,
+    errorLog = false,
+  ): Promise<T | undefined> {
     this.status !== DBStatus.ready && await this.init()
     if (this.status !== DBStatus.ready) {
       throw new Error('fail to init table')
     }
 
-    return await cb(this.kysely)
+    return cb(this.kysely)
       .catch((err) => {
-        console.error(err)
+        errorLog && console.error(err)
         return undefined
       })
   }
 
-  public toSQL<T extends Compilable>(cb: (db: Kysely<DB>) => T) {
+  public toSQL<T extends Compilable>(cb: (db: Kysely<DB>) => T): CompiledQuery<unknown> {
     return cb(this.kysely).compile()
   }
 
-  public raw<T = any>(rawSql: (s: Sql) => RawBuilder<T>) {
+  public raw<T = any>(rawSql: (s: Sql) => RawBuilder<T>): Promise<QueryResult<T>> {
     return rawSql(sql).execute(this.kysely)
   }
 }
