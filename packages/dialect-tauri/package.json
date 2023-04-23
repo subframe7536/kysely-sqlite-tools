@@ -1,5 +1,5 @@
 {
-  "name": "kysely-tauri",
+  "name": "kysely-dialect-tauri",
   "type": "module",
   "version": "0.1.2",
   "description": "kysely Tauri dialect, using tauri-plugin-sql",

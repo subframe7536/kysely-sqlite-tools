@@ -1,5 +1,5 @@
 {
-  "name": "kysely-wasm-dialect",
+  "name": "kysely-dialect-wasm",
   "type": "module",
   "version": "0.1.2",
   "description": "kysely dialect for wasm",
@@ -43,10 +43,5 @@
   },
   "publishConfig": {
     "access": "public"
-  },
-  "devDependencies": {
-    "@types/sql.js": "^1.4.4",
-    "sql.js": "^1.8.0",
-    "kysely-plugin-serialize": "workspace:*"
   }
 }
