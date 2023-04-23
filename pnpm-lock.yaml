@@ -95,6 +95,12 @@ importers:
 
   packages/plugin-serialize: {}
 
+  packages/sqlite-builder:
+    dependencies:
+      kysely-plugin-serialize:
+        specifier: workspace:*
+        version: link:../plugin-serialize
+
 packages:
 
   /@ampproject/remapping@2.2.1:

@@ -2,7 +2,7 @@ import { afterAll, describe, expect, test } from 'vitest'
 import type { Dialect, Generated } from 'kysely'
 import InitSqlJs from 'sql.js'
 import { Kysely } from 'kysely'
-import { SqlJsDialect } from '../../packages/dialect-wasm/src'
+import { SqlJsDialect } from '../packages/dialect-wasm/src'
 
 interface DB {
   test: TestTable

@@ -91,6 +91,7 @@ module.exports = {
       'plugin',
       'dialect-tauri',
       'dialect-wasm',
+      'builder',
       'workspace',
     ],
     allowCustomScopes: true,

@@ -4,7 +4,7 @@ import Database from 'better-sqlite3'
 import type { Generated } from 'kysely/dist/cjs/util/column-type'
 import type { KyselyPlugin } from 'kysely'
 import { Kysely, SqliteDialect } from 'kysely'
-import { SqliteSerializePlugin } from '../../packages/plugin-serialize/src'
+import { SqliteSerializePlugin } from '../packages/plugin-serialize/src'
 
 interface DB {
   test: TestTable

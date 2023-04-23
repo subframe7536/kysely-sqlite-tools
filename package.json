@@ -23,8 +23,8 @@
     "test:watch": "vitest",
     "coverage": "vitest run --coverage",
     "typecheck": "tsc --noEmit",
-    "lint": "eslint . --fix",
-    "lint:check": "eslint .",
+    "lint": "eslint --cache . --fix",
+    "lint:check": "eslint --cache .",
     "postinstall": "husky install",
     "commit": "czg"
   },
@@ -60,7 +60,7 @@
   },
   "lint-staged": {
     "*": [
-      "eslint --fix"
+      "eslint --cache --fix"
     ]
   },
   "config": {
