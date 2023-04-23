@@ -1,22 +1,22 @@
 import type { DatabaseConnection } from 'kysely'
 import { BaseDialect } from '../baseDialect'
-import { OfficialSqliteWasmDriver } from './driver'
-import type { OfficialSqliteWasmDB } from './type'
+import { OfficialWasmDriver } from './driver'
+import type { OfficialWasmDB } from './type'
 
-export interface OfficialSqliteWasmDialectConfig {
-  database: OfficialSqliteWasmDB | (() => Promise<OfficialSqliteWasmDB>)
+export interface OfficialWasmDialectConfig {
+  database: OfficialWasmDB | (() => Promise<OfficialWasmDB>)
   onCreateConnection?: (connection: DatabaseConnection) => Promise<void>
 }
 
-export class OfficialSqliteWasmDialect extends BaseDialect {
-  #config: OfficialSqliteWasmDialectConfig
+export class OfficialWasmDialect extends BaseDialect {
+  #config: OfficialWasmDialectConfig
   /**
-   * use official wasm build, support bigint, recommend to use opfs,
-   * see {@link https://sqlite.org/forum/forumpost/59097f57cbe647a2d1950fab93e7ab82dd24c1e384d38b90ec1e2f03a2a4e580 this}
-   * and {@link https://sqlite.org/forum/forumpost/8f50dc99149a6cedade784595238f45aa912144fae81821d5f9db31965f754dd this}
+   * use official wasm build, support bigint, recommend to use opfs
+   * (see {@link https://sqlite.org/forum/forumpost/59097f57cbe647a2d1950fab93e7ab82dd24c1e384d38b90ec1e2f03a2a4e580 this}
+   * and {@link https://sqlite.org/forum/forumpost/8f50dc99149a6cedade784595238f45aa912144fae81821d5f9db31965f754dd this})
    *
-   * @example
-   * add type for `jswasm/sqlite3-bundler-friendly.mjs`:
+   * there exists a `d.ts` for `@sqlite.org/sqlite-wasm`
+   * you can also add type for `jswasm/sqlite3-bundler-friendly.mjs`:
    * ```ts
    * export type OO = {
    *   OpfsDb: new (path: string) => OfficialSqliteWasmDB
@@ -24,8 +24,8 @@ export class OfficialSqliteWasmDialect extends BaseDialect {
    * }
    * export default function sqlite3InitModule(): Promise<{ oo1:OO }>
    * ```
-   * @example
-   * usage
+   *
+   * usage:
    * ```ts
    * import sqlite3InitModule from './jswasm/sqlite3-bundler-friendly'
    * const db = new Kysely({
@@ -54,12 +54,12 @@ export class OfficialSqliteWasmDialect extends BaseDialect {
    * })
    * ```
   */
-  constructor(config: OfficialSqliteWasmDialectConfig) {
+  constructor(config: OfficialWasmDialectConfig) {
     super()
     this.#config = config
   }
 
   createDriver() {
-    return new OfficialSqliteWasmDriver(this.#config)
+    return new OfficialWasmDriver(this.#config)
   }
 }

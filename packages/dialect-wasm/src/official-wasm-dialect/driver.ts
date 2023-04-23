@@ -1,11 +1,11 @@
 import { BaseDriver, BaseSqliteConnection } from '../baseDriver'
-import type { OfficialSqliteWasmDB } from './type'
-import type { OfficialSqliteWasmDialectConfig } from '.'
+import type { OfficialWasmDB } from './type'
+import type { OfficialWasmDialectConfig } from '.'
 
-export class OfficialSqliteWasmDriver extends BaseDriver {
-  #config: OfficialSqliteWasmDialectConfig
-  #db?: OfficialSqliteWasmDB
-  constructor(config: OfficialSqliteWasmDialectConfig) {
+export class OfficialWasmDriver extends BaseDriver {
+  #config: OfficialWasmDialectConfig
+  #db?: OfficialWasmDB
+  constructor(config: OfficialWasmDialectConfig) {
     super()
     this.#config = config
   }
@@ -21,7 +21,7 @@ export class OfficialSqliteWasmDriver extends BaseDriver {
   }
 }
 class OfficailSqliteWasmConnection extends BaseSqliteConnection {
-  #db: OfficialSqliteWasmDB
+  #db: OfficialWasmDB
   constructor(db: any) {
     super()
     this.#db = db

@@ -11,7 +11,7 @@ export type Option = {
   rowMode?: 'array' | 'object' | 'stmt'
 }
 
-export interface OfficialSqliteWasmDB extends BaseDB {
+export interface OfficialWasmDB extends BaseDB {
   exec: (option: Option) => void
   changes: (isTotal: boolean, isBigint: boolean) => number | bigint
 }
