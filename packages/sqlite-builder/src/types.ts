@@ -37,12 +37,7 @@ export type ITable<T> = {
 export type Tables<T> = {
   [Key in keyof T]: ITable<T[Key]>
 }
-export enum DBStatus {
-  'needDrop',
-  'noNeedDrop',
-  'ready',
-}
-export interface SqliteDBOption<T> {
+export interface SqliteBuilderOption<T> {
   tables: Tables<T>
   dialect: Dialect
   dropTableBeforeInit?: boolean

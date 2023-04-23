@@ -3,14 +3,18 @@ import { Kysely, sql } from 'kysely'
 import type { DataTypeExpression } from 'kysely/dist/cjs/parser/data-type-parser'
 import { SqliteSerializePlugin } from 'kysely-plugin-serialize'
 import { isBoolean, isString } from './util'
-import type { ITable, SqliteDBOption, TriggerEvent } from './types'
-import { DBStatus } from './types'
+import type { ITable, SqliteBuilderOption, TriggerEvent } from './types'
 
+const enum DBStatus {
+  'needDrop',
+  'noNeedDrop',
+  'ready',
+}
 export class SqliteBuilder<DB extends Record<string, any>> {
-  public kysely!: Kysely<DB>
-  private status!: DBStatus
-  private tableMap!: Map<string, ITable<DB[Extract<keyof DB, string>]>>
-  public constructor(option: SqliteDBOption<DB>) {
+  public kysely: Kysely<DB>
+  #status: DBStatus
+  readonly #tableMap: Map<string, ITable<DB[Extract<keyof DB, string>]>>
+  public constructor(option: SqliteBuilderOption<DB>) {
     const { dialect, tables, dropTableBeforeInit: truncateBeforeInit, errorLogger, queryLogger, plugins: additionalPlugin } = option
     const plugins: KyselyPlugin[] = [new SqliteSerializePlugin()]
     additionalPlugin && plugins.push(...additionalPlugin)
@@ -23,16 +27,16 @@ export class SqliteBuilder<DB extends Record<string, any>> {
       },
       plugins,
     })
-    this.status = truncateBeforeInit
+    this.#status = truncateBeforeInit
       ? DBStatus.needDrop
       : DBStatus.noNeedDrop
-    this.tableMap = new Map()
+    this.#tableMap = new Map()
     for (const tableName in tables) {
       if (!Object.prototype.hasOwnProperty.call(tables, tableName)) {
         continue
       }
       const table = tables[tableName]
-      this.tableMap.set(tableName, table)
+      this.#tableMap.set(tableName, table)
     }
   }
 
@@ -59,9 +63,9 @@ export class SqliteBuilder<DB extends Record<string, any>> {
   }
 
   public async init(dropTableBeforeInit = false): Promise<void> {
-    for (const [tableName, table] of this.tableMap) {
+    for (const [tableName, table] of this.#tableMap) {
       const { columns: columnList, property: tableProperty } = table
-      if (dropTableBeforeInit || this.status === DBStatus.needDrop) {
+      if (dropTableBeforeInit || this.#status === DBStatus.needDrop) {
         await this.kysely.schema.dropTable(tableName).ifExists().execute().catch()
       }
       let tableSql = this.kysely.schema.createTable(tableName)
@@ -146,12 +150,12 @@ export class SqliteBuilder<DB extends Record<string, any>> {
         _updateColumnName && await this.createTimeTrigger(tableName, 'update', _updateColumnName, _triggerKey)
       }
     }
-    this.status = DBStatus.ready
+    this.#status = DBStatus.ready
   }
 
   private async checkInit() {
-    this.status !== DBStatus.ready && await this.init()
-    if (this.status !== DBStatus.ready) {
+    this.#status !== DBStatus.ready && await this.init()
+    if (this.#status !== DBStatus.ready) {
       throw new Error('fail to init table')
     }
   }
