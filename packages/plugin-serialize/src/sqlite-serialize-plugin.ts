@@ -1,7 +1,7 @@
 import type { KyselyPlugin, PluginTransformQueryArgs, PluginTransformResultArgs, QueryResult, RootOperationNode, UnknownRow } from 'kysely'
 import type { QueryId } from 'kysely/dist/cjs/util/query-id'
 import { SerializeParametersTransformer } from './sqlite-serialize-transformer'
-import type { BlobType, BlobTypeConstructor, Deserializer, Serializer } from './sqlite-serialize'
+import type { Deserializer, Serializer } from './sqlite-serialize'
 import { defaultDeserializer } from './sqlite-serialize'
 
 export interface SqliteSerializePluginOptions {
@@ -20,23 +20,16 @@ export interface SqliteSerializePluginOptions {
     *
     * `/^\d{4}-\d{2}-\d{2}[T ]\d{2}:\d{2}:\d{2}(?:\.\d+)?Z?$/` convert to Date
     *
-    * `blob` convert to `Uint8Array`
-    *
     * others converted by `JSON.parse`
     *
     * @param parameter unknown
     */
   deserializer?: Deserializer
-  /**
-   * return type for blob
-   */
-  blobType?: BlobType | BlobTypeConstructor
 }
 
 export class SqliteSerializePlugin implements KyselyPlugin {
   readonly #serializeParametersTransformer: SerializeParametersTransformer
   readonly #deserializer: Deserializer
-  readonly #type: BlobTypeConstructor
   #data: WeakMap<QueryId, string>
 
   /**
@@ -106,7 +99,6 @@ export class SqliteSerializePlugin implements KyselyPlugin {
       opt.serializer,
     )
     this.#deserializer = opt.deserializer || defaultDeserializer
-    this.#type = typeof opt.blobType === 'string' ? Reflect.get(globalThis, opt.blobType) : opt.blobType ?? Uint8Array
     this.#data = new WeakMap()
   }
 
@@ -122,7 +114,7 @@ export class SqliteSerializePlugin implements KyselyPlugin {
     return await Promise.all(rows.map(async (row) => {
       const deserializedRow = { ...row }
       for (const key in deserializedRow) {
-        deserializedRow[key] = await this.#deserializer(deserializedRow[key], this.#type)
+        deserializedRow[key] = await this.#deserializer(deserializedRow[key])
       }
       return deserializedRow
     }))
