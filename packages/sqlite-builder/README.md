@@ -120,7 +120,6 @@ select * from "test" where "person" = ?
 ## credit
 
 - [trilogy](https://github.com/haltcase/trilogy)
-- [kysely #138](https://github.com/koskimas/kysely/pull/138)
 
 ## license
 MIT

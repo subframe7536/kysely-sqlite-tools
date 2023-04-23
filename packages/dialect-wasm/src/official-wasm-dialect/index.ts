@@ -19,8 +19,8 @@ export class OfficialWasmDialect extends BaseDialect {
    * you can also add type for `jswasm/sqlite3-bundler-friendly.mjs`:
    * ```ts
    * export type OO = {
-   *   OpfsDb: new (path: string) => OfficialSqliteWasmDB
-   *   DB: new (path: string) => OfficialSqliteWasmDB
+   *   OpfsDb: new (path: string) => OfficialWasmDB
+   *   DB: new (path: string) => OfficialWasmDB
    * }
    * export default function sqlite3InitModule(): Promise<{ oo1:OO }>
    * ```
@@ -44,7 +44,7 @@ export class OfficialWasmDialect extends BaseDialect {
    * })
    * ```
    * it can be used in Origin-Private FileSystem, but your server must response COOP and COEP in header,
-   * @see {@link https://developer.mozilla.org/en-US/docs/Web/API/File_System_Access_API#origin_private_file_system opfs}
+   * see {@link https://developer.mozilla.org/en-US/docs/Web/API/File_System_Access_API#origin_private_file_system opfs}
    * and {@link https://sqlite.org/wasm/doc/trunk/persistence.md#coop-coep coop&coep}
    * ```ts
    * server.middlewares.use((_req, res, next) => {

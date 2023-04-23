@@ -62,7 +62,7 @@ export class SqliteBuilder<DB extends Record<string, any>> {
       })
   }
 
-  public async init(dropTableBeforeInit = false): Promise<void> {
+  public async init(dropTableBeforeInit = false): Promise<SqliteBuilder<DB>> {
     for (const [tableName, table] of this.#tableMap) {
       const { columns: columnList, property: tableProperty } = table
       if (dropTableBeforeInit || this.#status === DBStatus.needDrop) {
@@ -151,6 +151,7 @@ export class SqliteBuilder<DB extends Record<string, any>> {
       }
     }
     this.#status = DBStatus.ready
+    return this
   }
 
   private async checkInit() {
