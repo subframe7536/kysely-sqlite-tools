@@ -67,12 +67,12 @@ export class SqliteBuilder<DB extends Record<string, any>> {
       let tableSql = this.kysely.schema.createTable(tableName)
       let _triggerKey = 'rowid'
       let _haveAutoKey = false
-      let _insertColumnName
-      let _updateColumnName
+      let _insertColumnName = 'createAt'
+      let _updateColumnName = 'updateAt'
       if (tableProperty?.timestamp && !isBoolean(tableProperty.timestamp)) {
         const { create, update } = tableProperty.timestamp as { create?: string; update?: string }
-        _insertColumnName = create
-        _updateColumnName = update
+        _insertColumnName = create ?? 'createAt'
+        _updateColumnName = update ?? 'updateAt'
       }
       for (const columnName in columnList) {
         if (!Object.prototype.hasOwnProperty.call(columnList, columnName)) {
@@ -115,10 +115,10 @@ export class SqliteBuilder<DB extends Record<string, any>> {
         const _unique = tableProperty.unique as string[] | (string[])[] | undefined
         if (tableProperty.timestamp) {
           if (_insertColumnName) {
-            tableSql = tableSql.addColumn(_insertColumnName, 'date')
+            tableSql = tableSql.addColumn(_insertColumnName, 'text')
           }
           if (_updateColumnName) {
-            tableSql = tableSql.addColumn(_updateColumnName, 'date')
+            tableSql = tableSql.addColumn(_updateColumnName, 'text')
           }
         }
         if (!_haveAutoKey && _primary) {

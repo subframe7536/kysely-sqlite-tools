@@ -20,6 +20,11 @@ export type TableOption<T> = {
   primary?: keyof T | Array<keyof T>
   unique?: Array<keyof T | Array<keyof T>>
   index?: Array<keyof T | Array<keyof T>>
+  /**
+   * set `True` to use default field
+   * - create field: 'createAt'
+   * - update field: 'updateAt'
+   */
   timestamp?: boolean | { create?: keyof T; update?: keyof T }
 }
 export type Column<T> = {

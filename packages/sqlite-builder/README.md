@@ -17,9 +17,6 @@ pnpm i better-sqlite3 kysely-wrapper-sqlite
 ## example
 
 ```ts
-import type { Generated } from 'kysely'
-import { SqliteDB, SqliteSerializePlugin } from 'kysely-wrapper-sqlite'
-
 interface DB {
   test: TestTable
 }
@@ -30,11 +27,13 @@ interface TestTable {
   createAt: Date | null
   updateAt: Date | null
 }
-const db = new SqliteDB<DB>({
-  path: ':memory:',
+const db = new SqliteBuilder<DB>({
+  dialect: new SqliteDialect({
+    database: new Database(':memory:'),
+  }),
   tables: {
     test: {
-      column: {
+      columns: {
         id: { type: 'increments' },
         person: { type: 'object', defaultTo: { name: 'test' } },
         gender: { type: 'boolean', notNull: true },
@@ -44,12 +43,11 @@ const db = new SqliteDB<DB>({
       property: {
         primary: 'id', // sqlite only support one single/composite primary key,
         index: ['person', ['id', 'gender']],
-        timestamp: true
+        timestamp: true,
       },
     },
   },
   dropTableBeforeInit: true,
-  plugins: [new SqliteSerializePlugin()],
   errorLogger: reason => console.error(reason),
   queryLogger: (queryInfo, time) => console.log(`${time}ms`, queryInfo.sql, queryInfo.parameters),
 })
@@ -77,11 +75,11 @@ db.init(true)
 ### log
 
 ```log
-0.39420008659362793ms drop table if exists "test" []
-0.17670011520385742ms create table if not exists "test" ("id" integer primary key autoincrement, "person" text default '{"name":"test"}', "gender" text not null, "createAt" date, "updateAt" date) []
-0.1129000186920166ms create index if not exists "idx_person" on "test" ("person") []
-0.09209990501403809ms create index if not exists "idx_id_gender" on "test" ("id", "gender") []
-0.10260009765625ms
+6.895100001245737ms drop table if exists "test" []
+5.431900002062321ms create table if not exists "test" ("id" integer primary key autoincrement, "person" text default '{"name":"test"}', "gender" text not null, "createAt" text, "updateAt" text) []
+5.303100001066923ms create index if not exists "idx_person" on "test" ("person") []
+5.393900003284216ms create index if not exists "idx_id_gender" on "test" ("id", "gender") []
+4.941399998962879ms
       create trigger if not exists test_createAt
       after insert
       on "test"
@@ -91,7 +89,7 @@ db.init(true)
         where "id" = NEW."id";
       end
        []
-0.14520001411437988ms
+5.110400002449751ms
       create trigger if not exists test_updateAt
       after update
       on "test"
@@ -101,18 +99,18 @@ db.init(true)
         where "id" = NEW."id";
       end
        []
-0.029700040817260742ms begin []
-0.9845001697540283ms insert into "test" ("gender") values (?) [ 'false' ]
-0.04629993438720703ms commit []
-0.11979985237121582ms select * from "test" []
+0.10300000011920929ms begin []
+2.877199999988079ms insert into "test" ("gender") values (?) [ 'false' ]
+4.603500001132488ms commit []
+0.2833000011742115ms select * from "test" []
 result:
 [
   {
     id: 1,
     person: { name: 'test' },
     gender: false,
-    createAt: 2023-03-04T05:26:49.000Z,
-    updateAt: 2023-03-04T05:26:49.000Z
+    createAt: 2023-04-23T08:40:33.000Z,
+    updateAt: 2023-04-23T08:40:33.000Z
   }
 ]
 select * from "test" where "person" = ?
