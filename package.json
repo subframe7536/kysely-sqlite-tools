@@ -31,7 +31,7 @@
     "@commitlint/cli": "^17.6.1",
     "@commitlint/config-conventional": "^17.6.1",
     "@release-it/conventional-changelog": "^5.1.1",
-    "@sqlite.org/sqlite-wasm": "3.41.2-build11",
+    "@sqlite.org/sqlite-wasm": "3.41.2",
     "@subframe7536/eslint-config": "^0.1.1",
     "@types/better-sqlite3": "^7.6.3",
     "@types/node": "^18.15.11",

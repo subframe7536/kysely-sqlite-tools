@@ -4,9 +4,8 @@
     "build": "vite build"
   },
   "devDependencies": {
-    "@types/sql.js": "^1.4.4",
     "@vitejs/plugin-vue": "^4.1.0",
-    "vite": "^4.2.1",
+    "vite": "^4.3.1",
     "vue": "^3.2.47"
   },
   "dependencies": {

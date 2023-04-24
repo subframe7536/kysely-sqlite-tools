@@ -111,12 +111,13 @@ pre {
   padding: 0 20px;
   border: 2px solid lightblue;
   border-radius: 8px;
-  height: 340px;
-  width: 340px;
+  height: 380px;
+  width: 380px;
   overflow-y: scroll;
 }
 ::-webkit-scrollbar{
   width: 6px;
+  height: 6px;
 }
 ::-webkit-scrollbar-thumb{
   width: 6px;

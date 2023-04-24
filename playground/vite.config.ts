@@ -10,6 +10,9 @@ export default defineConfig({
       treeshake: true,
     },
   },
+  optimizeDeps: {
+    exclude: ['@sqlite.org/sqlite-wasm'],
+  },
   server: {
     headers: {
       'Cross-Origin-Embedder-Policy': 'require-corp',
