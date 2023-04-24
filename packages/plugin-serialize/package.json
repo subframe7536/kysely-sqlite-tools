@@ -1,7 +1,7 @@
 {
   "name": "kysely-plugin-serialize",
   "type": "module",
-  "version": "0.1.1",
+  "version": "0.1.2-beta.0",
   "description": "kysely serialize plugin for sqlite",
   "author": {
     "name": "subframe7536",
