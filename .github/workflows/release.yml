@@ -28,3 +28,9 @@ jobs:
       - run: npx changelogithub
         env:
           GITHUB_TOKEN: ${{secrets.TOKEN}}
+
+      - name: Publish to NPM
+        run: pnpm run publish
+        env:
+          NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
+          NPM_CONFIG_PROVENANCE: true

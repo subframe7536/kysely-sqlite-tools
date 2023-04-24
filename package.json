@@ -19,6 +19,7 @@
     "dev": "pnpm -r -F \"./packages/*\" dev",
     "build": "pnpm clean && pnpm -r -F \"./packages/*\" build",
     "release": "bumpp package.json packages/**/package.json",
+    "publish": "pnpm -r -F \"./packages/*\" publish --no-git-checks",
     "test": "vitest run",
     "test:watch": "vitest",
     "typecheck": "tsc --noEmit",
