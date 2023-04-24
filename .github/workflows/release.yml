@@ -23,9 +23,13 @@ jobs:
         with:
           node-version: 16.x
           cache: pnpm
+          registry-url: 'https://registry.npmjs.org'
 
       - name: Install dependencies
         run: pnpm install
+      
+      - name: PNPM build
+        run: pnpm run build
 
       - run: npx changelogithub
         env:
