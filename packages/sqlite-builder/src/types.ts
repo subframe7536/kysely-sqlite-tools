@@ -1,18 +1,19 @@
-import type { Dialect, KyselyPlugin } from 'kysely'
+import type { Dialect, Generated, KyselyPlugin } from 'kysely'
 import type { CompiledQuery } from 'kysely/dist/cjs/query-compiler/compiled-query'
 
 export type TriggerEvent = 'insert' | 'update' | 'delete'
-export type column =
-  | 'string'
-  | 'boolean'
-  | 'object'
-  | 'number'
-  | 'date'
-  | 'increments'
-  | 'blob'
+
+export type InferColumnType<T> =
+  T extends string ? 'string' :
+    T extends boolean ? 'boolean' :
+      T extends number ? 'number' :
+        T extends Generated<any> ? 'increments' :
+          T extends Date ? 'date' :
+            T extends ArrayBufferLike ? 'blob' :
+              'object'
 
 export type ColumeOption<T> = {
-  type: column
+  type: InferColumnType<T>
   defaultTo?: T
   notNull?: boolean
 }
