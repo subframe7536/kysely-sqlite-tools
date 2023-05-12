@@ -1,7 +1,7 @@
 {
   "name": "consoloo",
   "type": "module",
-  "version": "0.1.0",
+  "version": "0.1.4",
   "description": "colorful logger for nodejs and browser",
   "author": {
     "name": "subframe7536",
