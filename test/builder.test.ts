@@ -36,8 +36,8 @@ describe('test builder', async () => {
       },
     },
     dropTableBeforeInit: true,
-    errorLogger: reason => console.error(reason),
-    queryLogger: (queryInfo, time) => console.log(`${time}ms`, queryInfo.sql, queryInfo.parameters),
+    onError: reason => console.error(reason),
+    onQuery: (queryInfo, time) => console.log(`${time}ms`, queryInfo.sql, queryInfo.parameters),
   })
   // manually generate table
   await db.init(true)

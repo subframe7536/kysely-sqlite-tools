@@ -42,7 +42,7 @@ export interface SqliteBuilderOption<T> {
   tables: Tables<T>
   dialect: Dialect
   dropTableBeforeInit?: boolean
-  queryLogger?: (queryInfo: CompiledQuery, time: number) => any
-  errorLogger?: (reason: unknown) => any
+  onQuery?: (queryInfo: CompiledQuery, time: number) => any
+  onError?: (reason: unknown) => any
   plugins?: Array<KyselyPlugin>
 }
