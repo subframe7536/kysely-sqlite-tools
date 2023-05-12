@@ -84,9 +84,6 @@ importers:
 
   packages/sqlite-builder:
     dependencies:
-      consoloo:
-        specifier: workspace:*
-        version: link:../consoloo
       kysely-plugin-serialize:
         specifier: workspace:*
         version: link:../plugin-serialize
