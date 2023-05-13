@@ -1,5 +1,6 @@
 import { LogBadge, ModuleBadge } from './type'
 import type { LogLevel, LogModule } from './type'
+import type { Keys } from './baseLogger'
 import { BaseLogger } from './baseLogger'
 
 function renderBadge(fg: string, bg: string) {
@@ -7,7 +8,8 @@ function renderBadge(fg: string, bg: string) {
 }
 
 export class WebLogger<T extends LogModule> extends BaseLogger<T> {
-  public log(msg: any, level: LogLevel, source: T[keyof T] | undefined, e?: unknown) {
+  public log(msg: any, level: LogLevel, source: Keys<T>, e?: unknown) {
+    super.log(msg, level, source, e)
     console.group(
       `%c${level.toLocaleUpperCase()}%c %c${source ?? '🌟'}`,
       renderBadge('white', LogBadge[level]),

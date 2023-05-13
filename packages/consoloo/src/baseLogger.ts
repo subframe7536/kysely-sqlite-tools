@@ -1,6 +1,10 @@
 import type { LogLevel, LogModule, LogStatus } from './type'
 
-type Keys<T> = T[keyof T]
+export type Keys<T> = T extends Readonly<Record<string, string>>
+  ? T[keyof T]
+  : T extends string
+    ? T
+    : any
 
 export interface Logger<T = any> {
   status: LogStatus
@@ -11,13 +15,18 @@ export interface Logger<T = any> {
   error: (msg: any, source: Keys<T>, e?: Error | undefined) => void
   timer: (label: string) => () => void
 }
+type RenderFunc<T = any> = (msg: any, level: LogLevel, source: Keys<T> | undefined, e?: unknown) => void
+
 export interface Option {
   logStatus: LogStatus
+  render?: RenderFunc
 }
 export abstract class BaseLogger<T extends LogModule> implements Logger<T> {
   public status: LogStatus
-  public constructor({ logStatus }: Option) {
+  private render: RenderFunc | undefined
+  public constructor({ logStatus, render }: Option) {
     this.status = logStatus
+    this.render = render
   }
 
   private filter(msg: any, level: LogLevel, source: Keys<T> | undefined, e?: unknown) {
@@ -28,7 +37,14 @@ export abstract class BaseLogger<T extends LogModule> implements Logger<T> {
     this.log(msg, level, source, e)
   }
 
-  public abstract log(msg: any, level: LogLevel, source: Keys<T> | undefined, e?: unknown): void
+  public log(msg: any, level: LogLevel, source: Keys<T> | undefined, e?: unknown) {
+    if (this.render) {
+      this.render(msg, level, source, e)
+      // eslint-disable-next-line no-useless-return
+      return
+    }
+  }
+
   public info(msg: any, source: Keys<T>) {
     this.filter(msg, 'info', source)
   }

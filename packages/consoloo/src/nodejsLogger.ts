@@ -5,7 +5,7 @@ import { existsSync, mkdirSync } from 'node:fs'
 import { _chalk } from './chalk'
 import { LogBadge, ModuleBadge } from './type'
 import type { LogLevel, LogModule } from './type'
-import type { Option } from './baseLogger'
+import type { Keys, Option } from './baseLogger'
 import { BaseLogger } from './baseLogger'
 
 function getMsg(msg: any, e?: unknown) {
@@ -63,9 +63,8 @@ export interface NodejsLoggerOption extends Option {
 
 export class NodejsLogger<T extends LogModule> extends BaseLogger<T> {
   public errorPath: string | undefined
-  public constructor(option: NodejsLoggerOption) {
-    const { logStatus, errorPath } = option
-    super({ logStatus })
+  public constructor({ logStatus, errorPath, render }: NodejsLoggerOption) {
+    super({ logStatus, render })
     this.errorPath = errorPath
     if (errorPath) {
       const dirPath = dirname(errorPath)
@@ -73,7 +72,8 @@ export class NodejsLogger<T extends LogModule> extends BaseLogger<T> {
     }
   }
 
-  public log(msg: any, level: LogLevel, source?: T[keyof T], e?: unknown) {
+  public log(msg: any, level: LogLevel, source?: Keys<T>, e?: unknown) {
+    super.log(msg, level, source, e)
     const time = new Date().toLocaleString()
     console[level === 'error' ? 'error' : 'log'](getReadableLog(false, time, msg, level, source, e))
     level === 'error'

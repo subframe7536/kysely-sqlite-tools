@@ -2,7 +2,7 @@ export type LogLevel = 'debug' | 'info' | 'warn' | 'error'
 
 export type LogStatus = 'Disable' | 'Normal' | 'Debug'
 
-export type LogModule = Readonly<Record<string, string>>
+export type LogModule = string | Readonly<Record<string, string>>
 export const LogBadge = {
   info: '#66ba66',
   debug: '#129ede',
