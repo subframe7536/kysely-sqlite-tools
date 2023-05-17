@@ -1,7 +1,6 @@
 import { performance } from 'node:perf_hooks'
 import { dirname } from 'node:path'
-import { appendFile } from 'node:fs/promises'
-import { existsSync, mkdirSync } from 'node:fs'
+import { appendFileSync, existsSync, mkdirSync } from 'node:fs'
 import { _chalk } from './chalk'
 import { LogBadge, ModuleBadge } from './type'
 import type { LogLevel, LogModule } from './type'
@@ -78,7 +77,7 @@ export class NodejsLogger<T extends LogModule> extends BaseLogger<T> {
     console[level === 'error' ? 'error' : 'log'](getReadableLog(false, time, msg, level, source, e))
     level === 'error'
       && this.errorPath
-      && appendFile(this.errorPath, `${getReadableLog(true, time, msg, level, source, e)}\n`)
+      && appendFileSync(this.errorPath, `${getReadableLog(true, time, msg, level, source, e)}\n`)
   }
 
   public timer(label: string) {
