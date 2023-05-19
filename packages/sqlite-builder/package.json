@@ -14,32 +14,21 @@
     "url": "git+https://github.com/subframe7536/kysely-sqlite.git"
   },
   "bugs": "https://github.com/subframe7536/kysely-sqlite/issues",
-  "keywords": [],
-  "sideEffects": false,
-  "exports": {
-    ".": {
-      "types": "./dist/index.d.ts",
-      "require": "./dist/index.cjs",
-      "import": "./dist/index.mjs"
-    }
-  },
+  "keywords": [
+    "kysely",
+    "sqlite",
+    "schema",
+    "typescript"
+  ],
   "main": "./dist/index.cjs",
   "module": "./dist/index.mjs",
   "types": "./dist/index.d.ts",
-  "typesVersions": {
-    "*": {
-      "*": [
-        "./dist/*",
-        "./dist/index.d.ts"
-      ]
-    }
-  },
   "files": [
     "dist"
   ],
   "scripts": {
-    "dev": "unbuild --stub",
-    "build": "unbuild"
+    "dev": "tsup --watch",
+    "build": "tsup"
   },
   "publishConfig": {
     "access": "public"

@@ -14,32 +14,21 @@
     "url": "git+https://github.com/subframe7536/kysely-sqlite-tools.git"
   },
   "bugs": "https://github.com/subframe7536/kysely-sqlite-tools/issues",
-  "keywords": [],
-  "sideEffects": false,
-  "exports": {
-    ".": {
-      "types": "./dist/index.d.ts",
-      "require": "./dist/index.cjs",
-      "import": "./dist/index.mjs"
-    }
-  },
+  "keywords": [
+    "kysely",
+    "dialect",
+    "sql",
+    "Tauri"
+  ],
   "main": "./dist/index.cjs",
   "module": "./dist/index.mjs",
   "types": "./dist/index.d.ts",
-  "typesVersions": {
-    "*": {
-      "*": [
-        "./dist/*",
-        "./dist/index.d.ts"
-      ]
-    }
-  },
   "files": [
     "dist"
   ],
   "scripts": {
-    "dev": "unbuild --stub",
-    "build": "unbuild"
+    "dev": "tsup --watch",
+    "build": "tsup"
   },
   "publishConfig": {
     "access": "public"
