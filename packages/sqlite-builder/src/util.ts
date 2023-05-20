@@ -97,7 +97,9 @@ export async function runCreateTable<T>(
           return builder.autoIncrement().primaryKey()
         }
         notNull && (builder = builder.notNull())
-        defaultTo !== undefined && (builder = builder.defaultTo(defaultTo))
+        defaultTo !== undefined && (builder = builder.defaultTo(
+          defaultTo instanceof Function ? defaultTo(sql) : defaultTo,
+        ))
         return builder
       })
     }

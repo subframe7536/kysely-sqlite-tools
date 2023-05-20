@@ -1,4 +1,4 @@
-import type { Dialect, Generated, KyselyPlugin } from 'kysely'
+import type { Dialect, Generated, KyselyPlugin, Sql } from 'kysely'
 import type { CompiledQuery } from 'kysely/dist/cjs/query-compiler/compiled-query'
 
 type Prettify<T> = {
@@ -18,7 +18,7 @@ export type InferColumnType<T> =
 
 export type ColumeOption<T> = Prettify<{
   type: InferColumnType<T>
-  defaultTo?: T
+  defaultTo?: T | ((sql: Sql) => unknown)
   notNull?: boolean
 }>
 export type TableOption<T> = Prettify<{
