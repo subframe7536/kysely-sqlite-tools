@@ -46,6 +46,7 @@
     "husky": "^8.0.3",
     "kysely": "^0.24.2",
     "lint-staged": "^13.2.2",
+    "node-sqlite3-wasm": "^0.6.0",
     "sql.js": "^1.8.0",
     "tsup": "^6.7.0",
     "typescript": "^5.0.4",

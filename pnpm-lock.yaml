@@ -55,6 +55,9 @@ importers:
       lint-staged:
         specifier: ^13.2.2
         version: 13.2.2
+      node-sqlite3-wasm:
+        specifier: ^0.6.0
+        version: 0.6.0
       sql.js:
         specifier: ^1.8.0
         version: 1.8.0
@@ -3678,6 +3681,10 @@ packages:
 
   /node-fetch-native@1.1.0:
     resolution: {integrity: sha512-nl5goFCig93JZ9FIV8GHT9xpNqXbxQUzkOmKIMKmncsBH9jhg7qKex8hirpymkBFmNQ114chEEG5lS4wgK2I+Q==}
+    dev: true
+
+  /node-sqlite3-wasm@0.6.0:
+    resolution: {integrity: sha512-EE/D0sin4QO0CsVtkvq2zFH3rPMsViFmGEXkAaJh5UhU5LAFVNECdspApTeLvMAjffRFUKWaaMPF85UIIbY7DA==}
     dev: true
 
   /normalize-package-data@2.5.0:

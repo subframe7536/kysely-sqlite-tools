@@ -2,7 +2,7 @@ import type { DatabaseConnection } from 'kysely'
 import { CompiledQuery } from 'kysely'
 
 /**
- * execute pragma to the sqlite connection for wasm.
+ * execute pragma to the sqlite connection for wasm in memory.
  * @param conn The database connection.
  * @param cacheSize The cache size, @default 4096
  * @param pageSize The page size, @default 32 * 1024
