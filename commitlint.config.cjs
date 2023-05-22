@@ -92,7 +92,6 @@ module.exports = {
       'dialect-tauri',
       'dialect-wasm',
       'builder',
-      'consoloo',
       'workspace',
     ],
     allowCustomScopes: true,

@@ -74,8 +74,6 @@ importers:
         specifier: ^0.31.0
         version: 0.31.0
 
-  packages/consoloo: {}
-
   packages/dialect-tauri: {}
 
   packages/dialect-wasm: {}
