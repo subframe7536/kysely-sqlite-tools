@@ -1,10 +1,10 @@
 import type { DatabaseConnection, Driver } from 'kysely'
 import { BaseDialect } from '../baseDialect'
-import type { NodeWasmDB } from './type'
+import type { NodeWasmDataBase } from './type'
 import { NodeWasmDriver } from './driver'
 
 export interface NodeWasmDialectConfig {
-  database: NodeWasmDB | (() => Promise<NodeWasmDB>)
+  database: NodeWasmDataBase | (() => Promise<NodeWasmDataBase>)
   onCreateConnection?: (connection: DatabaseConnection) => Promise<void>
 }
 

@@ -1,10 +1,10 @@
 import { BaseDriver, BaseSqliteConnection } from '../baseDriver'
-import type { NodeWasmDB } from './type'
+import type { NodeWasmDataBase } from './type'
 import type { NodeWasmDialectConfig } from '.'
 
 export class NodeWasmDriver extends BaseDriver {
   #config: NodeWasmDialectConfig
-  #db?: NodeWasmDB
+  #db?: NodeWasmDataBase
   constructor(config: NodeWasmDialectConfig) {
     super()
     this.#config = config
@@ -22,7 +22,7 @@ export class NodeWasmDriver extends BaseDriver {
 }
 
 class NodeWasmConnection extends BaseSqliteConnection {
-  #db: NodeWasmDB
+  #db: NodeWasmDataBase
   constructor(db: any) {
     super()
     this.#db = db

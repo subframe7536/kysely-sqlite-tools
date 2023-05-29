@@ -1,21 +1,26 @@
 <script setup lang="ts">
 import { useDB } from './modules/mainThread'
-import Worker from './modules/sqljsWorker?worker'
+import SqljsWorker from './modules/sqljsWorker?worker'
 import OfficialWorker from './modules/officialWasmWorker?worker'
+import WaSqliteWorker from './modules/wa-sqlite?worker'
 import { deleteFile } from './modules/indexeddb'
 import { testCRSqlite } from './modules/crsqlite'
 
-const worker = new Worker()
+const sqljsWorker = new SqljsWorker()
 const { result, run } = useDB()
 const officialWorker = new OfficialWorker()
+const waSqliteWorker = new WaSqliteWorker()
 function testSqljsMain() {
   run()
 }
 function testSqljsWorker() {
-  worker.postMessage('')
+  sqljsWorker.postMessage('')
 }
 function testOfficialWasm() {
   officialWorker.postMessage('')
+}
+function testWaSqlite() {
+  waSqliteWorker.postMessage('')
 }
 async function clear() {
   console.clear()
@@ -31,9 +36,6 @@ async function clear() {
   } catch { }
   console.log('clear all')
 }
-// todo)) test
-// const url = new URL('../node_modules/wa-sqlite/dist/wa-sqlite-async.wasm', import.meta.url).href
-// testWaSqlite(url, 'wa-sqlite', 'create table t(a,b);insert into t (a,b) values (?,?)', [1, 2])
 </script>
 
 <template>
@@ -67,6 +69,9 @@ async function clear() {
     </button>
     <button @click="testOfficialWasm()">
       test officialWasm in Worker
+    </button>
+    <button @click="testWaSqlite()">
+      test wa-sqlite in Worker
     </button>
     <button @click="clear()">
       clear

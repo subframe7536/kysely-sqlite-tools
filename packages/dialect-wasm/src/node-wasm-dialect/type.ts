@@ -5,7 +5,7 @@ export interface NodeWasmDBOptions {
   }
 }
 
-export interface NodeWasmDB {
+export interface NodeWasmDataBase {
   all: (sql: string, param?: any[]) => any[]
   run: (sql: string, param?: any[]) => NodeWasmRunReturn
 }
