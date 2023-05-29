@@ -130,7 +130,7 @@ export async function runCreateTable<T>(
       for (const i of tableProperty.index) {
         const is = isString(i)
         let _idx = kysely.schema.createIndex(`idx_${is ? i : (i as []).join('_')}`).on(tableName)
-        _idx = is ? _idx.column(i) : _idx.columns(i as [])
+        _idx = is ? _idx.column(i as string) : _idx.columns(i as [])
         await _idx.ifNotExists().execute()
       }
     }
