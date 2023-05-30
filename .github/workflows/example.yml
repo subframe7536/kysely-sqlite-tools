@@ -35,7 +35,10 @@ jobs:
         run: nci
         
       - name: build
-        run: pnpm -r run build
+        run: |
+          pnpm run build
+          cd playground
+          pnpm run build
 
       - name: Deploy to GitHub Pages 🚀
         uses: peaceiris/actions-gh-pages@v3.9.3
