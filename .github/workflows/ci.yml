@@ -8,6 +8,7 @@ on:
       - LICENSE
       - '**/*.gitignore'
       - '**/*.md'
+      - '.github/**/*'
 
   pull_request:
     branches:
