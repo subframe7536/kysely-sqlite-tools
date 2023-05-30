@@ -35,9 +35,12 @@ jobs:
 
       - name: Install
         run: nci
+        
+      - name: build
+        run: pnpm run build
 
       - name: Deploy to GitHub Pages 🚀
         uses: peaceiris/actions-gh-pages@v3.9.3
         with:
           github_token: ${{ secrets.TOKEN }}
-          publish_dir: ./dist
+          publish_dir: ./playground/dist
