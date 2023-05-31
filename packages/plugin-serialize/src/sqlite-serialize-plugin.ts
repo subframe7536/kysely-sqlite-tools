@@ -33,6 +33,8 @@ export class SqliteSerializePlugin implements KyselyPlugin {
   #data: WeakMap<QueryId, string>
 
   /**
+   * _**THIS PLUGIN SHOULD BE PLACED AT THE END OF PLUGINS ARRAY !!!**_
+   *
    * reference from https://github.com/koskimas/kysely/pull/138
    *
    * see {@link SqliteSerializePluginOptions plugin option}
@@ -126,12 +128,11 @@ export class SqliteSerializePlugin implements KyselyPlugin {
     const { result, queryId } = args
     const { rows } = result
     const ctx = this.#data.get(queryId)
-    if (rows && ctx === 'SelectQueryNode') {
-      return {
-        ...args.result,
-        rows: await this.parseResult(rows),
-      }
-    }
-    return args.result
+    return (rows && ctx === 'SelectQueryNode')
+      ? {
+          ...args.result,
+          rows: await this.parseResult(rows),
+        }
+      : args.result
   }
 }

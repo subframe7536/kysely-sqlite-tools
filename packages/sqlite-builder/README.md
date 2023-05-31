@@ -14,6 +14,15 @@ kysely typed table builder for sqlite
 pnpm i better-sqlite3 kysely-sqlite-builder
 ```
 
+### for Electron without recompile
+
+```shell
+pnpm rm better-sqlite3
+pnpm i kysely-wasm
+```
+
+choose [NodeWasmDialect](../dialect-wasm/README.md#nodewasmdialect)
+
 ## example
 
 ```ts
