@@ -27,7 +27,7 @@ export async function createTimeTrigger<T>(
         set ${sql.ref(column)} = datetime('now','localtime')
         where ${sql.ref(key)} = NEW.${sql.ref(key)};
       end
-      `.execute(kysely).catch((err) => {
+    `.execute(kysely).catch((err) => {
       console.error(err)
       return undefined
     })
