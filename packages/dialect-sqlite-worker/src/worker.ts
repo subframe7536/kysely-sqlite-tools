@@ -9,7 +9,6 @@ if (!parentPort) {
 const { src, option } = workerData
 const db = new Database(src, option)
 
-console.log('successfully initiate')
 parentPort.on('message', (data: WorkerMsg) => {
   if (typeof data === 'string') {
     db[data]()

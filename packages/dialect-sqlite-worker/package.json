@@ -34,10 +34,6 @@
   "publishConfig": {
     "access": "public"
   },
-  "devDependencies": {
-    "@types/better-sqlite3": "^7.6.4",
-    "better-sqlite3": "^8.4.0"
-  },
   "peerDependencies": {
     "better-sqlite3": "^8.4.0"
   }
