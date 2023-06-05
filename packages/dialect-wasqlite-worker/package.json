@@ -2,7 +2,7 @@
   "name": "kysely-wasqlite-worker",
   "version": "0.2.2",
   "type": "module",
-  "description": "kysely dialect for better-sqlite3 in worker",
+  "description": "kysely dialect for wa-sqlite, running in worker",
   "author": {
     "name": "subframe7536",
     "email": "1667077010@qq.com"
