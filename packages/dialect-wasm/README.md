@@ -32,6 +32,8 @@ you can choose to use [OPFS](https://developer.mozilla.org/en-US/docs/Web/API/Fi
 #### `WaSqliteDialect`
 you can choose not only `OPFS` but also `IndexedDB` as backend storage for better compability, maybe better for **polyfill**
 
+- only worked in secure environment, like localhost or https
+
 #### `NodeWasmDialect`
 you can choose to use `native file system` as backend storage, which is no need to recompile for different platform, useful for **Electron** app.
 
