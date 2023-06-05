@@ -24,7 +24,7 @@ const dialect = new WaSqliteDialect({
   },
 })
 
-onmessage = () => {
+export function useWaSqlite() {
   console.log('start wa-sqlite test')
   testDB(dialect).then((data) => {
     data?.forEach(e => console.log('[wa-sqlite]', e))

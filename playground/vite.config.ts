@@ -5,7 +5,7 @@ export default defineConfig({
   plugins: [vue()],
   base: './',
   build: {
-    minify: false,
+    minify: true,
     rollupOptions: {
       treeshake: true,
     },

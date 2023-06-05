@@ -9,6 +9,7 @@
   "dependencies": {
     "vue": "^3.2.47",
     "kysely-wasm": "latest",
+    "kysely-wasqlite-worker": "latest",
     "kysely-sqlite-builder": "latest"
   }
 }

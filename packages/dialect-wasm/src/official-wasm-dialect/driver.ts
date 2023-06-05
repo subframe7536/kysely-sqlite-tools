@@ -46,7 +46,7 @@ class OfficailSqliteWasmConnection extends BaseSqliteConnection {
     })
     return {
       numAffectedRows: BigInt(this.#db.changes(false, true)),
-      insertId: BigInt(this.query('SELECT last_insert_rowid()')[0]),
+      insertId: BigInt(this.query('SELECT last_insert_rowid() as id')[0].id),
     }
   }
 }

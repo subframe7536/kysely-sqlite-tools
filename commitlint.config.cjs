@@ -92,6 +92,7 @@ module.exports = {
       'dialect-tauri',
       'dialect-wasm',
       'dialect-sqlite-worker',
+      'dialect-wasqlite-worker',
       'builder',
       'workspace',
     ],

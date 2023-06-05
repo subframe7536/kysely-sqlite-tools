@@ -3,3 +3,4 @@ packages/wrapper/src/jswasm
 playground/src/jswasm
 playground/src/wa-sqlite
 .github
+dist

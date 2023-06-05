@@ -31,6 +31,7 @@ export async function testDB(dialect: Dialect) {
   }).init()
   console.log('test')
   console.log(await db.raw(sql => sql`PRAGMA table_info(${sql.table('test')});`))
+  console.log(await db.raw(sql => sql`select last_insert_rowid()`))
 
   for (let i = 0; i < 1e2; i++) {
     await db.transaction((trx) => {

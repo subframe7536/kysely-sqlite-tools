@@ -2,14 +2,15 @@
 import { useDB } from './modules/mainThread'
 import SqljsWorker from './modules/sqljsWorker?worker'
 import OfficialWorker from './modules/officialWasmWorker?worker'
-import WaSqliteWorker from './modules/wa-sqlite?worker'
+import { useWaSqlite } from './modules/wasqlite'
+import { useWaSqliteWorker } from './modules/wasqliteWorker'
 import { deleteFile } from './modules/indexeddb'
-import { testCRSqlite } from './modules/crsqlite'
+
+// import { testCRSqlite } from './modules/crsqlite'
 
 const sqljsWorker = new SqljsWorker()
 const { result, run } = useDB()
 const officialWorker = new OfficialWorker()
-const waSqliteWorker = new WaSqliteWorker()
 function testSqljsMain() {
   run()
 }
@@ -20,7 +21,10 @@ function testOfficialWasm() {
   officialWorker.postMessage('')
 }
 function testWaSqlite() {
-  waSqliteWorker.postMessage('')
+  useWaSqlite()
+}
+function testWaSqliteWorker() {
+  useWaSqliteWorker()
 }
 async function clear() {
   console.clear()
@@ -61,9 +65,9 @@ async function clear() {
     <button @click="testSqljsMain()">
       test sqljs in main thread
     </button>
-    <button @click="testCRSqlite()">
+    <!-- <button @click="testCRSqlite()">
       test crsqlite in main thread
-    </button>
+    </button> -->
     <button @click="testSqljsWorker()">
       test sqljs in Worker
     </button>
@@ -71,6 +75,9 @@ async function clear() {
       test officialWasm in Worker
     </button>
     <button @click="testWaSqlite()">
+      test wa-sqlite in main thread
+    </button>
+    <button @click="testWaSqliteWorker()">
       test wa-sqlite in Worker
     </button>
     <button @click="clear()">

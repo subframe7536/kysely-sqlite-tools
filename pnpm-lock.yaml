@@ -78,10 +78,7 @@ importers:
         version: github.com/rhashimoto/wa-sqlite/007f3553564654096403dddc9c54adbf57feadc0
 
   packages/dialect-sqlite-worker:
-    devDependencies:
-      '@types/better-sqlite3':
-        specifier: ^7.6.4
-        version: 7.6.4
+    dependencies:
       better-sqlite3:
         specifier: ^8.4.0
         version: 8.4.0
@@ -90,15 +87,15 @@ importers:
 
   packages/dialect-wasm: {}
 
-  packages/dialect-worker:
+  packages/dialect-wasqlite-worker:
     dependencies:
-      better-sqlite3:
-        specifier: ^8.4.0
-        version: 8.4.0
+      mitt:
+        specifier: ^3.0.0
+        version: 3.0.0
     devDependencies:
-      '@types/better-sqlite3':
-        specifier: ^7.6.4
-        version: 7.6.4
+      wa-sqlite:
+        specifier: github:rhashimoto/wa-sqlite
+        version: github.com/rhashimoto/wa-sqlite/007f3553564654096403dddc9c54adbf57feadc0
 
   packages/plugin-serialize: {}
 
@@ -116,6 +113,9 @@ importers:
       kysely-wasm:
         specifier: latest
         version: link:../packages/dialect-wasm
+      kysely-wasqlite-worker:
+        specifier: latest
+        version: link:../packages/dialect-wasqlite-worker
       vue:
         specifier: ^3.2.47
         version: registry.npmjs.org/vue@3.2.47
@@ -3611,6 +3611,10 @@ packages:
       minipass: 3.3.6
       yallist: 4.0.0
     dev: true
+
+  /mitt@3.0.0:
+    resolution: {integrity: sha512-7dX2/10ITVyqh4aOSVI9gdape+t9l2/8QxHrFmUXu4EEUpdlxl6RudZUPZoc+zuY2hk1j7XxVroIVIan/pD/SQ==}
+    dev: false
 
   /mkdirp-classic@0.5.3:
     resolution: {integrity: sha512-gKLcREMhtuZRwRAfqP3RFW+TK4JqApVBtOIftVgjuABpAtpxhPGaDcfvbhNvD0B8iD1oUr/txX35NjcaY6Ns/A==}
