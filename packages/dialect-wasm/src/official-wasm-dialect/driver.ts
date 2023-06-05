@@ -27,8 +27,8 @@ class OfficailSqliteWasmConnection extends BaseSqliteConnection {
     this.#db = db
   }
 
-  query(sql: string, param?: any[]): any[] {
-    const resultRows: never[] = []
+  query(sql: string, param?: any[]) {
+    const resultRows: any[] = []
     this.#db.exec({
       sql,
       bind: param ?? [],
@@ -45,8 +45,8 @@ class OfficailSqliteWasmConnection extends BaseSqliteConnection {
       bind: param ?? [],
     })
     return {
-      numAffectedRows: this.#db.changes(false, true) as bigint,
-      insertId: this.query('SELECT last_insert_rowid()')[0],
+      numAffectedRows: BigInt(this.#db.changes(false, true)),
+      insertId: BigInt(this.query('SELECT last_insert_rowid()')[0]),
     }
   }
 }

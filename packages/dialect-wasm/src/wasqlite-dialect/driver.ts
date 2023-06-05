@@ -19,6 +19,10 @@ export class WaSqliteDriver extends BaseDriver {
       await this.#config.onCreateConnection(this.connection)
     }
   }
+
+  async close() {
+    await this.#db?.sqlite.close(this.#db.db)
+  }
 }
 
 class WaSqliteConnection extends BaseSqliteConnection {
@@ -32,8 +36,7 @@ class WaSqliteConnection extends BaseSqliteConnection {
 
   async run(statement: { sql: string; param?: any[] }) {
     const str = this.#sqlite.str_new(this.#db, statement.sql)
-    let prepared
-    prepared = await this.#sqlite.prepare_v2(
+    const prepared = await this.#sqlite.prepare_v2(
       this.#db,
       this.#sqlite.str_value(str),
     )
@@ -68,20 +71,16 @@ class WaSqliteConnection extends BaseSqliteConnection {
     }
   }
 
-  query(sql: string, param?: any[] | undefined): any[] | Promise<any[]> {
-    return this.run({ sql, param })
+  async query(sql: string, param?: any[] | undefined) {
+    return await this.run({ sql, param })
   }
 
-  exec(sql: string, param?: any[] | undefined): { numAffectedRows: bigint; insertId: any } | Promise<{ numAffectedRows: bigint; insertId: any }> {
-    return new Promise((resolve) => {
-      this.run({ sql, param }).then(() => {
-        this.run({ sql: 'SELECT last_insert_rowid() as id' }).then((v) => {
-          resolve({
-            insertId: v[0].id,
-            numAffectedRows: BigInt(this.#sqlite.changes(this.#db)),
-          })
-        })
-      })
-    })
+  async exec(sql: string, param?: any[] | undefined) {
+    await this.run({ sql, param })
+    const v = await this.run({ sql: 'SELECT last_insert_rowid() as id' })
+    return {
+      insertId: BigInt(v[0].id),
+      numAffectedRows: BigInt(this.#sqlite.changes(this.#db)),
+    }
   }
 }

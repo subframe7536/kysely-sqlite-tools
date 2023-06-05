@@ -14,4 +14,5 @@ export interface Sqlite {
   row: (stmt: number) => SQLiteCompatibleType[]
   bind_collection: (stmt: number, params: any) => number
   changes: (db: number) => number
+  close: (db: number) => Promise<number>
 }

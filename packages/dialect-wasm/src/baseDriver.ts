@@ -64,7 +64,7 @@ class ConnectionMutex {
 }
 export abstract class BaseSqliteConnection implements DatabaseConnection {
   abstract query(sql: string, param?: any[]): any[] | Promise<any[]>
-  abstract exec(sql: string, param?: any[]): { numAffectedRows: bigint; insertId: any } | Promise<{ numAffectedRows: bigint; insertId: any }>
+  abstract exec(sql: string, param?: any[]): { numAffectedRows: bigint; insertId: bigint } | Promise<{ numAffectedRows: bigint; insertId: bigint }>
   streamQuery<R>(): AsyncIterableIterator<QueryResult<R>> {
     throw new Error('Sqlite driver doesn\'t support streaming')
   }

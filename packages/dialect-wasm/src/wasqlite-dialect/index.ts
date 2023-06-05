@@ -5,12 +5,6 @@ import type { WaSqliteDatabase } from './type'
 
 export interface WaSqliteDialectConfig {
   database: WaSqliteDatabase | (() => Promise<WaSqliteDatabase>)
-  onWrite?: {
-    func: (buffer: Uint8Array) => void
-    isThrottle?: boolean
-    delay?: number
-    maxCalls?: number
-  }
   onCreateConnection?: (connection: DatabaseConnection) => Promise<void>
 }
 export class WaSqliteDialect extends BaseDialect {

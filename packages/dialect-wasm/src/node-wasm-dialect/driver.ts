@@ -32,10 +32,10 @@ class NodeWasmConnection extends BaseSqliteConnection {
     return this.#db.all(sql, param)
   }
 
-  exec(sql: string, param?: any[] | undefined): { numAffectedRows: bigint; insertId: any } | Promise<{ numAffectedRows: bigint; insertId: any }> {
+  exec(sql: string, param?: any[] | undefined) {
     const { changes, lastInsertRowid } = this.#db.run(sql, param)
     return {
-      insertId: lastInsertRowid,
+      insertId: BigInt(lastInsertRowid),
       numAffectedRows: BigInt(changes),
     }
   }
