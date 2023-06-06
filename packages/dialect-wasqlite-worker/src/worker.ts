@@ -16,14 +16,9 @@ async function init(dbName: string, url: string) {
   db = await sqlite.open_v2(
     dbName, undefined, dbName,
   )
-  const msg: WorkerMsg = {
-    type: 'init',
-    data: null,
-  }
-  postMessage(msg)
 }
 
-async function run(sql: string, parameters?: any[]) {
+async function run(sql: string, parameters?: readonly unknown[]) {
   const str = sqlite.str_new(db, sql)
   const prepared = await sqlite.prepare_v2(
     db,
@@ -39,7 +34,7 @@ async function run(sql: string, parameters?: any[]) {
     if (typeof parameters !== 'undefined') {
       sqlite.bind_collection(
         stmt,
-        parameters,
+        parameters as any[],
       )
     }
 
@@ -60,45 +55,41 @@ async function run(sql: string, parameters?: any[]) {
   }
 }
 
-async function exec(sql: string, parameters?: unknown[]) {
+async function exec(sql: string, parameters?: readonly unknown[]) {
   await run(sql, parameters)
   const v = await run('SELECT last_insert_rowid() as id')
-  const msg: WorkerMsg = {
-    type: 'exec',
-    data: {
-      insertId: BigInt(v[0].id),
-      numAffectedRows: BigInt(sqlite.changes(db)),
-    },
+  return {
+    insertId: BigInt(v[0].id),
+    numAffectedRows: BigInt(sqlite.changes(db)),
+    rows: [],
   }
-  postMessage(msg)
 }
 
-async function query(sql: string, parameters?: unknown[]) {
-  const msg: WorkerMsg = {
-    type: 'query',
-    data: await run(sql, parameters),
+async function query(sql: string, parameters?: readonly unknown[]) {
+  return {
+    rows: await run(sql, parameters),
   }
-  postMessage(msg)
 }
 
 async function close() {
   await sqlite.close(db)
-  const msg: WorkerMsg = {
-    type: 'close',
-    data: null,
-  }
-  postMessage(msg)
 }
 
 onmessage = async (ev: MessageEvent<MainMsg>) => {
+  const data = ev.data
+  const ret: WorkerMsg = {
+    type: data.type,
+    msg: {
+      data: null,
+      err: null,
+    },
+  }
   try {
-    const data = ev.data
     switch (data.type) {
-      case 'exec':
-        await exec(data.sql, data.param)
-        break
-      case 'query':
-        await query(data.sql, data.param)
+      case 'run':
+        ret.msg.data = data.isQuery
+          ? await query(data.sql, data.parameters)
+          : await exec(data.sql, data.parameters)
         break
       case 'close':
         await close()
@@ -108,10 +99,7 @@ onmessage = async (ev: MessageEvent<MainMsg>) => {
         break
     }
   } catch (error) {
-    const msg: WorkerMsg = {
-      type: 'error',
-      data: error,
-    }
-    postMessage(msg)
+    ret.msg.err = error
   }
+  postMessage(ret)
 }

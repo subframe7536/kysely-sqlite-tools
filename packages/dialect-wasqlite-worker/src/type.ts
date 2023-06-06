@@ -1,8 +1,11 @@
+import type { QueryResult } from 'kysely'
+
 export type MainMsg =
   | {
-    type: 'exec' | 'query'
+    type: 'run'
+    isQuery: boolean
     sql: string
-    param?: unknown[]
+    parameters?: readonly unknown[]
   }
   | {
     type: 'close'
@@ -13,21 +16,23 @@ export type MainMsg =
     dbName: string
   }
 
-export type ExecType = {
-  insertId: bigint
-  numAffectedRows: bigint
-}
-
 export type WorkerMsg = {
   [K in keyof Events]: {
     type: K
-    data: Events[K]
+    msg: {
+      data: Events[K]
+      err: unknown
+    }
   }
 }[keyof Events]
-export type Events = {
-  query: any[]
-  exec: ExecType
+type Events = {
+  run: QueryResult<any> | null
   init: null
   close: null
-  error: unknown
+}
+export type EventWithError = {
+  [K in keyof Events]: {
+    data: Events[K]
+    err: unknown
+  }
 }

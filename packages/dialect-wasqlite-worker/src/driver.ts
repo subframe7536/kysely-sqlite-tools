@@ -1,10 +1,10 @@
 import type { DatabaseConnection, Driver, QueryResult } from 'kysely'
 import { CompiledQuery } from 'kysely'
 import Mitt from 'mitt'
-import type { Events, ExecType, MainMsg, WorkerMsg } from './type'
+import type { EventWithError, MainMsg, WorkerMsg } from './type'
 import type { WaSqliteWorkerDialectConfig } from '.'
 
-const mitt = Mitt<Events>()
+const mitt = Mitt<EventWithError>()
 export class WaSqliteWorkerDriver implements Driver {
   #config: WaSqliteWorkerDialectConfig
   #worker: Worker
@@ -15,23 +15,8 @@ export class WaSqliteWorkerDriver implements Driver {
     this.#worker = this.#config.worker
       ?? new Worker(new URL('./worker', import.meta.url), { type: 'module' })
     this.#worker.onmessage = (ev: MessageEvent<WorkerMsg>) => {
-      const { type, data } = ev.data
-      switch (type) {
-        case 'close':
-          mitt.emit('close', data)
-          break
-        case 'query':
-          mitt.emit('query', data)
-          break
-        case 'exec':
-          mitt.emit('exec', data)
-          break
-        case 'init':
-          mitt.emit('init', data)
-          break
-        case 'error':
-          throw data
-      }
+      const { type, msg } = ev.data
+      mitt.emit(type, msg)
     }
     const msg: MainMsg = {
       type: 'init',
@@ -42,10 +27,11 @@ export class WaSqliteWorkerDriver implements Driver {
   }
 
   async init(): Promise<void> {
-    await new Promise<void>((resolve) => {
-      mitt.on('init', () => {
+    await new Promise<void>((resolve, reject) => {
+      mitt.on('init', (msg) => {
         mitt.off('init')
-        resolve()
+        const { err } = msg
+        err ? reject(err) : resolve()
       })
     })
     this.connection = new WaSqliteWorkerConnection(this.#worker)
@@ -84,11 +70,17 @@ export class WaSqliteWorkerDriver implements Driver {
     this.#worker.postMessage({
       type: 'close',
     })
-    return new Promise<void>((resolve) => {
-      mitt.on('close', () => {
-        this.#worker.terminate()
-        this.#worker = null as any
-        resolve()
+    return new Promise<void>((resolve, reject) => {
+      mitt.on('close', (msg) => {
+        mitt.off('close')
+        const { err } = msg
+        if (err) {
+          reject(err)
+        } else {
+          this.#worker.terminate()
+          this.#worker = null as any
+          resolve()
+        }
       })
     })
   }
@@ -124,50 +116,25 @@ class WaSqliteWorkerConnection implements DatabaseConnection {
     this.#worker = worker
   }
 
-  query(sql: string, param?: any[] | undefined) {
-    const msg: MainMsg = {
-      type: 'query',
-      sql,
-      param,
-    }
-    this.#worker.postMessage(msg)
-    return new Promise<any[]>((resolve) => {
-      mitt.on('query', (data: any[]) => {
-        mitt.off('query')
-        resolve(data)
-      })
-    })
-  }
-
-  exec(sql: string, param?: any[] | undefined): { numAffectedRows: bigint; insertId: any } | Promise<{ numAffectedRows: bigint; insertId: any }> {
-    const msg: MainMsg = {
-      type: 'exec',
-      sql,
-      param,
-    }
-    this.#worker.postMessage(msg)
-    return new Promise<ExecType>((resolve) => {
-      mitt.on('exec', (data: ExecType) => {
-        mitt.off('exec')
-        resolve(data)
-      })
-    })
-  }
-
   streamQuery<R>(): AsyncIterableIterator<QueryResult<R>> {
     throw new Error('Sqlite driver doesn\'t support streaming')
   }
 
   async executeQuery<R>(compiledQuery: CompiledQuery<unknown>): Promise<QueryResult<R>> {
     const { parameters, sql, query } = compiledQuery
-    return Promise.resolve((query.kind === 'SelectQueryNode' || query.kind === 'RawNode')
-      ? {
-          rows: await this.query(sql, parameters as any[]),
+    const isQuery = ['SelectQueryNode', 'RawNode'].includes(query.kind)
+    const msg: MainMsg = { type: 'run', isQuery, sql, parameters }
+    this.#worker.postMessage(msg)
+    return new Promise((resolve, reject) => {
+      mitt.on('run', (msg) => {
+        mitt.off('run')
+        const { data, err } = msg
+        if (!err && data) {
+          resolve(data)
+        } else {
+          reject(err)
         }
-      : {
-          rows: [],
-          ...await this.exec(sql, parameters as any[]),
-        },
-    )
+      })
+    })
   }
 }
