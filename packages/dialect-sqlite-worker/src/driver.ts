@@ -6,7 +6,7 @@ import { CompiledQuery } from 'kysely'
 import type { MainMsg, WorkerMsg } from './type'
 import type { SqliteWorkerDialectConfig } from '.'
 
-const ee = new EventEmitter()
+let ee = new EventEmitter()
 
 export class SqliteWorkerDriver implements Driver {
   readonly #connectionMutex = new ConnectionMutex()
@@ -67,6 +67,8 @@ export class SqliteWorkerDriver implements Driver {
           reject(err)
         } else {
           this.#worker?.terminate()
+          ee.removeAllListeners()
+          ee = null as any
           resolve()
         }
       })
