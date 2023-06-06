@@ -62,23 +62,26 @@ class ConnectionMutex {
     resolve?.()
   }
 }
+type Promisable<T> = T | Promise<T>
+export type ExecReturn = Promisable<Omit<QueryResult<any>, 'rows' | 'numUpdatedOrDeletedRows'>>
+export type QueryReturn = Promisable<any[]>
+
 export abstract class BaseSqliteConnection implements DatabaseConnection {
-  abstract query(sql: string, param?: any[]): any[] | Promise<any[]>
-  abstract exec(sql: string, param?: any[]): { numAffectedRows: bigint; insertId: bigint } | Promise<{ numAffectedRows: bigint; insertId: bigint }>
+  abstract query(sql: string, param?: any[]): QueryReturn
+  abstract exec(sql: string, param?: any[]): ExecReturn
   streamQuery<R>(): AsyncIterableIterator<QueryResult<R>> {
     throw new Error('Sqlite driver doesn\'t support streaming')
   }
 
   async executeQuery<R>(compiledQuery: CompiledQuery<unknown>): Promise<QueryResult<R>> {
     const { parameters, sql, query } = compiledQuery
-    return Promise.resolve((query.kind === 'SelectQueryNode' || query.kind === 'RawNode')
+    return ['SelectQueryNode', 'RawNode'].includes(query.kind)
       ? {
           rows: await this.query(sql, parameters as any[]),
         }
       : {
           rows: [],
           ...await this.exec(sql, parameters as any[]),
-        },
-    )
+        }
   }
 }
