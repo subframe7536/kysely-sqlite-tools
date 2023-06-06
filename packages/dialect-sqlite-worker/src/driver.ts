@@ -1,8 +1,13 @@
 import { Worker } from 'node:worker_threads'
 import { join } from 'node:path'
+import { EventEmitter } from 'node:events'
 import type { DatabaseConnection, Driver, QueryResult } from 'kysely'
 import { CompiledQuery } from 'kysely'
-import type { SqlData, SqliteWorkerDialectConfig } from './type'
+import type { SqlData, WorkerMsg } from './type'
+import type { SqliteWorkerDialectConfig } from '.'
+
+const ee = new EventEmitter()
+ee.on('error', (e) => { throw e })
 
 export class SqliteWorkerDriver implements Driver {
   readonly #connectionMutex = new ConnectionMutex()
@@ -21,6 +26,10 @@ export class SqliteWorkerDriver implements Driver {
       join(__dirname, 'worker.js'),
       { workerData: { src, option } },
     )
+    this.#worker.on('message', (msg: WorkerMsg) => {
+      const { data, type } = msg
+      ee.emit(type, data)
+    })
     this.#connection = new SqliteWorkerConnection(this.#worker)
     await onCreateConnection?.(this.#connection)
   }
@@ -51,7 +60,7 @@ export class SqliteWorkerDriver implements Driver {
   async destroy(): Promise<void> {
     this.#worker?.postMessage('close')
     return new Promise<void>((resolve) => {
-      this.#worker?.once('message', () => {
+      ee.once('close', () => {
         this.#worker?.terminate()
         resolve()
       })
@@ -96,9 +105,7 @@ export class SqliteWorkerConnection implements DatabaseConnection {
     const data: SqlData = { sql, parameters }
     this.#worker.postMessage(data)
     return new Promise((resolve) => {
-      this.#worker.once('message', (data) => {
-        resolve(data)
-      })
+      ee.once('result', resolve)
     })
   }
 }

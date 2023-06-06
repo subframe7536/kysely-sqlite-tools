@@ -1,7 +1,14 @@
-import type { DatabaseIntrospector, Dialect, DialectAdapter, Driver, Kysely, QueryCompiler } from 'kysely'
+import type { Buffer } from 'node:buffer'
+import type { DatabaseConnection, DatabaseIntrospector, Dialect, DialectAdapter, Driver, Kysely, QueryCompiler } from 'kysely'
 import { SqliteAdapter, SqliteIntrospector, SqliteQueryCompiler } from 'kysely'
+import type { Options } from 'better-sqlite3'
 import { SqliteWorkerDriver } from './driver'
-import type { SqliteWorkerDialectConfig } from './type'
+
+export type SqliteWorkerDialectConfig = {
+  source: string | Buffer | (() => Promise<string | Buffer>)
+  option?: Options
+  onCreateConnection?: (connection: DatabaseConnection) => Promise<void>
+}
 
 export class SqliteWorkerDialect implements Dialect {
   #config: SqliteWorkerDialectConfig

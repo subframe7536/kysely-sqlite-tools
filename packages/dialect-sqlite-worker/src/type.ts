@@ -1,16 +1,30 @@
-import type { Buffer } from 'node:buffer'
-import type { DatabaseConnection } from 'kysely'
-import type { Options } from 'better-sqlite3'
-
 export type SqlData = {
   sql: string
   parameters?: readonly unknown[]
 }
 
-export type WorkerMsg = SqlData | 'close'
+export type MainMsg =
+  | {
+    type: 'exec' | 'query'
+    sql: string
+    parameters?: unknown[]
+  }
+  | {
+    type: 'close'
+  }
 
-export type SqliteWorkerDialectConfig = {
-  source: string | Buffer | (() => Promise<string | Buffer>)
-  option?: Options
-  onCreateConnection?: (connection: DatabaseConnection) => Promise<void>
+export type ExecType = {
+  insertId: bigint
+  numAffectedRows: bigint
+}
+export type WorkerMsg = {
+  [K in keyof Events]: {
+    type: K
+    data: Events[K]
+  }
+}[keyof Events]
+export type Events = {
+  result: unknown
+  close: null
+  error: unknown
 }
