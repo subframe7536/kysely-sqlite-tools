@@ -1,10 +1,10 @@
 import type { DatabaseConnection, Driver, QueryResult } from 'kysely'
 import { CompiledQuery } from 'kysely'
-import Mitt from 'mitt'
+import MittOnce from './mitt'
 import type { EventWithError, MainMsg, WorkerMsg } from './type'
 import type { WaSqliteWorkerDialectConfig } from '.'
 
-const mitt = Mitt<EventWithError>()
+let mitt = MittOnce<EventWithError>()
 export class WaSqliteWorkerDriver implements Driver {
   #config: WaSqliteWorkerDialectConfig
   #worker: Worker
@@ -28,8 +28,7 @@ export class WaSqliteWorkerDriver implements Driver {
 
   async init(): Promise<void> {
     await new Promise<void>((resolve, reject) => {
-      mitt.on('init', (msg) => {
-        mitt.off('init')
+      mitt.once('init', (msg) => {
         const { err } = msg
         err ? reject(err) : resolve()
       })
@@ -71,14 +70,14 @@ export class WaSqliteWorkerDriver implements Driver {
       type: 'close',
     })
     return new Promise<void>((resolve, reject) => {
-      mitt.on('close', (msg) => {
-        mitt.off('close')
+      mitt.once('close', (msg) => {
         const { err } = msg
         if (err) {
           reject(err)
         } else {
           this.#worker.terminate()
-          this.#worker = null as any
+          mitt.all.clear()
+          mitt = null as any
           resolve()
         }
       })
@@ -126,8 +125,7 @@ class WaSqliteWorkerConnection implements DatabaseConnection {
     const msg: MainMsg = { type: 'run', isQuery, sql, parameters }
     this.#worker.postMessage(msg)
     return new Promise((resolve, reject) => {
-      mitt.on('run', (msg) => {
-        mitt.off('run')
+      mitt.once('run', (msg) => {
         const { data, err } = msg
         if (!err && data) {
           resolve(data)

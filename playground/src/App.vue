@@ -26,12 +26,16 @@ function testWaSqlite() {
 function testWaSqliteWorker() {
   useWaSqliteWorker()
 }
+async function deleteDatabase() {
+  const dbs = await window.indexedDB.databases()
+  dbs.forEach((db) => { window.indexedDB.deleteDatabase(db.name!) })
+}
 async function clear() {
-  console.clear()
+  // console.clear()
   const root = await navigator.storage.getDirectory()
   await deleteFile('sqljs')
   await deleteFile('sqlijsWorker')
-  indexedDB.deleteDatabase('idb-batch-atomic')
+  await deleteDatabase()
   try {
     await root.removeEntry('test.db')
   } catch { }
