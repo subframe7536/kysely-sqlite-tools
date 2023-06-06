@@ -15,8 +15,8 @@ export class SqliteBuilder<DB extends Record<string, any>> {
   readonly #tableMap: Map<string, ITable<DB[Extract<keyof DB, string>]>>
   public constructor(option: SqliteBuilderOption<DB>) {
     const { dialect, tables, dropTableBeforeInit: truncateBeforeInit, onError, onQuery, plugins: additionalPlugin } = option
-    const plugins: KyselyPlugin[] = [new SqliteSerializePlugin()]
-    additionalPlugin && plugins.push(...additionalPlugin)
+    const plugins: KyselyPlugin[] = additionalPlugin ?? []
+    plugins.push(new SqliteSerializePlugin())
     this.kysely = new Kysely<DB>({
       dialect,
       log: (event: LogEvent) => {

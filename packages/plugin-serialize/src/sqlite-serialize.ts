@@ -28,9 +28,6 @@ export const defaultDeserializer: Deserializer = (parameter) => {
   ) {
     return parameter
   }
-  // if (typeof parameter === 'object' && 'buffer' in parameter) {
-  //   return type.from(parameter as any)
-  // }
   if (typeof parameter === 'string') {
     const dateRegex = /^\d{4}-\d{2}-\d{2}[T ]\d{2}:\d{2}:\d{2}(?:\.\d+)?Z?$/
     if (/^(true|false)$/.test(parameter)) {
@@ -39,7 +36,8 @@ export const defaultDeserializer: Deserializer = (parameter) => {
       return new Date(parameter)
     } else {
       try {
-        return JSON.parse(parameter, (_k, v) => (typeof v === 'string' && dateRegex.exec(v)) ? new Date(v) : v)
+        return JSON.parse(parameter, (_k, v) =>
+          (typeof v === 'string' && dateRegex.exec(v)) ? new Date(v) : v)
       } catch (e) { }
     }
   }

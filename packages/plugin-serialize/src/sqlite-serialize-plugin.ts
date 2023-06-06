@@ -96,7 +96,6 @@ export class SqliteSerializePlugin implements KyselyPlugin {
    * ```
    */
   public constructor(opt: SqliteSerializePluginOptions = {}) {
-    // this.#deep = opt.deepDeserialize ?? false
     this.#serializeParametersTransformer = new SerializeParametersTransformer(
       opt.serializer,
     )
