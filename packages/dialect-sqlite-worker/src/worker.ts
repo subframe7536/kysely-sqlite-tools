@@ -9,30 +9,31 @@ if (!parentPort) {
 const { src, option } = workerData
 const db = new Database(src, option)
 
-parentPort.on('message', (msg: MainMsg) => {
-  try {
-    if (msg.type === 'close') {
-      db.close()
-      const ret: WorkerMsg = {
-        type: 'close',
-        data: null,
+parentPort.on('message', async (msg: MainMsg) => {
+  const ret: WorkerMsg = {
+    type: msg.type,
+    data: null,
+    err: null,
+  }
+  const run = async () => {
+    try {
+      if (msg.type === 'close') {
+        db.close()
+        return
       }
-      parentPort?.postMessage(ret)
-      return
-    }
-    const { sql, parameters } = msg
-    const stmt = db.prepare(sql)
-    let data: any
-    if (stmt.reader) {
-      data = {
-        rows: stmt.all(parameters),
+      const { sql, parameters } = msg
+      const stmt = db.prepare(sql)
+      if (stmt.reader) {
+        ret.data = {
+          rows: stmt.all(parameters),
+        }
+        return
       }
-    } else {
       const { changes, lastInsertRowid } = stmt.run(parameters)
       const numAffectedRows = (changes !== undefined && changes !== null)
         ? BigInt(changes)
         : undefined
-      data = {
+      ret.data = {
         numAffectedRows,
         insertId:
           (lastInsertRowid !== undefined && lastInsertRowid !== null)
@@ -40,17 +41,10 @@ parentPort.on('message', (msg: MainMsg) => {
             : undefined,
         rows: [],
       }
+    } catch (error) {
+      ret.err = error
     }
-    const ret: WorkerMsg = {
-      type: 'result',
-      data,
-    }
-    parentPort?.postMessage(ret)
-  } catch (error) {
-    const ret: WorkerMsg = {
-      type: 'error',
-      data: error,
-    }
-    parentPort?.postMessage(ret)
   }
+  await run()
+  parentPort?.postMessage(ret)
 })

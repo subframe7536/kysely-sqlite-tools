@@ -3,11 +3,10 @@ import { join } from 'node:path'
 import { EventEmitter } from 'node:events'
 import type { DatabaseConnection, Driver, QueryResult } from 'kysely'
 import { CompiledQuery } from 'kysely'
-import type { SqlData, WorkerMsg } from './type'
+import type { MainMsg, WorkerMsg } from './type'
 import type { SqliteWorkerDialectConfig } from '.'
 
 const ee = new EventEmitter()
-ee.on('error', (e) => { throw e })
 
 export class SqliteWorkerDriver implements Driver {
   readonly #connectionMutex = new ConnectionMutex()
@@ -27,8 +26,8 @@ export class SqliteWorkerDriver implements Driver {
       { workerData: { src, option } },
     )
     this.#worker.on('message', (msg: WorkerMsg) => {
-      const { data, type } = msg
-      ee.emit(type, data)
+      const { data, type, err } = msg
+      ee.emit(type, data, err)
     })
     this.#connection = new SqliteWorkerConnection(this.#worker)
     await onCreateConnection?.(this.#connection)
@@ -58,11 +57,18 @@ export class SqliteWorkerDriver implements Driver {
   }
 
   async destroy(): Promise<void> {
-    this.#worker?.postMessage('close')
-    return new Promise<void>((resolve) => {
-      ee.once('close', () => {
-        this.#worker?.terminate()
-        resolve()
+    const msg: MainMsg = {
+      type: 'close',
+    }
+    this.#worker?.postMessage(msg)
+    return new Promise<void>((resolve, reject) => {
+      ee.once('close', (_, err) => {
+        if (err) {
+          reject(err)
+        } else {
+          this.#worker?.terminate()
+          resolve()
+        }
       })
     })
   }
@@ -102,10 +108,19 @@ export class SqliteWorkerConnection implements DatabaseConnection {
 
   async executeQuery<R>(compiledQuery: CompiledQuery<unknown>): Promise<QueryResult<R>> {
     const { parameters, sql } = compiledQuery
-    const data: SqlData = { sql, parameters }
-    this.#worker.postMessage(data)
-    return new Promise((resolve) => {
-      ee.once('result', resolve)
+    const msg: MainMsg = {
+      type: 'exec',
+      sql,
+      parameters,
+    }
+    this.#worker.postMessage(msg)
+    return new Promise((resolve, reject) => {
+      ee.once('exec', (data: QueryResult<any>, err) => {
+        if (!data) {
+          reject('unknown error')
+        }
+        err ? reject(err) : resolve(data)
+      })
     })
   }
 }

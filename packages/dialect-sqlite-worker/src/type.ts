@@ -1,3 +1,5 @@
+import type { QueryResult } from 'kysely'
+
 export type SqlData = {
   sql: string
   parameters?: readonly unknown[]
@@ -5,26 +7,22 @@ export type SqlData = {
 
 export type MainMsg =
   | {
-    type: 'exec' | 'query'
+    type: 'exec'
     sql: string
-    parameters?: unknown[]
+    parameters?: readonly unknown[]
   }
   | {
     type: 'close'
   }
 
-export type ExecType = {
-  insertId: bigint
-  numAffectedRows: bigint
-}
-export type WorkerMsg = {
-  [K in keyof Events]: {
-    type: K
-    data: Events[K]
+export type WorkerMsg =
+  | {
+    type: 'exec'
+    data: QueryResult<any> | null
+    err: unknown
   }
-}[keyof Events]
-export type Events = {
-  result: unknown
-  close: null
-  error: unknown
-}
+  | {
+    type: 'close'
+    data: null
+    err: unknown
+  }
