@@ -6,13 +6,12 @@ import { CompiledQuery } from 'kysely'
 import type { MainMsg, WorkerMsg } from './type'
 import type { SqliteWorkerDialectConfig } from '.'
 
-let ee = new EventEmitter()
-
 export class SqliteWorkerDriver implements Driver {
   readonly #connectionMutex = new ConnectionMutex()
   #connection?: SqliteWorkerConnection
   #config: SqliteWorkerDialectConfig
   #worker?: Worker
+  #emit?: EventEmitter
 
   constructor(config: SqliteWorkerDialectConfig) {
     this.#config = Object.freeze({ ...config })
@@ -21,15 +20,15 @@ export class SqliteWorkerDriver implements Driver {
   async init(): Promise<void> {
     const { option, source, onCreateConnection } = this.#config
     const src = typeof source === 'function' ? await source() : source
+    this.#emit = new EventEmitter()
     this.#worker = new Worker(
       join(__dirname, 'worker.js'),
       { workerData: { src, option } },
     )
-    this.#worker.on('message', (msg: WorkerMsg) => {
-      const { data, type, err } = msg
-      ee.emit(type, data, err)
+    this.#worker.on('message', ({ data, type, err }: WorkerMsg) => {
+      this.#emit?.emit(type, data, err)
     })
-    this.#connection = new SqliteWorkerConnection(this.#worker)
+    this.#connection = new SqliteWorkerConnection(this.#worker, this.#emit)
     await onCreateConnection?.(this.#connection)
   }
 
@@ -62,13 +61,13 @@ export class SqliteWorkerDriver implements Driver {
     }
     this.#worker?.postMessage(msg)
     return new Promise<void>((resolve, reject) => {
-      ee.once('close', (_, err) => {
+      this.#emit?.once('close', (_, err) => {
         if (err) {
           reject(err)
         } else {
           this.#worker?.terminate()
-          ee.removeAllListeners()
-          ee = null as any
+          this.#emit?.removeAllListeners()
+          this.#emit = undefined
           resolve()
         }
       })
@@ -100,8 +99,10 @@ class ConnectionMutex {
 }
 export class SqliteWorkerConnection implements DatabaseConnection {
   #worker: Worker
-  constructor(worker: Worker) {
+  #emit?: EventEmitter
+  constructor(worker: Worker, emit?: EventEmitter) {
     this.#worker = worker
+    this.#emit = emit
   }
 
   streamQuery<R>(): AsyncIterableIterator<QueryResult<R>> {
@@ -117,11 +118,11 @@ export class SqliteWorkerConnection implements DatabaseConnection {
     }
     this.#worker.postMessage(msg)
     return new Promise((resolve, reject) => {
-      ee.once('exec', (data: QueryResult<any>, err) => {
-        if (!data) {
-          reject('unknown error')
-        }
-        err ? reject(err) : resolve(data)
+      if (!this.#emit) {
+        reject('kysely instance has been destroyed')
+      }
+      this.#emit!.once('exec', (data: QueryResult<any>, err) => {
+        (data && !err) ? resolve(data) : reject(err)
       })
     })
   }
