@@ -1,6 +1,6 @@
 # WaSqlite Worker Dialect
 
-execute sql in `Web Worker`, using `wa-sqlite`
+execute sql in `Web Worker`, using `wa-sqlite`, store data in IndexedDB
 
 ## install
 
@@ -10,7 +10,7 @@ pnpm add -D kysely kysely-wasqlite-worker
 
 ## usage
 
-see [playground](../../playground/src/modules/wasqliteWorker.ts)
+see in [playground](../../playground/src/modules/wasqliteWorker.ts)
 
 ## limitation
 

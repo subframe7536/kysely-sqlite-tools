@@ -1,22 +1,26 @@
 import type { DatabaseConnection, Driver, QueryResult } from 'kysely'
 import { CompiledQuery } from 'kysely'
+import type { EmitterOnce } from './mitt'
 import MittOnce from './mitt'
 import type { EventWithError, MainMsg, WorkerMsg } from './type'
 import type { WaSqliteWorkerDialectConfig } from '.'
 
-let mitt = MittOnce<EventWithError>()
 export class WaSqliteWorkerDriver implements Driver {
   #config: WaSqliteWorkerDialectConfig
-  #worker: Worker
+  #worker?: Worker
   connection?: DatabaseConnection
   #connectionMutex = new ConnectionMutex()
+  #mitt?: EmitterOnce<EventWithError>
   constructor(config: WaSqliteWorkerDialectConfig) {
-    this.#config = config
+    this.#config = Object.freeze({ ...config })
+  }
+
+  async init(): Promise<void> {
     this.#worker = this.#config.worker
       ?? new Worker(new URL('./worker', import.meta.url), { type: 'module' })
-    this.#worker.onmessage = (ev: MessageEvent<WorkerMsg>) => {
-      const { type, msg } = ev.data
-      mitt.emit(type, msg)
+    this.#mitt = MittOnce<EventWithError>()
+    this.#worker.onmessage = ({ data: { msg, type } }: MessageEvent<WorkerMsg>) => {
+      this.#mitt?.emit(type, msg)
     }
     const msg: MainMsg = {
       type: 'init',
@@ -24,16 +28,12 @@ export class WaSqliteWorkerDriver implements Driver {
       url: this.#config.url,
     }
     this.#worker.postMessage(msg)
-  }
-
-  async init(): Promise<void> {
     await new Promise<void>((resolve, reject) => {
-      mitt.once('init', (msg) => {
-        const { err } = msg
+      this.#mitt?.once('init', ({ err }) => {
         err ? reject(err) : resolve()
       })
     })
-    this.connection = new WaSqliteWorkerConnection(this.#worker)
+    this.connection = new WaSqliteWorkerConnection(this.#worker, this.#mitt)
     if (this.#config.onCreateConnection) {
       await this.#config.onCreateConnection(this.connection)
     }
@@ -70,14 +70,13 @@ export class WaSqliteWorkerDriver implements Driver {
       type: 'close',
     })
     return new Promise<void>((resolve, reject) => {
-      mitt.once('close', (msg) => {
-        const { err } = msg
+      this.#mitt?.once('close', ({ err }) => {
         if (err) {
           reject(err)
         } else {
-          this.#worker.terminate()
-          mitt.all.clear()
-          mitt = null as any
+          this.#worker?.terminate()
+          this.#mitt?.all.clear()
+          this.#mitt = undefined
           resolve()
         }
       })
@@ -111,8 +110,10 @@ class ConnectionMutex {
 
 class WaSqliteWorkerConnection implements DatabaseConnection {
   #worker: Worker
-  constructor(worker: Worker) {
+  #mitt?: EmitterOnce<EventWithError>
+  constructor(worker: Worker, mitt?: EmitterOnce<EventWithError>) {
     this.#worker = worker
+    this.#mitt = mitt
   }
 
   streamQuery<R>(): AsyncIterableIterator<QueryResult<R>> {
@@ -125,13 +126,11 @@ class WaSqliteWorkerConnection implements DatabaseConnection {
     const msg: MainMsg = { type: 'run', isQuery, sql, parameters }
     this.#worker.postMessage(msg)
     return new Promise((resolve, reject) => {
-      mitt.once('run', (msg) => {
-        const { data, err } = msg
-        if (!err && data) {
-          resolve(data)
-        } else {
-          reject(err)
-        }
+      if (!this.#mitt) {
+        reject('kysely instance has been destroyed')
+      }
+      this.#mitt!.once('run', ({ data, err }) => {
+        (!err && data) ? resolve(data) : reject(err)
       })
     })
   }
