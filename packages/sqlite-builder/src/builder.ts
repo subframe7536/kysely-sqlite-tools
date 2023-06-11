@@ -11,8 +11,8 @@ const enum DBStatus {
 }
 export class SqliteBuilder<DB extends Record<string, any>> {
   public kysely: Kysely<DB>
-  #status: DBStatus
-  readonly #tableMap: Map<string, ITable<DB[Extract<keyof DB, string>]>>
+  private status: DBStatus
+  private tableMap: Map<string, ITable<DB[Extract<keyof DB, string>]>>
   public constructor(option: SqliteBuilderOption<DB>) {
     const { dialect, tables, dropTableBeforeInit: truncateBeforeInit, onError, onQuery, plugins: additionalPlugin } = option
     const plugins: KyselyPlugin[] = additionalPlugin ?? []
@@ -26,22 +26,22 @@ export class SqliteBuilder<DB extends Record<string, any>> {
       },
       plugins,
     })
-    this.#status = truncateBeforeInit
+    this.status = truncateBeforeInit
       ? DBStatus.needDrop
       : DBStatus.noNeedDrop
-    this.#tableMap = parseTableMap(tables)
+    this.tableMap = parseTableMap(tables)
   }
 
   public async init(dropTableBeforeInit = false): Promise<SqliteBuilder<DB>> {
-    const drop = dropTableBeforeInit || this.#status === DBStatus.needDrop
-    await runCreateTable(this.kysely, this.#tableMap, drop)
-    this.#status = DBStatus.ready
+    const drop = dropTableBeforeInit || this.status === DBStatus.needDrop
+    await runCreateTable(this.kysely, this.tableMap, drop)
+    this.status = DBStatus.ready
     return this
   }
 
   private async checkInit() {
-    this.#status !== DBStatus.ready && await this.init()
-    if (this.#status !== DBStatus.ready) {
+    this.status !== DBStatus.ready && await this.init()
+    if (this.status !== DBStatus.ready) {
       throw new Error('fail to init table')
     }
   }

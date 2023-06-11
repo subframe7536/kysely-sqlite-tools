@@ -4,28 +4,28 @@ import type { TauriSqlDB } from './type'
 import type { TauriSqlDialectConfig } from '.'
 
 export class TaruiSqlDriver {
-  #config: TauriSqlDialectConfig
-  #db?: TauriSqlDB
-  readonly #connectionMutex = new ConnectionMutex()
-  connection?: DatabaseConnection
+  private config: TauriSqlDialectConfig
+  private db?: TauriSqlDB
+  private connectionMutex = new ConnectionMutex()
+  private connection?: DatabaseConnection
   constructor(config: TauriSqlDialectConfig) {
-    this.#config = config
+    this.config = config
   }
 
   async init(): Promise<void> {
-    this.#db = typeof this.#config.database === 'function'
-      ? await this.#config.database()
-      : this.#config.database
-    this.connection = new TauriSqlConnection(this.#db)
-    if (this.#config.onCreateConnection) {
-      await this.#config.onCreateConnection(this.connection)
+    this.db = typeof this.config.database === 'function'
+      ? await this.config.database()
+      : this.config.database
+    this.connection = new TauriSqlConnection(this.db)
+    if (this.config.onCreateConnection) {
+      await this.config.onCreateConnection(this.connection)
     }
   }
 
   async acquireConnection(): Promise<DatabaseConnection> {
     // SQLite only has one single connection. We use a mutex here to wait
     // until the single connection has been released.
-    await this.#connectionMutex.lock()
+    await this.connectionMutex.lock()
     return this.connection!
   }
 
@@ -42,44 +42,44 @@ export class TaruiSqlDriver {
   }
 
   async releaseConnection(): Promise<void> {
-    this.#connectionMutex.unlock()
+    this.connectionMutex.unlock()
   }
 
   async destroy(): Promise<void> {
-    this.#db?.close()
+    this.db?.close()
   }
 }
 class ConnectionMutex {
-  #promise?: Promise<void>
-  #resolve?: () => void
+  private promise?: Promise<void>
+  private resolve?: () => void
 
   async lock(): Promise<void> {
-    while (this.#promise) {
-      await this.#promise
+    while (this.promise) {
+      await this.promise
     }
 
-    this.#promise = new Promise((resolve) => {
-      this.#resolve = resolve
+    this.promise = new Promise((resolve) => {
+      this.resolve = resolve
     })
   }
 
   unlock(): void {
-    const resolve = this.#resolve
+    const resolve = this.resolve
 
-    this.#promise = undefined
-    this.#resolve = undefined
+    this.promise = undefined
+    this.resolve = undefined
 
     resolve?.()
   }
 }
 class TauriSqlConnection implements DatabaseConnection {
-  #db: TauriSqlDB
+  readonly db: TauriSqlDB
   constructor(db: any) {
-    this.#db = db
+    this.db = db
   }
 
   async exec(sql: string, param?: readonly unknown[]) {
-    const { lastInsertId, rowsAffected } = await this.#db.execute(sql, param as any)
+    const { lastInsertId, rowsAffected } = await this.db.execute(sql, param as any)
     return {
       numAffectedRows: BigInt(rowsAffected),
       insertId: BigInt(lastInsertId),
@@ -94,7 +94,7 @@ class TauriSqlConnection implements DatabaseConnection {
     const { parameters, sql, query } = compiledQuery
     return Promise.resolve((query.kind === 'SelectQueryNode' || query.kind === 'RawNode')
       ? {
-          rows: await this.#db.select(sql, parameters as any),
+          rows: await this.db.select(sql, parameters as any),
         }
       : {
           rows: [],

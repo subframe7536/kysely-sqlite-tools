@@ -5,11 +5,11 @@ import type { Serializer } from './sqlite-serialize'
 import { defaultSerializer } from './sqlite-serialize'
 
 export class SerializeParametersTransformer extends OperationNodeTransformer {
-  readonly #serializer: Serializer
+  private serializer: Serializer
 
   public constructor(serializer: Serializer | undefined) {
     super()
-    this.#serializer = serializer || defaultSerializer
+    this.serializer = serializer || defaultSerializer
   }
 
   protected override transformPrimitiveValueList(
@@ -17,7 +17,7 @@ export class SerializeParametersTransformer extends OperationNodeTransformer {
   ): PrimitiveValueListNode {
     return {
       ...node,
-      values: node.values.map(this.#serializer),
+      values: node.values.map(this.serializer),
     }
   }
 
@@ -32,7 +32,7 @@ export class SerializeParametersTransformer extends OperationNodeTransformer {
 
     const { value, ...item } = valueNode as ValueNode
 
-    const serializedValue = this.#serializer(value)
+    const serializedValue = this.serializer(value)
 
     return value === serializedValue
       ? super.transformColumnUpdate(node)
@@ -45,7 +45,7 @@ export class SerializeParametersTransformer extends OperationNodeTransformer {
   protected override transformValue(node: ValueNode): ValueNode {
     return {
       ...node,
-      value: this.#serializer(node.value),
+      value: this.serializer(node.value),
     }
   }
 }

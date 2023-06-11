@@ -19,6 +19,10 @@ export class NodeWasmDriver extends BaseDriver {
       await this.#config.onCreateConnection(this.connection)
     }
   }
+
+  async destroy(): Promise<void> {
+    this.#db?.close()
+  }
 }
 
 class NodeWasmConnection extends BaseSqliteConnection {

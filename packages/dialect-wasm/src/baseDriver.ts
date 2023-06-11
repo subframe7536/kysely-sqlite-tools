@@ -8,7 +8,6 @@ export interface BaseDB {
 export abstract class BaseDriver implements Driver {
   readonly #connectionMutex = new ConnectionMutex()
   connection?: DatabaseConnection
-  #db?: BaseDB
 
   abstract init(): Promise<void>
 
@@ -35,29 +34,27 @@ export abstract class BaseDriver implements Driver {
     this.#connectionMutex.unlock()
   }
 
-  async destroy(): Promise<void> {
-    this.#db?.close()
-  }
+  abstract destroy(): Promise<void>
 }
 class ConnectionMutex {
-  #promise?: Promise<void>
-  #resolve?: () => void
+  private promise?: Promise<void>
+  private resolve?: () => void
 
   async lock(): Promise<void> {
-    while (this.#promise) {
-      await this.#promise
+    while (this.promise) {
+      await this.promise
     }
 
-    this.#promise = new Promise((resolve) => {
-      this.#resolve = resolve
+    this.promise = new Promise((resolve) => {
+      this.resolve = resolve
     })
   }
 
   unlock(): void {
-    const resolve = this.#resolve
+    const resolve = this.resolve
 
-    this.#promise = undefined
-    this.#resolve = undefined
+    this.promise = undefined
+    this.resolve = undefined
 
     resolve?.()
   }

@@ -28,9 +28,9 @@ export interface SqliteSerializePluginOptions {
 }
 
 export class SqliteSerializePlugin implements KyselyPlugin {
-  readonly #serializeParametersTransformer: SerializeParametersTransformer
-  readonly #deserializer: Deserializer
-  #data: WeakMap<QueryId, string>
+  private serializeParametersTransformer: SerializeParametersTransformer
+  private deserializer: Deserializer
+  private ctx: WeakMap<QueryId, string>
 
   /**
    * _**THIS PLUGIN SHOULD BE PLACED AT THE END OF PLUGINS ARRAY !!!**_
@@ -96,26 +96,26 @@ export class SqliteSerializePlugin implements KyselyPlugin {
    * ```
    */
   public constructor(opt: SqliteSerializePluginOptions = {}) {
-    this.#serializeParametersTransformer = new SerializeParametersTransformer(
+    this.serializeParametersTransformer = new SerializeParametersTransformer(
       opt.serializer,
     )
-    this.#deserializer = opt.deserializer || defaultDeserializer
-    this.#data = new WeakMap()
+    this.deserializer = opt.deserializer || defaultDeserializer
+    this.ctx = new WeakMap()
   }
 
   public transformQuery(args: PluginTransformQueryArgs): RootOperationNode {
     const { node, queryId } = args
     if (node.kind === 'SelectQueryNode') {
-      this.#data.set(queryId, node.kind)
+      this.ctx.set(queryId, node.kind)
     }
-    return this.#serializeParametersTransformer.transformNode(args.node)
+    return this.serializeParametersTransformer.transformNode(args.node)
   }
 
   private async parseResult(rows: any[]) {
     return await Promise.all(rows.map(async (row) => {
       const deserializedRow = { ...row }
       for (const key in deserializedRow) {
-        deserializedRow[key] = await this.#deserializer(deserializedRow[key])
+        deserializedRow[key] = await this.deserializer(deserializedRow[key])
       }
       return deserializedRow
     }))
@@ -126,7 +126,7 @@ export class SqliteSerializePlugin implements KyselyPlugin {
   ): Promise<QueryResult<UnknownRow>> {
     const { result, queryId } = args
     const { rows } = result
-    const ctx = this.#data.get(queryId)
+    const ctx = this.ctx.get(queryId)
     return (rows && ctx === 'SelectQueryNode')
       ? {
           ...args.result,

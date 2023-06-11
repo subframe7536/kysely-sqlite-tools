@@ -3,42 +3,42 @@ import type { SQLiteCompatibleType, Sqlite, WaSqliteDatabase } from './type'
 import type { WaSqliteDialectConfig } from '.'
 
 export class WaSqliteDriver extends BaseDriver {
-  #config: WaSqliteDialectConfig
-  #db?: WaSqliteDatabase
+  private config: WaSqliteDialectConfig
+  private db?: WaSqliteDatabase
   constructor(config: WaSqliteDialectConfig) {
     super()
-    this.#config = config
+    this.config = config
   }
 
   async init(): Promise<void> {
-    this.#db = typeof this.#config.database === 'function'
-      ? await this.#config.database()
-      : this.#config.database
-    this.connection = new WaSqliteConnection(this.#db)
-    if (this.#config.onCreateConnection) {
-      await this.#config.onCreateConnection(this.connection)
+    this.db = typeof this.config.database === 'function'
+      ? await this.config.database()
+      : this.config.database
+    this.connection = new WaSqliteConnection(this.db)
+    if (this.config.onCreateConnection) {
+      await this.config.onCreateConnection(this.connection)
     }
   }
 
-  async close() {
-    await this.#db?.sqlite.close(this.#db.db)
+  async destroy(): Promise<void> {
+    await this.db?.sqlite.close(this.db.db)
   }
 }
 
 class WaSqliteConnection extends BaseSqliteConnection {
-  #sqlite: Sqlite
-  #db: number
+  readonly sqlite: Sqlite
+  readonly db: number
   constructor(database: any) {
     super()
-    this.#db = database.db
-    this.#sqlite = database.sqlite
+    this.db = database.db
+    this.sqlite = database.sqlite
   }
 
   async run(statement: { sql: string; param?: any[] }) {
-    const str = this.#sqlite.str_new(this.#db, statement.sql)
-    const prepared = await this.#sqlite.prepare_v2(
-      this.#db,
-      this.#sqlite.str_value(str),
+    const str = this.sqlite.str_new(this.db, statement.sql)
+    const prepared = await this.sqlite.prepare_v2(
+      this.db,
+      this.sqlite.str_value(str),
     )
 
     if (prepared === null) {
@@ -48,7 +48,7 @@ class WaSqliteConnection extends BaseSqliteConnection {
     const stmt = prepared.stmt
     try {
       if (typeof statement.param !== 'undefined') {
-        this.#sqlite.bind_collection(
+        this.sqlite.bind_collection(
           stmt,
           statement.param,
         )
@@ -57,9 +57,9 @@ class WaSqliteConnection extends BaseSqliteConnection {
       const rows: Record<string, SQLiteCompatibleType>[] = []
       let cols: string[] = []
 
-      while ((await this.#sqlite.step(stmt)) === /* SQLite.SQLITE_ROW */ 100) {
-        cols = cols.length === 0 ? this.#sqlite.column_names(stmt) : cols
-        const row = this.#sqlite.row(stmt)
+      while ((await this.sqlite.step(stmt)) === /* SQLite.SQLITE_ROW */ 100) {
+        cols = cols.length === 0 ? this.sqlite.column_names(stmt) : cols
+        const row = this.sqlite.row(stmt)
         rows.push(cols.reduce((acc, key, i) => {
           acc[key] = row[i]
           return acc
@@ -67,7 +67,7 @@ class WaSqliteConnection extends BaseSqliteConnection {
       }
       return rows
     } finally {
-      await this.#sqlite.finalize(stmt)
+      await this.sqlite.finalize(stmt)
     }
   }
 
@@ -80,7 +80,7 @@ class WaSqliteConnection extends BaseSqliteConnection {
     const v = await this.run({ sql: 'SELECT last_insert_rowid() as id' })
     return {
       insertId: BigInt(v[0].id),
-      numAffectedRows: BigInt(this.#sqlite.changes(this.#db)),
+      numAffectedRows: BigInt(this.sqlite.changes(this.db)),
     }
   }
 }

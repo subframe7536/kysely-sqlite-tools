@@ -1,4 +1,3 @@
-import type { DatabaseConnection } from 'kysely'
 import { CompiledQuery } from 'kysely'
 import { BaseDriver, BaseSqliteConnection } from '../baseDriver'
 import type { SqlJSDB } from './type'
@@ -61,56 +60,58 @@ function throttle<T>({ func, delay, maxCalls }: ThrottleParams<T>): (s: T) => vo
 }
 
 export class SqlJsDriver extends BaseDriver {
-  readonly #config: SqlJsDialectConfig
-  declare connection?: SqlJsConnection | undefined
-
-  #db?: SqlJSDB
+  private config: SqlJsDialectConfig
+  private db?: SqlJSDB
 
   constructor(config: SqlJsDialectConfig) {
     super()
-    this.#config = config
+    this.config = config
   }
 
   async init(): Promise<void> {
-    this.#db = typeof this.#config.database === 'function'
-      ? await this.#config.database()
-      : this.#config.database
+    this.db = typeof this.config.database === 'function'
+      ? await this.config.database()
+      : this.config.database
 
-    if (!this.#db) {
+    if (!this.db) {
       throw new Error('no database')
     }
 
     this.connection = new SqlJsConnection(
-      this.#db,
-      this.#config.onWrite?.func,
-      this.#config.onWrite?.isThrottle,
-      this.#config.onWrite?.maxCalls,
-      this.#config.onWrite?.delay,
+      this.db,
+      this.config.onWrite?.func,
+      this.config.onWrite?.isThrottle,
+      this.config.onWrite?.maxCalls,
+      this.config.onWrite?.delay,
     )
 
-    if (this.#config.onCreateConnection) {
-      await this.#config.onCreateConnection(this.connection)
+    if (this.config.onCreateConnection) {
+      await this.config.onCreateConnection(this.connection)
     }
   }
 
-  async beginTransaction(connection: DatabaseConnection): Promise<void> {
+  async beginTransaction(connection: SqlJsConnection): Promise<void> {
     await connection.executeQuery(CompiledQuery.raw('begin'))
-    this.connection && this.connection.transactionNum++
+    connection.transactionNum++
   }
 
-  async commitTransaction(connection: DatabaseConnection): Promise<void> {
+  async commitTransaction(connection: SqlJsConnection): Promise<void> {
     await connection.executeQuery(CompiledQuery.raw('commit'))
-    this.connection && this.connection.transactionNum--
+    connection.transactionNum--
   }
 
-  async rollbackTransaction(connection: DatabaseConnection): Promise<void> {
+  async rollbackTransaction(connection: SqlJsConnection): Promise<void> {
     await connection.executeQuery(CompiledQuery.raw('rollback'))
-    this.connection && this.connection.transactionNum--
+    connection.transactionNum--
+  }
+
+  async destroy(): Promise<void> {
+    this.db?.close()
   }
 }
 class SqlJsConnection extends BaseSqliteConnection {
-  readonly #db: SqlJSDB
-  readonly #onWrite: ((buffer: Uint8Array) => void) | undefined
+  readonly db: SqlJSDB
+  readonly onWrite: ((buffer: Uint8Array) => void) | undefined
   transactionNum = 0
 
   constructor(
@@ -121,8 +122,8 @@ class SqlJsConnection extends BaseSqliteConnection {
     delay = 2000,
   ) {
     super()
-    this.#db = db
-    this.#onWrite = func
+    this.db = db
+    this.onWrite = func
       ? isThrottle
         ? throttle({ func, maxCalls, delay })
         : func
@@ -130,7 +131,7 @@ class SqlJsConnection extends BaseSqliteConnection {
   }
 
   query(sql: string, parameters?: readonly unknown[]) {
-    const stmt = this.#db.prepare(sql)
+    const stmt = this.db.prepare(sql)
     stmt.bind(parameters as any[])
     const rows = []
     while (stmt.step()) {
@@ -141,10 +142,10 @@ class SqlJsConnection extends BaseSqliteConnection {
   }
 
   exec(sql: string, param: any[]) {
-    this.#db.run(sql, param as any[])
+    this.db.run(sql, param as any[])
     const insertId = BigInt(this.query('SELECT last_insert_rowid() as id')[0].id)
-    const numAffectedRows = BigInt(this.#db.getRowsModified())
-    this.transactionNum === 0 && this.#onWrite && this.#onWrite(this.#db.export())
+    const numAffectedRows = BigInt(this.db.getRowsModified())
+    this.transactionNum === 0 && this.onWrite && this.onWrite(this.db.export())
     return {
       numAffectedRows,
       insertId,

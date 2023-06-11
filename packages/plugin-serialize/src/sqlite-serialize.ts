@@ -1,7 +1,5 @@
 export type Serializer = (parameter: unknown) => unknown
 export type Deserializer = (parameter: unknown) => unknown
-// export type BlobType = 'Uint8Array' | 'Uint16Array' | 'Uint32Array' | 'Float32Array' | 'Float64Array'
-// export type BlobTypeConstructor = Uint8ArrayConstructor | Uint16ArrayConstructor | Uint32ArrayConstructor | Float32ArrayConstructor | Float64ArrayConstructor
 
 export const defaultSerializer: Serializer = (parameter) => {
   if (parameter === undefined
