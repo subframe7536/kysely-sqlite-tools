@@ -4,7 +4,7 @@
 export interface TauriSqlDB {
   execute(query: string, bindValues?: unknown[]): Promise<QueryResult>
   select<T>(query: string, bindValues?: unknown[]): Promise<T>
-  close: () => Promise<void>
+  close: () => Promise<boolean>
 }
 export interface QueryResult {
   rowsAffected: number
