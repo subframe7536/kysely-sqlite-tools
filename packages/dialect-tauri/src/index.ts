@@ -5,9 +5,18 @@ import type { TauriSqlDB } from './type'
 
 export interface TauriSqlDialectConfig {
   /**
-   * The path is relative to `tauri::api::path::BaseDirectory::App`.
+   * Tauri database instance.
+   *
+   * @example
+   * ```ts
+   * const kysely = new Kysely<DB>({
+   *   dialect: new TauriSqlDialect({
+   *     database: Database.load(`sqlite:${await appDataDir()}test.db`)
+   *   }),
+   * })
+   * ```
    */
-  database: TauriSqlDB | (() => Promise<TauriSqlDB>)
+  database: TauriSqlDB | Promise<TauriSqlDB> | (() => Promise<TauriSqlDB>)
   /**
    * Called once when the first query is executed.
    *

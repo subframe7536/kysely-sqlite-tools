@@ -15,7 +15,7 @@ export class TaruiSqlDriver {
   async init(): Promise<void> {
     this.db = typeof this.config.database === 'function'
       ? await this.config.database()
-      : this.config.database
+      : await this.config.database
     this.connection = new TauriSqlConnection(this.db)
     if (this.config.onCreateConnection) {
       await this.config.onCreateConnection(this.connection)

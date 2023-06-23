@@ -2,6 +2,16 @@
 
 using [Tauri official sqlite plugin](https://github.com/tauri-apps/plugins-workspace/tree/dev/plugins/sql)
 
+### usage
+
+```ts
+const kysely = new Kysely<DB>({
+  dialect: new TauriSqlDialect({
+    database: Database.load(`sqlite:${await appDataDir()}test.db`)
+  }),
+})
+```
+
 ### type
 
 ```ts
