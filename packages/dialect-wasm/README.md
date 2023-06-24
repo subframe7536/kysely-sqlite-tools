@@ -8,7 +8,7 @@ Wasm dialect for Kysely
 pnpm add -D kysely kysely-wasm
 ```
 
-## usage
+## introduce
 
 there are 6 dialects
 
@@ -20,14 +20,13 @@ there are 6 dialects
   - maybe can be used in [kikko](https://github.com/kikko-land/kikko)
 - *CrsqliteDialect: dialect for [vlcn.io/wasm](https://vlcn.io/js/wasm), deprecate for performance
 
-### differences
+### Differences
 
 #### `SqlJsDialect`
 you can **get total buffer** on every sql execution except `select` and **no backend storage**
 
-
 #### `OfficialWasmDialect`
-you can choose to use [OPFS](https://developer.mozilla.org/en-US/docs/Web/API/File_System_Access_API#origin_private_file_system) as backend storage(your server must response [COOP and COEP](https://sqlite.org/wasm/doc/trunk/persistence.md#coop-coep) in header), which is recommended officaially (see [this](https://sqlite.org/forum/forumpost/59097f57cbe647a2d1950fab93e7ab82dd24c1e384d38b90ec1e2f03a2a4e580) and [this](https://sqlite.org/forum/forumpost/8f50dc99149a6cedade784595238f45aa912144fae81821d5f9db31965f754dd)) and **only work in WebWorker**.
+you can choose to use [OPFS](https://developer.mozilla.org/en-US/docs/Web/API/File_System_Access_API#origin_private_file_system) as backend storage(your server must response [COOP and COEP](https://sqlite.org/wasm/doc/trunk/persistence.md#coop-coep) in header), which is recommended officially (see [this](https://sqlite.org/forum/forumpost/59097f57cbe647a2d1950fab93e7ab82dd24c1e384d38b90ec1e2f03a2a4e580) and [this](https://sqlite.org/forum/forumpost/8f50dc99149a6cedade784595238f45aa912144fae81821d5f9db31965f754dd)) and **only work in WebWorker**.
 
 #### `WaSqliteDialect`
 you can choose not only `OPFS` but also `IndexedDB` as backend storage for better compability, maybe better for **polyfill**
@@ -44,6 +43,6 @@ you can choose to use `IndexedDB` as backend storage, as forked version of `WaSq
 
 see in jsdoc
 
-### more detali
+### usage and more detali
 
 see [test](../../test/dialect-wasm.test.ts) and [playground](../../playground/src/modules)

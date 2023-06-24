@@ -5,14 +5,16 @@ The following example will return an error when using sqlite dialects, unless us
 ## usage
 
 ```ts
-interface Person {
-  firstName: string
-  lastName: string
-  tags: string[]
+interface TestTable {
+  id: Generated<number>
+  person: { name: string; age: number; time: Date } | null
+  gender: boolean
+  blob: Uint8Array | null
+  date: Date
 }
 
 interface Database {
-  person: Person
+  test: TestTable
 }
 
 const db = new Kysely<Database>({
@@ -24,13 +26,12 @@ const db = new Kysely<Database>({
   ],
 })
 
-await db.insertInto('person')
-  .values([{
-    firstName: 'Jennifer',
-    lastName: 'Aniston',
-    tags: ['celebrity', 'actress'],
-  }])
-  .execute()
+await db.insertInto('test').values({
+  gender: true,
+  person: { name: 'test', age: 2, time: new Date() },
+  blob: Uint8Array.from([1, 2, 3]),
+  date: new Date(),
+}).execute()
 ```
 
 You can also provide a custom serializer function:
@@ -57,6 +58,10 @@ const db = new Kysely<Database>({
   ],
 })
 ```
+
+## notice
+
+THIS PLUGIN SHOULD BE PLACED AT THE END OF PLUGINS ARRAY
 
 ## credit
 
