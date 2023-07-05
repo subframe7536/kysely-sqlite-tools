@@ -18,7 +18,7 @@ there are 6 dialects
 - NodeWasmDialct: dialect for [node sqlite3 wasm](https://github.com/tndrle/node-sqlite3-wasm)
 - EmptyDialect: only for sql generation, no backend
   - maybe can be used in [kikko](https://github.com/kikko-land/kikko)
-- *CrsqliteDialect: dialect for [vlcn.io/wasm](https://vlcn.io/js/wasm), deprecate for performance
+- CrsqliteDialect: dialect for [vlcn.io/wasm](https://vlcn.io/js/wasm)
 
 ### Differences
 
@@ -34,10 +34,10 @@ you can choose not only `OPFS` but also `IndexedDB` as backend storage for bette
 - only worked in secure environment, like localhost or https
 
 #### `NodeWasmDialect`
-you can choose to use `native file system` as backend storage, which is no need to recompile for different platform, useful for **Electron** app.
+you can choose to use `native file system` as backend storage, which is no need to recompile for different platform, **useful for Electron app**.
 
-#### *`CrsqliteDialect`
-you can choose to use `IndexedDB` as backend storage, as forked version of `WaSqlite`, but only work with IndexedDB. **deprecate for performance**
+#### `CrsqliteDialect`
+you can choose to use `IndexedDB` as backend storage, as forked version of `WaSqlite`, but only work with IndexedDB. **useful for CRDT**
 
 ### type
 

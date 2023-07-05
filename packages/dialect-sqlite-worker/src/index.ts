@@ -5,7 +5,13 @@ import type { Options } from 'better-sqlite3'
 import { SqliteWorkerDriver } from './driver'
 
 export type SqliteWorkerDialectConfig = {
+  /**
+   * db file path or existing buffer
+   */
   source: string | Buffer | (() => Promise<string | Buffer>)
+  /**
+   * better-sqlite3 initiate option
+   */
   option?: Options
   onCreateConnection?: (connection: DatabaseConnection) => Promise<void>
 }
