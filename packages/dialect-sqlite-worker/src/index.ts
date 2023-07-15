@@ -2,18 +2,23 @@ import type { Buffer } from 'node:buffer'
 import type { DatabaseConnection, DatabaseIntrospector, Dialect, DialectAdapter, Driver, Kysely, QueryCompiler } from 'kysely'
 import { SqliteAdapter, SqliteIntrospector, SqliteQueryCompiler } from 'kysely'
 import type { Options } from 'better-sqlite3'
+import type { Promisable } from '../../dialect-wasm/src'
 import { SqliteWorkerDriver } from './driver'
 
 export type SqliteWorkerDialectConfig = {
   /**
    * db file path or existing buffer
    */
-  source: string | Buffer | (() => Promise<string | Buffer>)
+  source: string | Buffer | (() => Promisable<string | Buffer>)
   /**
    * better-sqlite3 initiate option
    */
   option?: Options
-  onCreateConnection?: (connection: DatabaseConnection) => Promise<void>
+  onCreateConnection?: (connection: DatabaseConnection) => Promisable<void>
+  /**
+   * use built-in pragmas
+   */
+  usePRAGMA?: boolean
 }
 
 export class SqliteWorkerDialect implements Dialect {

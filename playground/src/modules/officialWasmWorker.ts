@@ -1,4 +1,4 @@
-import { OfficialWasmDialect } from 'kysely-wasm'
+import { OfficialWasmDialect, optimzePragma } from 'kysely-wasm'
 import sqlite3InitModule from '@sqlite.org/sqlite-wasm'
 import { testDB } from './utils'
 
@@ -15,6 +15,9 @@ const dialect = new OfficialWasmDialect({
     }
     console.log('doesn\'t support OPFS')
     return new sqlite3.DB(path)
+  },
+  async onCreateConnection(connection) {
+    await optimzePragma(connection)
   },
 })
 

@@ -29,7 +29,17 @@ export class SqliteWorkerDriver implements Driver {
       this.emit?.emit(type, data, err)
     })
     this.connection = new SqliteWorkerConnection(this.worker, this.emit)
+
+    this.config.usePRAGMA && await this.optimzePragma(this.connection)
+
     await onCreateConnection?.(this.connection)
+  }
+
+  private async optimzePragma(conn: DatabaseConnection): Promise<void> {
+    await conn.executeQuery(CompiledQuery.raw('PRAGMA cache_size = 4096;'))
+    await conn.executeQuery(CompiledQuery.raw('PRAGMA journal_mode = WAL;'))
+    await conn.executeQuery(CompiledQuery.raw('PRAGMA temp_store = MEMORY;'))
+    await conn.executeQuery(CompiledQuery.raw(`PRAGMA page_size = ${32 * 1024};`))
   }
 
   async acquireConnection(): Promise<DatabaseConnection> {

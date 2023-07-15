@@ -23,6 +23,10 @@ export interface WaSqliteWorkerDialectConfig {
    */
   worker?: Worker
   onCreateConnection?: (connection: DatabaseConnection) => Promise<void>
+  /**
+   * use built-in pragmas
+   */
+  usePRAGMA?: boolean
 }
 export class WaSqliteWorkerDialect implements Dialect {
   readonly #config: WaSqliteWorkerDialectConfig
