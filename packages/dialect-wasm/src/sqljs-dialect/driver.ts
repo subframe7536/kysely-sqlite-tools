@@ -85,9 +85,7 @@ export class SqlJsDriver extends BaseDriver {
       this.config.onWrite?.delay,
     )
 
-    if (this.config.onCreateConnection) {
-      await this.config.onCreateConnection(this.connection)
-    }
+    await this.config.onCreateConnection?.(this.connection)
   }
 
   async beginTransaction(connection: SqlJsConnection): Promise<void> {

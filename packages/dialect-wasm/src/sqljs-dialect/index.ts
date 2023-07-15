@@ -1,10 +1,11 @@
 import type { DatabaseConnection, Driver } from 'kysely'
 import { BaseDialect } from '../baseDialect'
+import type { Promisable } from '../util'
 import { SqlJsDriver } from './driver'
 import type { SqlJSDB } from './type'
 
 export interface SqlJsDialectConfig {
-  database: SqlJSDB | (() => Promise<SqlJSDB>)
+  database: SqlJSDB | (() => Promisable<SqlJSDB>)
   onWrite?: {
     func: (buffer: Uint8Array) => void
     /**
@@ -20,7 +21,7 @@ export interface SqlJsDialectConfig {
      */
     maxCalls?: number
   }
-  onCreateConnection?: (connection: DatabaseConnection) => Promise<void>
+  onCreateConnection?: (connection: DatabaseConnection) => Promisable<void>
 }
 export class SqlJsDialect extends BaseDialect {
   readonly #config: SqlJsDialectConfig

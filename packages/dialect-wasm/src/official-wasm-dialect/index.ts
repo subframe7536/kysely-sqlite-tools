@@ -1,11 +1,12 @@
 import type { DatabaseConnection } from 'kysely'
 import { BaseDialect } from '../baseDialect'
+import type { Promisable } from '../util'
 import { OfficialWasmDriver } from './driver'
 import type { OfficialWasmDB } from './type'
 
 export interface OfficialWasmDialectConfig {
-  database: OfficialWasmDB | (() => Promise<OfficialWasmDB>)
-  onCreateConnection?: (connection: DatabaseConnection) => Promise<void>
+  database: OfficialWasmDB | (() => Promisable<OfficialWasmDB>)
+  onCreateConnection?: (connection: DatabaseConnection) => Promisable<void>
 }
 
 export class OfficialWasmDialect extends BaseDialect {

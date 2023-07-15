@@ -1,11 +1,12 @@
 import type { DatabaseConnection, Driver } from 'kysely'
 import { BaseDialect } from '../baseDialect'
+import type { Promisable } from '../util'
 import { WaSqliteDriver } from './driver'
 import type { WaSqliteDatabase } from './type'
 
 export interface WaSqliteDialectConfig {
-  database: WaSqliteDatabase | (() => Promise<WaSqliteDatabase>)
-  onCreateConnection?: (connection: DatabaseConnection) => Promise<void>
+  database: WaSqliteDatabase | (() => Promisable<WaSqliteDatabase>)
+  onCreateConnection?: (connection: DatabaseConnection) => Promisable<void>
 }
 export class WaSqliteDialect extends BaseDialect {
   readonly #config: WaSqliteDialectConfig

@@ -1,11 +1,12 @@
 import type { DatabaseConnection, Driver } from 'kysely'
 import { BaseDialect } from '../baseDialect'
+import type { Promisable } from '../util'
 import { CrSqliteDriver } from './driver'
 import type { CrSqliteDB } from './type'
 
 export interface CrSqliteDialectConfig {
-  database: CrSqliteDB | (() => Promise<CrSqliteDB>)
-  onCreateConnection?: (connection: DatabaseConnection) => Promise<void>
+  database: CrSqliteDB | (() => Promisable<CrSqliteDB>)
+  onCreateConnection?: (connection: DatabaseConnection) => Promisable<void>
 }
 export class CrSqliteDialect extends BaseDialect {
   #config: CrSqliteDialectConfig

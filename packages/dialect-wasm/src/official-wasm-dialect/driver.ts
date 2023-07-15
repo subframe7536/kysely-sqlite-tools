@@ -15,9 +15,8 @@ export class OfficialWasmDriver extends BaseDriver {
       ? await this.config.database()
       : this.config.database
     this.connection = new OfficailSqliteWasmConnection(this.db)
-    if (this.config.onCreateConnection) {
-      await this.config.onCreateConnection(this.connection)
-    }
+
+    await this.config.onCreateConnection?.(this.connection)
   }
 
   async destroy(): Promise<void> {
