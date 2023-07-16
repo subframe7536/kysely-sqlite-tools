@@ -18,7 +18,7 @@ export default defineConfig([
         name: 'copy',
         buildEnd: async () => {
           await copyFile(
-            './node_modules/wa-sqlite/dist/wa-sqlite-async.wasm',
+            './node_modules/@subframe7536/wa-sqlite/dist/wa-sqlite-async.wasm',
             './dist/wa-sqlite-async.wasm',
           )
         },

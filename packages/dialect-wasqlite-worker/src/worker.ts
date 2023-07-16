@@ -1,6 +1,7 @@
-import * as SQLite from 'wa-sqlite'
-import SQLiteAsyncESMFactory from 'wa-sqlite/dist/wa-sqlite-async.mjs'
-import { IDBBatchAtomicVFS } from 'wa-sqlite/src/examples/IDBBatchAtomicVFS.js'
+import type { SQLiteAPI, SQLiteCompatibleType } from '@subframe7536/wa-sqlite'
+import { Factory, SQLITE_ROW } from '@subframe7536/wa-sqlite'
+import SQLiteAsyncESMFactory from '@subframe7536/wa-sqlite/dist/wa-sqlite-async.mjs'
+import { IDBBatchAtomicVFS } from '@subframe7536/wa-sqlite/src/examples/IDBBatchAtomicVFS'
 import type { MainMsg, WorkerMsg } from './type'
 
 let sqlite: SQLiteAPI
@@ -10,7 +11,7 @@ async function init(dbName: string, url?: string) {
   const option = url ? { locateFile: () => url } : {}
   const SQLiteAsyncModule = await SQLiteAsyncESMFactory(option)
 
-  sqlite = SQLite.Factory(SQLiteAsyncModule)
+  sqlite = Factory(SQLiteAsyncModule)
   sqlite.vfs_register(new IDBBatchAtomicVFS(dbName, { durability: 'relaxed' }))
   db = await sqlite.open_v2(
     dbName, undefined, dbName,
@@ -40,7 +41,7 @@ async function run(sql: string, parameters?: readonly unknown[]) {
     const rows: Record<string, SQLiteCompatibleType>[] = []
     let cols: string[] = []
 
-    while ((await sqlite.step(stmt)) === SQLite.SQLITE_ROW) {
+    while ((await sqlite.step(stmt)) === SQLITE_ROW) {
       cols = cols.length === 0 ? sqlite.column_names(stmt) : cols
       const row = sqlite.row(stmt)
       rows.push(cols.reduce((acc, key, i) => {

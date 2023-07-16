@@ -16,6 +16,9 @@ importers:
       '@subframe7536/eslint-config':
         specifier: ^0.1.12
         version: 0.1.12(eslint@8.45.0)(typescript@5.1.6)
+      '@subframe7536/wa-sqlite':
+        specifier: ^0.9.5
+        version: 0.9.5
       '@types/better-sqlite3':
         specifier: ^7.6.4
         version: 7.6.4
@@ -73,9 +76,6 @@ importers:
       vitest:
         specifier: ^0.33.0
         version: 0.33.0
-      wa-sqlite:
-        specifier: github:rhashimoto/wa-sqlite
-        version: github.com/rhashimoto/wa-sqlite/d97375b1b944697ca277cb9d5167344d21d32bfa
 
   packages/dialect-sqlite-worker:
     dependencies:
@@ -93,9 +93,9 @@ importers:
         specifier: ^3.0.0
         version: 3.0.0
     devDependencies:
-      wa-sqlite:
-        specifier: github:rhashimoto/wa-sqlite
-        version: github.com/rhashimoto/wa-sqlite/d97375b1b944697ca277cb9d5167344d21d32bfa
+      '@subframe7536/wa-sqlite':
+        specifier: ^0.9.5
+        version: 0.9.5
 
   packages/plugin-serialize: {}
 
@@ -787,6 +787,10 @@ packages:
       - jest
       - supports-color
       - typescript
+    dev: true
+
+  /@subframe7536/wa-sqlite@0.9.5:
+    resolution: {integrity: sha512-pNaGjtOnFy4QjCTviJdQ5W1C/Twq4j4v9fjQ2ETnmzDs43qMdH9424348xY/SphJQmefhKKCdGpvUrW3RoBkrA==}
     dev: true
 
   /@tsconfig/node10@1.0.9:
@@ -5248,12 +5252,6 @@ packages:
   /yocto-queue@1.0.0:
     resolution: {integrity: sha512-9bnSc/HEW2uRy67wc+T8UwauLuPJVn28jb+GtJY16iiKWyvmYJRXVT4UamsAEGQfPohgr2q4Tq0sQbQlxTfi1g==}
     engines: {node: '>=12.20'}
-    dev: true
-
-  github.com/rhashimoto/wa-sqlite/d97375b1b944697ca277cb9d5167344d21d32bfa:
-    resolution: {commit: d97375b1b944697ca277cb9d5167344d21d32bfa, repo: git+ssh://git@github.com/rhashimoto/wa-sqlite.git, type: git}
-    name: wa-sqlite
-    version: 0.9.3
     dev: true
 
   registry.npmjs.org/@babel/helper-string-parser@7.19.4:

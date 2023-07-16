@@ -1,4 +1,4 @@
-export type SQLiteCompatibleType = number | string | Uint8Array | Array<number> | bigint | null
+export type SQLiteCompatibleType = number | string | Uint8Array | number[] | BigInt | null
 
 export interface WaSqliteDatabase {
   sqlite: Sqlite
@@ -11,7 +11,7 @@ export interface Sqlite {
   step: (stmt: number) => Promise<number>
   finalize: (stmt: number) => Promise<number>
   column_names: (stmt: number) => string[]
-  row: (stmt: number) => SQLiteCompatibleType[]
+  row: (stmt: number) => Array<SQLiteCompatibleType | null>
   bind_collection: (stmt: number, params: any) => number
   changes: (db: number) => number
   close: (db: number) => Promise<number>

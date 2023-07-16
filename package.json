@@ -52,7 +52,7 @@
     "typescript": "^5.1.6",
     "vite": "4.4.4",
     "vitest": "^0.33.0",
-    "wa-sqlite": "github:rhashimoto/wa-sqlite"
+    "@subframe7536/wa-sqlite": "^0.9.5"
   },
   "lint-staged": {
     "*": [

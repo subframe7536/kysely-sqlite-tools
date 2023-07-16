@@ -52,7 +52,7 @@
     "access": "public"
   },
   "devDependencies": {
-    "wa-sqlite": "github:rhashimoto/wa-sqlite"
+    "@subframe7536/wa-sqlite": "^0.9.5"
   },
   "dependencies": {
     "mitt": "^3.0.0"
