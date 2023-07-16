@@ -1,13 +1,12 @@
 import type { ColumnUpdateNode, PrimitiveValueListNode, ValueNode } from 'kysely'
 import { OperationNodeTransformer } from 'kysely'
-
 import type { Serializer } from './sqlite-serialize'
 import { defaultSerializer } from './sqlite-serialize'
 
 export class SerializeParametersTransformer extends OperationNodeTransformer {
   private serializer: Serializer
 
-  public constructor(serializer: Serializer | undefined) {
+  public constructor(serializer?: Serializer) {
     super()
     this.serializer = serializer || defaultSerializer
   }
@@ -23,7 +22,7 @@ export class SerializeParametersTransformer extends OperationNodeTransformer {
 
   // https://www.npmjs.com/package/zodsql
 
-  protected transformColumnUpdate(node: ColumnUpdateNode): ColumnUpdateNode {
+  protected override transformColumnUpdate(node: ColumnUpdateNode): ColumnUpdateNode {
     const { value: valueNode } = node
 
     if (valueNode.kind !== 'ValueNode') {
