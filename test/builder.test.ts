@@ -46,8 +46,6 @@ describe('test builder', async () => {
     await db.transaction(trx => trx.insertInto('test').values({ gender: false }).execute())
     // auto generate table
     const result = await db.exec(d => d.selectFrom('test').selectAll().execute())
-    console.log('result:')
-    console.log(result)
     expect(result).toBeInstanceOf(Array)
     expect(result![0].person).toStrictEqual({ name: 'test' })
     expect(result![0].gender).toStrictEqual(false)
@@ -60,9 +58,7 @@ describe('test builder', async () => {
       .where('person', '=', { name: '1' })
       .selectAll(),
     )
-    console.log(sql)
     expect(sql).toBe('select * from "test" where "person" = ?')
-    console.log(parameters)
     expect(parameters).toStrictEqual(['{"name":"1"}'])
   })
 })

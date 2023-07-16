@@ -50,7 +50,6 @@ describe('plugin basic test', () => {
       .selectAll()
       .limit(1)
       .executeTakeFirstOrThrow()
-    console.log(blob, person, gender, date)
     expect(blob).toStrictEqual(Buffer.from([1, 2, 3]))
     expect(blob).toBeInstanceOf(Buffer)
     expect(person).toStrictEqual({ name: 'test', age: 2, time: testDate })
