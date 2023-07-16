@@ -1,6 +1,6 @@
 {
   "name": "kysely-wasm",
-  "version": "0.3.5",
+  "version": "0.3.6",
   "description": "kysely dialect for wasm",
   "author": {
     "name": "subframe7536",
