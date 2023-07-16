@@ -1,8 +1,8 @@
-import type { Compilable, CompiledQuery, KyselyPlugin, LogEvent, QueryResult, RawBuilder, Sql, Transaction } from 'kysely'
+import type { Compilable, CompiledQuery, KyselyPlugin, LogEvent, QueryResult, RawBuilder, Simplify, Sql, Transaction } from 'kysely'
 import { Kysely, sql } from 'kysely'
 import { SqliteSerializePlugin } from 'kysely-plugin-serialize'
 import { parseTableMap, runCreateTable } from './util'
-import type { ITable, Logger, SqliteBuilderOption } from './types'
+import type { AvailableBuilder, ITable, Logger, SqliteBuilderOption } from './types'
 
 const enum DBStatus {
   'needDrop',
@@ -23,7 +23,7 @@ export class SqliteBuilder<DB extends Record<string, any>> {
       dialect,
       log: (event: LogEvent) => {
         event.level === 'error'
-          ? this.logger?.error('uncaught db error', event.error as Error)
+          ? this.logger?.error('Uncaught DB Error', event.error as Error)
           : onQuery?.(event.query, event.queryDurationMillis)
       },
       plugins,
@@ -52,28 +52,56 @@ export class SqliteBuilder<DB extends Record<string, any>> {
 
   public async transaction<T>(
     cb: (trx: Transaction<DB>) => Promise<T>,
-    errorMsg = 'transaction error',
+    errorMsg?: string,
   ): Promise<T | undefined> {
     if (await this.isEmptyTable()) {
       return undefined
     }
     return await this.kysely.transaction().execute(cb)
       .catch((err) => {
-        this.logger?.error(errorMsg, err)
+        errorMsg && this.logger?.error(errorMsg, err)
         return undefined
       })
   }
 
   public async exec<T>(
     cb: (db: Kysely<DB>) => Promise<T>,
-    errorMsg = 'execute error',
+    errorMsg?: string,
   ): Promise<T | undefined> {
     if (await this.isEmptyTable()) {
       return undefined
     }
     return cb(this.kysely)
       .catch((err) => {
-        this.logger?.error(errorMsg, err)
+        errorMsg && this.logger?.error(errorMsg, err)
+        return undefined
+      })
+  }
+
+  public async execOne<O>(
+    cb: (db: Kysely<DB>) => AvailableBuilder<DB, O>,
+    errorMsg?: string,
+  ): Promise<Simplify<O> | undefined> {
+    if (await this.isEmptyTable()) {
+      return undefined
+    }
+    return cb(this.kysely).executeTakeFirstOrThrow()
+      .catch((err) => {
+        errorMsg && this.logger?.error(errorMsg, err)
+        return undefined
+      })
+  }
+
+  public async execList<O>(
+    cb: (db: Kysely<DB>) => AvailableBuilder<DB, O>,
+    errorMsg?: string,
+  ): Promise<Simplify<O>[] | undefined> {
+    if (await this.isEmptyTable()) {
+      return undefined
+    }
+    return cb(this.kysely).execute()
+      .catch((err) => {
+        errorMsg && this.logger?.error(errorMsg, err)
         return undefined
       })
   }

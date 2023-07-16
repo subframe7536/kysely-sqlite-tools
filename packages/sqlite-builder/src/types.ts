@@ -1,4 +1,4 @@
-import type { Dialect, Generated, KyselyPlugin, Sql } from 'kysely'
+import type { DeleteQueryBuilder, Dialect, Generated, InsertQueryBuilder, KyselyPlugin, SelectQueryBuilder, Sql, UpdateQueryBuilder } from 'kysely'
 import type { CompiledQuery } from 'kysely/dist/cjs/query-compiler/compiled-query'
 
 type Prettify<T> = {
@@ -56,3 +56,9 @@ export type Logger = {
   warn: (msg: string) => void
   error: (msg: string, e?: Error) => void
 }
+
+export type AvailableBuilder<DB, O> =
+  | SelectQueryBuilder<DB, keyof DB, O>
+  | UpdateQueryBuilder<DB, keyof DB, keyof DB, O>
+  | InsertQueryBuilder<DB, keyof DB, O>
+  | DeleteQueryBuilder<DB, keyof DB, O>

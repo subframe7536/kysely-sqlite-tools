@@ -46,12 +46,18 @@ describe('test builder', async () => {
   test('insert', async () => {
     // auto generate table
     await db.transaction(trx => trx.insertInto('test').values({ gender: false }).execute())
-    const result = await db.exec(d => d.selectFrom('test').selectAll().execute())
+    const result = await db.execList(d => d.selectFrom('test').selectAll())
     expect(result).toBeInstanceOf(Array)
     expect(result![0].person).toStrictEqual({ name: 'test' })
     expect(result![0].gender).toStrictEqual(false)
     expect(result![0].createAt).toBeInstanceOf(Date)
     expect(result![0].updateAt).toBeInstanceOf(Date)
+    const result2 = await db.execOne(d => d.selectFrom('test').selectAll())
+    expect(result).toBeInstanceOf(Object)
+    expect(result2!.person).toStrictEqual({ name: 'test' })
+    expect(result2!.gender).toStrictEqual(false)
+    expect(result2!.createAt).toBeInstanceOf(Date)
+    expect(result2!.updateAt).toBeInstanceOf(Date)
   })
   test('raw', async () => {
     const { sql, parameters } = await db.toSQL(d => d
