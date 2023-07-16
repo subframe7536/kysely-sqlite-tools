@@ -5251,7 +5251,7 @@ packages:
     dev: true
 
   github.com/rhashimoto/wa-sqlite/d97375b1b944697ca277cb9d5167344d21d32bfa:
-    resolution: {commit: d97375b1b944697ca277cb9d5167344d21d32bfa, repo: git+ssh://git@github.com/rhashimoto/wa-sqlite.git, type: git}
+    resolution: {tarball: https://codeload.github.com/rhashimoto/wa-sqlite/tar.gz/d97375b1b944697ca277cb9d5167344d21d32bfa}
     name: wa-sqlite
     version: 0.9.3
     dev: true
