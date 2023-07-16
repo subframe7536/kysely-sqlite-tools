@@ -1,6 +1,6 @@
 {
   "name": "kysely-sqlite-worker",
-  "version": "0.3.4",
+  "version": "0.3.5",
   "description": "kysely dialect for better-sqlite3 in worker",
   "author": {
     "name": "subframe7536",

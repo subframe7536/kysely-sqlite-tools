@@ -92,10 +92,6 @@ importers:
       mitt:
         specifier: ^3.0.0
         version: 3.0.0
-    devDependencies:
-      wa-sqlite:
-        specifier: github:rhashimoto/wa-sqlite
-        version: github.com/rhashimoto/wa-sqlite/d97375b1b944697ca277cb9d5167344d21d32bfa
 
   packages/plugin-serialize: {}
 
