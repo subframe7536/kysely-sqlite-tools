@@ -8,9 +8,4 @@ export default defineConfig({
   dts: true,
   external: ['kysely'],
   treeshake: true,
-  outExtension({ format }) {
-    return {
-      js: `.${format === 'esm' ? 'mjs' : format}`,
-    }
-  },
 })

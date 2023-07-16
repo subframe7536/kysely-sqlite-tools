@@ -1,6 +1,5 @@
 {
   "name": "kysely-dialect-tauri",
-  "type": "module",
   "version": "0.3.4",
   "description": "kysely Tauri dialect, using tauri-plugin-sql",
   "author": {
@@ -20,9 +19,8 @@
     "sql",
     "Tauri"
   ],
-  "main": "./dist/index.cjs",
+  "main": "./dist/index.js",
   "module": "./dist/index.mjs",
-  "types": "./dist/index.d.ts",
   "files": [
     "dist"
   ],

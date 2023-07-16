@@ -1,6 +1,5 @@
 {
   "name": "kysely-sqlite-worker",
-  "type": "module",
   "version": "0.3.4",
   "description": "kysely dialect for better-sqlite3 in worker",
   "author": {
@@ -22,8 +21,7 @@
     "sqlite3"
   ],
   "main": "./dist/index.js",
-  "module": "./dist/index.js",
-  "types": "./dist/index.d.ts",
+  "module": "./dist/index.mjs",
   "files": [
     "dist"
   ],

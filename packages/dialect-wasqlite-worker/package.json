@@ -1,7 +1,6 @@
 {
   "name": "kysely-wasqlite-worker",
   "version": "0.3.4",
-  "type": "module",
   "description": "kysely dialect for wa-sqlite, running in worker",
   "author": {
     "name": "subframe7536",
@@ -21,21 +20,36 @@
     "worker",
     "sqlite3"
   ],
-  "main": "./dist/index.cjs",
+  "main": "./dist/index.js",
   "module": "./dist/index.mjs",
-  "types": "./dist/index.d.ts",
   "files": [
     "dist"
   ],
+  "exports": {
+    ".": {
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.js"
+    },
+    "./worker": {
+      "import": "./dist/worker.mjs",
+      "require": "./dist/worker.js"
+    },
+    "./*": "./dist/*"
+  },
+  "typesVersions": {
+    "*": {
+      "*": [
+        "./dist/*",
+        "./*"
+      ]
+    }
+  },
   "scripts": {
     "dev": "tsup --watch",
     "build": "tsup"
   },
   "publishConfig": {
     "access": "public"
-  },
-  "devDependencies": {
-    "wa-sqlite": "github:rhashimoto/wa-sqlite"
   },
   "dependencies": {
     "mitt": "^3.0.0"
