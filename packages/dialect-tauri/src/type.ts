@@ -10,3 +10,5 @@ export interface QueryResult {
   rowsAffected: number
   lastInsertId: number
 }
+
+export type Promisable<T> = T | Promise<T>

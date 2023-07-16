@@ -1,7 +1,7 @@
 import type { DatabaseConnection, DatabaseIntrospector, DialectAdapter, Driver, Kysely, QueryCompiler } from 'kysely'
 import { SqliteAdapter, SqliteIntrospector, SqliteQueryCompiler } from 'kysely'
 import { TaruiSqlDriver } from './driver'
-import type { TauriSqlDB } from './type'
+import type { Promisable, TauriSqlDB } from './type'
 
 export interface TauriSqlDialectConfig {
   /**
@@ -16,13 +16,13 @@ export interface TauriSqlDialectConfig {
    * })
    * ```
    */
-  database: TauriSqlDB | Promise<TauriSqlDB> | (() => Promise<TauriSqlDB>)
+  database: Promisable<TauriSqlDB> | (() => Promisable<TauriSqlDB>)
   /**
    * Called once when the first query is executed.
    *
    * This is a Kysely specific feature and does not come from the `better-sqlite3` module.
    */
-  onCreateConnection?: (connection: DatabaseConnection) => Promise<void>
+  onCreateConnection?: (connection: DatabaseConnection) => Promisable<void>
 }
 /**
  * https://github.com/tauri-apps/plugins-workspace/tree/dev/plugins/sql
