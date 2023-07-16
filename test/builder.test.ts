@@ -1,7 +1,7 @@
 import type { Generated } from 'kysely'
 import { SqliteDialect } from 'kysely'
 import Database from 'better-sqlite3'
-import { describe, expect, test } from 'vitest'
+import { beforeAll, describe, expect, test } from 'vitest'
 import { SqliteBuilder } from '../packages/sqlite-builder/src'
 
 interface DB {
@@ -36,15 +36,16 @@ describe('test builder', async () => {
       },
     },
     dropTableBeforeInit: true,
-    onError: reason => console.error(reason),
+    logger: console,
     onQuery: (queryInfo, time) => console.log(`${time}ms`, queryInfo.sql, queryInfo.parameters),
   })
-  // manually generate table
-  await db.init(true)
-  // auto generate table
+  beforeAll(async () => {
+    // manually generate table
+    await db.init(true)
+  })
   test('insert', async () => {
-    await db.transaction(trx => trx.insertInto('test').values({ gender: false }).execute())
     // auto generate table
+    await db.transaction(trx => trx.insertInto('test').values({ gender: false }).execute())
     const result = await db.exec(d => d.selectFrom('test').selectAll().execute())
     expect(result).toBeInstanceOf(Array)
     expect(result![0].person).toStrictEqual({ name: 'test' })
