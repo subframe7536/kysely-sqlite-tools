@@ -3,6 +3,7 @@ import { SqliteAdapter, SqliteIntrospector, SqliteQueryCompiler } from 'kysely'
 import { WaSqliteWorkerDriver } from './driver'
 
 export interface WaSqliteWorkerDialectConfig {
+  dbName: string
   /**
    * the URL of wa-sqlite WASM
    * @example
@@ -11,8 +12,7 @@ export interface WaSqliteWorkerDialectConfig {
    * import url from 'kysely-wasqlite-worker/dist/wa-sqlite-async.wasm?url'
    * ```
    */
-  url: string
-  dbName: string
+  url?: string
   /**
    * worker for executing sql
    * @example

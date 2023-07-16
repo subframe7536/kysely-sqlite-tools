@@ -12,7 +12,7 @@ export type MainMsg =
   }
   | {
     type: 'init'
-    url: string
+    url?: string
     dbName: string
   }
 

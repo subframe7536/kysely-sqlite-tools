@@ -108,13 +108,13 @@ importers:
   playground:
     dependencies:
       kysely-sqlite-builder:
-        specifier: latest
+        specifier: workspace:*
         version: link:../packages/sqlite-builder
       kysely-wasm:
-        specifier: latest
+        specifier: workspace:*
         version: link:../packages/dialect-wasm
       kysely-wasqlite-worker:
-        specifier: latest
+        specifier: workspace:*
         version: link:../packages/dialect-wasqlite-worker
       vue:
         specifier: ^3.2.47
@@ -5251,7 +5251,7 @@ packages:
     dev: true
 
   github.com/rhashimoto/wa-sqlite/d97375b1b944697ca277cb9d5167344d21d32bfa:
-    resolution: {tarball: https://codeload.github.com/rhashimoto/wa-sqlite/tar.gz/d97375b1b944697ca277cb9d5167344d21d32bfa}
+    resolution: {commit: d97375b1b944697ca277cb9d5167344d21d32bfa, repo: git+ssh://git@github.com/rhashimoto/wa-sqlite.git, type: git}
     name: wa-sqlite
     version: 0.9.3
     dev: true

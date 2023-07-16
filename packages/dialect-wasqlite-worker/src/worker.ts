@@ -6,13 +6,12 @@ import type { MainMsg, WorkerMsg } from './type'
 let sqlite: SQLiteAPI
 let db: number
 
-async function init(dbName: string, url: string) {
-  const SQLiteAsyncModule = await SQLiteAsyncESMFactory({
-    locateFile: () => url,
-  })
+async function init(dbName: string, url?: string) {
+  const option = url ? { locateFile: () => url } : {}
+  const SQLiteAsyncModule = await SQLiteAsyncESMFactory(option)
 
   sqlite = SQLite.Factory(SQLiteAsyncModule)
-  sqlite.vfs_register(new IDBBatchAtomicVFS(dbName))
+  sqlite.vfs_register(new IDBBatchAtomicVFS(dbName, { durability: 'relaxed' }))
   db = await sqlite.open_v2(
     dbName, undefined, dbName,
   )

@@ -13,7 +13,6 @@ export class CrSqliteDialect extends BaseDialect {
   /**
    * dialect for {@link https://vlcn.io/js/wasm vlcn.io wasm},
    * a {@link https://github.com/vlcn-io/wa-sqlite/tree/master/demo wa-sqlite} wrapper using indexeddb as backend
-   * @deprecated please use {@link WaSqliteDialect} for better performance
    */
   constructor(config: CrSqliteDialectConfig) {
     super()
