@@ -1,7 +1,6 @@
 {
   "name": "kysely-wasm",
-  "type": "module",
-  "version": "0.3.4",
+  "version": "0.3.5",
   "description": "kysely dialect for wasm",
   "author": {
     "name": "subframe7536",
@@ -20,9 +19,8 @@
     "sql",
     "wasm"
   ],
-  "main": "./dist/index.cjs",
+  "main": "./dist/index.js",
   "module": "./dist/index.mjs",
-  "types": "./dist/index.d.ts",
   "files": [
     "dist",
     "official-wasm.d.ts"

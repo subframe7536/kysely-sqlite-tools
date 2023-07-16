@@ -1,7 +1,6 @@
 {
   "name": "kysely-plugin-serialize",
-  "type": "module",
-  "version": "0.3.4",
+  "version": "0.3.5",
   "description": "kysely serialize plugin for sqlite",
   "author": {
     "name": "subframe7536",
@@ -19,9 +18,8 @@
     "sql",
     "plugin"
   ],
-  "main": "./dist/index.cjs",
+  "main": "./dist/index.js",
   "module": "./dist/index.mjs",
-  "types": "./dist/index.d.ts",
   "files": [
     "dist"
   ],

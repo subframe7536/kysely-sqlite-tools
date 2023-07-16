@@ -21,8 +21,8 @@ export class SqliteBuilder<DB extends Record<string, any>> {
       dialect,
       log: (event: LogEvent) => {
         event.level === 'error'
-          ? (onError && onError(event.error))
-          : (onQuery && onQuery(event.query, event.queryDurationMillis))
+          ? onError?.(event.error)
+          : onQuery?.(event.query, event.queryDurationMillis)
       },
       plugins,
     })

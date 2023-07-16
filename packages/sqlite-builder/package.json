@@ -1,8 +1,7 @@
 {
   "name": "kysely-sqlite-builder",
   "description": "sqlite builder for kysely",
-  "type": "module",
-  "version": "0.3.4",
+  "version": "0.3.5",
   "author": {
     "name": "subframe7536",
     "email": "1667077010@qq.com"
@@ -20,9 +19,8 @@
     "schema",
     "typescript"
   ],
-  "main": "./dist/index.cjs",
+  "main": "./dist/index.js",
   "module": "./dist/index.mjs",
-  "types": "./dist/index.d.ts",
   "files": [
     "dist"
   ],
