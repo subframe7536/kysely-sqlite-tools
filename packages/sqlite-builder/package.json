@@ -1,7 +1,7 @@
 {
   "name": "kysely-sqlite-builder",
   "description": "sqlite builder for kysely",
-  "version": "0.3.6",
+  "version": "0.3.7",
   "author": {
     "name": "subframe7536",
     "email": "1667077010@qq.com"
