@@ -1,8 +1,10 @@
-import type { Compilable, CompiledQuery, KyselyPlugin, LogEvent, QueryResult, RawBuilder, Simplify, Sql, Transaction } from 'kysely'
+import type { Compilable, CompiledQuery, KyselyPlugin, LogEvent, QueryResult, RawBuilder, Sql, Transaction } from 'kysely'
 import { Kysely, sql } from 'kysely'
 import { SqliteSerializePlugin } from 'kysely-plugin-serialize'
+import type { SimplifyResult } from 'kysely/dist/cjs/util/type-utils'
 import { parseTableMap, runCreateTable } from './util'
 import type { AvailableBuilder, ITable, Logger, SqliteBuilderOption } from './types'
+import { Stack } from './stack'
 
 const enum DBStatus {
   'needDrop',
@@ -14,6 +16,7 @@ export class SqliteBuilder<DB extends Record<string, any>> {
   private status: DBStatus
   private tableMap: Map<string, ITable<DB[Extract<keyof DB, string>]>>
   private logger?: Logger
+  private trxs: Stack<Transaction<DB>>
   public constructor(option: SqliteBuilderOption<DB>) {
     const { dialect, tables, dropTableBeforeInit: truncateBeforeInit, onQuery, plugins: additionalPlugin, logger } = option
     this.logger = logger
@@ -32,6 +35,7 @@ export class SqliteBuilder<DB extends Record<string, any>> {
       ? DBStatus.needDrop
       : DBStatus.noNeedDrop
     this.tableMap = parseTableMap(tables)
+    this.trxs = new Stack()
   }
 
   public async init(dropTableBeforeInit = false): Promise<SqliteBuilder<DB>> {
@@ -57,21 +61,32 @@ export class SqliteBuilder<DB extends Record<string, any>> {
     if (await this.isEmptyTable()) {
       return undefined
     }
-    return await this.kysely.transaction().execute(cb)
+    return await this.kysely.transaction()
+      .execute((trx) => {
+        this.trxs.push(trx)
+        return cb(trx)
+      })
       .catch((err) => {
         errorMsg && this.logger?.error(errorMsg, err)
         return undefined
       })
+      .finally(() => {
+        this.trxs.pop()
+      })
+  }
+
+  private getDB(): Kysely<DB> {
+    return this.trxs.isEmpty() ? this.kysely : this.trxs.peek()
   }
 
   public async exec<T>(
-    cb: (db: Kysely<DB>) => Promise<T>,
+    cb: (db: Kysely<DB> | Transaction<DB>) => Promise<T>,
     errorMsg?: string,
   ): Promise<T | undefined> {
     if (await this.isEmptyTable()) {
       return undefined
     }
-    return cb(this.kysely)
+    return cb(this.getDB())
       .catch((err) => {
         errorMsg && this.logger?.error(errorMsg, err)
         return undefined
@@ -79,41 +94,43 @@ export class SqliteBuilder<DB extends Record<string, any>> {
   }
 
   public async execOne<O>(
-    cb: (db: Kysely<DB>) => AvailableBuilder<DB, O>,
+    cb: (db: Kysely<DB> | Transaction<DB>) => AvailableBuilder<DB, O>,
     errorMsg?: string,
-  ): Promise<Simplify<O> | undefined> {
+  ): Promise<SimplifyResult<O> | undefined> {
     if (await this.isEmptyTable()) {
       return undefined
     }
-    return cb(this.kysely).executeTakeFirstOrThrow()
+    return cb(this.getDB())
+      .executeTakeFirstOrThrow()
       .catch((err) => {
         errorMsg && this.logger?.error(errorMsg, err)
         return undefined
-      })
+      }) as any
   }
 
   public async execList<O>(
-    cb: (db: Kysely<DB>) => AvailableBuilder<DB, O>,
+    cb: (db: Kysely<DB> | Transaction<DB>) => AvailableBuilder<DB, O>,
     errorMsg?: string,
-  ): Promise<Simplify<O>[] | undefined> {
+  ): Promise<SimplifyResult<O>[] | undefined> {
     if (await this.isEmptyTable()) {
       return undefined
     }
-    return cb(this.kysely).execute()
+    return cb(this.getDB())
+      .execute()
       .catch((err) => {
         errorMsg && this.logger?.error(errorMsg, err)
         return undefined
-      })
+      }) as any
   }
 
   public async toSQL<T extends Compilable>(cb: (db: Kysely<DB>) => T): Promise<CompiledQuery<unknown>> {
-    return cb(this.kysely).compile()
+    return cb(this.getDB()).compile()
   }
 
   public async raw<T = any>(rawSql: (s: Sql) => RawBuilder<T>): Promise<QueryResult<T> | undefined> {
     if (await this.isEmptyTable()) {
       return undefined
     }
-    return rawSql(sql).execute(this.kysely)
+    return rawSql(sql).execute(this.getDB())
   }
 }
