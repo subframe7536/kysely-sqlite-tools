@@ -5,6 +5,7 @@ export const defaultSerializer: Serializer = (parameter) => {
   if (parameter === undefined
     || parameter === null
     || typeof parameter === 'bigint'
+    || typeof parameter === 'string'
     || typeof parameter === 'number'
     || (typeof parameter === 'object' && 'buffer' in parameter)
   ) {
@@ -34,8 +35,7 @@ export const defaultDeserializer: Deserializer = (parameter) => {
       return new Date(parameter)
     } else {
       try {
-        return JSON.parse(parameter, (_k, v) =>
-          (typeof v === 'string' && dateRegex.exec(v)) ? new Date(v) : v)
+        return JSON.parse(parameter, (_k, v) => (typeof v === 'string' && dateRegex.exec(v)) ? new Date(v) : v)
       } catch (e) { }
     }
   }
