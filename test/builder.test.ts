@@ -2,7 +2,7 @@ import type { Generated } from 'kysely'
 import { SqliteDialect } from 'kysely'
 import Database from 'better-sqlite3'
 import { beforeAll, describe, expect, test } from 'vitest'
-import { SqliteBuilder, preCompile } from '../packages/sqlite-builder/src'
+import { SqliteBuilder } from '../packages/sqlite-builder/src'
 
 interface DB {
   test: TestTable
@@ -71,10 +71,22 @@ describe('test builder', async () => {
     expect(parameters).toStrictEqual(['{"name":"1"}'])
   })
   test('preCompile', async () => {
-    const fn = preCompile(db.kysely, db => db.selectFrom('test').selectAll())
+    const fn = db.preCompile(db => db.selectFrom('test').selectAll())
       .setParam<{ person: { name: string } }>((qb, param) => qb.where('person', '=', param('person')))
+
+    const start = performance.now()
+
     const { parameters, sql } = fn({ person: { name: '1' } })
     expect(sql).toBe('select * from "test" where "person" = ?')
     expect(parameters).toStrictEqual(['{"name":"1"}'])
+
+    const start2 = performance.now()
+    console.log('no compiled:', `${(start2 - start).toFixed(2)}ms`)
+
+    const { parameters: p1, sql: s1 } = fn({ person: { name: 'test' } })
+    expect(s1).toBe('select * from "test" where "person" = ?')
+    expect(p1).toStrictEqual(['{"name":"test"}'])
+
+    console.log('   compiled:', `${(performance.now() - start2).toFixed(2)}ms`)
   })
 })

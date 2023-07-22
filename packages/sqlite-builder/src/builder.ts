@@ -1,10 +1,10 @@
 import type { Compilable, CompiledQuery, KyselyPlugin, LogEvent, QueryResult, RawBuilder, Sql, Transaction } from 'kysely'
 import { Kysely, sql } from 'kysely'
 import { SqliteSerializePlugin } from 'kysely-plugin-serialize'
-import { parseTableMap, preCompile, runCreateTable } from './util'
+import { parseTableMap, preCompile, runCreateTable } from './utils'
 import type { AvailableBuilder, Logger, SqliteBuilderOption, Table } from './types'
 import { Stack } from './stack'
-import type { QueryBuilderOutput } from './util'
+import type { QueryBuilderOutput } from './utils'
 
 const enum DBStatus {
   'needDrop',
@@ -118,7 +118,7 @@ export class SqliteBuilder<DB extends Record<string, any>> {
 
   public preCompile<O>(
     queryBuilder: (db: Kysely<DB> | Transaction<DB>) => QueryBuilderOutput<Compilable<O>>,
-  ): ReturnType<typeof preCompile> {
+  ): ReturnType<typeof preCompile<DB, O>> {
     return preCompile(this.kysely, queryBuilder)
   }
 
