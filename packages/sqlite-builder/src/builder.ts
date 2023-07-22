@@ -1,10 +1,10 @@
 import type { Compilable, CompiledQuery, KyselyPlugin, LogEvent, QueryResult, RawBuilder, Sql, Transaction } from 'kysely'
 import { Kysely, sql } from 'kysely'
 import { SqliteSerializePlugin } from 'kysely-plugin-serialize'
+import type { SimplifySingleResult } from 'kysely/dist/cjs/util/type-utils'
 import { parseTableMap, preCompile, runCreateTable } from './utils'
-import type { AvailableBuilder, Logger, SqliteBuilderOption, Table } from './types'
+import type { AvailableBuilder, BuilderResult, Logger, QueryBuilderOutput, SqliteBuilderOption, Table } from './types'
 import { Stack } from './stack'
-import type { QueryBuilderOutput } from './utils'
 
 const enum DBStatus {
   'needDrop',
@@ -96,7 +96,7 @@ export class SqliteBuilder<DB extends Record<string, any>> {
   public async execOne<O>(
     cb: (db: Kysely<DB> | Transaction<DB>) => AvailableBuilder<DB, O>,
     errorMsg?: string,
-  ): Promise<O | undefined> {
+  ): Promise<SimplifySingleResult<O> | undefined> {
     const resultList = await this.execList(cb, errorMsg)
     return resultList?.length ? resultList[0] : undefined
   }
@@ -104,7 +104,7 @@ export class SqliteBuilder<DB extends Record<string, any>> {
   public async execList<O>(
     cb: (db: Kysely<DB> | Transaction<DB>) => AvailableBuilder<DB, O>,
     errorMsg?: string,
-  ): Promise<O[] | undefined> {
+  ): Promise<Exclude<SimplifySingleResult<O>, undefined>[] | undefined> {
     if (await this.isEmptyTable()) {
       return undefined
     }
@@ -113,36 +113,35 @@ export class SqliteBuilder<DB extends Record<string, any>> {
       .catch((err) => {
         errorMsg && this.logger?.error(errorMsg, err)
         return undefined
-      })
+      }) as any
   }
 
   public preCompile<O>(
     queryBuilder: (db: Kysely<DB> | Transaction<DB>) => QueryBuilderOutput<Compilable<O>>,
-  ): ReturnType<typeof preCompile<DB, O>> {
-    return preCompile(this.kysely, queryBuilder)
+  ): ReturnType<typeof preCompile<O>> {
+    return preCompile(queryBuilder(this.kysely))
   }
 
-  public async execCompiledOne<O>(
+  public async execCompiledRows<O>(
     query: CompiledQuery<O>,
     errorMsg?: string,
-  ): Promise<O | undefined> {
-    const resultList = await this.execCompiledList(query, errorMsg)
-    return resultList?.length ? resultList[0] : undefined
+  ): Promise<BuilderResult<O>['rows'] | undefined> {
+    const result = await this.execCompiled(query, errorMsg)
+    return result?.rows ?? undefined
   }
 
-  public async execCompiledList<O>(
+  public async execCompiled<O>(
     query: CompiledQuery<O>,
     errorMsg?: string,
-  ): Promise<O[] | undefined> {
+  ): Promise<BuilderResult<O> | undefined> {
     if (await this.isEmptyTable()) {
       return undefined
     }
     return this.getDB().executeQuery(query)
-      .then(result => result.rows)
       .catch((err) => {
         errorMsg && this.logger?.error(errorMsg, err)
         return undefined
-      })
+      }) as any
   }
 
   public async toSQL<T extends Compilable>(cb: (db: Kysely<DB>) => T): Promise<CompiledQuery<unknown>> {

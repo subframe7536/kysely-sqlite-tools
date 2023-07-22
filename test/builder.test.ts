@@ -6,6 +6,7 @@ import { SqliteBuilder } from '../packages/sqlite-builder/src'
 
 interface DB {
   test: TestTable
+  pet: PetTable
 }
 interface TestTable {
   id: Generated<number>
@@ -14,6 +15,13 @@ interface TestTable {
   createAt: Date | null
   updateAt: Date | null
   buffer: ArrayBuffer | null
+}
+interface PetTable {
+  id: Generated<string>
+  name: string
+  owner_id: string
+  species: 'cat' | 'dog'
+  is_favorite: boolean
 }
 describe('test builder', async () => {
   const db = new SqliteBuilder<DB>({
@@ -36,10 +44,19 @@ describe('test builder', async () => {
           timestamp: true,
         },
       },
+      pet: {
+        columns: {
+          id: { type: 'increments' },
+          is_favorite: { type: 'boolean' },
+          name: { type: 'string' },
+          owner_id: { type: 'string' },
+          species: { type: 'string' },
+        },
+      },
     },
     dropTableBeforeInit: true,
     logger: console,
-    onQuery: (queryInfo, time) => console.log(`${time}ms`, queryInfo.sql, queryInfo.parameters),
+    // onQuery: (queryInfo, time) => console.log(`${time}ms`, queryInfo.sql, queryInfo.parameters),
   })
   beforeAll(async () => {
     // manually generate table
@@ -47,7 +64,10 @@ describe('test builder', async () => {
   })
   test('insert', async () => {
     // auto generate table
-    await db.transaction(trx => trx.insertInto('test').values({ gender: false }).execute())
+    console.log(await db.transaction((trx) => {
+      trx.insertInto('test').values([{ gender: false }, { gender: true }]).execute()
+      return trx.updateTable('test').set({ gender: true }).where('id', '=', 2).execute()
+    }))
     const result = await db.execList(d => d.selectFrom('test').selectAll())
     expect(result).toBeInstanceOf(Array)
     expect(result![0].person).toStrictEqual({ name: 'test' })
@@ -62,31 +82,42 @@ describe('test builder', async () => {
     expect(result2!.updateAt).toBeInstanceOf(Date)
   })
   test('raw', async () => {
-    const { sql, parameters } = await db.toSQL(d => d
+    const query = await db.toSQL(d => d
       .selectFrom('test')
       .where('person', '=', { name: '1' })
       .selectAll(),
     )
-    expect(sql).toBe('select * from "test" where "person" = ?')
-    expect(parameters).toStrictEqual(['{"name":"1"}'])
+    expect(query.sql).toBe('select * from "test" where "person" = ?')
+    expect(query.parameters).toStrictEqual(['{"name":"1"}'])
+    const result = await db.execCompiled(query)
+    console.log(result)
   })
   test('preCompile', async () => {
-    const fn = db.preCompile(db => db.selectFrom('test').selectAll())
+    const select = db.preCompile(db => db.selectFrom('test').selectAll())
       .setParam<{ person: { name: string } }>((qb, param) => qb.where('person', '=', param('person')))
+    const insert = db.preCompile(db => db.insertInto('test'))
+      .setParam<{ gender: boolean }>((qb, param) => qb.values({ gender: param('gender') }))
+    const update = db.preCompile(db => db.updateTable('test'))
+      .setParam<{ gender: boolean }>((qb, param) => qb.set({ gender: param('gender') }).where('id', '=', 1))
 
     const start = performance.now()
 
-    const { parameters, sql } = fn({ person: { name: '1' } })
+    const { parameters, sql } = select({ person: { name: '1' } })
     expect(sql).toBe('select * from "test" where "person" = ?')
     expect(parameters).toStrictEqual(['{"name":"1"}'])
 
     const start2 = performance.now()
     console.log('no compiled:', `${(start2 - start).toFixed(2)}ms`)
 
-    const { parameters: p1, sql: s1 } = fn({ person: { name: 'test' } })
+    const { parameters: p1, sql: s1 } = select({ person: { name: 'test' } })
     expect(s1).toBe('select * from "test" where "person" = ?')
     expect(p1).toStrictEqual(['{"name":"test"}'])
 
     console.log('   compiled:', `${(performance.now() - start2).toFixed(2)}ms`)
+
+    const result = await db.execCompiled(insert({ gender: true }))
+    expect(result!.rows).toStrictEqual([])
+    const result2 = await db.execCompiled(update({ gender: false }))
+    expect(result2!.rows).toStrictEqual([])
   })
 })

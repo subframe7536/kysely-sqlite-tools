@@ -1,4 +1,4 @@
-import type { DeleteQueryBuilder, Dialect, Generated, InsertQueryBuilder, KyselyPlugin, SelectQueryBuilder, Sql, UpdateQueryBuilder } from 'kysely'
+import type { Compilable, DeleteQueryBuilder, Dialect, Generated, InsertQueryBuilder, KyselyPlugin, QueryResult, SelectQueryBuilder, Sql, UpdateQueryBuilder } from 'kysely'
 import type { CompiledQuery } from 'kysely/dist/cjs/query-compiler/compiled-query'
 
 export type TriggerEvent = 'insert' | 'update' | 'delete'
@@ -54,7 +54,11 @@ export type Logger = {
 }
 
 export type AvailableBuilder<DB, O> =
-  | SelectQueryBuilder<DB, keyof DB, O>
-  | UpdateQueryBuilder<DB, keyof DB, keyof DB, O>
-  | InsertQueryBuilder<DB, keyof DB, O>
-  | DeleteQueryBuilder<DB, keyof DB, O>
+  | SelectQueryBuilder<DB, any, O>
+  | UpdateQueryBuilder<DB, any, any, O>
+  | InsertQueryBuilder<DB, any, O>
+  | DeleteQueryBuilder<DB, any, O>
+
+export type QueryBuilderOutput<QB> = QB extends Compilable<infer O> ? O : never
+
+export type BuilderResult<T> = T extends SelectQueryBuilder<any, any, infer P> ? QueryResult<P> : Omit<QueryResult<any>, 'rows'> & { rows: [] }

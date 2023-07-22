@@ -1,8 +1,8 @@
-import type { Compilable, CompiledQuery, Kysely, Transaction } from 'kysely'
+import type { Compilable, CompiledQuery, Kysely, RootOperationNode } from 'kysely'
 import { sql } from 'kysely'
 import type { DataTypeExpression } from 'kysely/dist/cjs/parser/data-type-parser'
 import { defaultSerializer } from 'kysely-plugin-serialize'
-import type { ColumeOption, Table, Tables, TriggerEvent } from './types'
+import type { ColumeOption, QueryBuilderOutput, Table, Tables, TriggerEvent } from './types'
 
 export function isString(value: any): value is string {
   return typeof value === 'string'
@@ -143,11 +143,8 @@ export async function runCreateTable<T>(
   }
 }
 
-export type QueryBuilderOutput<QB> = QB extends Compilable<infer O> ? O : never
-
-export function preCompile<DB, O>(
-  db: Kysely<DB> | Transaction<DB>,
-  queryBuilder: (db: Kysely<DB> | Transaction<DB>) => QueryBuilderOutput<Compilable<O>>,
+export function preCompile<O>(
+  queryBuilder: QueryBuilderOutput<Compilable<O>>,
 ) {
   function getParam<P extends Record<string, any>>(name: keyof P): P[keyof P] {
     return `__precomile_${name as string}` as unknown as P[keyof P]
@@ -160,12 +157,12 @@ export function preCompile<DB, O>(
       ) => Compilable<O>,
     ) {
       let compiled: CompiledQuery<Compilable<O>>
-      return (param: P) => {
+      return (param: P, processRootOperatorNode?: (node: RootOperationNode) => RootOperationNode): CompiledQuery<O> => {
         if (!compiled) {
-          const { parameters, sql, query } = paramBuilder(queryBuilder(db), getParam).compile()
+          const { parameters, sql, query } = paramBuilder(queryBuilder, getParam).compile()
           compiled = {
             sql,
-            query: { kind: query.kind } as any,
+            query: processRootOperatorNode?.(query) || { kind: query.kind } as any,
             parameters,
           }
         }
