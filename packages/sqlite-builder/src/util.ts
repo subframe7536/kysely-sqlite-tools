@@ -1,7 +1,8 @@
-import type { Kysely } from 'kysely'
+import type { Compilable, CompiledQuery, Kysely, Transaction } from 'kysely'
 import { sql } from 'kysely'
 import type { DataTypeExpression } from 'kysely/dist/cjs/parser/data-type-parser'
-import type { ITable, Tables, TriggerEvent } from './types'
+import { defaultSerializer } from 'kysely-plugin-serialize'
+import type { ColumeOption, Table, Tables, TriggerEvent } from './types'
 
 export function isString(value: any): value is string {
   return typeof value === 'string'
@@ -33,7 +34,7 @@ export async function createTimeTrigger<T>(
     })
 }
 
-export function parseTableMap<T>(tables: Tables<T>): Map<string, ITable<T[Extract<keyof T, string>]>> {
+export function parseTableMap<T>(tables: Tables<T>): Map<string, Table<T[Extract<keyof T, string>]>> {
   const map = new Map()
   for (const tableName in tables) {
     if (!Object.prototype.hasOwnProperty.call(tables, tableName)) {
@@ -47,7 +48,7 @@ export function parseTableMap<T>(tables: Tables<T>): Map<string, ITable<T[Extrac
 
 export async function runCreateTable<T>(
   kysely: Kysely<T>,
-  tableMap: Map<string, ITable<T[Extract<keyof T, string>]>>,
+  tableMap: Map<keyof T & string, Table<T[keyof T & string]>>,
   dropTableBeforeInit = false,
 ) {
   for (const [tableName, table] of tableMap) {
@@ -55,23 +56,20 @@ export async function runCreateTable<T>(
     if (dropTableBeforeInit) {
       await kysely.schema.dropTable(tableName).ifExists().execute().catch()
     }
+
     let tableSql = kysely.schema.createTable(tableName)
+
+    const { index, primary, timestamp, unique } = tableProperty || {}
+
     let _triggerKey = 'rowid'
     let _haveAutoKey = false
-    let _insertColumnName = 'createAt'
-    let _updateColumnName = 'updateAt'
-    if (tableProperty?.timestamp && !isBoolean(tableProperty.timestamp)) {
-      const { create, update } = tableProperty.timestamp as { create?: string; update?: string }
-      _insertColumnName = create ?? 'createAt'
-      _updateColumnName = update ?? 'updateAt'
-    }
-    for (const columnName in columnList) {
-      if (!Object.prototype.hasOwnProperty.call(columnList, columnName)) {
-        continue
-      }
-      const columnOption = columnList[columnName]
+    const _insertColumnName = (typeof timestamp === 'object' && timestamp.create) || 'createAt'
+    const _updateColumnName = (typeof timestamp === 'object' && timestamp.update) || 'updateAt'
+
+    for (const [columnName, columnOption] of Object.entries(columnList)) {
       let dataType: DataTypeExpression = 'text'
-      const { type, notNull, defaultTo } = columnOption
+      const { type, notNull, defaultTo } = columnOption as ColumeOption<T[keyof T & string]>
+
       switch (type) {
         case 'boolean':
         case 'date':
@@ -88,55 +86,98 @@ export async function runCreateTable<T>(
         case 'blob':
           dataType = 'blob'
       }
+
       if ([_insertColumnName, _updateColumnName].includes(columnName)) {
         continue
       }
+
       tableSql = tableSql.addColumn(columnName, dataType, (builder) => {
         if (type === 'increments') {
           _haveAutoKey = true
           return builder.autoIncrement().primaryKey()
         }
+
         notNull && (builder = builder.notNull())
+
         defaultTo !== undefined && (builder = builder.defaultTo(
           defaultTo instanceof Function ? defaultTo(sql) : defaultTo,
         ))
+
         return builder
       })
     }
-    if (tableProperty) {
-      const _primary = tableProperty.primary as string | string[] | undefined
-      const _unique = tableProperty.unique as string[] | (string[])[] | undefined
-      if (tableProperty.timestamp) {
-        if (_insertColumnName) {
-          tableSql = tableSql.addColumn(_insertColumnName, 'text')
-        }
-        if (_updateColumnName) {
-          tableSql = tableSql.addColumn(_updateColumnName, 'text')
-        }
-      }
-      if (!_haveAutoKey && _primary) {
-        const is = isString(_primary)
-        _triggerKey = is ? _primary : _primary[0]
-        tableSql = tableSql.addPrimaryKeyConstraint(`pk_${is ? _primary : _primary.join('_')}`, (is ? [_primary] : _primary) as any)
-      }
-      _unique?.forEach((u: string | string[]) => {
-        const is = isString(u)
-        _triggerKey = (!_primary && !_haveAutoKey) ? is ? u : u[0] : _triggerKey
-        tableSql = tableSql.addUniqueConstraint(`un_${is ? u : u.join('_')}`, (is ? [u] : u) as any)
-      })
+
+    if (timestamp) {
+      tableSql = tableSql.addColumn(_insertColumnName, 'text')
+        .addColumn(_updateColumnName, 'text')
     }
+
+    if (!_haveAutoKey && primary) {
+      const is = Array.isArray(primary)
+      _triggerKey = is ? primary[0] : primary
+      tableSql = tableSql.addPrimaryKeyConstraint(`pk_${is ? primary.join('_') : primary}`, (is ? primary : [primary]) as any)
+    }
+
+    unique?.forEach((u) => {
+      const is = Array.isArray(u)
+      _triggerKey = (!primary && !_haveAutoKey) ? is ? u[0] : u : _triggerKey
+      tableSql = tableSql.addUniqueConstraint(`un_${is ? u.join('_') : u}`, (is ? u : [u]) as any)
+    })
+
     await tableSql.ifNotExists().execute()
-    if (tableProperty?.index) {
-      for (const i of tableProperty.index) {
-        const is = isString(i)
-        let _idx = kysely.schema.createIndex(`idx_${is ? i : (i as []).join('_')}`).on(tableName)
-        _idx = is ? _idx.column(i as string) : _idx.columns(i as [])
-        await _idx.ifNotExists().execute()
+
+    if (index) {
+      for (const i of index) {
+        const is = Array.isArray(i)
+        await kysely.schema.createIndex(`idx_${is ? i.join('_') : i}`)
+          .on(tableName)
+          .columns((is ? i : [i]) as string[])
+          .ifNotExists().execute()
       }
     }
-    if (tableProperty?.timestamp) {
-      _insertColumnName && await createTimeTrigger(kysely, tableName as keyof T, 'insert', _insertColumnName, _triggerKey)
-      _updateColumnName && await createTimeTrigger(kysely, tableName as keyof T, 'update', _updateColumnName, _triggerKey)
+
+    if (timestamp) {
+      await createTimeTrigger(kysely, tableName, 'insert', _insertColumnName, _triggerKey)
+      await createTimeTrigger(kysely, tableName, 'update', _updateColumnName, _triggerKey)
     }
+  }
+}
+
+export type QueryBuilderOutput<QB> = QB extends Compilable<infer O> ? O : never
+
+export function preCompile<DB, O>(
+  db: Kysely<DB> | Transaction<DB>,
+  queryBuilder: (db: Kysely<DB> | Transaction<DB>) => QueryBuilderOutput<Compilable<O>>,
+) {
+  function getParam<P extends Record<string, any>>(name: keyof P): P[keyof P] {
+    return `__precomile_${name as string}` as unknown as P[keyof P]
+  }
+  return {
+    setParam<P extends Record<string, any>>(
+      paramBuilder: (
+        queryBuilder: QueryBuilderOutput<Compilable<O>>,
+        param: typeof getParam<P>
+      ) => Compilable<O>,
+    ) {
+      let compiled: CompiledQuery<Compilable<O>>
+      return (param: P) => {
+        if (!compiled) {
+          const { parameters, sql, query } = paramBuilder(queryBuilder(db), getParam).compile()
+          compiled = {
+            sql,
+            query: { kind: query.kind } as any,
+            parameters,
+          }
+        }
+        return {
+          ...compiled,
+          parameters: compiled.parameters.map(p =>
+            (typeof p === 'string' && p.startsWith('__precomile_'))
+              ? defaultSerializer(param[p.slice(12)])
+              : p,
+          ),
+        }
+      }
+    },
   }
 }

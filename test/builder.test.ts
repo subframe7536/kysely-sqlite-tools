@@ -2,7 +2,7 @@ import type { Generated } from 'kysely'
 import { SqliteDialect } from 'kysely'
 import Database from 'better-sqlite3'
 import { beforeAll, describe, expect, test } from 'vitest'
-import { SqliteBuilder } from '../packages/sqlite-builder/src'
+import { SqliteBuilder, preCompile } from '../packages/sqlite-builder/src'
 
 interface DB {
   test: TestTable
@@ -13,6 +13,7 @@ interface TestTable {
   gender: boolean
   createAt: Date | null
   updateAt: Date | null
+  buffer: ArrayBuffer | null
 }
 describe('test builder', async () => {
   const db = new SqliteBuilder<DB>({
@@ -27,6 +28,7 @@ describe('test builder', async () => {
           gender: { type: 'boolean', notNull: true },
           createAt: { type: 'date' },
           updateAt: { type: 'date' },
+          buffer: { type: 'blob' },
         },
         property: {
           primary: 'id', // sqlite only support one single/composite primary key,
@@ -65,6 +67,13 @@ describe('test builder', async () => {
       .where('person', '=', { name: '1' })
       .selectAll(),
     )
+    expect(sql).toBe('select * from "test" where "person" = ?')
+    expect(parameters).toStrictEqual(['{"name":"1"}'])
+  })
+  test('preCompile', async () => {
+    const fn = preCompile(db.kysely, db => db.selectFrom('test').selectAll())
+      .setParam<{ person: { name: string } }>((qb, param) => qb.where('person', '=', param('person')))
+    const { parameters, sql } = fn({ person: { name: '1' } })
     expect(sql).toBe('select * from "test" where "person" = ?')
     expect(parameters).toStrictEqual(['{"name":"1"}'])
   })

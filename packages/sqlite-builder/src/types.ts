@@ -1,10 +1,6 @@
 import type { DeleteQueryBuilder, Dialect, Generated, InsertQueryBuilder, KyselyPlugin, SelectQueryBuilder, Sql, UpdateQueryBuilder } from 'kysely'
 import type { CompiledQuery } from 'kysely/dist/cjs/query-compiler/compiled-query'
 
-type Prettify<T> = {
-  [K in keyof T]: T[K]
-} & {}
-
 export type TriggerEvent = 'insert' | 'update' | 'delete'
 
 export type InferColumnType<T> =
@@ -16,32 +12,32 @@ export type InferColumnType<T> =
             T extends ArrayBufferLike ? 'blob' :
               'object'
 
-export type ColumeOption<T> = Prettify<{
+export type ColumeOption<T> = {
   type: InferColumnType<T>
   defaultTo?: T | ((sql: Sql) => unknown)
   notNull?: boolean
-}>
-export type TableOption<T> = Prettify<{
-  primary?: keyof T | Array<keyof T>
-  unique?: Array<keyof T | Array<keyof T>>
-  index?: Array<keyof T | Array<keyof T>>
+}
+export type TableOption<T, K = keyof T & string> = {
+  primary?: K | Array<K>
+  unique?: Array<K | Array<K>>
+  index?: Array<K | Array<K>>
   /**
    * set `True` to use default field
    * - create field: 'createAt'
    * - update field: 'updateAt'
    */
-  timestamp?: boolean | { create?: keyof T; update?: keyof T }
-}>
-export type Column<T> = Prettify<{
+  timestamp?: boolean | { create?: K; update?: K }
+}
+export type Column<T> = {
   [k in keyof T]: ColumeOption<T[k]>
-}>
-export type ITable<T> = Prettify<{
+}
+export type Table<T> = {
   columns: Column<T>
   property?: TableOption<T>
-}>
-export type Tables<T> = Prettify<{
-  [Key in keyof T]: ITable<T[Key]>
-}>
+}
+export type Tables<T> = {
+  [Key in keyof T]: Table<T[Key]>
+}
 export interface SqliteBuilderOption<T> {
   tables: Tables<T>
   dialect: Dialect
