@@ -3,18 +3,18 @@ import { CompiledQuery } from 'kysely'
 import type { TauriSqlDB } from './type'
 import type { TauriSqlDialectConfig } from '.'
 
-export class TaruiSqlDriver {
-  private config: TauriSqlDialectConfig
+export class TaruiSqlDriver<T extends 'sqlite' | 'mysql' | 'postgres'> {
+  private config: TauriSqlDialectConfig<T>
   private db?: TauriSqlDB
   private connectionMutex = new ConnectionMutex()
   private connection?: DatabaseConnection
-  constructor(config: TauriSqlDialectConfig) {
+  constructor(config: TauriSqlDialectConfig<T>) {
     this.config = config
   }
 
   async init(): Promise<void> {
     this.db = typeof this.config.database === 'function'
-      ? await this.config.database()
+      ? await this.config.database(`${this.config.type}:${this.config.type === 'sqlite' ? '' : '//'}` as any)
       : await this.config.database
     this.connection = new TauriSqlConnection(this.db)
     if (this.config.onCreateConnection) {
