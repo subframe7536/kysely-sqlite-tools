@@ -1,5 +1,7 @@
 import type { QueryResult } from 'kysely'
 
+export type Promisable<T> = T | Promise<T>
+
 export type SqlData = {
   sql: string
   parameters?: readonly unknown[]

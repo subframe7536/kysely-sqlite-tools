@@ -9,13 +9,13 @@ if (!parentPort) {
 const { src, option } = workerData
 const db = new Database(src, option)
 
-parentPort.on('message', async (msg: MainMsg) => {
+parentPort.on('message', (msg: MainMsg) => {
   const ret: WorkerMsg = {
     type: msg.type,
     data: null,
     err: null,
   }
-  const run = async () => {
+  const run = () => {
     try {
       if (msg.type === 'close') {
         db.close()
@@ -45,6 +45,6 @@ parentPort.on('message', async (msg: MainMsg) => {
       ret.err = error
     }
   }
-  await run()
+  run()
   parentPort?.postMessage(ret)
 })
