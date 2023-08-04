@@ -20,7 +20,7 @@
     "release": "bumpp package.json packages/**/package.json",
     "serve": "cd playground && pnpm run dev",
     "publish": "pnpm -r -F \"./packages/*\" publish --no-git-checks",
-    "test": "vitest run --root ./test",
+    "test": "vitest run --root ./test --passWithNoTests",
     "test:watch": "vitest",
     "typecheck": "tsc --noEmit",
     "lint": "eslint --cache . --fix",

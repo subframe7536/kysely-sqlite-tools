@@ -89,8 +89,6 @@ describe('test builder', async () => {
     )
     expect(query.sql).toBe('select * from "test" where "person" = ?')
     expect(query.parameters).toStrictEqual(['{"name":"1"}'])
-    const result = await db.execCompiled(query)
-    console.log(result)
   })
   test('preCompile', async () => {
     const select = db.preCompile(db => db.selectFrom('test').selectAll())
