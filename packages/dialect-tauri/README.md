@@ -5,11 +5,13 @@ dialect that using [Tauri official sql plugin](https://github.com/tauri-apps/plu
 ### usage
 
 ```ts
+import Database from 'tauri-plugin-sql-api'
 import { appDataDir } from '@tauri-apps/api/path'
 
 const kysely = new Kysely<DB>({
+  type: 'sqlite',
   dialect: new TauriSqlDialect({
-    database: Database.load(`sqlite:${await appDataDir()}test.db`)
+    database: prefix => Database.load(`${prefix}${await appDataDir()}test.db`)
   }),
 })
 ```
@@ -17,16 +19,9 @@ const kysely = new Kysely<DB>({
 ### type
 
 ```ts
-export interface TauriSqlDialectConfig {
-  /**
-   * Tauri database instance
-   */
-  database: TauriSqlDB | (() => Promise<TauriSqlDB>)
-  /**
-   * Called once when the first query is executed.
-   *
-   * This is a Kysely specific feature and does not come from the `better-sqlite3` module.
-   */
-  onCreateConnection?: (connection: DatabaseConnection) => Promise<void>
+export interface TauriSqlDialectConfig<T extends 'sqlite' | 'mysql' | 'postgres'> {
+  database: Promisable<TauriSqlDB> | ((prefix: T extends 'sqlite' ? `${T}:` : `${T}://`) => Promisable<TauriSqlDB>)
+  type: T
+  onCreateConnection?: (connection: DatabaseConnection) => Promisable<void>
 }
 ```

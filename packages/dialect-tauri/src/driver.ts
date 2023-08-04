@@ -87,7 +87,7 @@ class TauriSqlConnection implements DatabaseConnection {
   }
 
   streamQuery<R>(): AsyncIterableIterator<QueryResult<R>> {
-    throw new Error('Sqlite driver doesn\'t support streaming')
+    throw new Error('Tauri driver doesn\'t support streaming')
   }
 
   async executeQuery<R>(compiledQuery: CompiledQuery<unknown>): Promise<QueryResult<R>> {
