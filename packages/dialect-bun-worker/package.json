@@ -18,7 +18,8 @@
     "dialect",
     "sql",
     "worker",
-    "sqlite3"
+    "sqlite3",
+    "bun"
   ],
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",

@@ -13,6 +13,16 @@ export default defineConfig([
     external: ['kysely'],
     noExternal: ['wa-sqlite'],
     treeshake: true,
+  },
+  {
+    entry: [
+      'src/worker.ts',
+    ],
+    clean: false,
+    format: ['cjs', 'esm'],
+    dts: true,
+    noExternal: ['wa-sqlite'],
+    treeshake: true,
     plugins: [
       {
         name: 'copy',
@@ -24,15 +34,5 @@ export default defineConfig([
         },
       },
     ],
-  },
-  {
-    entry: [
-      'src/worker.ts',
-    ],
-    clean: false,
-    format: ['cjs', 'esm'],
-    dts: true,
-    noExternal: ['wa-sqlite'],
-    treeshake: true,
   },
 ])
