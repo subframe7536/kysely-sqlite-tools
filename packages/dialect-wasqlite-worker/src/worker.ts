@@ -2,7 +2,7 @@ import type { SQLiteAPI, SQLiteCompatibleType } from '@subframe7536/wa-sqlite'
 import { Factory, SQLITE_ROW } from '@subframe7536/wa-sqlite'
 import SQLiteAsyncESMFactory from '@subframe7536/wa-sqlite/dist/wa-sqlite-async.mjs'
 import { IDBBatchAtomicVFS } from '@subframe7536/wa-sqlite/src/examples/IDBBatchAtomicVFS'
-import type { MainMsg, WorkerMsg } from './type'
+import type { MainMsg, RunMode, WorkerMsg } from './type'
 
 let sqlite: SQLiteAPI
 let db: number
@@ -55,19 +55,16 @@ async function run(sql: string, parameters?: readonly unknown[]) {
   }
 }
 
-async function exec(sql: string, parameters?: readonly unknown[]) {
-  await run(sql, parameters)
+async function exec(mode: RunMode, sql: string, parameters?: readonly unknown[]) {
+  const rows = await run(sql, parameters)
+  if (mode === 'query') {
+    return { rows }
+  }
   const v = await run('SELECT last_insert_rowid() as id')
   return {
     insertId: BigInt(v[0].id),
     numAffectedRows: BigInt(sqlite.changes(db)),
-    rows: [],
-  }
-}
-
-async function query(sql: string, parameters?: readonly unknown[]) {
-  return {
-    rows: await run(sql, parameters),
+    rows: mode === 'raw' ? rows : [],
   }
 }
 
@@ -79,17 +76,13 @@ onmessage = async (ev: MessageEvent<MainMsg>) => {
   const data = ev.data
   const ret: WorkerMsg = {
     type: data.type,
-    msg: {
-      data: null,
-      err: null,
-    },
+    data: null,
+    err: null,
   }
   try {
     switch (data.type) {
       case 'run':
-        ret.msg.data = data.isQuery
-          ? await query(data.sql, data.parameters)
-          : await exec(data.sql, data.parameters)
+        ret.data = await exec(data.mode, data.sql, data.parameters)
         break
       case 'close':
         await close()
@@ -99,7 +92,7 @@ onmessage = async (ev: MessageEvent<MainMsg>) => {
         break
     }
   } catch (error) {
-    ret.msg.err = error
+    ret.err = error
   }
   postMessage(ret)
 }

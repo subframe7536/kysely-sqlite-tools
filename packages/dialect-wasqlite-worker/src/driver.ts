@@ -19,7 +19,7 @@ export class WaSqliteWorkerDriver implements Driver {
     this.worker = this.config.worker
       ?? new Worker(new URL('./worker', import.meta.url), { type: 'module' })
     this.mitt = MittOnce<EventWithError>()
-    this.worker.onmessage = ({ data: { msg, type } }: MessageEvent<WorkerMsg>) => {
+    this.worker.onmessage = ({ data: { type, ...msg } }: MessageEvent<WorkerMsg>) => {
       this.mitt?.emit(type, msg)
     }
     const msg: MainMsg = {
@@ -131,8 +131,12 @@ class WaSqliteWorkerConnection implements DatabaseConnection {
 
   async executeQuery<R>(compiledQuery: CompiledQuery<unknown>): Promise<QueryResult<R>> {
     const { parameters, sql, query } = compiledQuery
-    const isQuery = ['SelectQueryNode', 'RawNode'].includes(query.kind)
-    const msg: MainMsg = { type: 'run', isQuery, sql, parameters }
+    const mode = query.kind === 'SelectQueryNode'
+      ? 'query'
+      : query.kind === 'RawNode'
+        ? 'raw'
+        : 'exec'
+    const msg: MainMsg = { type: 'run', mode, sql, parameters }
     this.worker.postMessage(msg)
     return new Promise((resolve, reject) => {
       if (!this.mitt) {

@@ -1,9 +1,13 @@
 import type { QueryResult } from 'kysely'
 
+export type Promisable<T> = T | Promise<T>
+
+export type RunMode = 'exec' | 'query' | 'raw'
+
 export type MainMsg =
   | {
     type: 'run'
-    isQuery: boolean
+    mode: RunMode
     sql: string
     parameters?: readonly unknown[]
   }
@@ -19,10 +23,8 @@ export type MainMsg =
 export type WorkerMsg = {
   [K in keyof Events]: {
     type: K
-    msg: {
-      data: Events[K]
-      err: unknown
-    }
+    data: Events[K]
+    err: unknown
   }
 }[keyof Events]
 type Events = {
