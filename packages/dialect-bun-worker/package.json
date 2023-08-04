@@ -1,0 +1,42 @@
+{
+  "name": "kysely-bun-worker",
+  "version": "0.3.8",
+  "description": "kysely dialect for bun, running in worker",
+  "author": {
+    "name": "subframe7536",
+    "email": "1667077010@qq.com"
+  },
+  "license": "MIT",
+  "homepage": "https://github.com/subframe7536/kysely-sqlite-tools#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/subframe7536/kysely-sqlite-tools.git"
+  },
+  "bugs": "https://github.com/subframe7536/kysely-sqlite-tools/issues",
+  "keywords": [
+    "kysely",
+    "dialect",
+    "sql",
+    "worker",
+    "sqlite3"
+  ],
+  "main": "./dist/index.js",
+  "module": "./dist/index.mjs",
+  "exports": {
+    ".": {
+      "require": "./dist/index.js",
+      "import": "./dist/index.mjs"
+    }
+  },
+  "scripts": {
+    "dev": "bun index.ts",
+    "test": "bun test",
+    "build": "tsup"
+  },
+  "devDependencies": {
+    "bun-types": "latest"
+  },
+  "dependencies": {
+    "mitt": "^3.0.1"
+  }
+}

@@ -14,6 +14,7 @@ module.exports = {
       'plugin',
       'dialect-tauri',
       'dialect-wasm',
+      'dialect-bun-worker',
       'dialect-sqlite-worker',
       'dialect-wasqlite-worker',
       'builder',
