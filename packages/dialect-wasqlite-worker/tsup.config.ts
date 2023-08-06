@@ -26,8 +26,8 @@ export default defineConfig([
     plugins: [
       {
         name: 'copy',
-        buildEnd: async () => {
-          await copyFile(
+        async buildEnd(this) {
+          this.format === 'esm' && await copyFile(
             './node_modules/@subframe7536/wa-sqlite/dist/wa-sqlite-async.wasm',
             './dist/wa-sqlite-async.wasm',
           )
