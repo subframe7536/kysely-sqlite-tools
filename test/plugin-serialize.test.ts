@@ -1,4 +1,3 @@
-import { Buffer } from 'node:buffer'
 import { describe, expect, test } from 'vitest'
 import Database from 'better-sqlite3'
 import type { Generated } from 'kysely/dist/cjs/util/column-type'

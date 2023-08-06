@@ -46,3 +46,10 @@ see in jsdoc
 ### usage and more detali
 
 see [test](../../test/dialect-wasm.test.ts) and [playground](../../playground/src/modules)
+
+
+## TODO
+
+- [ ] add type and use [worker client](https://github.com/tomayac/sqlite-wasm#usage-with-the-bundled-sqliteclient-with-opfs-if-available) for `OfficialWasmDialect`
+- [ ] seem to have nodejs support for official wasm: https://github.com/tomayac/sqlite-wasm/blob/main/sqlite-wasm/jswasm/sqlite3-node.mjs
+- [ ] add indexeddb support for official wasm, [example](https://sqlite.org/src/file/ext/wasm/api/sqlite3-vfs-opfs.js)

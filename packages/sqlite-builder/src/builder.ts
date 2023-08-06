@@ -6,11 +6,11 @@ import { parseTableMap, preCompile, runCreateTable } from './utils'
 import type { AvailableBuilder, BuilderResult, Logger, QueryBuilderOutput, SqliteBuilderOption, Table } from './types'
 import { Stack } from './stack'
 
-const enum DBStatus {
-  'needDrop',
-  'noNeedDrop',
-  'ready',
-}
+type DBStatus =
+ | 'needDrop'
+ | 'noNeedDrop'
+ | 'ready'
+
 export class SqliteBuilder<DB extends Record<string, any>> {
   public kysely: Kysely<DB>
   private status: DBStatus
@@ -32,22 +32,22 @@ export class SqliteBuilder<DB extends Record<string, any>> {
       plugins,
     })
     this.status = truncateBeforeInit
-      ? DBStatus.needDrop
-      : DBStatus.noNeedDrop
+      ? 'needDrop'
+      : 'noNeedDrop'
     this.tableMap = parseTableMap(tables)
     this.trxs = new Stack()
   }
 
   public async init(dropTableBeforeInit = false): Promise<SqliteBuilder<DB>> {
-    const drop = dropTableBeforeInit || this.status === DBStatus.needDrop
+    const drop = dropTableBeforeInit || this.status === 'needDrop'
     await runCreateTable(this.kysely, this.tableMap, drop)
-    this.status = DBStatus.ready
+    this.status = 'ready'
     return this
   }
 
   private async isEmptyTable(): Promise<boolean> {
-    this.status !== DBStatus.ready && await this.init()
-    if (this.status === DBStatus.ready) {
+    this.status !== 'ready' && await this.init()
+    if (this.status === 'ready') {
       return false
     }
     this.logger?.error('fail to init table')

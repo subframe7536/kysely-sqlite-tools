@@ -1,4 +1,3 @@
-import type { Buffer } from 'node:buffer'
 import type { DatabaseConnection, DatabaseIntrospector, Dialect, DialectAdapter, Driver, Kysely, QueryCompiler } from 'kysely'
 import { SqliteAdapter, SqliteIntrospector, SqliteQueryCompiler } from 'kysely'
 import type { Options } from 'better-sqlite3'

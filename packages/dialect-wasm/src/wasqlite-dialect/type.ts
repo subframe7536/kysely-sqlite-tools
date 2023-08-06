@@ -1,4 +1,4 @@
-export type SQLiteCompatibleType = number | string | Uint8Array | number[] | BigInt | null
+export type SQLiteCompatibleType = number | string | Uint8Array | number[] | bigint | null
 
 export interface WaSqliteDatabase {
   sqlite: Sqlite
