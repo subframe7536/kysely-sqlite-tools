@@ -20,15 +20,14 @@ export async function createTimeTrigger<T>(
 ): Promise<void> {
   // datetime('now') will return UTC Time
   await sql`
-      create trigger if not exists ${sql.raw(table as string)}_${sql.raw(column)}
-      after ${sql.raw(event)}
-      on ${sql.table(table as string)}
-      begin
-        update ${sql.table(table as string)}
-        set ${sql.ref(column)} = datetime('now','localtime')
-        where ${sql.ref(key)} = NEW.${sql.ref(key)};
-      end
-    `.execute(kysely).catch((err) => {
+    create trigger if not exists ${sql.raw(table as string)}_${sql.raw(column)}
+    after ${sql.raw(event)}
+    on ${sql.table(table as string)}
+    begin
+      update ${sql.table(table as string)}
+      set ${sql.ref(column)} = datetime('now','localtime')
+      where ${sql.ref(key)} = NEW.${sql.ref(key)};
+    end`.execute(kysely).catch((err) => {
       console.error(err)
       return undefined
     })
@@ -36,11 +35,7 @@ export async function createTimeTrigger<T>(
 
 export function parseTableMap<T>(tables: Tables<T>): Map<string, Table<T[Extract<keyof T, string>]>> {
   const map = new Map()
-  for (const tableName in tables) {
-    if (!Object.prototype.hasOwnProperty.call(tables, tableName)) {
-      continue
-    }
-    const table = tables[tableName]
+  for (const [tableName, table] of Object.entries(tables)) {
     map.set(tableName, table)
   }
   return map
@@ -107,33 +102,40 @@ export async function runCreateTable<T>(
       })
     }
 
-    if (timestamp) {
-      tableSql = tableSql.addColumn(_insertColumnName, 'text')
+    tableSql = timestamp
+      ? tableSql
+        .addColumn(_insertColumnName, 'text')
         .addColumn(_updateColumnName, 'text')
-    }
+      : tableSql
 
     if (!_haveAutoKey && primary) {
       const is = Array.isArray(primary)
       _triggerKey = is ? primary[0] : primary
-      tableSql = tableSql.addPrimaryKeyConstraint(`pk_${is ? primary.join('_') : primary}`, (is ? primary : [primary]) as any)
+      tableSql = tableSql.addPrimaryKeyConstraint(
+        `pk_${is ? primary.join('_') : primary}`,
+        (is ? primary : [primary]) as any,
+      )
     }
 
-    unique?.forEach((u) => {
-      const is = Array.isArray(u)
-      _triggerKey = (!primary && !_haveAutoKey) ? is ? u[0] : u : _triggerKey
-      tableSql = tableSql.addUniqueConstraint(`un_${is ? u.join('_') : u}`, (is ? u : [u]) as any)
-    })
+    for (const uk of unique ?? []) {
+      const is = Array.isArray(uk)
+      _triggerKey = (!primary && !_haveAutoKey)
+        ? (is ? uk[0] : uk)
+        : _triggerKey
+      tableSql = tableSql.addUniqueConstraint(
+        `un_${is ? uk.join('_') : uk}`,
+        (is ? uk : [uk]) as any,
+      )
+    }
 
     await tableSql.ifNotExists().execute()
 
-    if (index) {
-      for (const i of index) {
-        const is = Array.isArray(i)
-        await kysely.schema.createIndex(`idx_${is ? i.join('_') : i}`)
-          .on(tableName)
-          .columns((is ? i : [i]) as string[])
-          .ifNotExists().execute()
-      }
+    for (const i of index ?? []) {
+      const is = Array.isArray(i)
+      await kysely.schema.createIndex(`idx_${is ? i.join('_') : i}`)
+        .on(tableName)
+        .columns((is ? i : [i]) as string[])
+        .ifNotExists().execute()
     }
 
     if (timestamp) {
