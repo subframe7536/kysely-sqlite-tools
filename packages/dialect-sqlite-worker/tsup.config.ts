@@ -10,7 +10,6 @@ export default defineConfig([
     format: ['cjs', 'esm'],
     shims: true,
     dts: true,
-    external: ['kysely', 'better-sqlite3'],
     treeshake: true,
   },
 ])
