@@ -39,9 +39,12 @@
     "access": "public"
   },
   "devDependencies": {
-    "@subframe7536/wa-sqlite": "^0.9.5"
+    "@subframe7536/wa-sqlite": "^0.9.6"
   },
   "dependencies": {
-    "mitt": "^3.0.0"
+    "mitt": "^3.0.1"
+  },
+  "peerDependencies": {
+    "kysely": "^0.26.1"
   }
 }

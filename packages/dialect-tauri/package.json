@@ -1,7 +1,7 @@
 {
   "name": "kysely-dialect-tauri",
   "version": "0.3.8",
-  "description": "kysely Tauri dialect, using tauri-plugin-sql",
+  "description": "kysely Tauri dialect, using @tauri-apps/plugin-sql",
   "author": {
     "name": "subframe7536",
     "email": "1667077010@qq.com"
@@ -30,6 +30,10 @@
   "files": [
     "dist"
   ],
+  "peerDependencies": {
+    "kysely": "^0.26.1",
+    "@tauri-apps/plugin-sql": "*"
+  },
   "scripts": {
     "dev": "tsup --watch",
     "build": "tsup"

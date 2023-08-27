@@ -39,6 +39,7 @@
     "access": "public"
   },
   "peerDependencies": {
-    "better-sqlite3": "^8.4.0"
+    "better-sqlite3": "^8.5.0",
+    "kysely": "^0.26.1"
   }
 }

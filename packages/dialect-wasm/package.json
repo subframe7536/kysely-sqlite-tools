@@ -35,6 +35,9 @@
     "dev": "tsup --watch",
     "build": "tsup"
   },
+  "peerDependencies": {
+    "kysely": "^0.26.1"
+  },
   "publishConfig": {
     "access": "public"
   }

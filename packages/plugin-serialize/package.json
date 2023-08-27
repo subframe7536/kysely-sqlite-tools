@@ -29,5 +29,8 @@
   },
   "publishConfig": {
     "access": "public"
+  },
+  "peerDependencies": {
+    "kysely": "^0.26.1"
   }
 }
