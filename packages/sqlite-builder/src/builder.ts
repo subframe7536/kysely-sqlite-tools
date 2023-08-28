@@ -1,4 +1,4 @@
-import type { Compilable, CompiledQuery, KyselyPlugin, LogEvent, QueryResult, RawBuilder, Sql, Transaction } from 'kysely'
+import type { Compilable, CompiledQuery, LogEvent, QueryResult, RawBuilder, Sql, Transaction } from 'kysely'
 import { Kysely, sql } from 'kysely'
 import { SqliteSerializePlugin } from 'kysely-plugin-serialize'
 import type { Simplify } from 'kysely/dist/cjs/util/type-utils'
@@ -6,22 +6,22 @@ import { parseTableMap, precompileQuery, runCreateTable } from './utils'
 import type { AvailableBuilder, Logger, QueryBuilderOutput, QueryBuilderResult, SqliteBuilderOption, Table } from './types'
 import { Stack } from './stack'
 
-type DBStatus =
-  | 'needDrop'
-  | 'noNeedDrop'
-  | 'ready'
-  | 'destroy'
+const DBState = {
+  needDrop: 0,
+  noNeedDrop: 1,
+  ready: 2,
+  destroyed: 3,
+} as const
 
 export class SqliteBuilder<DB extends Record<string, any>> {
   public kysely: Kysely<DB>
-  private status: DBStatus
+  private status: typeof DBState[keyof typeof DBState]
   private tableMap: Map<string, Table<DB[keyof DB & string]>>
   private logger?: Logger
   private trxs: Stack<Transaction<DB>>
   public constructor(option: SqliteBuilderOption<DB>) {
-    const { dialect, tables, dropTableBeforeInit: truncateBeforeInit, onQuery, plugins: additionalPlugin, logger } = option
+    const { dialect, tables, dropTableBeforeInit = false, onQuery, plugins = [], logger } = option
     this.logger = logger
-    const plugins: KyselyPlugin[] = additionalPlugin ?? []
     plugins.push(new SqliteSerializePlugin())
     this.kysely = new Kysely<DB>({
       dialect,
@@ -32,27 +32,27 @@ export class SqliteBuilder<DB extends Record<string, any>> {
       },
       plugins,
     })
-    this.status = truncateBeforeInit
-      ? 'needDrop'
-      : 'noNeedDrop'
+    this.status = dropTableBeforeInit
+      ? DBState.needDrop
+      : DBState.noNeedDrop
     this.tableMap = parseTableMap(tables)
     this.trxs = new Stack()
   }
 
   public async init(dropTableBeforeInit = false): Promise<SqliteBuilder<DB>> {
-    const drop = dropTableBeforeInit || this.status === 'needDrop'
+    const drop = dropTableBeforeInit || this.status === DBState.needDrop
     await runCreateTable(this.kysely, this.tableMap, drop)
-    this.status = 'ready'
+    this.status = DBState.ready
     return this
   }
 
   private async isFailToInitDB(): Promise<boolean> {
-    if (this.status === 'destroy') {
+    if (this.status === DBState.destroyed) {
       this.logger?.error('DB have been destroyed')
       return true
     }
-    this.status !== 'ready' && await this.init()
-    if (this.status === 'ready') {
+    this.status !== DBState.ready && await this.init()
+    if (this.status === DBState.ready) {
       return false
     }
     this.logger?.error('fail to init DB')
@@ -199,7 +199,7 @@ export class SqliteBuilder<DB extends Record<string, any>> {
    */
   public async destroy() {
     await this.kysely.destroy()
-    this.status = 'destroy'
+    this.status = DBState.destroyed
     this.tableMap.clear()
     this.trxs.clear()
   }
