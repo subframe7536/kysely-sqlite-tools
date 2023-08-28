@@ -145,38 +145,77 @@ export async function runCreateTable<T>(
   }
 }
 
-export function preCompile<O>(
+/**
+ * create precompiled query, inspired by {@link https://github.com/jtlapp/kysely-params kysely-params}
+ * @example
+ * ```ts
+ * const query = precompileQuery(
+ *   db.selectFrom('test').selectAll(),
+ * ).setParam<{ name: string }>((qb, param) =>
+ *   qb.where('name', '=', param('name')),
+ * )
+ * const compiledQuery = query({ name: 'test' })
+ * // {
+ * //   sql: 'select * from "test" where "name" = ?',
+ * //   parameters: ['test'],
+ * //   query: { kind: 'SelectQueryNode' }
+ * // }
+ * ```
+ */
+export function precompileQuery<O>(
   queryBuilder: QueryBuilderOutput<Compilable<O>>,
 ) {
-  function getParam<P extends Record<string, any>>(name: keyof P): P[keyof P] {
-    return `__precomile_${name as string}` as unknown as P[keyof P]
-  }
-  return {
-    setParam<P extends Record<string, any>>(
-      paramBuilder: (
-        queryBuilder: QueryBuilderOutput<Compilable<O>>,
-        param: typeof getParam<P>
-      ) => Compilable<O>,
-    ) {
-      let compiled: CompiledQuery<Compilable<O>>
-      return (param: P, processRootOperatorNode?: (node: RootOperationNode) => RootOperationNode): CompiledQuery<O> => {
-        if (!compiled) {
-          const { parameters, sql, query } = paramBuilder(queryBuilder, getParam).compile()
-          compiled = {
-            sql,
-            query: processRootOperatorNode?.(query) || { kind: query.kind } as any,
-            parameters,
-          }
-        }
-        return {
-          ...compiled,
-          parameters: compiled.parameters.map(p =>
-            (typeof p === 'string' && p.startsWith('__precomile_'))
-              ? defaultSerializer(param[p.slice(12)])
-              : p,
-          ),
-        }
+  const getParam = <T extends Record<string, any>>(
+    name: keyof T,
+  ): T[keyof T] => `__precomile_${name as string}` as unknown as T[keyof T]
+      type SetParam<T extends Record<string, any>> = {
+        /**
+         * query builder for setup params
+         */
+        qb: QueryBuilderOutput<Compilable<O>>
+        /**
+         * param builder
+         */
+        param: typeof getParam<T>
       }
-    },
-  }
+    /**
+     * @param param custom params
+     * @param processRootOperatorNode process `query` in {@link CompiledQuery}
+     * @default (node) => ({ kind: node.kind })
+     */
+    type CompileFn<T extends Record<string, any>> = (
+      param: T,
+      processRootOperatorNode?: ((node: RootOperationNode) => RootOperationNode)
+    ) => CompiledQuery<O>
+
+    return {
+      /**
+       * setup params
+       * @param paramBuilder param builder
+       * @returns function to {@link CompileFn compile}
+       */
+      setParam: <T extends Record<string, any>>(
+        paramBuilder: ({ param, qb }: SetParam<T>) => Compilable<O>,
+      ): CompileFn<T> => {
+        let compiled: CompiledQuery<Compilable<O>>
+        return ((param, processRootOperatorNode) => {
+          if (!compiled) {
+            const { parameters, sql, query } = paramBuilder({ qb: queryBuilder, param: getParam }).compile()
+            compiled = {
+              sql,
+              query: processRootOperatorNode?.(query) || { kind: query.kind } as any,
+              parameters,
+            }
+          }
+          return {
+            ...compiled,
+            parameters: compiled.parameters.map(p =>
+              (typeof p === 'string' && p.startsWith('__precomile_'))
+                ? defaultSerializer(param[p.slice(12)])
+                : p,
+            ),
+          }
+        }) satisfies CompileFn<T>
+      },
+    }
 }

@@ -75,7 +75,7 @@ describe('test builder', async () => {
     expect(result![0].createAt).toBeInstanceOf(Date)
     expect(result![0].updateAt).toBeInstanceOf(Date)
     const result2 = await db.execOne(d => d.selectFrom('test').selectAll())
-    expect(result).toBeInstanceOf(Object)
+    expect(result2).toBeInstanceOf(Object)
     expect(result2!.person).toStrictEqual({ name: 'test' })
     expect(result2!.gender).toStrictEqual(false)
     expect(result2!.createAt).toBeInstanceOf(Date)
@@ -90,13 +90,22 @@ describe('test builder', async () => {
     expect(query.sql).toBe('select * from "test" where "person" = ?')
     expect(query.parameters).toStrictEqual(['{"name":"1"}'])
   })
-  test('preCompile', async () => {
-    const select = db.preCompile(db => db.selectFrom('test').selectAll())
-      .setParam<{ person: { name: string } }>((qb, param) => qb.where('person', '=', param('person')))
-    const insert = db.preCompile(db => db.insertInto('test'))
-      .setParam<{ gender: boolean }>((qb, param) => qb.values({ gender: param('gender') }))
-    const update = db.preCompile(db => db.updateTable('test'))
-      .setParam<{ gender: boolean }>((qb, param) => qb.set({ gender: param('gender') }).where('id', '=', 1))
+  test('precompile', async () => {
+    const select = db.precompile(
+      db => db.selectFrom('test').selectAll(),
+    ).setParam<{ person: { name: string } }>(({ qb, param }) =>
+      qb.where('person', '=', param('person')),
+    )
+    const insert = db.precompile(
+      db => db.insertInto('test'),
+    ).setParam<{ gender: boolean }>(({ qb, param }) =>
+      qb.values({ gender: param('gender') }),
+    )
+    const update = db.precompile(
+      db => db.updateTable('test'),
+    ).setParam<{ gender: boolean }>(({ qb, param }) =>
+      qb.set({ gender: param('gender') }).where('id', '=', 1),
+    )
 
     const start = performance.now()
 

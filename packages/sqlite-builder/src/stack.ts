@@ -24,4 +24,10 @@ export class Stack<T> {
   size() {
     return this.items.length
   }
+
+  clear() {
+    while (this.size()) {
+      this.pop()
+    }
+  }
 }

@@ -1,15 +1,16 @@
 import type { Compilable, CompiledQuery, KyselyPlugin, LogEvent, QueryResult, RawBuilder, Sql, Transaction } from 'kysely'
 import { Kysely, sql } from 'kysely'
 import { SqliteSerializePlugin } from 'kysely-plugin-serialize'
-import type { SimplifySingleResult } from 'kysely/dist/cjs/util/type-utils'
-import { parseTableMap, preCompile, runCreateTable } from './utils'
-import type { AvailableBuilder, BuilderResult, Logger, QueryBuilderOutput, SqliteBuilderOption, Table } from './types'
+import type { Simplify } from 'kysely/dist/cjs/util/type-utils'
+import { parseTableMap, precompileQuery, runCreateTable } from './utils'
+import type { AvailableBuilder, Logger, QueryBuilderOutput, QueryBuilderResult, SqliteBuilderOption, Table } from './types'
 import { Stack } from './stack'
 
 type DBStatus =
- | 'needDrop'
- | 'noNeedDrop'
- | 'ready'
+  | 'needDrop'
+  | 'noNeedDrop'
+  | 'ready'
+  | 'destroy'
 
 export class SqliteBuilder<DB extends Record<string, any>> {
   public kysely: Kysely<DB>
@@ -45,20 +46,27 @@ export class SqliteBuilder<DB extends Record<string, any>> {
     return this
   }
 
-  private async isEmptyTable(): Promise<boolean> {
+  private async isFailToInitDB(): Promise<boolean> {
+    if (this.status === 'destroy') {
+      this.logger?.error('DB have been destroyed')
+      return true
+    }
     this.status !== 'ready' && await this.init()
     if (this.status === 'ready') {
       return false
     }
-    this.logger?.error('fail to init table')
+    this.logger?.error('fail to init DB')
     return true
   }
 
+  /**
+   * execute sql in transaction, support nest transactions
+   */
   public async transaction<T>(
     cb: (trx: Transaction<DB>) => Promise<T>,
     errorMsg?: string,
   ): Promise<T | undefined> {
-    if (await this.isEmptyTable()) {
+    if (await this.isFailToInitDB()) {
       return undefined
     }
     return await this.kysely.transaction()
@@ -79,11 +87,14 @@ export class SqliteBuilder<DB extends Record<string, any>> {
     return this.trxs.isEmpty() ? this.kysely : this.trxs.peek()
   }
 
+  /**
+   * execute query manually, auto detect transaction
+   */
   public async exec<O>(
     cb: (db: Kysely<DB> | Transaction<DB>) => Promise<O>,
     errorMsg?: string,
   ): Promise<O | undefined> {
-    if (await this.isEmptyTable()) {
+    if (await this.isFailToInitDB()) {
       return undefined
     }
     return cb(this.getDB())
@@ -93,19 +104,25 @@ export class SqliteBuilder<DB extends Record<string, any>> {
       })
   }
 
+  /**
+   * execute query and auto return first result, auto detect transaction
+   */
   public async execOne<O>(
     cb: (db: Kysely<DB> | Transaction<DB>) => AvailableBuilder<DB, O>,
     errorMsg?: string,
-  ): Promise<SimplifySingleResult<O> | undefined> {
+  ): Promise<Simplify<O> | undefined> {
     const resultList = await this.execList(cb, errorMsg)
     return resultList?.length ? resultList[0] : undefined
   }
 
+  /**
+   * execute query and auto return results, auto detect transaction
+   */
   public async execList<O>(
     cb: (db: Kysely<DB> | Transaction<DB>) => AvailableBuilder<DB, O>,
     errorMsg?: string,
-  ): Promise<Exclude<SimplifySingleResult<O>, undefined>[] | undefined> {
-    if (await this.isEmptyTable()) {
+  ): Promise<Simplify<O>[] | undefined> {
+    if (await this.isFailToInitDB()) {
       return undefined
     }
     return cb(this.getDB())
@@ -113,28 +130,37 @@ export class SqliteBuilder<DB extends Record<string, any>> {
       .catch((err) => {
         errorMsg && this.logger?.error(errorMsg, err)
         return undefined
-      }) as any
+      })
   }
 
-  public preCompile<O>(
+  /**
+   * see {@link precompileQuery}
+   */
+  public precompile<O>(
     queryBuilder: (db: Kysely<DB> | Transaction<DB>) => QueryBuilderOutput<Compilable<O>>,
-  ): ReturnType<typeof preCompile<O>> {
-    return preCompile(queryBuilder(this.kysely))
+  ): ReturnType<typeof precompileQuery<O>> {
+    return precompileQuery(queryBuilder(this.kysely))
   }
 
+  /**
+   * exec compiled query, and return rows in result, auto detect transaction, useful for select
+   */
   public async execCompiledRows<O>(
     query: CompiledQuery<O>,
     errorMsg?: string,
-  ): Promise<BuilderResult<O>['rows'] | undefined> {
+  ): Promise<QueryBuilderResult<O>['rows'] | undefined> {
     const result = await this.execCompiled(query, errorMsg)
-    return result?.rows ?? undefined
+    return result?.rows?.length ? result.rows : undefined
   }
 
+  /**
+   * exec compiled query, return result, auto detect transaction
+   */
   public async execCompiled<O>(
     query: CompiledQuery<O>,
     errorMsg?: string,
-  ): Promise<BuilderResult<O> | undefined> {
-    if (await this.isEmptyTable()) {
+  ): Promise<QueryBuilderResult<O> | undefined> {
+    if (await this.isFailToInitDB()) {
       return undefined
     }
     return this.getDB().executeQuery(query)
@@ -144,14 +170,31 @@ export class SqliteBuilder<DB extends Record<string, any>> {
       }) as any
   }
 
+  /**
+   * compile query builder
+   */
   public async toSQL<T extends Compilable>(cb: (db: Kysely<DB>) => T): Promise<CompiledQuery<unknown>> {
-    return cb(this.getDB()).compile()
+    return cb(this.kysely).compile()
   }
 
-  public async raw<T = any>(rawSql: (s: Sql) => RawBuilder<T>): Promise<QueryResult<T> | undefined> {
-    if (await this.isEmptyTable()) {
+  /**
+   * execute raw sql, auto detect transaction
+   * @see {@link Sql}
+   */
+  public async raw<O = any>(rawSql: (s: Sql) => RawBuilder<O>): Promise<QueryResult<O> | undefined> {
+    if (await this.isFailToInitDB()) {
       return undefined
     }
     return rawSql(sql).execute(this.getDB())
+  }
+
+  /**
+   * destroy db connection
+   */
+  public async destroy() {
+    await this.kysely.destroy()
+    this.status = 'destroy'
+    this.tableMap.clear()
+    this.trxs.clear()
   }
 }

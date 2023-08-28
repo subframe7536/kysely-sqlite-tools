@@ -41,6 +41,6 @@
     "kysely-plugin-serialize": "workspace:*"
   },
   "peerDependencies": {
-    "kysely": "^0.26.1"
+    "kysely": "^0.26.3"
   }
 }

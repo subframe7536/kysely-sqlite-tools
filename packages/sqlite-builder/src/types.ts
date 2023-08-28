@@ -61,4 +61,7 @@ export type AvailableBuilder<DB, O> =
 
 export type QueryBuilderOutput<QB> = QB extends Compilable<infer O> ? O : never
 
-export type BuilderResult<T> = T extends SelectQueryBuilder<any, any, infer P> ? QueryResult<P> : Omit<QueryResult<any>, 'rows'> & { rows: [] }
+export type QueryBuilderResult<T> =
+  T extends SelectQueryBuilder<any, any, infer P>
+    ? QueryResult<P>
+    : Omit<QueryResult<any>, 'rows'> & { rows: [] }
