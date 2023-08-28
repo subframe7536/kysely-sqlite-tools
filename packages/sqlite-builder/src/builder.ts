@@ -60,7 +60,8 @@ export class SqliteBuilder<DB extends Record<string, any>> {
   }
 
   /**
-   * execute sql in transaction, support nest transactions
+   * execute sql in transaction,
+   * support nest transactions, auto catch error
    */
   public async transaction<T>(
     cb: (trx: Transaction<DB>) => Promise<T>,
@@ -88,7 +89,8 @@ export class SqliteBuilder<DB extends Record<string, any>> {
   }
 
   /**
-   * execute query manually, auto detect transaction
+   * execute query manually,
+   * auto detect transaction, auto catch error
    */
   public async exec<O>(
     cb: (db: Kysely<DB> | Transaction<DB>) => Promise<O>,
@@ -105,20 +107,22 @@ export class SqliteBuilder<DB extends Record<string, any>> {
   }
 
   /**
-   * execute query and auto return first result, auto detect transaction
+   * execute query and auto return first result,
+   * auto detect transaction, auto catch error
    */
-  public async execOne<O>(
+  public async execTakeFirst<O>(
     cb: (db: Kysely<DB> | Transaction<DB>) => AvailableBuilder<DB, O>,
     errorMsg?: string,
   ): Promise<Simplify<O> | undefined> {
-    const resultList = await this.execList(cb, errorMsg)
+    const resultList = await this.execTakeList(cb, errorMsg)
     return resultList?.length ? resultList[0] : undefined
   }
 
   /**
-   * execute query and auto return results, auto detect transaction
+   * execute query and auto return results,
+   * auto detect transaction, auto catch error
    */
-  public async execList<O>(
+  public async execTakeList<O>(
     cb: (db: Kysely<DB> | Transaction<DB>) => AvailableBuilder<DB, O>,
     errorMsg?: string,
   ): Promise<Simplify<O>[] | undefined> {
@@ -134,7 +138,7 @@ export class SqliteBuilder<DB extends Record<string, any>> {
   }
 
   /**
-   * see {@link precompileQuery}
+   * better performance, details: {@link precompileQuery}
    */
   public precompile<O>(
     queryBuilder: (db: Kysely<DB> | Transaction<DB>) => QueryBuilderOutput<Compilable<O>>,
@@ -143,18 +147,8 @@ export class SqliteBuilder<DB extends Record<string, any>> {
   }
 
   /**
-   * exec compiled query, and return rows in result, auto detect transaction, useful for select
-   */
-  public async execCompiledRows<O>(
-    query: CompiledQuery<O>,
-    errorMsg?: string,
-  ): Promise<QueryBuilderResult<O>['rows'] | undefined> {
-    const result = await this.execCompiled(query, errorMsg)
-    return result?.rows?.length ? result.rows : undefined
-  }
-
-  /**
-   * exec compiled query, return result, auto detect transaction
+   * exec compiled query, return result,
+   * auto detect transaction, auto catch error
    */
   public async execCompiled<O>(
     query: CompiledQuery<O>,
@@ -168,6 +162,18 @@ export class SqliteBuilder<DB extends Record<string, any>> {
         errorMsg && this.logger?.error(errorMsg, err)
         return undefined
       }) as any
+  }
+
+  /**
+   * exec compiled query, and return rows in result,
+   * auto detect transaction, auto catch error, useful for select
+   */
+  public async execCompiledTakeList<O>(
+    query: CompiledQuery<O>,
+    errorMsg?: string,
+  ): Promise<QueryBuilderResult<O>['rows'] | undefined> {
+    const result = await this.execCompiled(query, errorMsg)
+    return result?.rows?.length ? result.rows : undefined
   }
 
   /**
