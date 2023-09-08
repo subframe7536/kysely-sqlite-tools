@@ -31,14 +31,14 @@
   "devDependencies": {
     "@commitlint/cli": "^17.7.1",
     "@commitlint/config-conventional": "^17.7.0",
-    "@sqlite.org/sqlite-wasm": "3.42.0-build7",
-    "@subframe7536/eslint-config": "^0.2.6",
+    "@sqlite.org/sqlite-wasm": "3.43.0-build3",
+    "@subframe7536/eslint-config": "^0.2.9",
     "@subframe7536/wa-sqlite": "^0.9.6",
     "@types/better-sqlite3": "^7.6.4",
-    "@types/node": "^18.17.11",
+    "@types/node": "^18.17.14",
     "@types/sql.js": "^1.4.4",
     "@vlcn.io/crsqlite-wasm": "^0.14.0",
-    "better-sqlite3": "^8.5.2",
+    "better-sqlite3": "^8.6.0",
     "bumpp": "^9.2.0",
     "changelogithub": "^0.12.12",
     "cz-git": "^1.7.1",
@@ -52,7 +52,7 @@
     "tsup": "^7.2.0",
     "typescript": "^5.2.2",
     "vite": "4.4.9",
-    "vitest": "^0.34.2"
+    "vitest": "^0.34.3"
   },
   "lint-staged": {
     "*": [
