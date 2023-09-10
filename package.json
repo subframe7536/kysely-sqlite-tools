@@ -35,7 +35,7 @@
     "@subframe7536/eslint-config": "^0.2.9",
     "@subframe7536/wa-sqlite": "^0.9.6",
     "@types/better-sqlite3": "^7.6.4",
-    "@types/node": "^18.17.14",
+    "@types/node": "^18.17.15",
     "@types/sql.js": "^1.4.4",
     "@vlcn.io/crsqlite-wasm": "^0.14.0",
     "better-sqlite3": "^8.6.0",
@@ -43,16 +43,16 @@
     "changelogithub": "^0.12.12",
     "cz-git": "^1.7.1",
     "czg": "^1.7.1",
-    "eslint": "^8.48.0",
+    "eslint": "^8.49.0",
     "husky": "^8.0.3",
     "kysely": "^0.26.3",
-    "lint-staged": "^13.3.0",
+    "lint-staged": "^14.0.1",
     "node-sqlite3-wasm": "^0.6.9",
     "sql.js": "^1.8.0",
     "tsup": "^7.2.0",
     "typescript": "^5.2.2",
     "vite": "4.4.9",
-    "vitest": "^0.34.3"
+    "vitest": "^0.34.4"
   },
   "lint-staged": {
     "*": [
