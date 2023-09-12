@@ -16,12 +16,12 @@ function run(mode: RunMode, sql: string, parameters?: readonly unknown[]): Query
     return { rows }
   }
   stmt.run(parameters as any)
-  const { id } = db.query('SELECT last_insert_rowid() as id').get() as { id: number }
-  const { changes } = db.query('SELECT changes() as changes').get() as { changes: number }
   return {
     rows,
-    insertId: BigInt(id),
-    numAffectedRows: BigInt(changes),
+    // @ts-expect-error get insert id
+    insertId: db.query('SELECT last_insert_rowid() as i').get().i,
+    // @ts-expect-error get changes
+    numAffectedRows: db.query('SELECT changes() as c').get().c,
   }
 }
 
