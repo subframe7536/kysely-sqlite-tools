@@ -1,4 +1,5 @@
 import type { KyselyPlugin, PluginTransformQueryArgs, PluginTransformResultArgs, QueryResult, RootOperationNode, UnknownRow } from 'kysely'
+import type { QueryId } from 'kysely/dist/cjs/util/query-id'
 import { SerializeParametersTransformer } from './sqlite-serialize-transformer'
 import type { Deserializer, Serializer } from './sqlite-serialize'
 import { defaultDeserializer } from './sqlite-serialize'
@@ -24,11 +25,17 @@ export interface SqliteSerializePluginOptions {
     * @param parameter unknown
     */
   deserializer?: Deserializer
+  /**
+   * only transform select query or raw sql return
+   */
+  selectOrRawOnly?: boolean
 }
 
 export class SqliteSerializePlugin implements KyselyPlugin {
   private serializeParametersTransformer: SerializeParametersTransformer
   private deserializer: Deserializer
+  private only: boolean
+  private ctx?: WeakSet<QueryId>
 
   /**
    * _**THIS PLUGIN SHOULD BE PLACED AT THE END OF PLUGINS ARRAY !!!**_
@@ -91,12 +98,16 @@ export class SqliteSerializePlugin implements KyselyPlugin {
    * })
    * ```
    */
-  public constructor({ deserializer, serializer }: SqliteSerializePluginOptions = {}) {
+  public constructor({ selectOrRawOnly, deserializer, serializer }: SqliteSerializePluginOptions = {}) {
     this.serializeParametersTransformer = new SerializeParametersTransformer(serializer)
     this.deserializer = deserializer || defaultDeserializer
+    this.only = selectOrRawOnly || false
   }
 
-  public transformQuery({ node }: PluginTransformQueryArgs): RootOperationNode {
+  public transformQuery({ node, queryId }: PluginTransformQueryArgs): RootOperationNode {
+    if (this.only && (node.kind === 'SelectQueryNode' || node.kind === 'RawNode')) {
+      this.ctx?.add(queryId)
+    }
     return this.serializeParametersTransformer.transformNode(node)
   }
 
@@ -114,11 +125,19 @@ export class SqliteSerializePlugin implements KyselyPlugin {
   }
 
   public async transformResult(
-    { result }: PluginTransformResultArgs,
+    { result, queryId }: PluginTransformResultArgs,
   ): Promise<QueryResult<UnknownRow>> {
-    return {
+    const parse = async () => ({
       ...result,
       rows: await this.parseResult(result.rows),
+    })
+    if (!this.only) {
+      return await parse()
     }
+    if (!this.ctx?.has(queryId)) {
+      return result
+    }
+    this.ctx?.delete(queryId)
+    return await parse()
   }
 }
