@@ -1,5 +1,4 @@
 import type { KyselyPlugin, PluginTransformQueryArgs, PluginTransformResultArgs, QueryResult, RootOperationNode, UnknownRow } from 'kysely'
-import type { QueryId } from 'kysely/dist/cjs/util/query-id'
 import { SerializeParametersTransformer } from './sqlite-serialize-transformer'
 import type { Deserializer, Serializer } from './sqlite-serialize'
 import { defaultDeserializer } from './sqlite-serialize'
@@ -30,7 +29,6 @@ export interface SqliteSerializePluginOptions {
 export class SqliteSerializePlugin implements KyselyPlugin {
   private serializeParametersTransformer: SerializeParametersTransformer
   private deserializer: Deserializer
-  private ctx: WeakMap<QueryId, string>
 
   /**
    * _**THIS PLUGIN SHOULD BE PLACED AT THE END OF PLUGINS ARRAY !!!**_
@@ -96,17 +94,16 @@ export class SqliteSerializePlugin implements KyselyPlugin {
   public constructor({ deserializer, serializer }: SqliteSerializePluginOptions = {}) {
     this.serializeParametersTransformer = new SerializeParametersTransformer(serializer)
     this.deserializer = deserializer || defaultDeserializer
-    this.ctx = new WeakMap()
   }
 
-  public transformQuery({ node, queryId }: PluginTransformQueryArgs): RootOperationNode {
-    if (node.kind === 'SelectQueryNode') {
-      this.ctx.set(queryId, node.kind)
-    }
+  public transformQuery({ node }: PluginTransformQueryArgs): RootOperationNode {
     return this.serializeParametersTransformer.transformNode(node)
   }
 
   private async parseResult(rows: any[]) {
+    if (!rows.length) {
+      return []
+    }
     return await Promise.all(rows.map(async (row) => {
       const deserializedRow = { ...row }
       for (const key in deserializedRow) {
@@ -117,16 +114,11 @@ export class SqliteSerializePlugin implements KyselyPlugin {
   }
 
   public async transformResult(
-    { result, queryId }: PluginTransformResultArgs,
+    { result }: PluginTransformResultArgs,
   ): Promise<QueryResult<UnknownRow>> {
-    const { rows } = result
-    const data = this.ctx.get(queryId)
-    this.ctx.delete(queryId)
-    return (rows && data === 'SelectQueryNode')
-      ? {
-          ...result,
-          rows: await this.parseResult(rows),
-        }
-      : result
+    return {
+      ...result,
+      rows: await this.parseResult(result.rows),
+    }
   }
 }
