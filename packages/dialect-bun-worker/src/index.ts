@@ -12,10 +12,6 @@ export type BunWorkerDialectConfig = {
   url?: string
   onCreateConnection?: (connection: DatabaseConnection) => Promisable<void>
   /**
-   * use built-in pragmas
-   */
-  usePRAGMA?: boolean
-  /**
    * use bun:sqlite's built-in statment cache
    * @see https://bun.sh/docs/api/sqlite#query
    */

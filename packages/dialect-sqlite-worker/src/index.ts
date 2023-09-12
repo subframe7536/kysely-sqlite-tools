@@ -14,10 +14,6 @@ export type SqliteWorkerDialectConfig = {
    */
   option?: Options
   onCreateConnection?: (connection: DatabaseConnection) => Promisable<void>
-  /**
-   * use built-in pragmas
-   */
-  usePRAGMA?: boolean
 }
 
 export class SqliteWorkerDialect implements Dialect {

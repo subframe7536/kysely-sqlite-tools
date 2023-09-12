@@ -30,7 +30,11 @@ describe('test', () => {
         int8: new Uint8Array([1, 2, 3]),
       })
       .execute()
-    const { age, name, int8 } = await db.selectFrom('test').selectAll().limit(1).executeTakeFirstOrThrow()
+    const { age, name, int8 } = await db
+      .selectFrom('test')
+      .selectAll()
+      .limit(1)
+      .executeTakeFirstOrThrow()
     expect(age).toStrictEqual(18)
     expect(name).toStrictEqual('test')
     expect(int8).toStrictEqual(Uint8Array.from([1, 2, 3]))

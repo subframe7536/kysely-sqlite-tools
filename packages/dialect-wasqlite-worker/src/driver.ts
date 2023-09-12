@@ -35,17 +35,7 @@ export class WaSqliteWorkerDriver implements Driver {
     })
     this.connection = new WaSqliteWorkerConnection(this.worker, this.mitt)
 
-    this.config.usePRAGMA && await this.optimzePragma(this.connection)
-
     await this.config.onCreateConnection?.(this.connection)
-  }
-
-  private async optimzePragma(conn: DatabaseConnection): Promise<void> {
-    await conn.executeQuery(CompiledQuery.raw('PRAGMA cache_size = 4096;'))
-    await conn.executeQuery(CompiledQuery.raw('PRAGMA journal_mode = WAL;'))
-    await conn.executeQuery(CompiledQuery.raw('PRAGMA temp_store = MEMORY;'))
-    await conn.executeQuery(CompiledQuery.raw(`PRAGMA page_size = ${32 * 1024};`))
-    await conn.executeQuery(CompiledQuery.raw('PRAGMA synchronous = NORMAL;'))
   }
 
   async acquireConnection(): Promise<DatabaseConnection> {
