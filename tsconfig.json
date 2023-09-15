@@ -10,6 +10,7 @@
     "isolatedModules": true,
     "skipDefaultLibCheck": true,
     "esModuleInterop": true,
+    "noErrorTruncation": true,
     "lib": [
       "ESNext",
       "DOM"

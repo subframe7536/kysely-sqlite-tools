@@ -1,56 +1,39 @@
-import type { Compilable, DeleteQueryBuilder, Dialect, Generated, InsertQueryBuilder, KyselyPlugin, QueryResult, SelectQueryBuilder, Sql, UpdateQueryBuilder } from 'kysely'
-import type { CompiledQuery } from 'kysely/dist/cjs/query-compiler/compiled-query'
+import type {
+  Compilable,
+  DeleteQueryBuilder,
+  Dialect,
+  InsertQueryBuilder,
+  Kysely,
+  KyselyPlugin,
+  SelectQueryBuilder,
+  UpdateQueryBuilder,
+} from 'kysely'
+import type { SqliteSerializePluginOptions } from 'kysely-plugin-serialize'
+import type { LoggerOptions } from './utils'
 
-export type TriggerEvent = 'insert' | 'update' | 'delete'
-
-export type InferColumnType<T> =
-  T extends string ? 'string' :
-    T extends boolean ? 'boolean' :
-      T extends number ? 'number' :
-        T extends Generated<any> ? 'increments' :
-          T extends Date ? 'date' :
-            T extends ArrayBufferLike ? 'blob' :
-              'object'
-
-export type ColumeOption<T> = {
-  type: InferColumnType<T>
-  defaultTo?: T | ((sql: Sql) => unknown)
-  notNull?: boolean
-}
-export type TableOption<T, K = keyof T & string> = {
-  primary?: K | Array<K>
-  unique?: Array<K | Array<K>>
-  index?: Array<K | Array<K>>
-  /**
-   * set `True` to use default field
-   * - create field: 'createAt'
-   * - update field: 'updateAt'
-   */
-  timestamp?: boolean | { create?: K; update?: K }
-}
-export type Column<T> = {
-  [k in keyof T]: ColumeOption<T[k]>
-}
-export type Table<T> = {
-  columns: Column<T>
-  property?: TableOption<T>
-}
-export type Tables<T> = {
-  [Key in keyof T]: Table<T[Key]>
-}
-export interface SqliteBuilderOption<T> {
-  tables: Tables<T>
+export interface SqliteBuilderOptions {
   dialect: Dialect
-  dropTableBeforeInit?: boolean
-  onQuery?: (queryInfo: CompiledQuery, time: number) => any
+  /**
+   * call on `dialect.log`, wrapped with {@link createKyselyLogger}
+   *
+   * if value is `true`, logger is `console.log` and `merge: true`
+   */
+  onQuery?: boolean | LoggerOptions
+  /**
+   * additional plugins
+   *
+   * **do NOT use camelCase plugin**, this will lead to sync table fail
+   */
   plugins?: Array<KyselyPlugin>
-  logger?: Logger
+  logger?: DBLogger
+  serializerPluginOptions?: SqliteSerializePluginOptions
 }
-export type Logger = {
-  info: (msg: string) => void
-  debug: (msg: string) => void
-  warn: (msg: string) => void
-  error: (msg: string, e?: Error) => void
+export type DBLogger = {
+  trace?: (args: any) => void
+  debug: (args: any) => void
+  info: (msg: any) => void
+  warn: (msg: any) => void
+  error: (msg: any, e?: Error) => void
 }
 
 export type AvailableBuilder<DB, O> =
@@ -61,7 +44,8 @@ export type AvailableBuilder<DB, O> =
 
 export type QueryBuilderOutput<QB> = QB extends Compilable<infer O> ? O : never
 
-export type QueryBuilderResult<T> =
-  T extends SelectQueryBuilder<any, any, infer P>
-    ? QueryResult<P>
-    : Omit<QueryResult<any>, 'rows'> & { rows: [] }
+export type StatusResult =
+  | { ready: true }
+  | { ready: false; error: unknown }
+
+export type SyncTableFn = (db: Kysely<any>, logger?: DBLogger) => Promise<void>

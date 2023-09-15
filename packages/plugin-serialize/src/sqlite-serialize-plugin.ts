@@ -1,5 +1,5 @@
 import type { KyselyPlugin, PluginTransformQueryArgs, PluginTransformResultArgs, QueryResult, RootOperationNode, UnknownRow } from 'kysely'
-import type { QueryId } from 'kysely/dist/cjs/util/query-id'
+import type { QueryId } from 'kysely/dist/esm/util/query-id'
 import { SerializeParametersTransformer } from './sqlite-serialize-transformer'
 import type { Deserializer, Serializer } from './sqlite-serialize'
 import { defaultDeserializer } from './sqlite-serialize'

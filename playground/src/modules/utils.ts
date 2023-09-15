@@ -1,50 +1,43 @@
-import type { Dialect, Generated } from 'kysely'
-import { SqliteBuilder } from 'kysely-sqlite-builder'
+import { type Dialect, sql } from 'kysely'
+import type { InferDatabase } from 'kysely-sqlite-builder'
+import { SqliteBuilder, createAutoSyncTableFn, defineTable } from 'kysely-sqlite-builder'
 
-export interface DB {
-  test: TestTable
+const tables = {
+  test: defineTable({
+    id: { type: 'increments' },
+    name: { type: 'string' },
+    blobtest: { type: 'blob' },
+  }, {
+    timeTrigger: { create: true, update: true },
+  }),
 }
-interface TestTable {
-  id: Generated<number>
-  name: string
-  blobtest: ArrayBufferLike
-  createAt: Date | null
-  updateAt: Date | null
-}
+export type DB = InferDatabase<typeof tables>
 export async function testDB(dialect: Dialect) {
-  const db = await new SqliteBuilder<DB>({
+  const db = new SqliteBuilder<DB>({
     dialect,
-    tables: {
-      test: {
-        columns: {
-          id: { type: 'increments' },
-          name: { type: 'string' },
-          blobtest: { type: 'blob' },
-          createAt: { type: 'date' },
-          updateAt: { type: 'date' },
-        },
-        property: {
-          timestamp: true,
-        },
-      },
-    },
-  }).init()
+    // onQuery: true,
+  })
+  const result = await db.updateTables(createAutoSyncTableFn(tables))
+  if (!result.ready) {
+    throw result.error
+  }
   console.log('test')
-  console.log(await db.raw(sql => sql`PRAGMA table_info(${sql.table('test')});`))
-  console.log(await db.raw(sql => sql`select last_insert_rowid()`))
+  console.log(await db.raw(sql`PRAGMA table_info(${sql.table('test')});`))
+  console.log(await db.raw(sql`select last_insert_rowid()`))
 
-  for (let i = 0; i < 1e2; i++) {
-    await db.transaction((trx) => {
-      return trx.insertInto('test')
+  for (let i = 0; i < 10; i++) {
+    await db.transaction(async (trx) => {
+      // await db.transaction(async (trx) => {
+      await trx
+        .insertInto('test')
         .values({
           name: `test at ${Date.now()}`,
           blobtest: Uint8Array.from([2, 3, 4, 5, 6, 7, 8]),
         })
         .execute()
+      // })
     })
   }
 
-  return db.exec((db) => {
-    return db.selectFrom('test').selectAll().execute()
-  })
+  return db.execute(db => db.selectFrom('test').selectAll())
 }

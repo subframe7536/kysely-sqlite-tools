@@ -126,6 +126,10 @@ select * from "test" where "person" = ?
 [ '{"name":"1"}' ]
 ```
 
+## todo
+
+- [ ] auto sync table structure
+
 ## credit
 
 - [trilogy](https://github.com/haltcase/trilogy)

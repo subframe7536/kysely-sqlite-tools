@@ -1,152 +1,46 @@
-import type { Compilable, CompiledQuery, Kysely, RootOperationNode } from 'kysely'
-import { sql } from 'kysely'
-import type { DataTypeExpression } from 'kysely/dist/cjs/parser/data-type-parser'
-import { defaultSerializer } from 'kysely-plugin-serialize'
-import type { ColumeOption, QueryBuilderOutput, Table, Tables, TriggerEvent } from './types'
+import { CompiledQuery, Migrator, sql } from 'kysely'
+import type {
+  Compilable,
+  DatabaseConnection,
+  Kysely,
+  LogEvent,
+  MigrationProvider,
+  MigratorProps,
+  RootOperationNode,
+  SelectQueryBuilder,
+  Transaction,
+} from 'kysely'
+import type { AvailableBuilder, QueryBuilderOutput, SyncTableFn } from './types'
 
-export function isString(value: any): value is string {
-  return typeof value === 'string'
+function getParam<T extends Record<string, any>>(name: keyof T): T[keyof T] {
+  return `__precomile_${name as string}` as unknown as T[keyof T]
 }
-export function isBoolean(value: any): value is boolean {
-  return typeof value === 'boolean'
+type SetParam<O, T extends Record<string, any>> = {
+  /**
+   * query builder for setup params
+   */
+  qb: QueryBuilderOutput<Compilable<O>>
+  /**
+   * param builder
+   */
+  param: typeof getParam<T>
 }
-
-export async function createTimeTrigger<T>(
-  kysely: Kysely<T>,
-  table: keyof T,
-  event: TriggerEvent,
-  column: string,
-  key = 'rowid',
-): Promise<void> {
-  // datetime('now') will return UTC Time
-  await sql`
-    create trigger if not exists ${sql.raw(table as string)}_${sql.raw(column)}
-    after ${sql.raw(event)}
-    on ${sql.table(table as string)}
-    begin
-      update ${sql.table(table as string)}
-      set ${sql.ref(column)} = datetime('now','localtime')
-      where ${sql.ref(key)} = NEW.${sql.ref(key)};
-    end`.execute(kysely).catch((err) => {
-      console.error(err)
-      return undefined
-    })
-}
-
-export function parseTableMap<T>(tables: Tables<T>): Map<string, Table<T[Extract<keyof T, string>]>> {
-  const map = new Map()
-  for (const [tableName, table] of Object.entries(tables)) {
-    map.set(tableName, table)
-  }
-  return map
-}
-
-export async function runCreateTable<T>(
-  kysely: Kysely<T>,
-  tableMap: Map<keyof T & string, Table<T[keyof T & string]>>,
-  dropTableBeforeInit = false,
-) {
-  for (const [tableName, table] of tableMap) {
-    const { columns: columnList, property: tableProperty } = table
-    if (dropTableBeforeInit) {
-      await kysely.schema.dropTable(tableName).ifExists().execute().catch()
-    }
-
-    let tableSql = kysely.schema.createTable(tableName)
-
-    const { index, primary, timestamp, unique } = tableProperty || {}
-
-    let _triggerKey = 'rowid'
-    let _haveAutoKey = false
-    const _insertColumnName = (typeof timestamp === 'object' && timestamp.create) || 'createAt'
-    const _updateColumnName = (typeof timestamp === 'object' && timestamp.update) || 'updateAt'
-
-    for (const [columnName, columnOption] of Object.entries(columnList)) {
-      let dataType: DataTypeExpression = 'text'
-      const { type, notNull, defaultTo } = columnOption as ColumeOption<T[keyof T & string]>
-
-      switch (type) {
-        case 'boolean':
-        case 'date':
-        case 'object':
-        case 'string':
-          dataType = 'text'
-          break
-        case 'increments':
-          _triggerKey = columnName
-          // eslint-disable-next-line no-fallthrough
-        case 'number':
-          dataType = 'integer'
-          break
-        case 'blob':
-          dataType = 'blob'
-      }
-
-      if ([_insertColumnName, _updateColumnName].includes(columnName)) {
-        continue
-      }
-
-      tableSql = tableSql.addColumn(columnName, dataType, (builder) => {
-        if (type === 'increments') {
-          _haveAutoKey = true
-          return builder.autoIncrement().primaryKey()
-        }
-
-        notNull && (builder = builder.notNull())
-
-        defaultTo !== undefined && (builder = builder.defaultTo(
-          defaultTo instanceof Function ? defaultTo(sql) : defaultTo,
-        ))
-
-        return builder
-      })
-    }
-
-    tableSql = timestamp
-      ? tableSql
-        .addColumn(_insertColumnName, 'text')
-        .addColumn(_updateColumnName, 'text')
-      : tableSql
-
-    if (!_haveAutoKey && primary) {
-      const is = Array.isArray(primary)
-      _triggerKey = is ? primary[0] : primary
-      tableSql = tableSql.addPrimaryKeyConstraint(
-        `pk_${is ? primary.join('_') : primary}`,
-        (is ? primary : [primary]) as any,
-      )
-    }
-
-    for (const uk of unique ?? []) {
-      const is = Array.isArray(uk)
-      _triggerKey = (!primary && !_haveAutoKey)
-        ? (is ? uk[0] : uk)
-        : _triggerKey
-      tableSql = tableSql.addUniqueConstraint(
-        `un_${is ? uk.join('_') : uk}`,
-        (is ? uk : [uk]) as any,
-      )
-    }
-
-    await tableSql.ifNotExists().execute()
-
-    for (const i of index ?? []) {
-      const is = Array.isArray(i)
-      await kysely.schema.createIndex(`idx_${is ? i.join('_') : i}`)
-        .on(tableName)
-        .columns((is ? i : [i]) as string[])
-        .ifNotExists().execute()
-    }
-
-    if (timestamp) {
-      await createTimeTrigger(kysely, tableName, 'insert', _insertColumnName, _triggerKey)
-      await createTimeTrigger(kysely, tableName, 'update', _updateColumnName, _triggerKey)
-    }
-  }
-}
+/**
+ * @param param custom params
+ * @param processRootOperatorNode process `query` in {@link CompiledQuery},
+ * default is `(node) => ({ kind: node.kind })`
+ */
+type CompileFn<O, T extends Record<string, any>> = (
+  param: T,
+  processRootOperatorNode?: ((node: RootOperationNode) => RootOperationNode)
+) => CompiledQuery<QueryBuilderOutput<O>>
 
 /**
- * create precompiled query, inspired by {@link https://github.com/jtlapp/kysely-params kysely-params}
+ * create precompiled query,
+ * inspired by {@link https://github.com/jtlapp/kysely-params kysely-params},
+ * included in `SqliteBuilder`
+ * @param queryBuilder query builder without params
+ * @param serializer custom parameter value serializer
  * @example
  * ```ts
  * const query = precompileQuery(
@@ -158,64 +52,202 @@ export async function runCreateTable<T>(
  * // {
  * //   sql: 'select * from "test" where "name" = ?',
  * //   parameters: ['test'],
- * //   query: { kind: 'SelectQueryNode' }
+ * //   query: { kind: 'SelectQueryNode' } // only node kind by default
  * // }
  * ```
  */
 export function precompileQuery<O>(
   queryBuilder: QueryBuilderOutput<Compilable<O>>,
+  serializer: (value: unknown) => unknown = v => v,
 ) {
-  const getParam = <T extends Record<string, any>>(
-    name: keyof T,
-  ): T[keyof T] => `__precomile_${name as string}` as unknown as T[keyof T]
-      type SetParam<T extends Record<string, any>> = {
-        /**
-         * query builder for setup params
-         */
-        qb: QueryBuilderOutput<Compilable<O>>
-        /**
-         * param builder
-         */
-        param: typeof getParam<T>
-      }
+  return {
     /**
-     * @param param custom params
-     * @param processRootOperatorNode process `query` in {@link CompiledQuery}
-     * @default (node) => ({ kind: node.kind })
+     * setup params
+     * @param paramBuilder param builder
+     * @returns function to {@link CompileFn compile}
      */
-    type CompileFn<T extends Record<string, any>> = (
-      param: T,
-      processRootOperatorNode?: ((node: RootOperationNode) => RootOperationNode)
-    ) => CompiledQuery<O>
+    setParam: <T extends Record<string, any>>(
+      paramBuilder: ({ param, qb }: SetParam<O, T>) => Compilable<O>,
+    ): CompileFn<O, T> => {
+      let compiled: CompiledQuery<Compilable<O>>
+      return (param, processRootOperatorNode) => {
+        if (!compiled) {
+          const { parameters, sql, query } = paramBuilder({
+            qb: queryBuilder,
+            param: getParam,
+          }).compile()
+          compiled = {
+            sql,
+            query: processRootOperatorNode?.(query) || { kind: query.kind } as any,
+            parameters,
+          }
+        }
+        return {
+          ...compiled,
+          parameters: compiled.parameters.map(p => (typeof p === 'string' && p.startsWith('__precomile_'))
+            ? serializer(param[p.slice(12)])
+            : p,
+          ),
+        }
+      }
+    },
+  }
+}
 
-    return {
-      /**
-       * setup params
-       * @param paramBuilder param builder
-       * @returns function to {@link CompileFn compile}
-       */
-      setParam: <T extends Record<string, any>>(
-        paramBuilder: ({ param, qb }: SetParam<T>) => Compilable<O>,
-      ): CompileFn<T> => {
-        let compiled: CompiledQuery<Compilable<O>>
-        return ((param, processRootOperatorNode) => {
-          if (!compiled) {
-            const { parameters, sql, query } = paramBuilder({ qb: queryBuilder, param: getParam }).compile()
-            compiled = {
-              sql,
-              query: processRootOperatorNode?.(query) || { kind: query.kind } as any,
-              parameters,
-            }
-          }
-          return {
-            ...compiled,
-            parameters: compiled.parameters.map(p =>
-              (typeof p === 'string' && p.startsWith('__precomile_'))
-                ? defaultSerializer(param[p.slice(12)])
-                : p,
-            ),
-          }
-        }) satisfies CompileFn<T>
-      },
+/**
+ * check integrity_check pragma
+ */
+export async function checkIntegrity(db: Kysely<any>): Promise<boolean> {
+  const result = await sql`PRAGMA integrity_check`.execute(db)
+  // @ts-expect-error result
+  return result.rows[0].integrity_check === 'ok'
+}
+
+/**
+ * get or set user_version pragma
+ */
+export async function getOrSetDBVersion(
+  db: Kysely<any>,
+  version?: number,
+): Promise<number | undefined> {
+  if (version) {
+    await sql`PRAGMA user_version = ${sql.raw(`${version}`)}`.execute(db)
+    return version
+  }
+  const result = await sql`PRAGMA user_version`.execute(db)
+  // @ts-expect-error result
+  return result.rows[0].user_version
+}
+
+export type SavePoint = {
+  release: () => Promise<void>
+  rollback: () => Promise<void>
+}
+
+/**
+ * create savepoint, release or rollback it later,
+ * included in `SqliteBuilder`
+ * @example
+ * ```ts
+ * const sp = await savePoint(db, 'savepoint_1')
+ * try {
+ *   // do something...
+ *   await sp.release()
+ * } catch (e) {
+ *   await sp.rollback()
+ * }
+ * ```
+ */
+export async function savePoint(
+  db: Kysely<any> | Transaction<any>,
+  name?: string,
+): Promise<SavePoint> {
+  const _name = name || `sp_${Date.now() % 1e8}`
+  await sql`savepoint ${sql.raw(_name)}`.execute(db)
+  return {
+    release: async () => {
+      await sql`release savepoint ${sql.raw(_name)}`.execute(db)
+    },
+    rollback: async () => {
+      await sql`rollback to savepoint ${sql.raw(_name)}`.execute(db)
+    },
+  }
+}
+
+export type LoggerParams = {
+  sql: string
+  params: readonly unknown[]
+  duration: number
+  queryNode?: RootOperationNode
+  error?: unknown
+}
+
+export type LoggerOptions = {
+  /**
+   * log functions
+   */
+  logger: (data: LoggerParams) => void
+  /**
+   * whether to merge parameters into sql
+   */
+  merge?: boolean
+  /**
+   * whether to log queryNode
+   */
+  queryNode?: boolean
+}
+
+/**
+ * util for `dialect.log`
+ */
+export function createKyselyLogger(
+  options: LoggerOptions,
+): (event: LogEvent) => void {
+  const { logger, merge, queryNode } = options
+
+  return (event: LogEvent) => {
+    const { level, queryDurationMillis, query: { parameters, sql, query } } = event
+    const err = level === 'error' ? event.error : undefined
+    let _sql = sql.replace(/\r?\n/g, ' ').replace(/\s+/g, ' ')
+    if (merge) {
+      parameters.forEach((param) => {
+        _sql = _sql.replace('?', JSON.stringify(param))
+      })
     }
+    const param: LoggerParams = {
+      sql: _sql,
+      params: parameters,
+      duration: queryDurationMillis,
+      error: err,
+    }
+    if (queryNode) {
+      param.queryNode = query
+    }
+    logger(param)
+  }
+}
+
+export function isSelectQueryBuilder<DB, O>(
+  builder: AvailableBuilder<DB, O>,
+): builder is SelectQueryBuilder<DB, any, O> {
+  return builder.toOperationNode().kind === 'SelectQueryNode'
+}
+
+export type OptimizePragmaOptions = {
+  cacheSize?: number
+  pageSize?: number
+}
+
+/**
+ * call optimze pragma, include:
+ * - cache_size = `options.cacheSize` || 4096
+ * - page_size = `options.pageSize` || 32768
+ * - journel_mode = WAL
+ * - temp_store = MEMORY
+ * - synchronous = NORMAL
+ */
+export async function optimzePragma(
+  conn: DatabaseConnection,
+  options: OptimizePragmaOptions = {},
+): Promise<void> {
+  const { cacheSize = 4096, pageSize = 32768 } = options
+  const exec = async (sql: string) => await conn.executeQuery(CompiledQuery.raw(sql))
+  await exec(`PRAGMA cache_size = ${cacheSize};`)
+  await exec('PRAGMA journal_mode = WAL;')
+  await exec('PRAGMA temp_store = MEMORY;')
+  await exec('PRAGMA synchronous = NORMAL;')
+  await exec(`PRAGMA page_size = ${pageSize};`)
+}
+
+/**
+ * migrate to latest
+ */
+export function createMigrateFn(
+  provider: MigrationProvider,
+  options?: Omit<MigratorProps, 'db' | 'provider'>,
+): SyncTableFn {
+  return async (db: Kysely<any>) => {
+    const _ = new Migrator({ db, provider, ...options })
+    await _.migrateToLatest()
+  }
 }

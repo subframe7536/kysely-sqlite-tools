@@ -1,96 +1,118 @@
-import type { Generated } from 'kysely'
 import { SqliteDialect } from 'kysely'
 import Database from 'better-sqlite3'
-import { beforeAll, describe, expect, test } from 'vitest'
-import { SqliteBuilder } from '../packages/sqlite-builder/src'
+import { beforeEach, describe, expect, test } from 'vitest'
+import type { InferDatabase } from '../packages/sqlite-builder/src'
+import { SqliteBuilder, createAutoSyncTableFn, defineColumn, defineTable } from '../packages/sqlite-builder/src'
 
-interface DB {
-  test: TestTable
-  pet: PetTable
+const testTable = defineTable({
+  id: { type: 'increments' },
+  person: { type: 'object', defaultTo: { name: 'test' } },
+  gender: { type: 'boolean', notNull: true },
+  array: defineColumn<string[]>({ type: 'object' }),
+  buffer: { type: 'blob' },
+}, {
+  primary: 'id',
+  index: ['person', ['id', 'gender']],
+  timeTrigger: { create: true, update: true },
+})
+const baseTables = {
+  test: testTable,
 }
-interface TestTable {
-  id: Generated<number>
-  person: { name: string } | null
-  gender: boolean
-  createAt: Date | null
-  updateAt: Date | null
-  buffer: ArrayBuffer | null
-}
-interface PetTable {
-  id: Generated<string>
-  name: string
-  owner_id: string
-  species: 'cat' | 'dog'
-  is_favorite: boolean
-}
-describe('test builder', async () => {
-  const db = new SqliteBuilder<DB>({
+type DB = InferDatabase<typeof baseTables>
+
+function getDatabase(debug = false) {
+  return new SqliteBuilder<DB>({
     dialect: new SqliteDialect({
       database: new Database(':memory:'),
     }),
-    tables: {
-      test: {
-        columns: {
-          id: { type: 'increments' },
-          person: { type: 'object', defaultTo: { name: 'test' } },
-          gender: { type: 'boolean', notNull: true },
-          createAt: { type: 'date' },
-          updateAt: { type: 'date' },
-          buffer: { type: 'blob' },
-        },
-        property: {
-          primary: 'id', // sqlite only support one single/composite primary key,
-          index: ['person', ['id', 'gender']],
-          timestamp: true,
-        },
-      },
-      pet: {
-        columns: {
-          id: { type: 'increments' },
-          is_favorite: { type: 'boolean' },
-          name: { type: 'string' },
-          owner_id: { type: 'string' },
-          species: { type: 'string' },
-        },
-      },
-    },
-    dropTableBeforeInit: true,
-    logger: console,
-    // onQuery: (queryInfo, time) => console.log(`${time}ms`, queryInfo.sql, queryInfo.parameters),
+    logger: debug ? console : undefined,
+    onQuery: debug,
   })
-  beforeAll(async () => {
-    // manually generate table
-    await db.init(true)
+}
+describe('test auto sync table', async () => {
+  let db: SqliteBuilder<any>
+  beforeEach(async () => {
+    db = getDatabase(true)
+    await db.updateTables(createAutoSyncTableFn(baseTables, { logger: false }))
   })
-  test('insert', async () => {
+  test('should create new table', async () => {
+    const foo = defineTable({
+      col1: { type: 'increments' },
+      col2: { type: 'string' },
+    })
+
+    await db.updateTables(createAutoSyncTableFn({
+      ...baseTables,
+      foo,
+    }, { logger: false }))
+
+    const _tables = await db.kysely.introspection.getTables()
+    expect(_tables.length).toBe(2)
+    expect(_tables[0].name).toBe('foo')
+    expect(_tables[1].name).toBe('test')
+  })
+  test('should drop old table', async () => {
+    await db.updateTables(createAutoSyncTableFn({ }, { logger: false }))
+
+    const _tables = await db.kysely.introspection.getTables()
+    expect(_tables.length).toBe(0)
+  })
+  test('should update and diff same table with columns', async () => {
+    const foo = defineTable(
+      {
+        id: { type: 'increments' },
+        person: { type: 'int' },
+        bool: { type: 'boolean', notNull: true },
+        array: defineColumn<string[]>({ type: 'object' }),
+        buffer: { type: 'blob' },
+      },
+      {
+        primary: 'id',
+        timeTrigger: { create: true, update: true },
+      },
+    )
+    await db.updateTables(createAutoSyncTableFn({ test: foo }, { logger: true }))
+    const [_tables] = await db.kysely.introspection.getTables()
+    expect(_tables
+      .columns
+      .filter(({ name }) => name === 'person')[0]
+      .dataType,
+    ).toBe('INTEGER')
+    expect(_tables
+      .columns
+      .filter(({ name }) => name === 'gender')
+      .length,
+    ).toBe(0)
+    expect(_tables
+      .columns
+      .filter(({ name }) => name === 'bool')[0]
+      .dataType,
+    ).toBe('TEXT')
+  })
+})
+describe('test builder', async () => {
+  const db = getDatabase()
+  await db.updateTables(createAutoSyncTableFn(baseTables))
+  test('should insert', async () => {
     // auto generate table
     console.log(await db.transaction((trx) => {
       trx.insertInto('test').values([{ gender: false }, { gender: true }]).execute()
       return trx.updateTable('test').set({ gender: true }).where('id', '=', 2).execute()
     }))
-    const result = await db.execTakeList(d => d.selectFrom('test').selectAll())
+    const result = await db.execute(d => d.selectFrom('test').selectAll())
     expect(result).toBeInstanceOf(Array)
     expect(result![0].person).toStrictEqual({ name: 'test' })
     expect(result![0].gender).toStrictEqual(false)
     expect(result![0].createAt).toBeInstanceOf(Date)
     expect(result![0].updateAt).toBeInstanceOf(Date)
-    const result2 = await db.execTakeFirst(d => d.selectFrom('test').selectAll())
+    const result2 = await db.executeTakeFirst(d => d.selectFrom('test').selectAll())
     expect(result2).toBeInstanceOf(Object)
     expect(result2!.person).toStrictEqual({ name: 'test' })
     expect(result2!.gender).toStrictEqual(false)
     expect(result2!.createAt).toBeInstanceOf(Date)
     expect(result2!.updateAt).toBeInstanceOf(Date)
   })
-  test('raw', async () => {
-    const query = await db.toSQL(d => d
-      .selectFrom('test')
-      .where('person', '=', { name: '1' })
-      .selectAll(),
-    )
-    expect(query.sql).toBe('select * from "test" where "person" = ?')
-    expect(query.parameters).toStrictEqual(['{"name":"1"}'])
-  })
-  test('precompile', async () => {
+  test('should precompile', async () => {
     const select = db.precompile(
       db => db.selectFrom('test').selectAll(),
     ).setParam<{ person: { name: string } }>(({ qb, param }) =>
@@ -122,9 +144,9 @@ describe('test builder', async () => {
 
     console.log('   compiled:', `${(performance.now() - start2).toFixed(2)}ms`)
 
-    const result = await db.execCompiled(insert({ gender: true }))
-    expect(result!.rows).toStrictEqual([])
-    const result2 = await db.execCompiled(update({ gender: false }))
-    expect(result2!.rows).toStrictEqual([])
+    const result = await db.executeCompiledTakeList(insert({ gender: true }))
+    expect(result).toStrictEqual([])
+    const result2 = await db.executeCompiledTakeList(update({ gender: false }))
+    expect(result2).toStrictEqual([])
   })
 })

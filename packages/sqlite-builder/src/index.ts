@@ -1,3 +1,4 @@
 export * from './builder'
-export * from './types'
-export { createTimeTrigger, parseTableMap, runCreateTable, precompileQuery } from './utils'
+export type { DBLogger, SqliteBuilderOptions } from './types'
+export * from './sync'
+export * from './utils'
