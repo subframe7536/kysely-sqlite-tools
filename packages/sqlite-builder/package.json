@@ -7,12 +7,9 @@
     "email": "1667077010@qq.com"
   },
   "license": "MIT",
-  "homepage": "https://github.com/subframe7536/kysely-sqlite#readme",
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/subframe7536/kysely-sqlite.git"
-  },
-  "bugs": "https://github.com/subframe7536/kysely-sqlite/issues",
+  "homepage": "https://github.com/subframe7536/kysely-sqlite-tools/tree/master/packages/sqlite-builder",
+  "repository": "https://github.com/subframe7536/kysely-sqlite-tools/tree/master/packages/sqlite-builder",
+  "bugs": "https://github.com/subframe7536/kysely-sqlite-tools/issues",
   "keywords": [
     "kysely",
     "sqlite",

@@ -7,11 +7,8 @@
     "email": "1667077010@qq.com"
   },
   "license": "MIT",
-  "homepage": "https://github.com/subframe7536/kysely-sqlite-tools#readme",
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/subframe7536/kysely-sqlite-tools.git"
-  },
+  "homepage": "https://github.com/subframe7536/kysely-sqlite-tools/tree/master/packages/plugin-serialize",
+  "repository": "https://github.com/subframe7536/kysely-sqlite-tools/tree/master/packages/plugin-serialize",
   "bugs": "https://github.com/subframe7536/kysely-sqlite-tools/issues",
   "keywords": [
     "kysely",
