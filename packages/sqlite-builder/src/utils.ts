@@ -7,10 +7,9 @@ import type {
   MigrationProvider,
   MigratorProps,
   RootOperationNode,
-  SelectQueryBuilder,
   Transaction,
 } from 'kysely'
-import type { AvailableBuilder, QueryBuilderOutput, SyncTableFn } from './types'
+import type { QueryBuilderOutput, SyncTableFn } from './types'
 
 function getParam<T extends Record<string, any>>(name: keyof T): T[keyof T] {
   return `__precomile_${name as string}` as unknown as T[keyof T]
@@ -109,7 +108,7 @@ export async function checkIntegrity(db: Kysely<any>): Promise<boolean> {
 export async function getOrSetDBVersion(
   db: Kysely<any>,
   version?: number,
-): Promise<number | undefined> {
+): Promise<number> {
   if (version) {
     await sql`PRAGMA user_version = ${sql.raw(`${version}`)}`.execute(db)
     return version
@@ -178,7 +177,7 @@ export type LoggerOptions = {
 }
 
 /**
- * util for `dialect.log`
+ * util for `KyselyConfig.log`
  */
 export function createKyselyLogger(
   options: LoggerOptions,
@@ -207,19 +206,13 @@ export function createKyselyLogger(
   }
 }
 
-export function isSelectQueryBuilder<DB, O>(
-  builder: AvailableBuilder<DB, O>,
-): builder is SelectQueryBuilder<DB, any, O> {
-  return builder.toOperationNode().kind === 'SelectQueryNode'
-}
-
 export type OptimizePragmaOptions = {
   cacheSize?: number
   pageSize?: number
 }
 
 /**
- * call optimze pragma, include:
+ * call optimize pragma, include:
  * - cache_size = `options.cacheSize` || 4096
  * - page_size = `options.pageSize` || 32768
  * - journel_mode = WAL

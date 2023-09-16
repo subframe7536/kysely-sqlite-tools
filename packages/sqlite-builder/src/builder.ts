@@ -2,6 +2,7 @@ import type {
   Compilable,
   QueryResult,
   RawBuilder,
+  SelectQueryBuilder,
   Simplify,
   Transaction,
 } from 'kysely'
@@ -9,7 +10,6 @@ import { CompiledQuery, Kysely } from 'kysely'
 import { SqliteSerializePlugin, defaultSerializer } from 'kysely-plugin-serialize'
 import {
   createKyselyLogger,
-  isSelectQueryBuilder,
   precompileQuery,
   checkIntegrity as runCheckIntegrity,
   savePoint,
@@ -27,6 +27,12 @@ export class IntegrityError extends Error {
   constructor() {
     super('db file maybe broken')
   }
+}
+
+function isSelectQueryBuilder<DB, O>(
+  builder: AvailableBuilder<DB, O>,
+): builder is SelectQueryBuilder<DB, any, O> {
+  return builder.toOperationNode().kind === 'SelectQueryNode'
 }
 
 export class SqliteBuilder<DB extends Record<string, any>> {

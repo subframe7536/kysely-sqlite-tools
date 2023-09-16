@@ -25,110 +25,114 @@ choose [NodeWasmDialect](../dialect-wasm/README.md#nodewasmdialect)
 
 ## example
 
+### define / initialze
+
 ```ts
-interface DB {
-  test: TestTable
+// schemas for AutoSyncTables
+const testTable = defineTable({
+  id: { type: 'increments' },
+  person: { type: 'object', defaultTo: { name: 'test' } },
+  gender: { type: 'boolean', notNull: true },
+  array: defineColumn<string[]>({ type: 'object' }),
+  buffer: { type: 'blob' },
+}, {
+  primary: 'id',
+  index: ['person', ['id', 'gender']],
+  timeTrigger: { create: true, update: true },
+})
+const baseTables = {
+  test: testTable,
 }
-interface TestTable {
-  id: Generated<number>
-  person: { name: string } | null
-  gender: boolean
-  createAt: Date | null
-  updateAt: Date | null
-}
+
+// infer type from baseTables
+type DB = InferDatabase<typeof baseTables>
+
 const db = new SqliteBuilder<DB>({
   dialect: new SqliteDialect({
     database: new Database(':memory:'),
   }),
-  tables: {
-    test: {
-      columns: {
-        id: { type: 'increments' },
-        person: { type: 'object', defaultTo: { name: 'test' } },
-        gender: { type: 'boolean', notNull: true },
-        createAt: { type: 'date' },
-        updateAt: { type: 'date' },
-      },
-      property: {
-        primary: 'id', // sqlite only support one single/composite primary key,
-        index: ['person', ['id', 'gender']],
-        timestamp: true,
-      },
-    },
-  },
-  dropTableBeforeInit: true,
-  errorLogger: reason => console.error(reason),
-  queryLogger: (queryInfo, time) => console.log(`${time}ms`, queryInfo.sql, queryInfo.parameters),
+  logger: console,
+  onQuery: true,
 })
-// manually generate table
-db.init(true)
-  // auto generate table
-  .then(() => db.transaction(trx => trx.insertInto('test').values({ gender: false }).execute()))
-  // auto generate table
-  .then(() => db.exec(d => d.selectFrom('test').selectAll().execute()))
-  .then((result) => {
-    console.log('result:')
-    console.log(result)
-  })
-  .then(() => {
-    const { sql, parameters } = db.toSQL(d => d
-      .selectFrom('test')
-      .where('person', '=', { name: '1' })
-      .selectAll(),
+
+// update tables using syncTable
+await db.updateTables(createAutoSyncTableFn(baseTables, { logger: false }))
+
+// update tables using MigrationProvider and migrate to latest
+await db.updateTables(createMigrateFn(new FileMigrationProvider(/**/)))
+```
+
+### usage
+
+```ts
+// run transaction
+await db.transaction(async (trx) => {
+  // use transaction
+  await trx.insertInto('test').values({ gender: false }).execute()
+  // nest transaction, using savepoint
+  await db.transaction(async () => {
+    // auto load transaction with savepoint
+    await db.execute(
+      d => d.selectFrom('test').where('gender', '=', true),
+      'this is error message'
     )
-    console.log(sql)
-    console.log(parameters)
   })
+})
+
+// use origin instance
+await db.kysely.insertInto('test').values({ gender: false }).execute()
+
+// run raw
+await db.raw(sql`PRAGMA user_version = 2`, 'this is error message')
+
+// destroy
+await db.destroy()
 ```
 
-### log
+### precompile
 
-```log
-6.895100001245737ms drop table if exists "test" []
-5.431900002062321ms create table if not exists "test" ("id" integer primary key autoincrement, "person" text default '{"name":"test"}', "gender" text not null, "createAt" text, "updateAt" text) []
-5.303100001066923ms create index if not exists "idx_person" on "test" ("person") []
-5.393900003284216ms create index if not exists "idx_id_gender" on "test" ("id", "gender") []
-4.941399998962879ms
-      create trigger if not exists test_createAt
-      after insert
-      on "test"
-      begin
-        update "test"
-        set "createAt" = datetime('now','localtime')
-        where "id" = NEW."id";
-      end
-       []
-5.110400002449751ms
-      create trigger if not exists test_updateAt
-      after update
-      on "test"
-      begin
-        update "test"
-        set "updateAt" = datetime('now','localtime')
-        where "id" = NEW."id";
-      end
-       []
-0.10300000011920929ms begin []
-2.877199999988079ms insert into "test" ("gender") values (?) [ 'false' ]
-4.603500001132488ms commit []
-0.2833000011742115ms select * from "test" []
-result:
-[
-  {
-    id: 1,
-    person: { name: 'test' },
-    gender: false,
-    createAt: 2023-04-23T08:40:33.000Z,
-    updateAt: 2023-04-23T08:40:33.000Z
-  }
-]
-select * from "test" where "person" = ?
-[ '{"name":"1"}' ]
+inspired by [kysely-params](https://github.com/jtlapp/kysely-params), optimized for sqlite
+
+```ts
+const select = db.precompile(
+  db => db.selectFrom('test').selectAll(),
+).setParam<{ person: { name: string } }>(({ qb, param }) =>
+  qb.where('person', '=', param('person')),
+)
+
+const result = await db.executeCompiledTakeList(
+  select({ person: { name: 'John' } })
+)
 ```
 
-## todo
+### utils
 
-- [ ] auto sync table structure
+```ts
+// util for `KyselyConfig.log`
+function createKyselyLogger(options: LoggerOptions): (event: LogEvent) => void
+
+// create savepoint, release or rollback it later
+function savePoint(db: Kysely<any> | Transaction<any>, name?: string): Promise<SavePoint>
+
+// check integrity_check pragma
+function checkIntegrity(db: Kysely<any>): Promise<boolean>
+
+// get or set user_version pragma
+function getOrSetDBVersion(db: Kysely<any>, version?: number): Promise<number>
+
+// call optimize pragma
+function optimzePragma(conn: DatabaseConnection, options?: OptimizePragmaOptions): Promise<void>
+
+// create precompiled query
+function precompileQuery<O>(
+  queryBuilder: QueryBuilderOutput<Compilable<O>>,
+  serializer?: (value: unknown) => unknown
+): {
+  setParam: <T extends Record<string, any>>(
+    paramBuilder: ({ param, qb }: SetParam<O, T>) => Compilable<O>
+  ) => CompileFn<O, T>
+}
+```
 
 ## credit
 
