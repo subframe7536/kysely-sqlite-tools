@@ -1,8 +1,16 @@
 # serialize plugin
 
-The following example will return an error when using sqlite dialects, unless using this plugin:
+Auto serialize / deserialize values in sql
+
+## install
+
+```shell
+pnpm add -D kysely-plugin-serialize
+```
 
 ## usage
+
+The following example will return an error when using sqlite dialects, unless using this plugin:
 
 ```ts
 interface TestTable {

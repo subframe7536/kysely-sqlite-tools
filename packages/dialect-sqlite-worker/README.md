@@ -11,6 +11,22 @@ pnpm add -D kysely kysely-sqlite-worker
 pnpm add better-sqlite3
 ```
 
+## config
+
+```ts
+export type SqliteWorkerDialectConfig = {
+  /**
+   * db file path or existing buffer
+   */
+  source: string | Buffer | (() => Promisable<string | Buffer>)
+  /**
+   * better-sqlite3 initiate option
+   */
+  option?: Options
+  onCreateConnection?: (connection: DatabaseConnection) => Promisable<void>
+}
+```
+
 ## Notice
 
 the worker script is read from `join(__dirname, 'worker.js')`, please make sure it exists

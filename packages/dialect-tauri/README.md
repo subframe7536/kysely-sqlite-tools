@@ -1,11 +1,17 @@
 # Tauri dialect
 
-dialect that using [Tauri official sql plugin](https://github.com/tauri-apps/plugins-workspace/tree/dev/plugins/sql), support MySQL, PostgreSQL and SQLite
+dialect for [`Tauri`](https://tauri.app/), using [official sql plugin](https://github.com/tauri-apps/plugins-workspace/tree/dev/plugins/sql), support MySQL, PostgreSQL and SQLite
 
-### usage
+## install
+
+```shell
+pnpm add kysely-dialect-tauri @tauri-apps/plugin-sql
+```
+
+## usage
 
 ```ts
-import Database from 'tauri-plugin-sql-api'
+import Database from '@tauri-apps/plugin-sql'
 import { appDataDir } from '@tauri-apps/api/path'
 
 const kysely = new Kysely<DB>({
@@ -16,7 +22,7 @@ const kysely = new Kysely<DB>({
 })
 ```
 
-### type
+## config
 
 ```ts
 export interface TauriSqlDialectConfig<T extends 'sqlite' | 'mysql' | 'postgres'> {

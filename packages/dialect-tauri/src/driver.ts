@@ -23,7 +23,7 @@ export class TaruiSqlDriver<T extends 'sqlite' | 'mysql' | 'postgres'> {
   }
 
   async acquireConnection(): Promise<DatabaseConnection> {
-    // SQLite only has one single connection. We use a mutex here to wait
+    // plugin only has one single connection. We use a mutex here to wait
     // until the single connection has been released.
     await this.connectionMutex.lock()
     return this.connection!
@@ -87,7 +87,7 @@ class TauriSqlConnection implements DatabaseConnection {
   }
 
   streamQuery<R>(): AsyncIterableIterator<QueryResult<R>> {
-    throw new Error('Tauri driver doesn\'t support streaming')
+    throw new Error('Tauri sql plugin doesn\'t support streaming')
   }
 
   async executeQuery<R>(compiledQuery: CompiledQuery<unknown>): Promise<QueryResult<R>> {

@@ -1,23 +1,27 @@
 # Kysely-sqlite-builder
 
-kysely typed table builder for sqlite
+kysely typed table builder for SQLite
 
 ## features
 
-- generate table by config
-- auto serialize/deserialize
-- auto insert create time and update time
+- infer tables type by schema
+- support auto migrate by schema (experimental)
+- auto serialize / deserialize
+- trigger for `updateAt`
+- auto detect transaction, catch all errors
+- support nest transaction (using `savepoint`)
+- support precompile querys for performance
+- more utils for SQLite
 
 ## install
 
 ```shell
-pnpm i better-sqlite3 kysely-sqlite-builder
+pnpm add kysely kysely-sqlite-builder
 ```
 
-### for Electron without recompile
+### dialect for Electron without recompile
 
 ```shell
-pnpm rm better-sqlite3
 pnpm i kysely-wasm
 ```
 
