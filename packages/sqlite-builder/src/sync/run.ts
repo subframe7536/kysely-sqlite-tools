@@ -131,7 +131,7 @@ export async function runCreateTable(
         return builder.defaultTo(sql`CURRENT_TIMESTAMP`)
       }
 
-      if (notNull) {
+      if (notNull === true) {
         builder = builder.notNull()
       }
 

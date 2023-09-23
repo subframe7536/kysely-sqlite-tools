@@ -1,13 +1,13 @@
 import type { Generated, Kysely } from 'kysely'
 import type { DBLogger, SyncTableFn } from '../types'
-import type { ColumnProperty, Columns, Tables, TimeTriggerOptions } from './types'
+import type { ColumnProperty, Columns, IsNotNull, Schema, TimeTriggerOptions } from './types'
 import type { SyncOptions } from './core'
 import { syncTables } from './core'
 
 export * from './types'
-export { defineColumn, defineTable } from './define'
+export { defineTable } from './define'
 
-export function createAutoSyncTableFn<T extends Tables>(
+export function createAutoSyncTableFn<T extends Schema>(
   tables: T,
   options: SyncOptions<T> = {},
 ): SyncTableFn {
@@ -40,8 +40,6 @@ type ParseTableWithTrigger<
   )
   : never
 
-type IsNotNull<T> = (T extends null ? T : never) extends never ? true : false
-
 /**
  * util type for infering type of table
  */
@@ -71,7 +69,7 @@ export type InferTable<
  *
  * use {@link InferTable} to check details
  */
-export type InferDatabase<T extends Tables> = Prettify<{
+export type InferDatabase<T extends Schema> = Prettify<{
   [K in keyof T]: T[K] extends {
     columns: Columns
     timeTrigger?: TimeTriggerOptions<any, any>

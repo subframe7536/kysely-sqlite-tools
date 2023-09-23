@@ -2,6 +2,7 @@ import type { RawBuilder } from 'kysely'
 import type {
   Columns,
   ColumnsWithErrorInfo,
+  IsNotNull,
   Table,
   TableProperty,
   TimeTriggerOptions,
@@ -48,25 +49,54 @@ export function defineTable<
 }
 
 /**
- * explicitly declare column type
+ * explicitly declare object column type
  *
- * **if have error, please make sure
- * the first generic type is set**
  * @example
  * ```ts
  * const pet = defineTable({
- *   owner: defineColumn<{ name: string }, true>({
- *     type: 'object',
- *     defaultTo: { name: 'owner' },
- *     notNull: true
- *   }),
+ *   // NotNull is optional
+ *   owner: defineColumn<{ name: string }>().NotNull(),
  * }
  * ```
  */
-export function defineColumn<T, NotNull extends true | null = null>(prop: {
-  type: T extends string ? 'string' : 'object'
-  defaultTo?: T | RawBuilder<unknown> | null
-  notNull?: NotNull
-}) {
-  return prop
+export function defineObject<T extends object>(defaultTo?: T | RawBuilder<unknown> | null) {
+  const base = {
+    type: 'object',
+    defaultTo: defaultTo as IsNotNull<typeof defaultTo> extends true ? T : T | null,
+  } as const
+  return {
+    ...base,
+    NotNull() {
+      return {
+        ...base,
+        notNull: true,
+      } as const
+    },
+  }
+}
+/**
+ * explicitly declare string column type
+ *
+ * @example
+ * ```ts
+ * const typeTable = defineTable({
+ *   // NotNull is optional
+ *   type: defineColumn<'generic' | 'custom'>().NotNull(),
+ * }
+ * ```
+ */
+export function defineLiteral<T extends string>(defaultTo?: T | RawBuilder<unknown> | null) {
+  const base = {
+    type: 'string',
+    defaultTo: defaultTo as IsNotNull<typeof defaultTo> extends true ? T : T | null,
+  } as const
+  return {
+    ...base,
+    NotNull() {
+      return {
+        ...base,
+        notNull: true,
+      } as const
+    },
+  }
 }

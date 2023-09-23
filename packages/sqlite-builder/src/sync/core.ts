@@ -1,6 +1,6 @@
 import { type Kysely, sql } from 'kysely'
 import type { DBLogger } from '../types'
-import type { Columns, Table, Tables } from './types'
+import type { Columns, Schema, Table } from './types'
 import {
   parseColumnType,
   runCreateTable,
@@ -11,7 +11,7 @@ import {
 } from './run'
 import { type ParsedCreateTableSQL, parseExistDB } from './parseExist'
 
-export type SyncOptions<T extends Tables> = {
+export type SyncOptions<T extends Schema> = {
   /**
    * whether to enable logger
    */
@@ -26,7 +26,7 @@ export type SyncOptions<T extends Tables> = {
   reserveOldData?: boolean
 }
 
-export async function syncTables<T extends Tables>(
+export async function syncTables<T extends Schema>(
   db: Kysely<any>,
   targetTables: T,
   options: SyncOptions<T> = {},
@@ -84,8 +84,6 @@ export async function syncTables<T extends Tables>(
     }
     const { index, ...props } = targetColumns
 
-    const traceMessages: string[] = []
-
     const restoreColumnList = getRestoreColumnList(existColumns.columns, targetColumns.columns)
 
     // if all columns are in same table structure, skip
@@ -100,21 +98,17 @@ export async function syncTables<T extends Tables>(
       // 1. copy struct to temporary table
       // @ts-expect-error existColumns.columns has parsed column type
       await runCreateTable(trx, tempTableName, existColumns, true)
-      traceMessages.push(`copy table ${tableName} structure to ${tempTableName}`)
 
       // 2. copy all data to temporary table
       await trx.insertInto(tempTableName)
         .expression(eb => eb.selectFrom(tableName).selectAll())
         .execute()
-      traceMessages.push(`copy table ${tableName} all data to ${tempTableName}`)
 
       // 3. remove exist table
       await runDropTable(trx, tableName)
-      traceMessages.push(`remove table ${tableName}`)
 
       // 4. create target table
       const _triggerOptions = await runCreateTable(trx, tableName, props)
-      traceMessages.push(`create table ${tableName}`)
 
       // 5. diff and restore data from temporary table to target table
       if (restoreColumnList.length) {
@@ -122,25 +116,17 @@ export async function syncTables<T extends Tables>(
           .columns(restoreColumnList)
           .expression(eb => eb.selectFrom(tempTableName).select(restoreColumnList))
           .execute()
-        traceMessages.push(`copy columns: ${JSON.stringify(restoreColumnList)}`)
       }
 
       // 6. add indexes and triggers
       await runCreateTableIndex(trx, tableName, index)
       await runCreateTimeTrigger(trx, tableName, _triggerOptions)
-      traceMessages.push(`add index and trigger for ${tableName}`)
 
       // 7. if not reserve old data, remove temporary table
-      if (!reserveOldData) {
-        await runDropTable(trx, tempTableName)
-        traceMessages.push(`remove temporary table ${tempTableName}`)
-      }
+      !reserveOldData && await runDropTable(trx, tempTableName)
     })
-      .then(() => logger?.trace?.(traceMessages.join('\n')))
-      .catch((e) => {
-        logger?.trace?.(traceMessages.join('\n'))
-        logger?.error(`fail to sync ${tableName}`, e)
-      })
+      .then(() => logger?.debug(`restore columns: ${restoreColumnList}`))
+      .catch(e => logger?.error(`fail to sync ${tableName}`, e))
   }
 }
 

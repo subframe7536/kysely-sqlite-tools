@@ -1,6 +1,7 @@
 import type { Generated, RawBuilder } from 'kysely'
 
 export type Arrayable<T> = T | Array<T>
+
 export type ColumnType =
   | 'string'
   | 'boolean'
@@ -9,7 +10,7 @@ export type ColumnType =
   | 'date'
   | 'blob'
   | 'object'
-
+export type InferGenereated<T> = T extends Generated<infer P> ? P : T
 export type InferColumnTypeByString<T> =
   T extends 'string' ? string :
     T extends 'boolean' ? boolean :
@@ -23,40 +24,41 @@ export type InferColumnTypeByString<T> =
 export type InferStringByColumnType<T> =
   T extends string ? 'string' :
     T extends boolean ? 'boolean' :
-      T extends Generated<number> ? 'increments' :
+      T extends Generated<number> ? 'increments' | 'int' | 'float' :
         T extends number ? 'int' | 'float' :
           T extends Date ? 'date' :
             T extends ArrayBufferLike ? 'blob' :
-              T extends object ? 'object' :
-                never
+              T extends Generated<infer P> ? InferStringByColumnType<P> :
+                T extends object ? 'object' :
+                  never
 
 export type ColumnProperty<
-  T extends ColumnType = ColumnType,
-  DefaultTo extends InferColumnTypeByString<T> | null = InferColumnTypeByString<T> | null,
+  ColType extends ColumnType = ColumnType,
+  DefaultTo extends InferColumnTypeByString<ColType> | null = InferColumnTypeByString<ColType> | null,
   NotNull extends true | null = true | null,
 > = {
-  type: T
+  type: ColType
   defaultTo?: DefaultTo | RawBuilder<unknown>
   notNull?: NotNull
 }
 
 export type TimeTriggerOptions<
-  C extends string | true | null,
-  U extends string | true | null,
+  Create extends string | true | null,
+  Update extends string | true | null,
 > = {
-  create?: C
-  update?: U
+  create?: Create
+  update?: Update
 }
 
 export type TableProperty<
-  T extends Columns,
-  C extends string | true | null = null,
-  U extends string | true | null = null,
+  Cols extends Columns,
+  Create extends string | true | null = null,
+  Update extends string | true | null = null,
 > = {
-  primary?: Arrayable<keyof T & string>
-  unique?: Arrayable<keyof T & string>[]
-  index?: Arrayable<keyof T & string>[]
-  timeTrigger?: TimeTriggerOptions<C, U>
+  primary?: Arrayable<keyof Cols & string>
+  unique?: Arrayable<keyof Cols & string>[]
+  index?: Arrayable<keyof Cols & string>[]
+  timeTrigger?: TimeTriggerOptions<Create, Update>
 }
 export type Columns = Record<string, ColumnProperty>
 
@@ -81,10 +83,19 @@ export type ColumnsWithErrorInfo<T extends Columns> = {
       };
 }
 export type Table<
-  T extends Columns = any,
-  C extends string | true | null = null,
-  U extends string | true | null = null,
+  Cols extends Columns = any,
+  Create extends string | true | null = null,
+  Update extends string | true | null = null,
 > = {
-  columns: ColumnsWithErrorInfo<T>
-} & TableProperty<T, C, U>
-export type Tables = Record<string, Table<any, any, any>>
+  columns: ColumnsWithErrorInfo<Cols>
+} & TableProperty<Cols, Create, Update>
+export type Schema = Record<string, Table<any, any, any>>
+export type FilterGenerated<
+  Table extends object,
+  EscapeKeys extends string = never,
+> = {
+  [K in keyof Table]: K extends EscapeKeys
+    ? Table[K]
+    : InferGenereated<Table[K]>
+}
+export type IsNotNull<T> = (T extends null ? T : never) extends never ? true : false
