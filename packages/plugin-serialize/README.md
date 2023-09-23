@@ -69,7 +69,8 @@ const db = new Kysely<Database>({
 
 ## notice
 
-THIS PLUGIN SHOULD BE PLACED AT THE END OF PLUGINS ARRAY
+1. THIS PLUGIN SHOULD BE PLACED AT THE END OF PLUGINS ARRAY
+2. in default serializer, only custom handle `boolean` and `Date`. `number`/`bigint`/`ArrayBuffer` / `Buffer` are skiped, `boolean` will transform to `'true'`/`'false'`, `Date` will transform to ISO string and other types will be transformed by `JSON.stringify`/`JSON.parse`
 
 ## credit
 

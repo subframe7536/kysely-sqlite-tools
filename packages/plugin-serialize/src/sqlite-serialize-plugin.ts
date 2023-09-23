@@ -98,10 +98,11 @@ export class SqliteSerializePlugin implements KyselyPlugin {
    * })
    * ```
    */
-  public constructor({ selectOrRawOnly, deserializer, serializer }: SqliteSerializePluginOptions = {}) {
+  public constructor(options: SqliteSerializePluginOptions = {}) {
+    const { deserializer = defaultDeserializer, selectOrRawOnly = false, serializer } = options
     this.serializeParametersTransformer = new SerializeParametersTransformer(serializer)
-    this.deserializer = deserializer || defaultDeserializer
-    this.only = selectOrRawOnly || false
+    this.deserializer = deserializer
+    this.only = selectOrRawOnly
   }
 
   public transformQuery({ node, queryId }: PluginTransformQueryArgs): RootOperationNode {
