@@ -1,7 +1,7 @@
 {
   "name": "kysely-wasm",
   "version": "0.4.0",
-  "description": "kysely dialect for wasm",
+  "description": "kysely dialect for various sqlite wasm",
   "author": {
     "name": "subframe7536",
     "email": "1667077010@qq.com"
@@ -14,6 +14,8 @@
     "kysely",
     "dialect",
     "sql",
+    "sqlite",
+    "sqlite3",
     "wasm"
   ],
   "main": "./dist/index.js",
@@ -33,7 +35,7 @@
     "build": "tsup"
   },
   "peerDependencies": {
-    "kysely": "^0.26.1"
+    "kysely": "^0.26.3"
   },
   "publishConfig": {
     "access": "public"

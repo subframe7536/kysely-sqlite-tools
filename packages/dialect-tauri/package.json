@@ -14,6 +14,9 @@
     "kysely",
     "dialect",
     "sql",
+    "postgre",
+    "mysql",
+    "sqlite3",
     "Tauri"
   ],
   "main": "./dist/index.js",
@@ -28,7 +31,7 @@
     "dist"
   ],
   "peerDependencies": {
-    "kysely": "^0.26.1",
+    "kysely": "^0.26.3",
     "@tauri-apps/plugin-sql": "*"
   },
   "scripts": {

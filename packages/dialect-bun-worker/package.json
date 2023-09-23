@@ -1,7 +1,7 @@
 {
   "name": "kysely-bun-worker",
   "version": "0.4.0",
-  "description": "kysely dialect for bun, running in worker",
+  "description": "kysely dialect for bun:sqlite, running in worker",
   "author": {
     "name": "subframe7536",
     "email": "1667077010@qq.com"
@@ -36,5 +36,8 @@
   },
   "dependencies": {
     "mitt": "^3.0.1"
+  },
+  "peerDependencies": {
+    "kysely": "^0.26.3"
   }
 }

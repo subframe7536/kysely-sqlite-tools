@@ -1,7 +1,7 @@
 {
   "name": "kysely-wasqlite-worker",
   "version": "0.4.0",
-  "description": "kysely dialect for wa-sqlite, running in worker",
+  "description": "kysely dialect for wa-sqlite, run sql in worker",
   "author": {
     "name": "subframe7536",
     "email": "1667077010@qq.com"
@@ -15,6 +15,7 @@
     "dialect",
     "sql",
     "worker",
+    "sqlite",
     "sqlite3"
   ],
   "main": "./dist/index.js",

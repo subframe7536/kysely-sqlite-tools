@@ -1,7 +1,7 @@
 {
   "name": "kysely-sqlite-worker",
   "version": "0.4.0",
-  "description": "kysely dialect for better-sqlite3 in worker",
+  "description": "kysely dialect for better-sqlite3, run sql in worker",
   "author": {
     "name": "subframe7536",
     "email": "1667077010@qq.com"
@@ -37,6 +37,6 @@
   },
   "peerDependencies": {
     "better-sqlite3": "^8.5.0",
-    "kysely": "^0.26.1"
+    "kysely": "^0.26.3"
   }
 }

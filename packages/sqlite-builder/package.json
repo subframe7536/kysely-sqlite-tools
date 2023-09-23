@@ -14,7 +14,7 @@
     "kysely",
     "sqlite",
     "schema",
-    "typescript"
+    "sql"
   ],
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
