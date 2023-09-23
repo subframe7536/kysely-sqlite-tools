@@ -2,13 +2,15 @@ import { SqliteDialect } from 'kysely'
 import Database from 'better-sqlite3'
 import { beforeEach, describe, expect, test } from 'vitest'
 import type { InferDatabase } from '../packages/sqlite-builder/src'
-import { SqliteBuilder, createAutoSyncTableFn, defineColumn, defineTable } from '../packages/sqlite-builder/src'
+import { SqliteBuilder, createAutoSyncTableFn, defineTable } from '../packages/sqlite-builder/src'
+import { defineLiteral, defineObject } from '../packages/sqlite-builder/src/sync/define'
 
 const testTable = defineTable({
   id: { type: 'increments' },
   person: { type: 'object', defaultTo: { name: 'test' } },
   gender: { type: 'boolean', notNull: true },
-  array: defineColumn<string[]>({ type: 'object' }),
+  array: defineObject<string[]>(),
+  literal: defineLiteral<'l1' | 'l2'>(),
   buffer: { type: 'blob' },
 }, {
   primary: 'id',
@@ -63,7 +65,7 @@ describe('test auto sync table', async () => {
         id: { type: 'increments' },
         person: { type: 'int' },
         bool: { type: 'boolean', notNull: true },
-        array: defineColumn<string[]>({ type: 'object' }),
+        array: defineObject<string[]>(),
         buffer: { type: 'blob' },
       },
       {
