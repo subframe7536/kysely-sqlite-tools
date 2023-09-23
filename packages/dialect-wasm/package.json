@@ -1,6 +1,6 @@
 {
   "name": "kysely-wasm",
-  "version": "0.4.0",
+  "version": "0.4.1",
   "description": "kysely dialect for various sqlite wasm",
   "author": {
     "name": "subframe7536",
