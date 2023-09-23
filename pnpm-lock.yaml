@@ -80,6 +80,9 @@ importers:
 
   packages/dialect-bun-worker:
     dependencies:
+      kysely:
+        specifier: ^0.26.3
+        version: 0.26.3
       mitt:
         specifier: ^3.0.1
         version: 3.0.1
@@ -94,7 +97,7 @@ importers:
         specifier: ^8.5.0
         version: 8.5.2
       kysely:
-        specifier: ^0.26.1
+        specifier: ^0.26.3
         version: 0.26.3
 
   packages/dialect-tauri:
@@ -103,13 +106,13 @@ importers:
         specifier: '*'
         version: 2.0.0-alpha.1
       kysely:
-        specifier: ^0.26.1
+        specifier: ^0.26.3
         version: 0.26.3
 
   packages/dialect-wasm:
     dependencies:
       kysely:
-        specifier: ^0.26.1
+        specifier: ^0.26.3
         version: 0.26.3
 
   packages/dialect-wasqlite-worker:
@@ -125,16 +128,10 @@ importers:
         specifier: ^0.9.6
         version: 0.9.6
 
-  packages/plugin-logical-delete:
-    dependencies:
-      kysely:
-        specifier: ^0.26.3
-        version: 0.26.3
-
   packages/plugin-serialize:
     dependencies:
       kysely:
-        specifier: ^0.26.1
+        specifier: ^0.26.3
         version: 0.26.3
 
   packages/sqlite-builder:
