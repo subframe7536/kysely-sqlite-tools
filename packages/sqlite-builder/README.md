@@ -37,7 +37,8 @@ const testTable = defineTable({
   id: { type: 'increments' },
   person: { type: 'object', defaultTo: { name: 'test' } },
   gender: { type: 'boolean', notNull: true },
-  array: defineColumn<string[]>({ type: 'object' }),
+  str: defineLiteral<'str1' | 'str2'>('str1'),
+  array: defineObject<string[]>().NotNull(),
   buffer: { type: 'blob' },
 }, {
   primary: 'id',
