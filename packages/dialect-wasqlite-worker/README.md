@@ -1,11 +1,11 @@
 # WaSqlite Worker Dialect
 
-execute sql in `Web Worker`, using [`wa-sqlite`](https://github.com/rhashimoto/wa-sqlite), store data in IndexedDB
+[kysely](https://github.com/kysely-org/kysely) dialect for [`wa-sqlite`](https://github.com/rhashimoto/wa-sqlite), execute sql in `Web Worker`, store data in IndexedDB
 
 ## install
 
 ```shell
-pnpm add -D kysely kysely-wasqlite-worker
+pnpm add kysely kysely-wasqlite-worker
 ```
 
 ## config

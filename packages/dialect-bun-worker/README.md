@@ -1,6 +1,6 @@
 # kysely-bun-worker
 
-kysely dialect for bun:sqlite, run sql in worker
+[kysely](https://github.com/kysely-org/kysely) dialect for `bun:sqlite`, run sql in worker
 
 ## install
 

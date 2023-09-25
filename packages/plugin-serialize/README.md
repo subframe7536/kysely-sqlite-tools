@@ -1,11 +1,11 @@
 # serialize plugin
 
-Auto serialize / deserialize values in sql
+Auto serialize / deserialize plugin for [kysely](https://github.com/kysely-org/kysely)
 
 ## install
 
 ```shell
-pnpm add -D kysely-plugin-serialize
+pnpm add kysely kysely-plugin-serialize
 ```
 
 ## usage

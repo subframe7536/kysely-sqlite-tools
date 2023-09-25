@@ -1,6 +1,8 @@
 # wasm dialect
 
-Wasm dialect for Kysely
+[kysely](https://github.com/kysely-org/kysely) dialect for various sqlite wasm
+
+no wasm denpendencies, your need to install yourself
 
 ## install
 
@@ -37,7 +39,7 @@ you can choose not only `OPFS` but also `IndexedDB` as backend storage for bette
 you can choose to use `native file system` as backend storage, which is no need to recompile for different platform, **useful for Electron app**.
 
 #### `CrsqliteDialect`
-you can choose to use `IndexedDB` as backend storage, as forked version of `WaSqlite`, but only work with IndexedDB. **useful for CRDT**
+you can choose to use `IndexedDB` as backend storage (as forked version of `WaSqlite`). **useful for CRDT**
 
 ### type
 

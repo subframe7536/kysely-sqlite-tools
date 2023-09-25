@@ -1,6 +1,6 @@
 # Kysely-sqlite-builder
 
-kysely typed table builder for SQLite
+[kysely](https://github.com/kysely-org/kysely) table builder for SQLite
 
 ## features
 
