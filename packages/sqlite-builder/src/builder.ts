@@ -60,7 +60,7 @@ export class SqliteBuilder<DB extends Record<string, any>> {
     let log
     if (onQuery === true) {
       log = createKyselyLogger({
-        logger: console.log,
+        logger: this.logger?.debug || console.log,
         merge: true,
       })
     } else if (onQuery) {

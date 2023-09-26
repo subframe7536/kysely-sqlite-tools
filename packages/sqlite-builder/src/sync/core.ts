@@ -13,11 +13,17 @@ import { type ParsedCreateTableSQL, parseExistDB } from './parseExist'
 
 export type SyncOptions<T extends Schema> = {
   /**
-   * whether to enable logger
+   * whether to enable debug logger
    */
-  logger?: boolean
+  log?: boolean
   /**
-   * do not restore old data in new table
+   * exclude table prefix list, append with `%`
+   *
+   * `sqlite_%` and default Kysely migration table is built-in
+   */
+  excludeTablePrefix?: string[]
+  /**
+   * do not restore data from old table to new table
    */
   truncateIfExists?: boolean | Array<keyof T & string>
   /**
@@ -32,9 +38,10 @@ export async function syncTables<T extends Schema>(
   options: SyncOptions<T> = {},
   logger?: DBLogger,
 ): Promise<void> {
-  logger?.debug('====== sync tables start ======')
-  const { existTables, indexList, triggerList } = await parseExistDB(db)
-  const { reserveOldData, truncateIfExists = [] } = options
+  const { reserveOldData, truncateIfExists = [], log, excludeTablePrefix } = options
+  const debug = (e: any) => log && logger?.debug(e)
+  const { existTables, indexList, triggerList } = await parseExistDB(db, excludeTablePrefix)
+  debug('====== sync tables start ======')
 
   const truncateTableSet = new Set(
     Array.isArray(truncateIfExists)
@@ -53,21 +60,21 @@ export async function syncTables<T extends Schema>(
 
   for (const [existTableName, existColumns] of Object.entries(existTables)) {
     if (!(existTableName in targetTables)) {
-      logger?.debug(`remove table: ${existTableName}`)
+      debug(`remove table: ${existTableName}`)
       await runDropTable(db, existTableName)
     } else {
-      logger?.debug(`diff table: ${existTableName}`)
+      debug(`diff table: ${existTableName}`)
       await diffTable(existTableName, existColumns, targetTables[existTableName])
     }
   }
 
   for (const [targetTableName, targetTable] of Object.entries(targetTables)) {
     if (!(targetTableName in existTables)) {
-      logger?.debug(`create table: ${targetTableName}`)
+      debug(`create table: ${targetTableName}`)
       await runCreateTableWithIndexAndTrigger(db, targetTableName, targetTable)
     }
   }
-  logger?.debug('======= sync tables end =======')
+  debug('======= sync tables end =======')
 
   async function diffTable(
     tableName: string,
@@ -78,7 +85,7 @@ export async function syncTables<T extends Schema>(
       await db.transaction().execute(async (trx) => {
         await runDropTable(trx, tableName)
         await runCreateTableWithIndexAndTrigger(trx, tableName, targetColumns)
-        logger?.debug('clear and sync structure')
+        debug('clear and sync structure')
       })
       return
     }
@@ -88,10 +95,10 @@ export async function syncTables<T extends Schema>(
 
     // if all columns are in same table structure, skip
     if (restoreColumnList.length === Object.keys(existColumns.columns).length) {
-      logger?.debug('same table structure, skip')
+      debug('same table structure, skip')
       return
     }
-    logger?.debug('different table structure, update')
+    debug('different table structure, update')
     await db.transaction().execute(async (trx) => {
       const tempTableName = `_temp_${tableName}`
 
@@ -125,7 +132,7 @@ export async function syncTables<T extends Schema>(
       // 7. if not reserve old data, remove temporary table
       !reserveOldData && await runDropTable(trx, tempTableName)
     })
-      .then(() => logger?.debug(`restore columns: ${restoreColumnList}`))
+      .then(() => debug(`restore columns: ${restoreColumnList}`))
       .catch(e => logger?.error(`fail to sync ${tableName}`, e))
   }
 }

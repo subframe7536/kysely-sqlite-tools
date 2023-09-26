@@ -26,9 +26,8 @@ export type ParsedColumnProperty = {
  */
 export function parseCreateTableSQL(definition: string): ParsedCreateTableSQL {
   const baseRegex = /create table (?:if not exist)?\s*"([^"]+)".*?\((.*)\)/i
-  // const columnRegex = /"([^"]+)"\s+(\w+)(?:\s+DEFAULT\s+(?:'([^']*)'|\bNULL\b))?(?:\s+NOT NULL)?/g
-  const columnRegex = /"([^"]+)"\s+(\w+)\s?(not null)?/g
-  const [, tableName, cols] = definition.replace(/\r\n?/g, '').match(baseRegex)!
+  const columnRegex = /"([^"]+)"\s+(\w+)\s?(not null)?/gi
+  const [, tableName, cols] = definition.replace(/\r?\n/g, '').match(baseRegex)!
 
   const ret: ParsedCreateTableSQL = {
     columns: {},
@@ -55,32 +54,32 @@ export function parseCreateTableSQL(definition: string): ParsedCreateTableSQL {
 
   return ret
 }
+type ExistTable = {
+  name: string
+  sql: string
+  type: string
+}
 
 /**
  * parse exist db structures
  */
 export async function parseExistDB(
   db: Kysely<any>,
-  excludeTables: string[] = [],
+  prefix: string[] = [],
 ): Promise<ParsedSchema> {
   const tables = await db
     .selectFrom('sqlite_master')
-    .where(({ eb, and }) => {
-      const builder = and([
-        eb('type', 'in', ['table', 'trigger', 'index']),
-        eb('name', '!=', DEFAULT_MIGRATION_TABLE),
-        eb('name', '!=', DEFAULT_MIGRATION_LOCK_TABLE),
-        eb('name', 'not like', 'sqlite_%'),
-      ])
-      excludeTables.forEach(t => builder.and('name', 'not like', `${t}%`))
-      return builder
-    })
+    .where('type', 'in', ['table', 'trigger', 'index'])
+    .where('name', '!=', DEFAULT_MIGRATION_TABLE)
+    .where('name', '!=', DEFAULT_MIGRATION_LOCK_TABLE)
+    .where('name', 'not like', 'sqlite_%')
+    .$if(!!prefix.length, qb => qb
+      .where(eb => eb.and(
+        prefix.map(t => eb('name', 'not like', `${t}%`)),
+      )),
+    )
     .select(['name', 'sql', 'type'])
-    .$castTo<{
-      name: string
-      sql: string
-      type: string
-    }>()
+    .$castTo<ExistTable>()
     .execute()
 
   const tableMap: ParsedSchema = {

@@ -11,9 +11,9 @@ export function createAutoSyncTableFn<T extends Schema>(
   tables: T,
   options: SyncOptions<T> = {},
 ): SyncTableFn {
-  const { logger: _l, ..._options } = options
+  const { log } = options
   return async (db: Kysely<any>, logger?: DBLogger) => {
-    await syncTables(db, tables, _options, _l ? logger : undefined)
+    await syncTables(db, tables, options, log ? logger : undefined)
   }
 }
 

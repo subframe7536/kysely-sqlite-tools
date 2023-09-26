@@ -35,7 +35,7 @@ describe('test auto sync table', async () => {
   let db: SqliteBuilder<any>
   beforeEach(async () => {
     db = getDatabase(true)
-    await db.updateTables(createAutoSyncTableFn(baseTables, { logger: false }))
+    await db.updateTables(createAutoSyncTableFn(baseTables, { log: false }))
   })
   test('should create new table', async () => {
     const foo = defineTable({
@@ -46,7 +46,7 @@ describe('test auto sync table', async () => {
     await db.updateTables(createAutoSyncTableFn({
       ...baseTables,
       foo,
-    }, { logger: false }))
+    }, { log: false }))
 
     const _tables = await db.kysely.introspection.getTables()
     expect(_tables.length).toBe(2)
@@ -54,7 +54,7 @@ describe('test auto sync table', async () => {
     expect(_tables[1].name).toBe('test')
   })
   test('should drop old table', async () => {
-    await db.updateTables(createAutoSyncTableFn({ }, { logger: false }))
+    await db.updateTables(createAutoSyncTableFn({ }, { log: false }))
 
     const _tables = await db.kysely.introspection.getTables()
     expect(_tables.length).toBe(0)
@@ -73,7 +73,7 @@ describe('test auto sync table', async () => {
         timeTrigger: { create: true, update: true },
       },
     )
-    await db.updateTables(createAutoSyncTableFn({ test: foo }, { logger: true }))
+    await db.updateTables(createAutoSyncTableFn({ test: foo }, { log: true }))
     const [_tables] = await db.kysely.introspection.getTables()
     expect(_tables
       .columns

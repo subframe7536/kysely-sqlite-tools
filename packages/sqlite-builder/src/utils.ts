@@ -12,7 +12,7 @@ import type {
 import type { QueryBuilderOutput, SyncTableFn } from './types'
 
 function getParam<T extends Record<string, any>>(name: keyof T): T[keyof T] {
-  return `__precomile_${name as string}` as unknown as T[keyof T]
+  return `__pre_${name as string}` as unknown as T[keyof T]
 }
 type SetParam<O, T extends Record<string, any>> = {
   /**
@@ -39,7 +39,7 @@ type CompileFn<O, T extends Record<string, any>> = (
  * inspired by {@link https://github.com/jtlapp/kysely-params kysely-params},
  * included in `SqliteBuilder`
  * @param queryBuilder query builder without params
- * @param serializer custom parameter value serializer
+ * @param serialize custom parameter value serializer
  * @example
  * ```ts
  * const query = precompileQuery(
@@ -57,7 +57,7 @@ type CompileFn<O, T extends Record<string, any>> = (
  */
 export function precompileQuery<O>(
   queryBuilder: QueryBuilderOutput<Compilable<O>>,
-  serializer: (value: unknown) => unknown = v => v,
+  serialize: (value: unknown) => unknown = v => v,
 ) {
   return {
     /**
@@ -83,8 +83,8 @@ export function precompileQuery<O>(
         }
         return {
           ...compiled,
-          parameters: compiled.parameters.map(p => (typeof p === 'string' && p.startsWith('__precomile_'))
-            ? serializer(param[p.slice(12)])
+          parameters: compiled.parameters.map(p => (typeof p === 'string' && p.startsWith('__pre_'))
+            ? serialize(param[p.slice(6)])
             : p,
           ),
         }
@@ -190,7 +190,7 @@ export function createKyselyLogger(
     let _sql = sql.replace(/\r?\n/g, ' ').replace(/\s+/g, ' ')
     if (merge) {
       parameters.forEach((param) => {
-        _sql = _sql.replace('?', JSON.stringify(param))
+        _sql = _sql.replace('?', typeof param === 'string' ? param : JSON.stringify(param))
       })
     }
     const param: LoggerParams = {
