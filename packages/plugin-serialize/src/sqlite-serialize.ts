@@ -2,7 +2,7 @@ export type Serializer = (parameter: unknown) => unknown
 export type Deserializer = (parameter: unknown) => unknown
 
 export const defaultSerializer: Serializer = (parameter) => {
-  if (skipTransform(parameter)) {
+  if (skipTransform(parameter) || typeof parameter === 'string') {
     return parameter
   } else if (typeof parameter === 'boolean') {
     return `${parameter}`
