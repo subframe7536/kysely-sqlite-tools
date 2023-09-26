@@ -26,6 +26,9 @@
       "import": "./dist/index.mjs"
     }
   },
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "dev": "bun index.ts",
     "test": "bun test",
