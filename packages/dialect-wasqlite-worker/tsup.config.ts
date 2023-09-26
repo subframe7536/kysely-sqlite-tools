@@ -23,6 +23,7 @@ export default defineConfig([
     dts: true,
     noExternal: ['wa-sqlite'],
     treeshake: true,
+    minify: true,
     plugins: [
       {
         name: 'copy',
