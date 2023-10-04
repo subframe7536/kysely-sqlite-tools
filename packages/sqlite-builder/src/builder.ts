@@ -75,11 +75,28 @@ export class SqliteBuilder<DB extends Record<string, any>> {
   }
 
   /**
-   * update the db tables
-   * @param syncFn sync table, built-in: {@link createSyncTableFn}, {@link createMigrateFn}
+   * sync db schema
+   * @param syncFn sync table, built-in: {@link createAutoSyncSchemaFn}, {@link createMigrateFn}
    * @param checkIntegrity whether to check integrity
+   * @example
+   * const testTable = defineTable({
+   *   id: { type: 'increments' },
+   *   person: { type: 'object', defaultTo: { name: 'test' } },
+   *   gender: { type: 'boolean', notNull: true },
+   *   array: defineObject<string[]>().NotNull(),
+   *   literal: defineLiteral<'l1' | 'l2'>('l1'),
+   *   buffer: { type: 'blob' },
+   * }, {
+   *   primary: 'id',
+   *   index: ['person', ['id', 'gender']],
+   *   timeTrigger: { create: true, update: true },
+   * })
+   * await db.syncSchema(createAutoSyncSchemaFn(
+   *   { test: testTable },
+   *   { log: false }
+   * ))
    */
-  public async updateTables(
+  public async syncSchema(
     syncFn: SyncTableFn,
     checkIntegrity?: boolean,
   ): Promise<StatusResult> {

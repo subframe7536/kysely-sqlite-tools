@@ -1,9 +1,8 @@
 import { SqliteDialect } from 'kysely'
 import Database from 'better-sqlite3'
 import { beforeEach, describe, expect, test } from 'vitest'
-import type { InferDatabase } from '../packages/sqlite-builder/src'
-import { SqliteBuilder, createAutoSyncTableFn, defineTable } from '../packages/sqlite-builder/src'
-import { defineLiteral, defineObject } from '../packages/sqlite-builder/src/sync/define'
+import type { InferDatabase } from '../packages/sqlite-builder'
+import { SqliteBuilder, createAutoSyncSchemaFn, defineLiteral, defineObject, defineTable } from '../packages/sqlite-builder'
 
 const testTable = defineTable({
   id: { type: 'increments' },
@@ -17,6 +16,7 @@ const testTable = defineTable({
   index: ['person', ['id', 'gender']],
   timeTrigger: { create: true, update: true },
 })
+
 const baseTables = {
   test: testTable,
 }
@@ -34,8 +34,8 @@ function getDatabase(debug = false) {
 describe('test auto sync table', async () => {
   let db: SqliteBuilder<any>
   beforeEach(async () => {
-    db = getDatabase(true)
-    await db.updateTables(createAutoSyncTableFn(baseTables, { log: false }))
+    db = getDatabase()
+    await db.syncSchema(createAutoSyncSchemaFn(baseTables, { log: false }))
   })
   test('should create new table', async () => {
     const foo = defineTable({
@@ -43,7 +43,7 @@ describe('test auto sync table', async () => {
       col2: { type: 'string' },
     })
 
-    await db.updateTables(createAutoSyncTableFn({
+    await db.syncSchema(createAutoSyncSchemaFn({
       ...baseTables,
       foo,
     }, { log: false }))
@@ -54,7 +54,7 @@ describe('test auto sync table', async () => {
     expect(_tables[1].name).toBe('test')
   })
   test('should drop old table', async () => {
-    await db.updateTables(createAutoSyncTableFn({ }, { log: false }))
+    await db.syncSchema(createAutoSyncSchemaFn({ }, { log: false }))
 
     const _tables = await db.kysely.introspection.getTables()
     expect(_tables.length).toBe(0)
@@ -73,7 +73,7 @@ describe('test auto sync table', async () => {
         timeTrigger: { create: true, update: true },
       },
     )
-    await db.updateTables(createAutoSyncTableFn({ test: foo }, { log: true }))
+    await db.syncSchema(createAutoSyncSchemaFn({ test: foo }, { log: false }))
     const [_tables] = await db.kysely.introspection.getTables()
     expect(_tables
       .columns
@@ -94,7 +94,7 @@ describe('test auto sync table', async () => {
 })
 describe('test builder', async () => {
   const db = getDatabase()
-  await db.updateTables(createAutoSyncTableFn(baseTables))
+  await db.syncSchema(createAutoSyncSchemaFn(baseTables))
   test('should insert', async () => {
     // auto generate table
     console.log(await db.transaction((trx) => {

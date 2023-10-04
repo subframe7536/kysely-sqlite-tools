@@ -5,9 +5,9 @@ import type { SyncOptions } from './core'
 import { syncTables } from './core'
 
 export * from './types'
-export { defineTable } from './define'
+export { defineTable, defineLiteral, defineObject } from './define'
 
-export function createAutoSyncTableFn<T extends Schema>(
+export function createAutoSyncSchemaFn<T extends Schema>(
   tables: T,
   options: SyncOptions<T> = {},
 ): SyncTableFn {
