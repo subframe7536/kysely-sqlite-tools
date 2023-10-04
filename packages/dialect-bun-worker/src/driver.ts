@@ -1,7 +1,7 @@
 import type { DatabaseConnection, Driver, QueryResult } from 'kysely'
 import { CompiledQuery } from 'kysely'
-import type { EmitterOnce } from './mitt'
-import MittOnce from './mitt'
+import type { Emitter } from 'zen-mitt'
+import { mitt } from 'zen-mitt'
 import type { EventWithError, MainMsg, WorkerMsg } from './type'
 import type { BunWorkerDialectConfig } from '.'
 
@@ -10,7 +10,7 @@ export class BunWorkerDriver implements Driver {
   private worker?: Worker
   private connection?: DatabaseConnection
   private connectionMutex = new ConnectionMutex()
-  private mitt?: EmitterOnce<EventWithError>
+  private mitt?: Emitter<EventWithError>
   constructor(config?: BunWorkerDialectConfig) {
     this.config = config
   }
@@ -20,7 +20,7 @@ export class BunWorkerDriver implements Driver {
       new URL('./worker', import.meta.url),
       { type: 'module' },
     )
-    this.mitt = MittOnce<EventWithError>()
+    this.mitt = mitt<EventWithError>()
     this.worker.onmessage = ({ data: { data, err, type } }: MessageEvent<WorkerMsg>) => {
       this.mitt?.emit(type, { data, err })
     }
@@ -76,7 +76,7 @@ export class BunWorkerDriver implements Driver {
           reject(err)
         } else {
           this.worker?.terminate()
-          this.mitt?.all.clear()
+          this.mitt?.off()
           this.mitt = undefined
           resolve()
         }
@@ -111,8 +111,8 @@ class ConnectionMutex {
 
 class BunWorkerConnection implements DatabaseConnection {
   readonly worker: Worker
-  readonly mitt?: EmitterOnce<EventWithError>
-  constructor(worker: Worker, mitt?: EmitterOnce<EventWithError>) {
+  readonly mitt?: Emitter<EventWithError>
+  constructor(worker: Worker, mitt?: Emitter<EventWithError>) {
     this.worker = worker
     this.mitt = mitt
   }

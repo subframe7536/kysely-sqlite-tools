@@ -29,16 +29,16 @@
     "commit": "czg"
   },
   "devDependencies": {
-    "@commitlint/cli": "^17.7.1",
+    "@commitlint/cli": "^17.7.2",
     "@commitlint/config-conventional": "^17.7.0",
     "@sqlite.org/sqlite-wasm": "3.43.1-build1",
     "@subframe7536/eslint-config": "^0.2.9",
     "@subframe7536/wa-sqlite": "^0.9.6",
     "@types/better-sqlite3": "^7.6.5",
-    "@types/node": "^18.18.0",
+    "@types/node": "^18.18.3",
     "@types/sql.js": "^1.4.5",
     "@vlcn.io/crsqlite-wasm": "^0.15.2",
-    "better-sqlite3": "^8.6.0",
+    "better-sqlite3": "^8.7.0",
     "bumpp": "^9.2.0",
     "cz-git": "^1.7.1",
     "czg": "^1.7.1",
@@ -46,12 +46,12 @@
     "husky": "^8.0.3",
     "kysely": "^0.26.3",
     "lint-staged": "^14.0.1",
-    "node-sqlite3-wasm": "^0.6.11",
+    "node-sqlite3-wasm": "^0.7.0",
     "sql.js": "^1.8.0",
     "tsup": "^7.2.0",
     "typescript": "^5.2.2",
-    "vite": "4.4.9",
-    "vitest": "^0.34.5"
+    "vite": "4.4.10",
+    "vitest": "^0.34.6"
   },
   "lint-staged": {
     "*": [
@@ -63,5 +63,5 @@
       "path": "node_modules/cz-git"
     }
   },
-  "packageManager": "pnpm@8.7.6"
+  "packageManager": "pnpm@8.8.0"
 }

@@ -4,7 +4,7 @@
     "build": "vite build"
   },
   "devDependencies": {
-    "@vitejs/plugin-vue": "^4.3.4"
+    "@vitejs/plugin-vue": "^4.4.0"
   },
   "dependencies": {
     "kysely-sqlite-builder": "workspace:*",

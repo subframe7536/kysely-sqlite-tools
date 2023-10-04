@@ -40,7 +40,7 @@
     "@subframe7536/wa-sqlite": "^0.9.6"
   },
   "dependencies": {
-    "mitt": "^3.0.1"
+    "zen-mitt": "^0.1.2"
   },
   "peerDependencies": {
     "kysely": "^0.26.1"

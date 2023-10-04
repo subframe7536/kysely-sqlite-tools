@@ -1,7 +1,7 @@
 import type { DatabaseConnection, Driver, QueryResult } from 'kysely'
 import { CompiledQuery } from 'kysely'
-import type { EmitterOnce } from './mitt'
-import MittOnce from './mitt'
+import type { Emitter } from 'zen-mitt'
+import { mitt } from 'zen-mitt'
 import type { EventWithError, MainMsg, WorkerMsg } from './type'
 import type { WaSqliteWorkerDialectConfig } from '.'
 
@@ -10,7 +10,7 @@ export class WaSqliteWorkerDriver implements Driver {
   private worker?: Worker
   private connection?: DatabaseConnection
   private connectionMutex = new ConnectionMutex()
-  private mitt?: EmitterOnce<EventWithError>
+  private mitt?: Emitter<EventWithError>
   constructor(config: WaSqliteWorkerDialectConfig) {
     this.config = config
   }
@@ -18,7 +18,7 @@ export class WaSqliteWorkerDriver implements Driver {
   async init(): Promise<void> {
     this.worker = this.config.worker
       ?? new Worker(new URL('./worker', import.meta.url), { type: 'module' })
-    this.mitt = MittOnce<EventWithError>()
+    this.mitt = mitt<EventWithError>()
     this.worker.onmessage = ({ data: { type, ...msg } }: MessageEvent<WorkerMsg>) => {
       this.mitt?.emit(type, msg)
     }
@@ -74,7 +74,7 @@ export class WaSqliteWorkerDriver implements Driver {
           reject(err)
         } else {
           this.worker?.terminate()
-          this.mitt?.all.clear()
+          this.mitt?.off()
           this.mitt = undefined
           resolve()
         }
@@ -109,14 +109,14 @@ class ConnectionMutex {
 
 class WaSqliteWorkerConnection implements DatabaseConnection {
   readonly worker: Worker
-  readonly mitt?: EmitterOnce<EventWithError>
-  constructor(worker: Worker, mitt?: EmitterOnce<EventWithError>) {
+  readonly mitt?: Emitter<EventWithError>
+  constructor(worker: Worker, mitt?: Emitter<EventWithError>) {
     this.worker = worker
     this.mitt = mitt
   }
 
   streamQuery<R>(): AsyncIterableIterator<QueryResult<R>> {
-    throw new Error('Sqlite driver doesn\'t support streaming')
+    throw new Error('wasqlite driver doesn\'t support streaming')
   }
 
   async executeQuery<R>(compiledQuery: CompiledQuery<unknown>): Promise<QueryResult<R>> {
@@ -129,9 +129,8 @@ class WaSqliteWorkerConnection implements DatabaseConnection {
     const msg: MainMsg = { type: 'run', mode, sql, parameters }
     this.worker.postMessage(msg)
     return new Promise((resolve, reject) => {
-      if (!this.mitt) {
-        reject('kysely instance has been destroyed')
-      }
+      !this.mitt && reject('kysely instance has been destroyed')
+
       this.mitt!.once('run', ({ data, err }) => {
         (!err && data) ? resolve(data) : reject(err)
       })
