@@ -3,12 +3,6 @@ import { BaseDriver, BaseSqliteConnection } from '../baseDriver'
 import type { SqlJSDB } from './type'
 import type { SqlJsDialectConfig } from '.'
 
-interface ThrottleParams<T> {
-  func: (s: T) => void
-  delay: number
-  maxCalls: number
-}
-
 /**
  * Throttles a function call to a maximum number of calls per delay period.
  * @param func The function to throttle.
@@ -22,7 +16,11 @@ interface ThrottleParams<T> {
  * throttledFunc(myArgument);
  * ```
  */
-function throttle<T>({ func, delay, maxCalls }: ThrottleParams<T>): (s: T) => void {
+function throttle<T>(
+  func: (...args: any[]) => void,
+  delay: number,
+  maxCalls: number,
+): (s: T) => void {
   let timer: any
   let callCount = 0
   let lastArgs: T | null = null
@@ -81,8 +79,8 @@ export class SqlJsDriver extends BaseDriver {
       this.db,
       this.config.onWrite?.func,
       this.config.onWrite?.isThrottle,
-      this.config.onWrite?.maxCalls,
       this.config.onWrite?.delay,
+      this.config.onWrite?.maxCalls,
     )
 
     await this.config.onCreateConnection?.(this.connection)
@@ -116,14 +114,14 @@ class SqlJsConnection extends BaseSqliteConnection {
     db: SqlJSDB,
     func?: ((buffer: Uint8Array) => void),
     isThrottle = false,
-    maxCalls = 1000,
     delay = 2000,
+    maxCalls = 1000,
   ) {
     super()
     this.db = db
     this.onWrite = func
       ? isThrottle
-        ? throttle({ func, maxCalls, delay })
+        ? throttle(func, delay, maxCalls)
         : func
       : undefined
   }
@@ -143,7 +141,7 @@ class SqlJsConnection extends BaseSqliteConnection {
     this.db.run(sql, param as any[])
     const insertId = BigInt(this.query('SELECT last_insert_rowid() as id')[0].id)
     const numAffectedRows = BigInt(this.db.getRowsModified())
-    this.transactionNum === 0 && this.onWrite && this.onWrite(this.db.export())
+    this.transactionNum === 0 && this.onWrite?.(this.db.export())
     return {
       numAffectedRows,
       insertId,

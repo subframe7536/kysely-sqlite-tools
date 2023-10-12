@@ -13,11 +13,13 @@ export interface SqlJsDialectConfig {
      */
     isThrottle?: boolean
     /**
-     * merge all writes in [delay] time
+     * merge all writes in [delay] ms
+     * @default 2000
      */
     delay?: number
     /**
      * If more than [maxCalls] writes are called, write immediately
+     * @default 1000
      */
     maxCalls?: number
   }
