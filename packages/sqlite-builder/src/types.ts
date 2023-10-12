@@ -24,7 +24,7 @@ export interface SqliteBuilderOptions {
    *
    * **do NOT use camelCase plugin**, this will lead to sync table fail
    */
-  plugins?: Array<KyselyPlugin>
+  plugins?: KyselyPlugin[]
   logger?: DBLogger
   serializerPluginOptions?: SqliteSerializePluginOptions
 }

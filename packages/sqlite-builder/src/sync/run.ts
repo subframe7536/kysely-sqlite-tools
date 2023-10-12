@@ -1,7 +1,7 @@
 import type { ColumnDataType, Kysely } from 'kysely'
 import { sql } from 'kysely'
+import type { Arrayable } from '@subframe7536/type-utils'
 import type {
-  Arrayable,
   ColumnProperty,
   ColumnType,
   Table,

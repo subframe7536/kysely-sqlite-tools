@@ -1,6 +1,5 @@
 import type { Generated, RawBuilder } from 'kysely'
-
-export type Arrayable<T> = T | Array<T>
+import type { Arrayable } from '@subframe7536/type-utils'
 
 export type ColumnType =
   | 'string'
@@ -98,4 +97,3 @@ export type FilterGenerated<
     ? Table[K]
     : InferGenereated<Table[K]>
 }
-export type IsNotNull<T> = (T extends null ? T : never) extends never ? true : false

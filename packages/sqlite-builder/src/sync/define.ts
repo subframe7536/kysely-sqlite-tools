@@ -1,8 +1,8 @@
 import type { RawBuilder } from 'kysely'
+import type { IsNotNull } from '@subframe7536/type-utils'
 import type {
   Columns,
   ColumnsWithErrorInfo,
-  IsNotNull,
   Table,
   TableProperty,
   TimeTriggerOptions,

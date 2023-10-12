@@ -1,6 +1,7 @@
 import type { Generated, Kysely } from 'kysely'
+import type { IsNotNull } from '@subframe7536/type-utils'
 import type { DBLogger, SyncTableFn } from '../types'
-import type { ColumnProperty, Columns, IsNotNull, Schema, TimeTriggerOptions } from './types'
+import type { ColumnProperty, Columns, Schema, TimeTriggerOptions } from './types'
 import type { SyncOptions } from './core'
 import { syncTables } from './core'
 

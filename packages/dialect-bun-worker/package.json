@@ -38,7 +38,7 @@
     "bun-types": "latest"
   },
   "dependencies": {
-    "zen-mitt": "^0.1.2"
+    "zen-mitt": "^0.1.3"
   },
   "peerDependencies": {
     "kysely": "^0.26.3"
