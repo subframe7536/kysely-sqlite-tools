@@ -9,21 +9,21 @@ export interface SqliteSerializePluginOptions {
    * Function responsible for serialization of parameters.
    * Defaults to `JSON.stringify` of boolean, objects and arrays, buffer to array
    * @param parameter unknown
-  */
+   */
   serializer?: Serializer
   /**
-    * Function responsible for deserialization of parameters
-    *
-    * - `number`/`null` ignore
-    *
-    * - `'true'` convert to `true`
-    *
-    * - `/^\d{4}-\d{2}-\d{2}[T ]\d{2}:\d{2}:\d{2}(?:\.\d+)?Z?$/` convert to Date
-    *
-    * - others converted by `JSON.parse`
-    *
-    * @param parameter unknown
-    */
+   * Function responsible for deserialization of parameters
+   *
+   * - `number`/`null` ignore
+   *
+   * - `'true'` convert to `true`
+   *
+   * - `/^\d{4}-\d{2}-\d{2}[T ]\d{2}:\d{2}:\d{2}(?:\.\d+)?Z?$/` convert to Date
+   *
+   * - others converted by `JSON.parse`
+   *
+   * @param parameter unknown
+   */
   deserializer?: Deserializer
   /**
    * only transform select query or raw sql return

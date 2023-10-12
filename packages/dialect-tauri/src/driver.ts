@@ -94,12 +94,12 @@ class TauriSqlConnection implements DatabaseConnection {
     const { parameters, sql, query } = compiledQuery
     return Promise.resolve((query.kind === 'SelectQueryNode' || query.kind === 'RawNode')
       ? {
-          rows: await this.db.select(sql, parameters as any),
-        }
+        rows: await this.db.select(sql, parameters as any),
+      }
       : {
-          rows: [],
-          ...await this.exec(sql, parameters),
-        },
+        rows: [],
+        ...await this.exec(sql, parameters),
+      },
     )
   }
 }

@@ -15,7 +15,9 @@ const dialect = new WaSqliteDialect({
     const dbName = 'wa-sqlite-test'
     sqlite.vfs_register(new IDBBatchAtomicVFS(dbName))
     const db = await sqlite.open_v2(
-      dbName, undefined, dbName,
+      dbName,
+      undefined,
+      dbName,
     )
     return {
       sqlite,

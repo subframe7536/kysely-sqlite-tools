@@ -1,4 +1,4 @@
-import { afterAll, describe, expect, test } from 'vitest'
+import { afterAll, describe, expect, it } from 'vitest'
 import type { Dialect, Generated } from 'kysely'
 import { Kysely } from 'kysely'
 import { SqliteWorkerDialect } from '../packages/dialect-sqlite-worker'
@@ -37,7 +37,7 @@ describe('sqlite worker dialect test', () => {
   afterAll(async () => {
     await db.destroy()
   })
-  test('test', async () => {
+  it('test', async () => {
     const dialect = new SqliteWorkerDialect({
       source: ':memory:',
     })

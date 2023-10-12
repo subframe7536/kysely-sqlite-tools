@@ -1,4 +1,4 @@
-import { afterAll, describe, expect, test } from 'vitest'
+import { afterAll, describe, expect, it } from 'vitest'
 import type { Dialect, Generated } from 'kysely'
 import InitSqlJs from 'sql.js'
 import { Kysely } from 'kysely'
@@ -38,7 +38,7 @@ describe('dialect test', () => {
   afterAll(async () => {
     await db.destroy()
   })
-  test('sql.js', async () => {
+  it('sql.js', async () => {
     const dialect = new SqlJsDialect({
       async database() {
         const SQL = await InitSqlJs()

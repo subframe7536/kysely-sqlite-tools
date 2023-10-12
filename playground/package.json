@@ -3,13 +3,13 @@
     "dev": "vite",
     "build": "vite build"
   },
-  "devDependencies": {
-    "@vitejs/plugin-vue": "^4.4.0"
-  },
   "dependencies": {
     "kysely-sqlite-builder": "workspace:*",
     "kysely-wasm": "workspace:*",
     "kysely-wasqlite-worker": "workspace:*",
     "vue": "^3.3.4"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "^4.4.0"
   }
 }

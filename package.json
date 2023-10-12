@@ -3,6 +3,7 @@
   "type": "module",
   "version": "0.4.4",
   "private": true,
+  "packageManager": "pnpm@8.9.0",
   "description": "",
   "author": {
     "name": "subframe7536",
@@ -32,7 +33,7 @@
     "@commitlint/cli": "^17.7.2",
     "@commitlint/config-conventional": "^17.7.0",
     "@sqlite.org/sqlite-wasm": "3.43.1-build1",
-    "@subframe7536/eslint-config": "^0.2.9",
+    "@subframe7536/eslint-config": "^0.3.6",
     "@subframe7536/wa-sqlite": "^0.9.6",
     "@types/better-sqlite3": "^7.6.5",
     "@types/node": "^18.18.4",
@@ -62,6 +63,5 @@
     "commitizen": {
       "path": "node_modules/cz-git"
     }
-  },
-  "packageManager": "pnpm@8.9.0"
+  }
 }

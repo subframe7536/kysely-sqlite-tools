@@ -63,23 +63,23 @@ export type Columns = Record<string, ColumnProperty>
 
 export type ColumnsWithErrorInfo<T extends Columns> = {
   [K in keyof T]: T[K] extends ColumnProperty<
-    infer Type,
-    infer DefaultTo,
-    infer NotNull
+  infer Type,
+  infer DefaultTo,
+  infer NotNull
   >
     ? {
-        type: Type
-        defaultTo: DefaultTo
-        notNull: NotNull
-      }
+      type: Type
+      defaultTo: DefaultTo
+      notNull: NotNull
+    }
     : {
-        type: {
-          error: 'TypeError: [defaultTo] not satisfied [type]'
-          column: K
-          typeIs: InferColumnTypeByString<T[K]['type']>
-          defaultToIs: T[K]['defaultTo']
-        }
-      };
+      type: {
+        error: 'TypeError: [defaultTo] not satisfied [type]'
+        column: K
+        typeIs: InferColumnTypeByString<T[K]['type']>
+        defaultToIs: T[K]['defaultTo']
+      }
+    };
 }
 export type Table<
   Cols extends Columns = any,

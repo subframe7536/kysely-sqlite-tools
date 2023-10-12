@@ -1,23 +1,23 @@
 {
   "compilerOptions": {
+    "target": "esnext",
     "lib": [
       "ESNext",
       "DOM"
     ],
-    "module": "esnext",
-    "target": "esnext",
-    "moduleResolution": "bundler",
     "moduleDetection": "force",
-    "allowImportingTsExtensions": true,
-    "strict": true,
-    "downlevelIteration": true,
-    "skipLibCheck": true,
-    "allowSyntheticDefaultImports": true,
-    "forceConsistentCasingInFileNames": true,
-    "allowJs": true,
-    "noEmit": true,
+    "module": "esnext",
+    "moduleResolution": "bundler",
     "types": [
       "bun-types" // add Bun global
-    ]
+    ],
+    "allowImportingTsExtensions": true,
+    "allowJs": true,
+    "strict": true,
+    "downlevelIteration": true,
+    "noEmit": true,
+    "allowSyntheticDefaultImports": true,
+    "forceConsistentCasingInFileNames": true,
+    "skipLibCheck": true
   }
 }

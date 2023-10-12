@@ -19,24 +19,24 @@
     "sqlite3",
     "Tauri"
   ],
-  "main": "./dist/index.js",
-  "module": "./dist/index.mjs",
   "exports": {
     ".": {
-      "require": "./dist/index.js",
-      "import": "./dist/index.mjs"
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.js"
     }
   },
+  "main": "./dist/index.js",
+  "module": "./dist/index.mjs",
   "files": [
     "dist"
   ],
-  "peerDependencies": {
-    "kysely": "^0.26.3",
-    "@tauri-apps/plugin-sql": "*"
-  },
   "scripts": {
     "dev": "tsup --watch",
     "build": "tsup"
+  },
+  "peerDependencies": {
+    "@tauri-apps/plugin-sql": "*",
+    "kysely": "^0.26.3"
   },
   "publishConfig": {
     "access": "public"

@@ -54,7 +54,7 @@ export class OfficialWasmDialect extends BaseDialect {
    *   next()
    * })
    * ```
-  */
+   */
   constructor(config: OfficialWasmDialectConfig) {
     super()
     this.#config = config

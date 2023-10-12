@@ -1,6 +1,0 @@
-{
-  "extends": "@subframe7536",
-  "rules": {
-    "@typescript-eslint/explicit-member-accessibility": "off"
-  }
-}

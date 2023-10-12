@@ -1,4 +1,4 @@
-import { describe, expect, test } from 'vitest'
+import { describe, expect, it } from 'vitest'
 import Database from 'better-sqlite3'
 import type { Generated, KyselyPlugin } from 'kysely'
 import { Kysely, SqliteDialect } from 'kysely'
@@ -27,7 +27,7 @@ describe('plugin basic test', () => {
       plugins: [plugin],
     })
   }
-  test('test types', async () => {
+  it('test types', async () => {
     const db = getDB(new SqliteSerializePlugin())
     const testDate = new Date()
     await db.schema.createTable('test')
@@ -54,7 +54,7 @@ describe('plugin basic test', () => {
     expect(gender).toStrictEqual(true)
     expect(date).toStrictEqual(testDate)
   })
-  test('test blob types', async () => {
+  it('test blob types', async () => {
     const db = getDB(new SqliteSerializePlugin())
     const testBuffer = Buffer.alloc(4).fill(0xDD)
     await db.schema.createTable('blob')

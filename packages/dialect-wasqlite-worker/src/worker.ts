@@ -14,7 +14,9 @@ async function init(dbName: string, url?: string) {
   sqlite = Factory(SQLiteAsyncModule)
   sqlite.vfs_register(new IDBBatchAtomicVFS(dbName, { durability: 'relaxed' }))
   db = await sqlite.open_v2(
-    dbName, undefined, dbName,
+    dbName,
+    undefined,
+    dbName,
   )
 }
 

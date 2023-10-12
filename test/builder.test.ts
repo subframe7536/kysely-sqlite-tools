@@ -1,6 +1,6 @@
 import { SqliteDialect } from 'kysely'
 import Database from 'better-sqlite3'
-import { beforeEach, describe, expect, test } from 'vitest'
+import { beforeEach, describe, expect, it } from 'vitest'
 import type { InferDatabase } from '../packages/sqlite-builder'
 import { SqliteBuilder, createAutoSyncSchemaFn, defineLiteral, defineObject, defineTable } from '../packages/sqlite-builder'
 
@@ -37,7 +37,7 @@ describe('test auto sync table', async () => {
     db = getDatabase()
     await db.syncSchema(createAutoSyncSchemaFn(baseTables, { log: false }))
   })
-  test('should create new table', async () => {
+  it('should create new table', async () => {
     const foo = defineTable({
       col1: { type: 'increments' },
       col2: { type: 'string' },
@@ -53,13 +53,13 @@ describe('test auto sync table', async () => {
     expect(_tables[0].name).toBe('foo')
     expect(_tables[1].name).toBe('test')
   })
-  test('should drop old table', async () => {
+  it('should drop old table', async () => {
     await db.syncSchema(createAutoSyncSchemaFn({ }, { log: false }))
 
     const _tables = await db.kysely.introspection.getTables()
     expect(_tables.length).toBe(0)
   })
-  test('should update and diff same table with columns', async () => {
+  it('should update and diff same table with columns', async () => {
     const foo = defineTable(
       {
         id: { type: 'increments' },
@@ -95,7 +95,7 @@ describe('test auto sync table', async () => {
 describe('test builder', async () => {
   const db = getDatabase()
   await db.syncSchema(createAutoSyncSchemaFn(baseTables))
-  test('should insert', async () => {
+  it('should insert', async () => {
     // auto generate table
     console.log(await db.transaction((trx) => {
       trx.insertInto('test').values([{ gender: false }, { gender: true }]).execute()
@@ -114,7 +114,7 @@ describe('test builder', async () => {
     expect(result2!.createAt).toBeInstanceOf(Date)
     expect(result2!.updateAt).toBeInstanceOf(Date)
   })
-  test('should precompile', async () => {
+  it('should precompile', async () => {
     const select = db.precompile(
       db => db.selectFrom('test').selectAll(),
     ).setParam<{ person: { name: string } }>(({ qb, param }) =>

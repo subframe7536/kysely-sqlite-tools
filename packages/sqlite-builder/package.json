@@ -1,7 +1,7 @@
 {
   "name": "kysely-sqlite-builder",
-  "description": "sqlite builder for kysely",
   "version": "0.4.4",
+  "description": "sqlite builder for kysely",
   "author": {
     "name": "subframe7536",
     "email": "1667077010@qq.com"
@@ -16,14 +16,14 @@
     "schema",
     "sql"
   ],
-  "main": "./dist/index.js",
-  "module": "./dist/index.mjs",
   "exports": {
     ".": {
-      "require": "./dist/index.js",
-      "import": "./dist/index.mjs"
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.js"
     }
   },
+  "main": "./dist/index.js",
+  "module": "./dist/index.mjs",
   "files": [
     "dist"
   ],
@@ -34,11 +34,11 @@
   "publishConfig": {
     "access": "public"
   },
+  "peerDependencies": {
+    "kysely": "^0.26.3"
+  },
   "dependencies": {
     "@subframe7536/type-utils": "^0.1.2",
     "kysely-plugin-serialize": "workspace:*"
-  },
-  "peerDependencies": {
-    "kysely": "^0.26.3"
   }
 }

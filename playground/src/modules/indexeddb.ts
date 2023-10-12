@@ -1,13 +1,5 @@
 const DB_NAME = 'sqlitevfs'
 const LOADED_FILES = new Map()
-const OPEN_FILES = new Map()
-
-function getOpenFile(rid: any) {
-  if (!OPEN_FILES.has(rid)) {
-    throw new Error(`Resource ID ${rid} does not exist.`)
-  }
-  return OPEN_FILES.get(rid)
-}
 
 const MIN_GROW_BYTES = 2048
 const MAX_GROW_BYTES = 65536
@@ -28,6 +20,7 @@ class _Buffer {
     if (offset >= this._size) {
       return 0
     }
+
     const toCopy = this._data.subarray(
       offset,
       Math.min(this._size, offset + buffer.length),
@@ -40,6 +33,7 @@ class _Buffer {
     if (this._data.length >= capacity) {
       return
     }
+
     const neededBytes = capacity - this._data.length
     const growBy = Math.min(
       MAX_GROW_BYTES,
@@ -68,8 +62,7 @@ class _Buffer {
   }
 }
 
-// eslint-disable-next-line @typescript-eslint/prefer-ts-expect-error, @typescript-eslint/ban-ts-comment
-// @ts-ignore
+// @ts-expect-error polyfill
 const indexedDB = globalThis.indexedDB || window.indexedDB || window.mozIndexedDB || window.webkitIndexedDB || window.msIndexedDB || window.shimIndexedDB
 
 // Web browser indexedDB database

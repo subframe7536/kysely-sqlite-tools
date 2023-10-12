@@ -73,11 +73,11 @@ export async function parseExistDB(
     .where('name', '!=', DEFAULT_MIGRATION_TABLE)
     .where('name', '!=', DEFAULT_MIGRATION_LOCK_TABLE)
     .where('name', 'not like', 'sqlite_%')
-    .$if(!!prefix.length, qb => qb
-      .where(eb => eb.and(
+    .$if(!!prefix.length, qb => qb.where(
+      eb => eb.and(
         prefix.map(t => eb('name', 'not like', `${t}%`)),
-      )),
-    )
+      ),
+    ))
     .select(['name', 'sql', 'type'])
     .$castTo<ExistTable>()
     .execute()
