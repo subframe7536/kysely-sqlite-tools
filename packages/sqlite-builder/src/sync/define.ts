@@ -14,7 +14,20 @@ export const TGR = '__TIME_TRIGGER__'
  * define table function
  *
  * if you want to explicitly declare column type,
- * use {@link defineColumn}
+ * use {@link defineObject} or {@link defineLiteral}
+ * @example
+ * const testTable = defineTable({
+ *   id: { type: 'increments' },
+ *   person: { type: 'object', defaultTo: { name: 'test' } },
+ *   gender: { type: 'boolean', notNull: true },
+ *   array: defineObject<string[]>(),
+ *   literal: defineLiteral<'l1' | 'l2'>(),
+ *   buffer: { type: 'blob' },
+ * }, {
+ *   primary: 'id',
+ *   index: ['person', ['id', 'gender']],
+ *   timeTrigger: { create: true, update: true },
+ * })
  */
 export function defineTable<
   T extends Columns,

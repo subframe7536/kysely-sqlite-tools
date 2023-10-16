@@ -1,5 +1,6 @@
 import { type Kysely, sql } from 'kysely'
 import type { DBLogger } from '../types'
+import { getOrSetDBVersion } from '../utils'
 import type { Columns, Schema, Table } from './types'
 import {
   parseColumnType,
@@ -16,6 +17,16 @@ export type SyncOptions<T extends Schema> = {
    * whether to enable debug logger
    */
   log?: boolean
+  version?: {
+    /**
+     * current version
+     */
+    current: number
+    /**
+     * whether to skip sync when the db's `user_version` is same with `version.current`
+     */
+    skipSyncWhenSame?: boolean
+  }
   /**
    * exclude table prefix list, append with `%`
    *
@@ -38,7 +49,19 @@ export async function syncTables<T extends Schema>(
   options: SyncOptions<T> = {},
   logger?: DBLogger,
 ): Promise<void> {
-  const { reserveOldData, truncateIfExists = [], log, excludeTablePrefix } = options
+  const {
+    reserveOldData,
+    truncateIfExists = [],
+    log,
+    version: { current, skipSyncWhenSame } = {},
+    excludeTablePrefix,
+  } = options
+
+  if (skipSyncWhenSame && current === await getOrSetDBVersion(db)) {
+    return
+  }
+  await getOrSetDBVersion(db, current)
+
   const debug = (e: any) => log && logger?.debug(e)
   const { existTables, indexList, triggerList } = await parseExistDB(db, excludeTablePrefix)
   debug('====== sync tables start ======')
