@@ -1,2 +1,2 @@
-export * from './sqlite-serialize-plugin'
-export * from './sqlite-serialize'
+export * from './serialize-plugin'
+export * from './serializer'

@@ -7,7 +7,7 @@ import type {
   Transaction,
 } from 'kysely'
 import { CompiledQuery, Kysely } from 'kysely'
-import { SqliteSerializePlugin, defaultSerializer } from 'kysely-plugin-serialize'
+import { SerializePlugin, defaultSerializer } from 'kysely-plugin-serialize'
 import {
   createKyselyLogger,
   precompileQuery,
@@ -55,7 +55,7 @@ export class SqliteBuilder<DB extends Record<string, any>> {
     if (serializerPluginOptions?.serializer) {
       this.serializer = serializerPluginOptions.serializer
     }
-    plugins.push(new SqliteSerializePlugin(serializerPluginOptions))
+    plugins.push(new SerializePlugin(serializerPluginOptions))
 
     let log
     if (onQuery === true) {

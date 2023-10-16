@@ -1,6 +1,6 @@
 # wasm dialect
 
-[kysely](https://github.com/kysely-org/kysely) dialect for various sqlite wasm
+[kysely](https://github.com/kysely-org/kysely) dialect for various SQLite wasm
 
 no wasm denpendencies, your need to install yourself
 

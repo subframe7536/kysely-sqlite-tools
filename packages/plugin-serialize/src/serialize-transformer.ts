@@ -1,7 +1,7 @@
 import type { ColumnUpdateNode, PrimitiveValueListNode, ValueNode } from 'kysely'
 import { OperationNodeTransformer } from 'kysely'
-import type { Serializer } from './sqlite-serialize'
-import { defaultSerializer } from './sqlite-serialize'
+import type { Serializer } from './serializer'
+import { defaultSerializer } from './serializer'
 
 export class SerializeParametersTransformer extends OperationNodeTransformer {
   private serializer: Serializer

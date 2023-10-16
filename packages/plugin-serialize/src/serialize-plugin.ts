@@ -1,28 +1,16 @@
 import type { KyselyPlugin, PluginTransformQueryArgs, PluginTransformResultArgs, QueryResult, RootOperationNode, UnknownRow } from 'kysely'
 import type { QueryId } from 'kysely/dist/esm/util/query-id'
-import { SerializeParametersTransformer } from './sqlite-serialize-transformer'
-import type { Deserializer, Serializer } from './sqlite-serialize'
-import { defaultDeserializer } from './sqlite-serialize'
+import { SerializeParametersTransformer } from './serialize-transformer'
+import type { Deserializer, Serializer } from './serializer'
+import { defaultDeserializer } from './serializer'
 
-export interface SqliteSerializePluginOptions {
+export interface SerializePluginOptions {
   /**
-   * Function responsible for serialization of parameters.
-   * Defaults to `JSON.stringify` of boolean, objects and arrays, buffer to array
-   * @param parameter unknown
+   * serialize params
    */
   serializer?: Serializer
   /**
-   * Function responsible for deserialization of parameters
-   *
-   * - `number`/`null` ignore
-   *
-   * - `'true'` convert to `true`
-   *
-   * - `/^\d{4}-\d{2}-\d{2}[T ]\d{2}:\d{2}:\d{2}(?:\.\d+)?Z?$/` convert to Date
-   *
-   * - others converted by `JSON.parse`
-   *
-   * @param parameter unknown
+   * deserialize params
    */
   deserializer?: Deserializer
   /**
@@ -31,7 +19,7 @@ export interface SqliteSerializePluginOptions {
   selectOrRawOnly?: boolean
 }
 
-export class SqliteSerializePlugin implements KyselyPlugin {
+export class SerializePlugin implements KyselyPlugin {
   private serializeParametersTransformer: SerializeParametersTransformer
   private deserializer: Deserializer
   private only: boolean
@@ -61,7 +49,7 @@ export class SqliteSerializePlugin implements KyselyPlugin {
    *     database: new Database(':memory:'),
    *   }),
    *   plugins: [
-   *     new SqliteSerializePlugin(),
+   *     new SerializePlugin(),
    *   ],
    * })
    *
@@ -81,7 +69,7 @@ export class SqliteSerializePlugin implements KyselyPlugin {
    *     database: new Database(":memory:"),
    *   }),
    *   plugins: [
-   *     new SqliteSerializePlugin({
+   *     new SerializePlugin({
    *         serializer: (value) => {
    *             if (value instanceof Date) {
    *                 return formatDatetime(value)
@@ -98,7 +86,7 @@ export class SqliteSerializePlugin implements KyselyPlugin {
    * })
    * ```
    */
-  public constructor(options: SqliteSerializePluginOptions = {}) {
+  public constructor(options: SerializePluginOptions = {}) {
     const { deserializer = defaultDeserializer, selectOrRawOnly = false, serializer } = options
     this.serializeParametersTransformer = new SerializeParametersTransformer(serializer)
     this.deserializer = deserializer
@@ -142,3 +130,8 @@ export class SqliteSerializePlugin implements KyselyPlugin {
     return await parse()
   }
 }
+
+/**
+ * @deprecated alias for {@link SerializePlugin}
+ */
+export const SqliteSerializePlugin = SerializePlugin

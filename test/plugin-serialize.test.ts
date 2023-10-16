@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import Database from 'better-sqlite3'
 import type { Generated, KyselyPlugin } from 'kysely'
 import { Kysely, SqliteDialect } from 'kysely'
-import { SqliteSerializePlugin } from '../packages/plugin-serialize'
+import { SerializePlugin } from '../packages/plugin-serialize'
 
 interface DB {
   test: TestTable
@@ -28,7 +28,7 @@ describe('plugin basic test', () => {
     })
   }
   it('test types', async () => {
-    const db = getDB(new SqliteSerializePlugin())
+    const db = getDB(new SerializePlugin())
     const testDate = new Date()
     await db.schema.createTable('test')
       .addColumn('id', 'integer', build => build.autoIncrement().primaryKey())
@@ -55,7 +55,7 @@ describe('plugin basic test', () => {
     expect(date).toStrictEqual(testDate)
   })
   it('test blob types', async () => {
-    const db = getDB(new SqliteSerializePlugin())
+    const db = getDB(new SerializePlugin())
     const testBuffer = Buffer.alloc(4).fill(0xDD)
     await db.schema.createTable('blob')
       .addColumn('buffer', 'blob')

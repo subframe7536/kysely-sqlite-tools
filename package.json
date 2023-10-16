@@ -24,8 +24,8 @@
     "test": "vitest run --root ./test --passWithNoTests",
     "test:dev": "vitest --root ./packages/sqlite-builder",
     "typecheck": "tsc --noEmit",
-    "lint": "eslint --cache . --fix",
-    "lint:check": "eslint --cache .",
+    "format": "eslint . --fix",
+    "lint": "eslint .",
     "postinstall": "husky install",
     "commit": "czg"
   },

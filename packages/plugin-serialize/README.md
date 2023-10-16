@@ -30,7 +30,7 @@ const db = new Kysely<Database>({
     database: new Database(':memory:'),
   }),
   plugins: [
-    new SqliteSerializePlugin(),
+    new SerializePlugin(),
   ],
 })
 
@@ -50,7 +50,7 @@ const db = new Kysely<Database>({
     database: new Database(':memory:'),
   }),
   plugins: [
-    new SqliteSerializePlugin({
+    new SerializePlugin({
       serializer: (value) => {
         if (value instanceof Date) {
           return formatDatetime(value)
@@ -69,8 +69,16 @@ const db = new Kysely<Database>({
 
 ## notice
 
-1. THIS PLUGIN SHOULD BE PLACED AT THE END OF PLUGINS ARRAY
-2. in default serializer, only custom handle `boolean` and `Date`. `number`/`bigint`/`ArrayBuffer` / `Buffer` are skiped, `boolean` will transform to `'true'`/`'false'`, `Date` will transform to ISO string and other types will be transformed by `JSON.stringify`/`JSON.parse`
+THIS PLUGIN SHOULD BE PLACED AT THE END OF PLUGINS ARRAY
+
+default serializer / deserializer is for SQLite
+
+rules:
+
+1. `number` / `bigint` / `ArrayBuffer` / `Buffer` will skip serialization
+2. `boolean` will be serialized to `'true'` / `'false'`
+3. `Date` will be serialized to ISO string
+4. others will be serialized by `JSON.stringify` / `JSON.parse`, `Date` inside `object` will also be serialized
 
 ## credit
 

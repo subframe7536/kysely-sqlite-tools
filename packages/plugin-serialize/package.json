@@ -1,7 +1,7 @@
 {
   "name": "kysely-plugin-serialize",
   "version": "0.4.4",
-  "description": "kysely serialize plugin for sqlite",
+  "description": "kysely serialize plugin",
   "author": {
     "name": "subframe7536",
     "email": "1667077010@qq.com"

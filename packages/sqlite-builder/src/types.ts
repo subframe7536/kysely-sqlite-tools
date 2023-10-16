@@ -8,7 +8,7 @@ import type {
   SelectQueryBuilder,
   UpdateQueryBuilder,
 } from 'kysely'
-import type { SqliteSerializePluginOptions } from 'kysely-plugin-serialize'
+import type { SerializePluginOptions } from 'kysely-plugin-serialize'
 import type { LoggerOptions } from './utils'
 
 export interface SqliteBuilderOptions {
@@ -26,7 +26,7 @@ export interface SqliteBuilderOptions {
    */
   plugins?: KyselyPlugin[]
   logger?: DBLogger
-  serializerPluginOptions?: SqliteSerializePluginOptions
+  serializerPluginOptions?: SerializePluginOptions
 }
 export type DBLogger = {
   trace?: (args: any) => void
