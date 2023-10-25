@@ -90,9 +90,9 @@ export async function runCreateTable(
 ) {
   const _triggerOptions: RunTriggerOptions | undefined = timeTrigger
     ? {
-      triggerKey: 'rowid',
-      update: undefined,
-    }
+        triggerKey: 'rowid',
+        update: undefined,
+      }
     : undefined
 
   let _haveAutoKey = false

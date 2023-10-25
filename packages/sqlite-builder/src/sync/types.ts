@@ -68,18 +68,18 @@ export type ColumnsWithErrorInfo<T extends Columns> = {
   infer NotNull
   >
     ? {
-      type: Type
-      defaultTo: DefaultTo
-      notNull: NotNull
-    }
-    : {
-      type: {
-        error: 'TypeError: [defaultTo] not satisfied [type]'
-        column: K
-        typeIs: InferColumnTypeByString<T[K]['type']>
-        defaultToIs: T[K]['defaultTo']
+        type: Type
+        defaultTo: DefaultTo
+        notNull: NotNull
       }
-    };
+    : {
+        type: {
+          error: 'TypeError: [defaultTo] not satisfied [type]'
+          column: K
+          typeIs: InferColumnTypeByString<T[K]['type']>
+          defaultToIs: T[K]['defaultTo']
+        }
+      };
 }
 export type Table<
   Cols extends Columns = any,

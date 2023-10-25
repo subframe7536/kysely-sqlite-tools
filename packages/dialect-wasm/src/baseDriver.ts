@@ -74,11 +74,11 @@ export abstract class BaseSqliteConnection implements DatabaseConnection {
     const { parameters, sql, query } = compiledQuery
     return ['SelectQueryNode', 'RawNode'].includes(query.kind)
       ? {
-        rows: await this.query(sql, parameters as any[]),
-      }
+          rows: await this.query(sql, parameters as any[]),
+        }
       : {
-        rows: [],
-        ...await this.exec(sql, parameters as any[]),
-      }
+          rows: [],
+          ...await this.exec(sql, parameters as any[]),
+        }
   }
 }
