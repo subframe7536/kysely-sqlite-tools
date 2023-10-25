@@ -38,7 +38,7 @@
     "kysely": "^0.26.3"
   },
   "dependencies": {
-    "@subframe7536/type-utils": "^0.1.2",
+    "@subframe7536/type-utils": "^0.1.3",
     "kysely-plugin-serialize": "workspace:*"
   }
 }
