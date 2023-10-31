@@ -63,9 +63,9 @@ export type Columns = Record<string, ColumnProperty>
 
 export type ColumnsWithErrorInfo<T extends Columns> = {
   [K in keyof T]: T[K] extends ColumnProperty<
-  infer Type,
-  infer DefaultTo,
-  infer NotNull
+    infer Type,
+    infer DefaultTo,
+    infer NotNull
   >
     ? {
         type: Type

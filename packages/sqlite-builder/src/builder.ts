@@ -42,6 +42,10 @@ export class SqliteBuilder<DB extends Record<string, any>> {
   private logger?: DBLogger
   private serializer = defaultSerializer
 
+  /**
+   * sqlite builder
+   * @param options options
+   */
   constructor(options: SqliteBuilderOptions) {
     const {
       dialect,
@@ -123,6 +127,7 @@ export class SqliteBuilder<DB extends Record<string, any>> {
 
   private logError(e: unknown, errorMsg?: string) {
     errorMsg && this.logger?.error(errorMsg, e instanceof Error ? e : undefined)
+    return undefined
   }
 
   /**
@@ -139,12 +144,10 @@ export class SqliteBuilder<DB extends Record<string, any>> {
           .execute(async (trx) => {
             this.trx = trx
             this.logger?.debug('run in transaction')
-            const result = await fn(trx)
-            return result
+            return await fn(trx)
           })
       } catch (e) {
-        this.logError(e, errorMsg)
-        return undefined
+        return this.logError(e, errorMsg)
       } finally {
         this.trx = undefined
       }
@@ -155,16 +158,14 @@ export class SqliteBuilder<DB extends Record<string, any>> {
     this.logger?.debug(`run in savepoint:${this.trxCount}`)
 
     try {
-      // @ts-expect-error _db assert Transaction
-      const result = await fn(_db)
+      const result = await fn(_db as Transaction<DB>)
       await sp.release()
       this.trxCount--
       return result
     } catch (e) {
       await sp.rollback()
-      this.logError(e, errorMsg)
       this.trxCount--
-      return undefined
+      return this.logError(e, errorMsg)
     }
   }
 
@@ -174,38 +175,28 @@ export class SqliteBuilder<DB extends Record<string, any>> {
    */
   public async execute<O>(
     fn: (db: Kysely<DB> | Transaction<DB>) => AvailableBuilder<DB, O>,
-    errorMsg?: string,
   ): Promise<Simplify<O>[] | undefined> {
-    try {
-      return await fn(this.getDB()).execute()
-    } catch (e) {
-      this.logError(e, errorMsg)
-      return undefined
-    }
+    return await fn(this.getDB()).execute()
   }
 
   /**
    * execute and return first result,
    * auto detect transaction, auto catch error
+   *
+   * if is select, auto append `.limit(1)`
    */
   public async executeTakeFirst<O>(
     fn: (db: Kysely<DB> | Transaction<DB>) => AvailableBuilder<DB, O>,
-    errorMsg?: string,
   ): Promise<Simplify<O> | undefined> {
-    try {
-      let _sql = fn(this.getDB())
-      if (isSelectQueryBuilder(_sql)) {
-        _sql = _sql.limit(1)
-      }
-      return await _sql.executeTakeFirstOrThrow()
-    } catch (e) {
-      this.logError(e, errorMsg)
-      return undefined
+    let _sql = fn(this.getDB())
+    if (isSelectQueryBuilder(_sql)) {
+      _sql = _sql.limit(1)
     }
+    return await _sql.executeTakeFirstOrThrow()
   }
 
   /**
-   * precompile query, call it later
+   * precompile query, call it with different params later
    *
    * used for better performance, details: {@link precompileQuery}
    */
@@ -222,14 +213,8 @@ export class SqliteBuilder<DB extends Record<string, any>> {
    */
   public async executeCompiled<O>(
     query: CompiledQuery<O>,
-    errorMsg?: string,
-  ): Promise<QueryResult<O> | undefined> {
-    try {
-      return await this.getDB().executeQuery(query)
-    } catch (e) {
-      this.logError(e, errorMsg)
-      return undefined
-    }
+  ): Promise<QueryResult<O>> {
+    return await this.getDB().executeQuery(query)
   }
 
   /**
@@ -238,9 +223,8 @@ export class SqliteBuilder<DB extends Record<string, any>> {
    */
   public async executeCompiledTakeList<O>(
     query: CompiledQuery<O>,
-    errorMsg?: string,
-  ): Promise<O[] | undefined> {
-    const ret = await this.executeCompiled(query, errorMsg)
+  ): Promise<O[]> {
+    const ret = await this.executeCompiled(query)
     return ret?.rows
   }
 
@@ -250,16 +234,10 @@ export class SqliteBuilder<DB extends Record<string, any>> {
    */
   public async raw<O = unknown>(
     rawSql: RawBuilder<O> | string,
-    errorMsg?: string,
-  ): Promise<QueryResult<O | unknown> | undefined> {
-    try {
-      return typeof rawSql === 'string'
-        ? await this.getDB().executeQuery(CompiledQuery.raw(rawSql))
-        : await rawSql.execute(this.getDB())
-    } catch (e) {
-      this.logError(e, errorMsg)
-      return undefined
-    }
+  ): Promise<QueryResult<O | unknown>> {
+    return typeof rawSql === 'string'
+      ? await this.getDB().executeQuery(CompiledQuery.raw(rawSql))
+      : await rawSql.execute(this.getDB())
   }
 
   /**
