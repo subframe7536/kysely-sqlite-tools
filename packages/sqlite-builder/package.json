@@ -35,7 +35,7 @@
     "access": "public"
   },
   "peerDependencies": {
-    "kysely": "^0.26.3"
+    "kysely": "^0.26"
   },
   "dependencies": {
     "@subframe7536/type-utils": "^0.1.3",

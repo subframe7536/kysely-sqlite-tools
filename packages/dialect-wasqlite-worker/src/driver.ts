@@ -22,12 +22,11 @@ export class WaSqliteWorkerDriver implements Driver {
     this.worker.onmessage = ({ data: { type, ...msg } }: MessageEvent<WorkerMsg>) => {
       this.mitt?.emit(type, msg)
     }
-    const msg: MainMsg = {
+    this.worker.postMessage({
       type: 'init',
       dbName: this.config.dbName,
       url: this.config.url,
-    }
-    this.worker.postMessage(msg)
+    } satisfies MainMsg)
     await new Promise<void>((resolve, reject) => {
       this.mitt?.once('init', ({ err }) => {
         err ? reject(err) : resolve()
@@ -65,9 +64,7 @@ export class WaSqliteWorkerDriver implements Driver {
     if (!this.worker) {
       return
     }
-    this.worker.postMessage({
-      type: 'close',
-    })
+    this.worker.postMessage({ type: 'close' } satisfies MainMsg)
     return new Promise<void>((resolve, reject) => {
       this.mitt?.once('close', ({ err }) => {
         if (err) {
@@ -126,8 +123,7 @@ class WaSqliteWorkerConnection implements DatabaseConnection {
       : query.kind === 'RawNode'
         ? 'raw'
         : 'exec'
-    const msg: MainMsg = { type: 'run', mode, sql, parameters }
-    this.worker.postMessage(msg)
+    this.worker.postMessage({ type: 'run', mode, sql, parameters } satisfies MainMsg)
     return new Promise((resolve, reject) => {
       !this.mitt && reject('kysely instance has been destroyed')
 

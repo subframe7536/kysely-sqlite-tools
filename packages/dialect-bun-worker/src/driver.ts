@@ -24,12 +24,11 @@ export class BunWorkerDriver implements Driver {
     this.worker.onmessage = ({ data: { data, err, type } }: MessageEvent<WorkerMsg>) => {
       this.mitt?.emit(type, { data, err })
     }
-    const msg: MainMsg = {
+    this.worker.postMessage({
       type: 'init',
       url: this.config?.url ?? ':memory:',
       cache: this.config?.cacheStatment ?? false,
-    }
-    this.worker.postMessage(msg)
+    } satisfies MainMsg)
     await new Promise<void>((resolve, reject) => {
       this.mitt?.once('init', ({ err }) => {
         err ? reject(err) : resolve()
@@ -67,9 +66,7 @@ export class BunWorkerDriver implements Driver {
     if (!this.worker) {
       return
     }
-    this.worker.postMessage({
-      type: 'close',
-    })
+    this.worker.postMessage({ type: 'close' } satisfies MainMsg)
     return new Promise<void>((resolve, reject) => {
       this.mitt?.once('close', ({ err }) => {
         if (err) {
@@ -128,8 +125,7 @@ class BunWorkerConnection implements DatabaseConnection {
       : query.kind === 'RawNode'
         ? 'raw'
         : 'exec'
-    const msg: MainMsg = { type: 'run', mode, sql, parameters }
-    this.worker.postMessage(msg)
+    this.worker.postMessage({ type: 'run', mode, sql, parameters } satisfies MainMsg)
     return new Promise((resolve, reject) => {
       if (!this.mitt) {
         reject('kysely instance has been destroyed')

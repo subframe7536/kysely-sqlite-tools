@@ -14,7 +14,7 @@ export class SqliteWorkerDriver implements Driver {
   private emit?: EventEmitter
 
   constructor(config: SqliteWorkerDialectConfig) {
-    this.config = Object.freeze({ ...config })
+    this.config = config
   }
 
   async init(): Promise<void> {
@@ -57,10 +57,7 @@ export class SqliteWorkerDriver implements Driver {
   }
 
   async destroy(): Promise<void> {
-    const msg: MainMsg = {
-      type: 'close',
-    }
-    this.worker?.postMessage(msg)
+    this.worker?.postMessage({ type: 'close' } satisfies MainMsg)
     return new Promise<void>((resolve, reject) => {
       this.emit?.once('close', (_, err) => {
         if (err) {
@@ -112,12 +109,7 @@ export class SqliteWorkerConnection implements DatabaseConnection {
 
   async executeQuery<R>(compiledQuery: CompiledQuery<unknown>): Promise<QueryResult<R>> {
     const { parameters, sql } = compiledQuery
-    const msg: MainMsg = {
-      type: 'exec',
-      sql,
-      parameters,
-    }
-    this.worker.postMessage(msg)
+    this.worker.postMessage({ type: 'exec', sql, parameters } satisfies MainMsg)
     return new Promise((resolve, reject) => {
       if (!this.emit) {
         reject('kysely instance has been destroyed')

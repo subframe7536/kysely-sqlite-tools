@@ -37,10 +37,10 @@
     "access": "public"
   },
   "peerDependencies": {
-    "kysely": "^0.26.1"
+    "kysely": "^0.26"
   },
   "dependencies": {
-    "zen-mitt": "^0.1.3"
+    "zen-mitt": "^0.2.0"
   },
   "devDependencies": {
     "@subframe7536/wa-sqlite": "^0.9.6"

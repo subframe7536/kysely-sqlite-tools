@@ -1,4 +1,5 @@
 import { CompiledQuery } from 'kysely'
+import type { AnyFunction } from '../types'
 import { BaseDriver, BaseSqliteConnection } from '../baseDriver'
 import type { SqlJSDB } from './type'
 import type { SqlJsDialectConfig } from '.'
@@ -16,11 +17,7 @@ import type { SqlJsDialectConfig } from '.'
  * throttledFunc(myArgument);
  * ```
  */
-function throttle<T>(
-  func: (...args: any[]) => void,
-  delay: number,
-  maxCalls: number,
-): (s: T) => void {
+function throttle<T>(func: AnyFunction, delay: number, maxCalls: number): (s: T) => void {
   let timer: any
   let callCount = 0
   let lastArgs: T | null = null

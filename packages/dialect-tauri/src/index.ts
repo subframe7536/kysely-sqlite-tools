@@ -13,14 +13,17 @@ export interface TauriSqlDialectConfig<T extends 'sqlite' | 'mysql' | 'postgres'
    * import { appDataDir } from '@tauri-apps/api/path'
    *
    * const kysely = new Kysely<DB>({
-   *   type: 'sqlite',
    *   dialect: new TauriSqlDialect({
+   *     type: 'sqlite',
    *     database: prefix => Database.load(`${prefix}${await appDataDir()}test.db`)
    *   }),
    * })
    * ```
    */
   database: Promisable<TauriSqlDB> | ((prefix: T extends 'sqlite' ? `${T}:` : `${T}://`) => Promisable<TauriSqlDB>)
+  /**
+   * database type
+   */
   type: T
   /**
    * Called once when the first query is executed.
@@ -35,6 +38,10 @@ export interface TauriSqlDialectConfig<T extends 'sqlite' | 'mysql' | 'postgres'
 export class TauriSqlDialect<T extends 'sqlite' | 'mysql' | 'postgres'> {
   #config: TauriSqlDialectConfig<T>
   /**
+   * dialect for Tauri,
+   * using [official sql plugin](https://github.com/tauri-apps/plugins-workspace/tree/dev/plugins/sql),
+   * support MySQL, PostgreSQL and SQLite
+   *
    * currently no support for bigint
    */
   constructor(config: TauriSqlDialectConfig<T>) {

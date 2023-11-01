@@ -27,8 +27,8 @@ importers:
         specifier: ^7.6.6
         version: 7.6.6
       '@types/node':
-        specifier: ^18.18.6
-        version: 18.18.6
+        specifier: ^18.18.7
+        version: 18.18.7
       '@types/sql.js':
         specifier: ^1.4.7
         version: 1.4.7
@@ -73,7 +73,7 @@ importers:
         version: 5.2.2
       vite:
         specifier: 4.5.0
-        version: 4.5.0(@types/node@18.18.6)
+        version: 4.5.0(@types/node@18.18.7)
       vitest:
         specifier: ^0.34.6
         version: 0.34.6
@@ -81,11 +81,11 @@ importers:
   packages/dialect-bun-worker:
     dependencies:
       kysely:
-        specifier: ^0.26.3
+        specifier: ^0.26
         version: 0.26.3
       zen-mitt:
-        specifier: ^0.1.3
-        version: 0.1.3
+        specifier: ^0.2.0
+        version: 0.2.0
     devDependencies:
       bun-types:
         specifier: latest
@@ -97,7 +97,7 @@ importers:
         specifier: '*'
         version: 9.0.0
       kysely:
-        specifier: ^0.26.3
+        specifier: ^0.26
         version: 0.26.3
 
   packages/dialect-tauri:
@@ -106,23 +106,23 @@ importers:
         specifier: '*'
         version: 2.0.0-alpha.1
       kysely:
-        specifier: ^0.26.3
+        specifier: ^0.26
         version: 0.26.3
 
   packages/dialect-wasm:
     dependencies:
       kysely:
-        specifier: ^0.26.3
+        specifier: ^0.26
         version: 0.26.3
 
   packages/dialect-wasqlite-worker:
     dependencies:
       kysely:
-        specifier: ^0.26.1
+        specifier: ^0.26
         version: 0.26.3
       zen-mitt:
-        specifier: ^0.1.3
-        version: 0.1.3
+        specifier: ^0.2.0
+        version: 0.2.0
     devDependencies:
       '@subframe7536/wa-sqlite':
         specifier: ^0.9.6
@@ -131,7 +131,7 @@ importers:
   packages/plugin-serialize:
     dependencies:
       kysely:
-        specifier: ^0.26.3
+        specifier: ^0.26
         version: 0.26.3
 
   packages/sqlite-builder:
@@ -140,7 +140,7 @@ importers:
         specifier: ^0.1.3
         version: 0.1.3
       kysely:
-        specifier: ^0.26.3
+        specifier: ^0.26
         version: 0.26.3
       kysely-plugin-serialize:
         specifier: workspace:*
@@ -347,7 +347,7 @@ packages:
       lodash.merge: 4.6.2
       lodash.uniq: 4.5.0
       resolve-from: 5.0.0
-      ts-node: 10.9.1(@types/node@18.18.6)(typescript@5.2.2)
+      ts-node: 10.9.1(@types/node@18.18.7)(typescript@5.2.2)
       typescript: 5.2.2
     transitivePeerDependencies:
       - '@swc/core'
@@ -889,7 +889,7 @@ packages:
   /@types/better-sqlite3@7.6.6:
     resolution: {integrity: sha512-nuFAptzt0hZYBvyLzKQCbuCCK+RN9PHH4ezar5EJLIg2qpVhwQ/uLvLO/K8A9O7N8DafawgFupiyXQSs0U48Ng==}
     dependencies:
-      '@types/node': 18.18.6
+      '@types/node': 18.18.7
     dev: true
 
   /@types/chai-subset@1.3.3:
@@ -920,8 +920,10 @@ packages:
     resolution: {integrity: sha512-jhuKLIRrhvCPLqwPcx6INqmKeiA5EWrsCOPhrlFSrbrmU4ZMPjj5Ul/oLCMDO98XRUIwVm78xICz4EPCektzeQ==}
     dev: true
 
-  /@types/node@18.18.6:
-    resolution: {integrity: sha512-wf3Vz+jCmOQ2HV1YUJuCWdL64adYxumkrxtc+H1VUQlnQI04+5HtH+qZCOE21lBE7gIrt+CwX2Wv8Acrw5Ak6w==}
+  /@types/node@18.18.7:
+    resolution: {integrity: sha512-bw+lEsxis6eqJYW8Ql6+yTqkE6RuFtsQPSe5JxXbqYRFQEER5aJA9a5UH9igqDWm3X4iLHIKOHlnAXLM4mi7uQ==}
+    dependencies:
+      undici-types: 5.26.5
     dev: true
 
   /@types/node@20.5.1:
@@ -940,7 +942,7 @@ packages:
     resolution: {integrity: sha512-6NsC/6ECtyVdkEAw1jJcY44uFagQtL9dj+RxN8WceGcbON/E53IP/+/7zah2NnfzNzLnjAViiGLccWuAuKotgw==}
     dependencies:
       '@types/emscripten': 1.39.6
-      '@types/node': 18.18.6
+      '@types/node': 18.18.7
     dev: true
 
   /@types/unist@2.0.6:
@@ -1089,7 +1091,7 @@ packages:
       vite: ^4.0.0
       vue: ^3.2.25
     dependencies:
-      vite: 4.5.0(@types/node@18.18.6)
+      vite: 4.5.0(@types/node@18.18.7)
       vue: 3.3.7(typescript@5.2.2)
     dev: true
 
@@ -1762,7 +1764,7 @@ packages:
     dependencies:
       '@types/node': 20.5.1
       cosmiconfig: 8.1.3
-      ts-node: 10.9.1(@types/node@18.18.6)(typescript@5.2.2)
+      ts-node: 10.9.1(@types/node@18.18.7)(typescript@5.2.2)
       typescript: 5.2.2
     dev: true
 
@@ -3903,7 +3905,7 @@ packages:
         optional: true
     dependencies:
       lilconfig: 2.1.0
-      ts-node: 10.9.1(@types/node@18.18.6)(typescript@5.2.2)
+      ts-node: 10.9.1(@types/node@18.18.7)(typescript@5.2.2)
       yaml: 2.2.2
     dev: true
 
@@ -4555,7 +4557,7 @@ packages:
     resolution: {integrity: sha512-Y/arvbn+rrz3JCKl9C4kVNfTfSm2/mEp5FSz5EsZSANGPSlQrpRI5M4PKF+mJnE52jOO90PnPSc3Ur3bTQw0gA==}
     dev: true
 
-  /ts-node@10.9.1(@types/node@18.18.6)(typescript@5.2.2):
+  /ts-node@10.9.1(@types/node@18.18.7)(typescript@5.2.2):
     resolution: {integrity: sha512-NtVysVPkxxrwFGUUxGYhfux8k78pQB3JqYBXlLRZgdGUqTO5wU/UyHop5p70iEbGhB7q5KmiZiU0Y3KlJrScEw==}
     hasBin: true
     peerDependencies:
@@ -4574,7 +4576,7 @@ packages:
       '@tsconfig/node12': 1.0.11
       '@tsconfig/node14': 1.0.3
       '@tsconfig/node16': 1.0.3
-      '@types/node': 18.18.6
+      '@types/node': 18.18.7
       acorn: 8.10.0
       acorn-walk: 8.2.0
       arg: 4.1.3
@@ -4728,6 +4730,10 @@ packages:
       which-boxed-primitive: 1.0.2
     dev: true
 
+  /undici-types@5.26.5:
+    resolution: {integrity: sha512-JlCMO+ehdEIKqlFxk6IfVoAUVmgz7cU7zD/h9XZ0qzeosSHmUJVOzSQvvYSYWXkFXC+IfLKSIffhv0sVZup6pA==}
+    dev: true
+
   /unist-util-stringify-position@2.0.3:
     resolution: {integrity: sha512-3faScn5I+hy9VleOq/qNbAd6pAx7iH5jYBMS9I1HgQVijz/4mv5Bvw5iw1sC/90CODiKo81G/ps8AJrISn687g==}
     dependencies:
@@ -4759,7 +4765,7 @@ packages:
       spdx-expression-parse: 3.0.1
     dev: true
 
-  /vite-node@0.34.6(@types/node@18.18.6):
+  /vite-node@0.34.6(@types/node@18.18.7):
     resolution: {integrity: sha512-nlBMJ9x6n7/Amaz6F3zJ97EBwR2FkzhBRxF5e+jE6LA3yi6Wtc2lyTij1OnDMIr34v5g/tVQtsVAzhT0jc5ygA==}
     engines: {node: '>=v14.18.0'}
     hasBin: true
@@ -4769,7 +4775,7 @@ packages:
       mlly: 1.4.0
       pathe: 1.1.1
       picocolors: 1.0.0
-      vite: 4.5.0(@types/node@18.18.6)
+      vite: 4.5.0(@types/node@18.18.7)
     transitivePeerDependencies:
       - '@types/node'
       - less
@@ -4781,7 +4787,7 @@ packages:
       - terser
     dev: true
 
-  /vite@4.5.0(@types/node@18.18.6):
+  /vite@4.5.0(@types/node@18.18.7):
     resolution: {integrity: sha512-ulr8rNLA6rkyFAlVWw2q5YJ91v098AFQ2R0PRFwPzREXOUJQPtFUG0t+/ZikhaOCDqFoDhN6/v8Sq0o4araFAw==}
     engines: {node: ^14.18.0 || >=16.0.0}
     hasBin: true
@@ -4809,7 +4815,7 @@ packages:
       terser:
         optional: true
     dependencies:
-      '@types/node': 18.18.6
+      '@types/node': 18.18.7
       esbuild: 0.18.13
       postcss: 8.4.27
       rollup: 3.28.0
@@ -4850,7 +4856,7 @@ packages:
     dependencies:
       '@types/chai': 4.3.5
       '@types/chai-subset': 1.3.3
-      '@types/node': 18.18.6
+      '@types/node': 18.18.7
       '@vitest/expect': 0.34.6
       '@vitest/runner': 0.34.6
       '@vitest/snapshot': 0.34.6
@@ -4869,8 +4875,8 @@ packages:
       strip-literal: 1.0.1
       tinybench: 2.5.0
       tinypool: 0.7.0
-      vite: 4.5.0(@types/node@18.18.6)
-      vite-node: 0.34.6(@types/node@18.18.6)
+      vite: 4.5.0(@types/node@18.18.7)
+      vite-node: 0.34.6(@types/node@18.18.7)
       why-is-node-running: 2.2.2
     transitivePeerDependencies:
       - less
@@ -5056,6 +5062,8 @@ packages:
     engines: {node: '>=12.20'}
     dev: true
 
-  /zen-mitt@0.1.3:
-    resolution: {integrity: sha512-8Vevh8605d+HDflSRBc+zjqHndLc+RITRNM9GwQP3rzxQKLgKdKV81yhVRqf/y9kBOUlpva7wLxhApZggV2QhA==}
+  /zen-mitt@0.2.0:
+    resolution: {integrity: sha512-Vgihz1+TIUHCO19CBJP0pKv8vC5eNCNyWJjFGz6QcR9mnHnHAtPvAcENA4Z7QBMTLrIlceSbaZ7f9CCSfVLKhg==}
+    dependencies:
+      '@subframe7536/type-utils': 0.1.3
     dev: false

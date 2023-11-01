@@ -1,6 +1,6 @@
 import type { DatabaseConnection, Driver } from 'kysely'
+import type { Promisable } from '../types'
 import { BaseDialect } from '../baseDialect'
-import type { Promisable } from '../util'
 import { WaSqliteDriver } from './driver'
 import type { WaSqliteDatabase } from './type'
 
@@ -12,7 +12,9 @@ export class WaSqliteDialect extends BaseDialect {
   readonly #config: WaSqliteDialectConfig
 
   /**
-   * better for polyfill. can use `IndexedDB` or `OPFS` as backend
+   * dialect for [wa-sqlite](https://github.com/rhashimoto/wa-sqlite)
+   *
+   * better for polyfill, can use `IndexedDB` or `OPFS` as backend
    *
    * @example
    * import * as SQLite from 'wa-sqlite'

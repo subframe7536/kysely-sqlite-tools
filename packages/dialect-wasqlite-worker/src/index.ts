@@ -5,7 +5,7 @@ import { WaSqliteWorkerDriver } from './driver'
 export interface WaSqliteWorkerDialectConfig {
   dbName: string
   /**
-   * the URL of wa-sqlite WASM
+   * the URL of `wa-sqlite` WASM
    * @example
    * ```ts
    * // vite
@@ -26,6 +26,12 @@ export interface WaSqliteWorkerDialectConfig {
 }
 export class WaSqliteWorkerDialect implements Dialect {
   readonly #config: WaSqliteWorkerDialectConfig
+
+  /**
+   * dialect for [wa-sqlite](https://github.com/rhashimoto/wa-sqlite)
+   *
+   * execute sql in `Web Worker`, store data in IndexedDB
+   */
   constructor(config: WaSqliteWorkerDialectConfig) {
     this.#config = config
   }

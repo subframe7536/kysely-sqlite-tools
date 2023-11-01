@@ -24,6 +24,9 @@ export type BunWorkerDialectConfig = {
 
 export class BunWorkerDialect implements Dialect {
   #config?: BunWorkerDialectConfig
+  /**
+   * dialect for `bun:sqlite`, run sql in worker
+   */
   constructor(config?: BunWorkerDialectConfig) {
     this.#config = config
   }

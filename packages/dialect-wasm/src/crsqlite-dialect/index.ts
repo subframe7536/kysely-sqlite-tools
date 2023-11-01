@@ -1,6 +1,6 @@
 import type { DatabaseConnection, Driver } from 'kysely'
+import type { Promisable } from '../types'
 import { BaseDialect } from '../baseDialect'
-import type { Promisable } from '../util'
 import { CrSqliteDriver } from './driver'
 import type { CrSqliteDB } from './type'
 
@@ -11,8 +11,7 @@ export interface CrSqliteDialectConfig {
 export class CrSqliteDialect extends BaseDialect {
   #config: CrSqliteDialectConfig
   /**
-   * dialect for {@link https://vlcn.io/js/wasm vlcn.io wasm},
-   * a {@link https://github.com/vlcn-io/wa-sqlite/tree/master/demo wa-sqlite} wrapper using indexeddb as backend
+   * dialect for [vlcn.io/wasm](https://vlcn.io/js/wasm)
    */
   constructor(config: CrSqliteDialectConfig) {
     super()

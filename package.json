@@ -3,7 +3,7 @@
   "type": "module",
   "version": "0.4.5",
   "private": true,
-  "packageManager": "pnpm@8.9.2",
+  "packageManager": "pnpm@8.10.0",
   "description": "",
   "author": {
     "name": "subframe7536",
@@ -36,7 +36,7 @@
     "@subframe7536/eslint-config": "^0.3.7",
     "@subframe7536/wa-sqlite": "^0.9.6",
     "@types/better-sqlite3": "^7.6.6",
-    "@types/node": "^18.18.6",
+    "@types/node": "^18.18.7",
     "@types/sql.js": "^1.4.7",
     "@vlcn.io/crsqlite-wasm": "^0.15.2",
     "better-sqlite3": "^9.0.0",

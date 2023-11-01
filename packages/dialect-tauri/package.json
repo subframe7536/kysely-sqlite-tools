@@ -36,7 +36,7 @@
   },
   "peerDependencies": {
     "@tauri-apps/plugin-sql": "*",
-    "kysely": "^0.26.3"
+    "kysely": "^0.26"
   },
   "publishConfig": {
     "access": "public"

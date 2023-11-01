@@ -1,6 +1,6 @@
 import type { DatabaseConnection, Driver } from 'kysely'
+import type { Promisable } from '../types'
 import { BaseDialect } from '../baseDialect'
-import type { Promisable } from '../util'
 import { SqlJsDriver } from './driver'
 import type { SqlJSDB } from './type'
 
@@ -29,6 +29,8 @@ export class SqlJsDialect extends BaseDialect {
   readonly #config: SqlJsDialectConfig
 
   /**
+   * dialect for [sql.js](https://github.com/sql-js/sql.js)
+   *
    * currently no support for bigint
    */
   constructor(config: SqlJsDialectConfig) {

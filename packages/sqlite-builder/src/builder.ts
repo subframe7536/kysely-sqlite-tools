@@ -100,10 +100,7 @@ export class SqliteBuilder<DB extends Record<string, any>> {
    *   { log: false }
    * ))
    */
-  public async syncSchema(
-    syncFn: SyncTableFn,
-    checkIntegrity?: boolean,
-  ): Promise<StatusResult> {
+  public async syncSchema(syncFn: SyncTableFn, checkIntegrity?: boolean): Promise<StatusResult> {
     try {
       if (checkIntegrity && !(await runCheckIntegrity(this.kysely))) {
         this.logger?.error('integrity check fail')
@@ -224,8 +221,7 @@ export class SqliteBuilder<DB extends Record<string, any>> {
   public async executeCompiledTakeList<O>(
     query: CompiledQuery<O>,
   ): Promise<O[]> {
-    const ret = await this.executeCompiled(query)
-    return ret?.rows
+    return (await this.executeCompiled(query)).rows
   }
 
   /**
