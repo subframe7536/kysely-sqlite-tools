@@ -1,6 +1,6 @@
 {
   "name": "kysely-sqlite-builder",
-  "version": "0.4.5",
+  "version": "0.4.6",
   "description": "sqlite builder for kysely",
   "author": {
     "name": "subframe7536",

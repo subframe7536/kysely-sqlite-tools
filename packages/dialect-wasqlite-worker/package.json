@@ -1,6 +1,6 @@
 {
   "name": "kysely-wasqlite-worker",
-  "version": "0.4.5",
+  "version": "0.4.6",
   "description": "kysely dialect for wa-sqlite, run sql in worker",
   "author": {
     "name": "subframe7536",
