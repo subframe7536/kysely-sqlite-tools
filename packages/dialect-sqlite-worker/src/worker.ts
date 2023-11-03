@@ -15,36 +15,28 @@ parentPort.on('message', (msg: MainMsg) => {
     data: null,
     err: null,
   }
-  const run = () => {
-    try {
-      if (msg.type === 'close') {
-        db.close()
-        return
-      }
-      const { sql, parameters } = msg
-      const stmt = db.prepare(sql)
-      if (stmt.reader) {
-        ret.data = {
-          rows: stmt.all(parameters),
-        }
-        return
-      }
-      const { changes, lastInsertRowid } = stmt.run(parameters)
-      const numAffectedRows = (changes !== undefined && changes !== null)
-        ? BigInt(changes)
-        : undefined
+  try {
+    if (msg.type === 'close') {
+      db.close()
+      parentPort?.postMessage(ret)
+      return
+    }
+    const { sql, parameters } = msg
+    const stmt = db.prepare(sql)
+    if (stmt.reader) {
       ret.data = {
-        numAffectedRows,
-        insertId:
-          (lastInsertRowid !== undefined && lastInsertRowid !== null)
-            ? BigInt(lastInsertRowid)
-            : undefined,
+        rows: stmt.all(parameters),
+      }
+    } else {
+      const { changes, lastInsertRowid } = stmt.run(parameters)
+      ret.data = {
+        numAffectedRows: BigInt(changes),
+        insertId: BigInt(lastInsertRowid),
         rows: [],
       }
-    } catch (error) {
-      ret.err = error
     }
+  } catch (error) {
+    ret.err = error
   }
-  run()
   parentPort?.postMessage(ret)
 })

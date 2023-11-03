@@ -62,12 +62,12 @@ export class SqliteWorkerDriver implements Driver {
       this.emit?.once('close', (_, err) => {
         if (err) {
           reject(err)
-        } else {
-          this.worker?.terminate()
-          this.emit?.removeAllListeners()
-          this.emit = undefined
-          resolve()
+          return
         }
+        this.worker?.terminate()
+        this.emit?.removeAllListeners()
+        this.emit = undefined
+        resolve()
       })
     })
   }
