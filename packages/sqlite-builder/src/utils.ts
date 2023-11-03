@@ -206,30 +206,67 @@ export function createKyselyLogger(
   }
 }
 
+export type PragmaJournalMode = 'DELETE' | 'TRUNCATE' | 'PERSIST' | 'MEMORY' | 'WAL' | 'OFF'
+
+export type PragmaTempStore = 0 | 'DEFAULT' | 1 | 'FILE' | 2 | 'MEMORY'
+
+export type PragmaSynchronous = 0 | 'OFF' | 1 | 'NORMAL' | 2 | 'FULL' | 3 | 'EXTRA'
+
 export type OptimizePragmaOptions = {
+  /**
+   * @default 4096
+   * @see https://sqlite.org/pragma.html#pragma_cache_size
+   */
   cacheSize?: number
+  /**
+   * @default 32768
+   * @see https://sqlite.org/pragma.html#pragma_page_size
+   */
   pageSize?: number
+  /**
+   * @default 'WAL'
+   * @see https://sqlite.org/pragma.html#pragma_journal_mode
+   */
+  journalMode?: PragmaJournalMode
+  /**
+   * @default 'MEMORY'
+   * @see https://sqlite.org/pragma.html#pragma_temp_store
+   */
+  tempStore?: PragmaTempStore
+  /**
+   * @default 'NORMAL'
+   * @see https://sqlite.org/pragma.html#pragma_synchronous
+   */
+  synchronous?: PragmaSynchronous
 }
 
 /**
- * call optimize pragma, include:
- * - cache_size = `options.cacheSize` || 4096
- * - page_size = `options.pageSize` || 32768
- * - journel_mode = WAL
- * - temp_store = MEMORY
- * - synchronous = NORMAL
+ * call optimize pragma
+ * @param conn database connection
+ * @param options pragma options, {@link OptimizePragmaOptions}
  */
 export async function optimzePragma(
   conn: DatabaseConnection,
   options: OptimizePragmaOptions = {},
 ): Promise<void> {
-  const { cacheSize = 4096, pageSize = 32768 } = options
-  const exec = async (sql: string) => await conn.executeQuery(CompiledQuery.raw(sql))
-  await exec(`PRAGMA cache_size = ${cacheSize};`)
-  await exec('PRAGMA journal_mode = WAL;')
-  await exec('PRAGMA temp_store = MEMORY;')
-  await exec('PRAGMA synchronous = NORMAL;')
-  await exec(`PRAGMA page_size = ${pageSize};`)
+  const {
+    cacheSize = 4096,
+    pageSize = 32768,
+    journalMode = 'WAL',
+    tempStore = 'MEMORY',
+    synchronous = 'NORMAL',
+  } = options
+  const exec = async (
+    pragma: string,
+    data: string | number,
+  ) => await conn.executeQuery(CompiledQuery.raw(
+    `PRAGMA ${pragma} = ${data}`,
+  ))
+  await exec('cache_size', cacheSize)
+  await exec('journal_mode', journalMode)
+  await exec('temp_store', tempStore)
+  await exec('synchronous', synchronous)
+  await exec('page_size', pageSize)
 }
 
 /**

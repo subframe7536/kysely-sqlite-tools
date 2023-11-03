@@ -80,9 +80,19 @@ export class SqliteBuilder<DB extends Record<string, any>> {
 
   /**
    * sync db schema
-   * @param syncFn sync table, built-in: {@link createAutoSyncSchemaFn}, {@link createMigrateFn}
+   * @param syncFn sync table function, built-in: {@link createAutoSyncSchemaFn}, {@link createMigrateFn}
    * @param checkIntegrity whether to check integrity
    * @example
+   * usage of `createAutoSyncSchemaFn`:
+   * ```
+   * import {
+   *   SqliteBuilder,
+   *   createAutoSyncSchemaFn,
+   *   defineLiteral,
+   *   defineObject,
+   *   defineTable
+   * } from 'kysely-sqlite-builder'
+   *
    * const testTable = defineTable({
    *   id: { type: 'increments' },
    *   person: { type: 'object', defaultTo: { name: 'test' } },
@@ -99,6 +109,7 @@ export class SqliteBuilder<DB extends Record<string, any>> {
    *   { test: testTable },
    *   { log: false }
    * ))
+   * ```
    */
   public async syncSchema(syncFn: SyncTableFn, checkIntegrity?: boolean): Promise<StatusResult> {
     try {

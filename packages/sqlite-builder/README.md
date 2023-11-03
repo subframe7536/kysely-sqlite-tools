@@ -32,6 +32,14 @@ choose [NodeWasmDialect](../dialect-wasm/README.md#nodewasmdialect)
 ### define / initialze
 
 ```ts
+import {
+  SqliteBuilder,
+  createAutoSyncSchemaFn,
+  defineLiteral,
+  defineObject,
+  defineTable
+} from 'kysely-sqlite-builder'
+
 // schemas for AutoSyncTables
 const testTable = defineTable({
   id: { type: 'increments' },
