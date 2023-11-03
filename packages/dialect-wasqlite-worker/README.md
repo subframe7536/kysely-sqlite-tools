@@ -1,6 +1,6 @@
 # WaSqlite Worker Dialect
 
-[kysely](https://github.com/kysely-org/kysely) dialect for [`wa-sqlite`](https://github.com/rhashimoto/wa-sqlite), execute sql in `Web Worker`, store data in IndexedDB
+[kysely](https://github.com/kysely-org/kysely) dialect for [`wa-sqlite`](https://github.com/rhashimoto/wa-sqlite), execute sql in `Web Worker`, store data in [OPFS](https://developer.mozilla.org/en-US/docs/Web/API/File_System_API/Origin_private_file_system) or IndexedDB
 
 ## install
 
@@ -31,6 +31,10 @@ export interface WaSqliteWorkerDialectConfig {
    * ```
    */
   worker?: Worker
+  /**
+   * prefer to store in OPFS, fallback to IndexedDB
+   */
+  preferOPFS?: boolean
   onCreateConnection?: (connection: DatabaseConnection) => Promise<void>
 }
 ```

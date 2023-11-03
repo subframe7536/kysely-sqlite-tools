@@ -1,79 +1,29 @@
-import type { SQLiteAPI, SQLiteCompatibleType } from '@subframe7536/wa-sqlite'
-import { Factory, SQLITE_ROW } from '@subframe7536/wa-sqlite'
-import SQLiteAsyncESMFactory from '@subframe7536/wa-sqlite/dist/wa-sqlite-async.mjs'
-import { IDBBatchAtomicVFS } from '@subframe7536/wa-sqlite/src/examples/IDBBatchAtomicVFS'
-import type { MainMsg, RunMode, WorkerMsg } from './type'
+import type { SQLiteDB } from '@subframe7536/sqlite-wasm'
+import { initSQLite, isOpfsSupported } from '@subframe7536/sqlite-wasm'
+import type { QueryResult } from 'kysely'
+import type { MainMsg, WorkerMsg } from './type'
 
-let sqlite: SQLiteAPI
-let db: number
+let db: SQLiteDB
 
-async function init(dbName: string, url?: string) {
-  const option = url ? { locateFile: () => url } : {}
-  const SQLiteAsyncModule = await SQLiteAsyncESMFactory(option)
-
-  sqlite = Factory(SQLiteAsyncModule)
-  sqlite.vfs_register(new IDBBatchAtomicVFS(dbName, { durability: 'relaxed' }))
-  db = await sqlite.open_v2(
-    dbName,
-    undefined,
-    dbName,
-  )
-}
-
-async function run(sql: string, parameters?: readonly unknown[]) {
-  const str = sqlite.str_new(db, sql)
-  const prepared = await sqlite.prepare_v2(
-    db,
-    sqlite.str_value(str),
-  )
-
-  if (prepared === null) {
-    return [] as any[]
+async function init(fileName: string, url?: string, preferOPFS?: boolean) {
+  let storage
+  if (isOpfsSupported() && preferOPFS) {
+    storage = (await import('@subframe7536/sqlite-wasm/opfs')).useOpfsStorage(fileName, { url })
+  } else {
+    storage = (await import('@subframe7536/sqlite-wasm/idb')).useIdbStorage(fileName, { url })
   }
 
-  const stmt = prepared.stmt
-  try {
-    if (typeof parameters !== 'undefined') {
-      sqlite.bind_collection(
-        stmt,
-        parameters as any[],
-      )
-    }
-
-    const rows: Record<string, SQLiteCompatibleType>[] = []
-    let cols: string[] = []
-
-    while ((await sqlite.step(stmt)) === SQLITE_ROW) {
-      cols = cols.length === 0 ? sqlite.column_names(stmt) : cols
-      const row = sqlite.row(stmt)
-      rows.push(cols.reduce((acc, key, i) => {
-        acc[key] = row[i]
-        return acc
-      }, {} as Record<string, SQLiteCompatibleType>))
-    }
-    return rows
-  } finally {
-    await sqlite.finalize(stmt)
-  }
+  db = await initSQLite(storage)
 }
-
-async function exec(mode: RunMode, sql: string, parameters?: readonly unknown[]) {
-  const rows = await run(sql, parameters)
-  if (mode === 'query') {
+async function exec(isSelect: boolean, sql: string, parameters?: readonly unknown[]): Promise<QueryResult<any>> {
+  const rows = await db.run(sql, parameters)
+  if (isSelect) {
     return { rows }
   }
-  const v = await run('SELECT last_insert_rowid() as id')
-  return {
-    insertId: BigInt(v[0].id),
-    numAffectedRows: BigInt(sqlite.changes(db)),
-    rows: mode === 'raw' ? rows : [],
-  }
+  const insertId = BigInt(await db.lastInsertRowId())
+  const numAffectedRows = BigInt(db.changes())
+  return { rows, insertId, numAffectedRows }
 }
-
-async function close() {
-  await sqlite.close(db)
-}
-
 onmessage = async (ev: MessageEvent<MainMsg>) => {
   const data = ev.data
   const ret: WorkerMsg = {
@@ -83,14 +33,14 @@ onmessage = async (ev: MessageEvent<MainMsg>) => {
   }
   try {
     switch (data.type) {
+      case 'init':
+        await init(data.fileName, data.url, data.preferOPFS)
+        break
       case 'run':
-        ret.data = await exec(data.mode, data.sql, data.parameters)
+        ret.data = await exec(data.isSelect, data.sql, data.parameters)
         break
       case 'close':
-        await close()
-        break
-      case 'init':
-        await init(data.dbName, data.url)
+        await db.close()
         break
     }
   } catch (error) {

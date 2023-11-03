@@ -40,9 +40,9 @@
     "kysely": "^0.26"
   },
   "dependencies": {
-    "zen-mitt": "^0.2.0"
+    "zen-mitt": "^0.3.0"
   },
   "devDependencies": {
-    "@subframe7536/wa-sqlite": "^0.9.6"
+    "@subframe7536/sqlite-wasm": "^0.1.1"
   }
 }

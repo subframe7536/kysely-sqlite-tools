@@ -3,7 +3,10 @@ import { SqliteAdapter, SqliteIntrospector, SqliteQueryCompiler } from 'kysely'
 import { WaSqliteWorkerDriver } from './driver'
 
 export interface WaSqliteWorkerDialectConfig {
-  dbName: string
+  /**
+   * db file name
+   */
+  fileName: string
   /**
    * the URL of `wa-sqlite` WASM
    * @example
@@ -22,6 +25,10 @@ export interface WaSqliteWorkerDialectConfig {
    * ```
    */
   worker?: Worker
+  /**
+   * prefer to use OPFS, fallback to IndexedDB
+   */
+  preferOPFS?: boolean
   onCreateConnection?: (connection: DatabaseConnection) => Promise<void>
 }
 export class WaSqliteWorkerDialect implements Dialect {

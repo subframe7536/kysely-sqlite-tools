@@ -5,7 +5,8 @@ import { WaSqliteWorkerDialect } from 'kysely-wasqlite-worker'
 import { testDB } from './utils'
 
 const dialect = new WaSqliteWorkerDialect({
-  dbName: 'wa-sqlite-worker-test',
+  fileName: 'wa-sqlite-worker-test',
+  preferOPFS: true,
   // url,
   // worker: new Worker(),
 })

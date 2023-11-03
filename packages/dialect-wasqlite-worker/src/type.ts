@@ -1,13 +1,9 @@
 import type { QueryResult } from 'kysely'
 
-export type Promisable<T> = T | Promise<T>
-
-export type RunMode = 'exec' | 'query' | 'raw'
-
 export type MainMsg =
   | {
     type: 'run'
-    mode: RunMode
+    isSelect: boolean
     sql: string
     parameters?: readonly unknown[]
   }
@@ -17,7 +13,8 @@ export type MainMsg =
   | {
     type: 'init'
     url?: string
-    dbName: string
+    fileName: string
+    preferOPFS?: boolean
   }
 
 export type WorkerMsg = {

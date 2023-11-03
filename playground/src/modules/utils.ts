@@ -1,4 +1,4 @@
-import { type Dialect, sql } from 'kysely'
+import type { Dialect } from 'kysely'
 import type { InferDatabase } from 'kysely-sqlite-builder'
 import { SqliteBuilder, createAutoSyncSchemaFn, defineTable } from 'kysely-sqlite-builder'
 
@@ -21,20 +21,18 @@ export async function testDB(dialect: Dialect) {
   if (!result.ready) {
     throw result.error
   }
-  console.log('test')
-  console.log(await db.raw(sql`PRAGMA table_info(${sql.table('test')});`))
-  console.log(await db.raw(sql`select last_insert_rowid()`))
+  console.log(await db.raw(`PRAGMA table_info('test')`))
 
   for (let i = 0; i < 10; i++) {
-    await db.transaction(async (trx) => {
+    await db.transaction(async () => {
       // await db.transaction(async (trx) => {
-      await trx
+      await db.execute(d => d
         .insertInto('test')
         .values({
           name: `test at ${Date.now()}`,
           blobtest: Uint8Array.from([2, 3, 4, 5, 6, 7, 8]),
-        })
-        .execute()
+        }),
+      )
       // })
     })
   }

@@ -11,7 +11,6 @@ export default defineConfig([
     shims: true,
     dts: true,
     external: ['kysely'],
-    noExternal: ['wa-sqlite'],
     treeshake: true,
   },
   {
@@ -21,17 +20,22 @@ export default defineConfig([
     clean: false,
     format: ['cjs', 'esm'],
     dts: true,
-    noExternal: ['wa-sqlite'],
     treeshake: true,
     minify: true,
     plugins: [
       {
         name: 'copy',
-        async buildEnd(this) {
-          this.format === 'esm' && await copyFile(
-            './node_modules/@subframe7536/wa-sqlite/dist/wa-sqlite-async.wasm',
-            './dist/wa-sqlite-async.wasm',
-          )
+        buildEnd(this) {
+          this.format === 'esm' && Promise.all([
+            copyFile(
+              './node_modules/@subframe7536/sqlite-wasm/dist/wa-sqlite.wasm',
+              './dist/wa-sqlite.wasm',
+            ),
+            copyFile(
+              './node_modules/@subframe7536/sqlite-wasm/dist/wa-sqlite-async.wasm',
+              './dist/wa-sqlite-async.wasm',
+            ),
+          ])
         },
       },
     ],

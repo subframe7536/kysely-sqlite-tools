@@ -32,15 +32,18 @@ async function deleteDatabase() {
 }
 async function clear() {
   // console.clear()
-  const root = await navigator.storage.getDirectory()
   await deleteFile('sqljs')
   await deleteFile('sqlijsWorker')
   await deleteDatabase()
+  const root = await navigator.storage?.getDirectory()
   try {
     await root.removeEntry('test.db')
   } catch { }
   try {
     await root.removeEntry('test.db-journal')
+  } catch { }
+  try {
+    await root.removeEntry('wa-sqlite-worker-test',{recursive:true})
   } catch { }
   console.log('clear all')
 }

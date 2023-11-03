@@ -6,6 +6,7 @@ export default defineConfig({
   base: './',
   build: {
     minify: true,
+    target: 'es2020',
     rollupOptions: {
       treeshake: true,
     },
@@ -18,6 +19,8 @@ export default defineConfig({
       'Cross-Origin-Embedder-Policy': 'require-corp',
       'Cross-Origin-Opener-Policy': 'same-origin',
     },
-    open: true,
+  },
+  worker: {
+    format: 'es',
   },
 })

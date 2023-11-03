@@ -24,8 +24,9 @@ export class WaSqliteWorkerDriver implements Driver {
     }
     this.worker.postMessage({
       type: 'init',
-      dbName: this.config.dbName,
+      fileName: this.config.fileName,
       url: this.config.url,
+      preferOPFS: this.config.preferOPFS,
     } satisfies MainMsg)
     await new Promise<void>((resolve, reject) => {
       this.mitt?.once('init', ({ err }) => {
@@ -118,12 +119,8 @@ class WaSqliteWorkerConnection implements DatabaseConnection {
 
   async executeQuery<R>(compiledQuery: CompiledQuery<unknown>): Promise<QueryResult<R>> {
     const { parameters, sql, query } = compiledQuery
-    const mode = query.kind === 'SelectQueryNode'
-      ? 'query'
-      : query.kind === 'RawNode'
-        ? 'raw'
-        : 'exec'
-    this.worker.postMessage({ type: 'run', mode, sql, parameters } satisfies MainMsg)
+    const isSelect = query.kind === 'SelectQueryNode'
+    this.worker.postMessage({ type: 'run', isSelect, sql, parameters } satisfies MainMsg)
     return new Promise((resolve, reject) => {
       !this.mitt && reject('kysely instance has been destroyed')
 
