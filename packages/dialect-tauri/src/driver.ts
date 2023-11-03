@@ -78,28 +78,23 @@ class TauriSqlConnection implements DatabaseConnection {
     this.db = db
   }
 
-  async exec(sql: string, param?: readonly unknown[]) {
-    const { lastInsertId, rowsAffected } = await this.db.execute(sql, param as any)
-    return {
-      numAffectedRows: BigInt(rowsAffected),
-      insertId: BigInt(lastInsertId),
-    }
-  }
-
   streamQuery<R>(): AsyncIterableIterator<QueryResult<R>> {
     throw new Error('Tauri sql plugin doesn\'t support streaming')
   }
 
-  async executeQuery<R>(compiledQuery: CompiledQuery<unknown>): Promise<QueryResult<R>> {
-    const { parameters, sql, query } = compiledQuery
-    return Promise.resolve((query.kind === 'SelectQueryNode' || query.kind === 'RawNode')
-      ? {
-          rows: await this.db.select(sql, parameters as any),
-        }
-      : {
+  async executeQuery<R>({ parameters, query, sql }: CompiledQuery<unknown>): Promise<QueryResult<R>> {
+    switch (query.kind) {
+      case 'SelectQueryNode':
+      case 'RawNode':
+        return { rows: await this.db.select<any>(sql, parameters) }
+      default: {
+        const { lastInsertId, rowsAffected } = await this.db.execute(sql, parameters)
+        return {
           rows: [],
-          ...await this.exec(sql, parameters),
-        },
-    )
+          insertId: BigInt(lastInsertId),
+          numAffectedRows: BigInt(rowsAffected),
+        }
+      }
+    }
   }
 }

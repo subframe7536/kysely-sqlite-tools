@@ -32,3 +32,8 @@ export interface TauriSqlDialectConfig<T extends 'sqlite' | 'mysql' | 'postgres'
   onCreateConnection?: (connection: DatabaseConnection) => Promisable<void>
 }
 ```
+
+### known issue
+
+- no RETURNING support
+- only return rows when executing raw sql
