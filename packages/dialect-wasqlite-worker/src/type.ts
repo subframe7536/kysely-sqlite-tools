@@ -1,5 +1,7 @@
 import type { QueryResult } from 'kysely'
 
+export type Promisable<T> = T | Promise<T>
+
 export type RunMsg = {
   type: 'run'
   isSelect: boolean

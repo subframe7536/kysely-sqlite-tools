@@ -1,6 +1,7 @@
 import type { DatabaseConnection, DatabaseIntrospector, Dialect, DialectAdapter, Driver, Kysely, QueryCompiler } from 'kysely'
 import { SqliteAdapter, SqliteIntrospector, SqliteQueryCompiler } from 'kysely'
 import { WaSqliteWorkerDriver } from './driver'
+import type { Promisable } from './type'
 
 export interface WaSqliteWorkerDialectConfig {
   /**
@@ -29,7 +30,7 @@ export interface WaSqliteWorkerDialectConfig {
    * prefer to use OPFS, fallback to IndexedDB
    */
   preferOPFS?: boolean
-  onCreateConnection?: (connection: DatabaseConnection) => Promise<void>
+  onCreateConnection?: (connection: DatabaseConnection) => Promisable<void>
 }
 export class WaSqliteWorkerDialect implements Dialect {
   readonly #config: WaSqliteWorkerDialectConfig

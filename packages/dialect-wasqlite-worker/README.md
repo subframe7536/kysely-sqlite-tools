@@ -43,6 +43,17 @@ export interface WaSqliteWorkerDialectConfig {
 
 see in [playground](../../playground/src/modules/wasqliteWorker.ts)
 
+if throw error when using `Vite` to build, add worker config
+
+```ts
+export default defineConfig({
+  // ...
+  worker: {
+    format: 'es',
+  },
+})
+```
+
 ## limitation
 
 only worked in secure environment, like:
