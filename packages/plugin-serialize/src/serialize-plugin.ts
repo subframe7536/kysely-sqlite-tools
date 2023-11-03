@@ -91,47 +91,36 @@ export class SerializePlugin implements KyselyPlugin {
     this.serializeParametersTransformer = new SerializeParametersTransformer(serializer)
     this.deserializer = deserializer
     this.only = selectOrRawOnly
+    selectOrRawOnly && (this.ctx = new WeakSet())
   }
 
   public transformQuery({ node, queryId }: PluginTransformQueryArgs): RootOperationNode {
-    if (this.only && (node.kind === 'SelectQueryNode' || node.kind === 'RawNode')) {
+    if (this.only && ['SelectQueryNode', 'RawNode'].includes(node.kind)) {
       this.ctx?.add(queryId)
     }
     return this.serializeParametersTransformer.transformNode(node)
   }
 
-  private async parseResult(rows: any[]) {
-    if (!rows.length) {
-      return []
-    }
-    return await Promise.all(rows.map(async (row) => {
-      const deserializedRow = { ...row }
-      for (const key in deserializedRow) {
-        deserializedRow[key] = await this.deserializer(deserializedRow[key])
-      }
-      return deserializedRow
-    }))
-  }
-
   public async transformResult(
     { result, queryId }: PluginTransformResultArgs,
   ): Promise<QueryResult<UnknownRow>> {
-    const parse = async () => ({
+    const parsedResult = {
       ...result,
-      rows: await this.parseResult(result.rows),
-    })
-    if (!this.only) {
-      return await parse()
+      rows: result.rows.map(row => Object.fromEntries(
+        Object.entries(row).map(([key, value]) =>
+          ([key, this.deserializer(value)]),
+        ),
+      )),
     }
-    if (!this.ctx?.has(queryId)) {
-      return result
+    if (!this.only) {
+      return parsedResult
     }
     this.ctx?.delete(queryId)
-    return await parse()
+    return parsedResult
   }
 }
 
 /**
- * @deprecated alias for {@link SerializePlugin}
+ * @deprecated prefer to use {@link SerializePlugin}
  */
 export const SqliteSerializePlugin = SerializePlugin
