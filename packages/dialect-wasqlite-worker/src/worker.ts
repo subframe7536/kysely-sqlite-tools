@@ -1,11 +1,11 @@
 import type { SQLiteDB } from '@subframe7536/sqlite-wasm'
 import { initSQLite, isOpfsSupported } from '@subframe7536/sqlite-wasm'
 import type { QueryResult } from 'kysely'
-import type { MainMsg, WorkerMsg } from './type'
+import type { InitMsg, MainMsg, RunMsg, WorkerMsg } from './type'
 
 let db: SQLiteDB
 
-async function init(fileName: string, url?: string, preferOPFS?: boolean) {
+async function init({ fileName, preferOPFS, url }: InitMsg) {
   let storage
   if (isOpfsSupported() && preferOPFS) {
     storage = (await import('@subframe7536/sqlite-wasm/opfs')).useOpfsStorage(fileName, { url })
@@ -15,7 +15,7 @@ async function init(fileName: string, url?: string, preferOPFS?: boolean) {
 
   db = await initSQLite(storage)
 }
-async function exec(isSelect: boolean, sql: string, parameters?: readonly unknown[]): Promise<QueryResult<any>> {
+async function exec({ isSelect, sql, parameters }: RunMsg): Promise<QueryResult<any>> {
   const rows = await db.run(sql, parameters)
   if (isSelect) {
     return { rows }
@@ -34,10 +34,10 @@ onmessage = async (ev: MessageEvent<MainMsg>) => {
   try {
     switch (data.type) {
       case 'init':
-        await init(data.fileName, data.url, data.preferOPFS)
+        await init(data)
         break
       case 'run':
-        ret.data = await exec(data.isSelect, data.sql, data.parameters)
+        ret.data = await exec(data)
         break
       case 'close':
         await db.close()

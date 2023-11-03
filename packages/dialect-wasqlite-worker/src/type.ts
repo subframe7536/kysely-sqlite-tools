@@ -1,21 +1,23 @@
 import type { QueryResult } from 'kysely'
 
+export type RunMsg = {
+  type: 'run'
+  isSelect: boolean
+  sql: string
+  parameters?: readonly unknown[]
+}
+
+export type InitMsg = {
+  type: 'init'
+  url?: string
+  fileName: string
+  preferOPFS?: boolean
+}
+
 export type MainMsg =
-  | {
-    type: 'run'
-    isSelect: boolean
-    sql: string
-    parameters?: readonly unknown[]
-  }
-  | {
-    type: 'close'
-  }
-  | {
-    type: 'init'
-    url?: string
-    fileName: string
-    preferOPFS?: boolean
-  }
+  | RunMsg
+  | { type: 'close' }
+  | InitMsg
 
 export type WorkerMsg = {
   [K in keyof Events]: {
