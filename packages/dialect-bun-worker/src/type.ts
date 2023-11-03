@@ -2,22 +2,22 @@ import type { QueryResult } from 'kysely'
 
 export type Promisable<T> = T | Promise<T>
 
-export type RunMode = 'exec' | 'query' | 'raw'
+export type RunMsg = {
+  type: 'run'
+  isSelect: boolean
+  sql: string
+  parameters?: readonly unknown[]
+}
 
 export type MainMsg =
-  | {
-    type: 'run'
-    mode: RunMode
-    sql: string
-    parameters?: readonly unknown[]
-  }
+  | RunMsg
   | {
     type: 'close'
   }
   | {
     type: 'init'
-    url: string
-    cache: boolean
+    url?: string
+    cache?: boolean
   }
 
 export type WorkerMsg = {

@@ -38,7 +38,7 @@
     "kysely": "^0.26"
   },
   "dependencies": {
-    "zen-mitt": "^0.2.0"
+    "zen-mitt": "^0.3.0"
   },
   "devDependencies": {
     "bun-types": "latest"

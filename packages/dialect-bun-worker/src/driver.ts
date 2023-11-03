@@ -26,8 +26,8 @@ export class BunWorkerDriver implements Driver {
     }
     this.worker.postMessage({
       type: 'init',
-      url: this.config?.url ?? ':memory:',
-      cache: this.config?.cacheStatment ?? false,
+      url: this.config?.url,
+      cache: this.config?.cacheStatment,
     } satisfies MainMsg)
     await new Promise<void>((resolve, reject) => {
       this.mitt?.once('init', ({ err }) => {
@@ -115,17 +115,13 @@ class BunWorkerConnection implements DatabaseConnection {
   }
 
   streamQuery<R>(): AsyncIterableIterator<QueryResult<R>> {
-    throw new Error('Sqlite driver doesn\'t support streaming')
+    throw new Error('SQLite driver doesn\'t support streaming')
   }
 
   async executeQuery<R>(compiledQuery: CompiledQuery<unknown>): Promise<QueryResult<R>> {
     const { parameters, sql, query } = compiledQuery
-    const mode = query.kind === 'SelectQueryNode'
-      ? 'query'
-      : query.kind === 'RawNode'
-        ? 'raw'
-        : 'exec'
-    this.worker.postMessage({ type: 'run', mode, sql, parameters } satisfies MainMsg)
+    const isSelect = query.kind === 'SelectQueryNode'
+    this.worker.postMessage({ type: 'run', isSelect, sql, parameters } satisfies MainMsg)
     return new Promise((resolve, reject) => {
       if (!this.mitt) {
         reject('kysely instance has been destroyed')

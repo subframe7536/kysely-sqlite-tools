@@ -1,21 +1,16 @@
 import Database from 'bun:sqlite'
 import type { QueryResult } from 'kysely'
-import type { MainMsg, RunMode, WorkerMsg } from './type'
+import type { MainMsg, RunMsg, WorkerMsg } from './type'
 
 let db: Database
-let cache: boolean
-function run(mode: RunMode, sql: string, parameters?: readonly unknown[]): QueryResult<any> {
+let cache: boolean | undefined
+function run({ isSelect, sql, parameters }: RunMsg): QueryResult<any> {
   const stmt = db[cache ? 'query' : 'prepare'](sql)
+  const rows = stmt.all(parameters as any)
 
-  let rows: unknown[] = []
-  if (mode !== 'exec') {
-    rows = stmt.all(parameters as any)
-  }
-
-  if (mode === 'query') {
+  if (isSelect) {
     return { rows }
   }
-  stmt.run(parameters as any)
   return {
     rows,
     // @ts-expect-error get insert id
@@ -35,7 +30,7 @@ onmessage = ({ data }: MessageEvent<MainMsg>) => {
   try {
     switch (data.type) {
       case 'run':
-        ret.data = run(data.mode, data.sql, data.parameters)
+        ret.data = run(data)
         break
       case 'close':
         db.close()
