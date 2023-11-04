@@ -150,6 +150,7 @@ function precompileQuery<O>(
 ## credit
 
 - [trilogy](https://github.com/haltcase/trilogy)
+- [kysely-params](https://github.com/jtlapp/kysely-params)
 
 ## license
 MIT

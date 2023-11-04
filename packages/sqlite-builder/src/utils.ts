@@ -36,7 +36,6 @@ type CompileFn<O, T extends Record<string, any>> = (
 
 /**
  * create precompiled query,
- * inspired by {@link https://github.com/jtlapp/kysely-params kysely-params},
  * included in `SqliteBuilder`
  * @param queryBuilder query builder without params
  * @param serialize custom parameter value serializer
@@ -45,8 +44,8 @@ type CompileFn<O, T extends Record<string, any>> = (
  * const query = precompileQuery(
  *   db.selectFrom('test').selectAll(),
  * ).setParam<{ name: string }>((qb, param) =>
- *   qb.where('name', '=', param('name')),
- * )
+ *   qb.where('name', '=', param('name'),
+ * ))
  * const compiledQuery = query({ name: 'test' })
  * // {
  * //   sql: 'select * from "test" where "name" = ?',
@@ -83,9 +82,10 @@ export function precompileQuery<O>(
         }
         return {
           ...compiled,
-          parameters: compiled.parameters.map(p => (typeof p === 'string' && p.startsWith('__pre_'))
-            ? serialize(param[p.slice(6)])
-            : p,
+          parameters: compiled.parameters.map(p =>
+            (typeof p === 'string' && p.startsWith('__pre_'))
+              ? serialize(param[p.slice(6)])
+              : p,
           ),
         }
       }
@@ -97,9 +97,12 @@ export function precompileQuery<O>(
  * check integrity_check pragma
  */
 export async function checkIntegrity(db: Kysely<any>): Promise<boolean> {
-  const result = await sql`PRAGMA integrity_check`.execute(db)
+  const { rows } = await sql`PRAGMA integrity_check`.execute(db)
+  if (!rows.length) {
+    throw new Error('fail to check integrity')
+  }
   // @ts-expect-error result
-  return result.rows[0].integrity_check === 'ok'
+  return rows[0].integrity_check === 'ok'
 }
 
 /**
@@ -113,9 +116,12 @@ export async function getOrSetDBVersion(
     await sql`PRAGMA user_version = ${sql.raw(`${version}`)}`.execute(db)
     return version
   }
-  const result = await sql`PRAGMA user_version`.execute(db)
-  // @ts-expect-error result
-  return result.rows[0].user_version
+  const { rows } = await sql`PRAGMA user_version`.execute(db)
+  if (!rows.length) {
+    throw new Error('fail to get DBVersion')
+  }
+  // @ts-expect-error get user version
+  return rows[0].user_version
 }
 
 export type SavePoint = {

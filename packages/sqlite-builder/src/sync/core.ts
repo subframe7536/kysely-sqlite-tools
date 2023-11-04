@@ -17,6 +17,9 @@ export type SyncOptions<T extends Schema> = {
    * whether to enable debug logger
    */
   log?: boolean
+  /**
+   * version control
+   */
   version?: {
     /**
      * current version
@@ -57,10 +60,12 @@ export async function syncTables<T extends Schema>(
     excludeTablePrefix,
   } = options
 
-  if (skipSyncWhenSame && current === await getOrSetDBVersion(db)) {
-    return
+  if (current) {
+    if (skipSyncWhenSame && current === await getOrSetDBVersion(db)) {
+      return
+    }
+    await getOrSetDBVersion(db, current)
   }
-  await getOrSetDBVersion(db, current)
 
   const debug = (e: any) => log && logger?.debug(e)
   const { existTables, indexList, triggerList } = await parseExistDB(db, excludeTablePrefix)
