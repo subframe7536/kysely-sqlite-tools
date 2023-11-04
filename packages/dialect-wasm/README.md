@@ -23,31 +23,30 @@ there are 6 dialects
 
 ### Differences
 
-#### `SqlJsDialect`
+#### `SqlJsDialect`: easy to use
 
 you can **get total buffer** on every sql execution except `select` and **no backend storage**
 
-currently no support for bigint
+- no support for bigint
 
-#### `OfficialWasmDialect`
+#### `OfficialWasmDialect`: performance
 
 you can choose to use [OPFS](https://developer.mozilla.org/en-US/docs/Web/API/File_System_Access_API#origin_private_file_system) as backend storage(your server must response [COOP and COEP](https://sqlite.org/wasm/doc/trunk/persistence.md#coop-coep) in header), which is recommended officially (see [this](https://sqlite.org/forum/forumpost/59097f57cbe647a2d1950fab93e7ab82dd24c1e384d38b90ec1e2f03a2a4e580) and [this](https://sqlite.org/forum/forumpost/8f50dc99149a6cedade784595238f45aa912144fae81821d5f9db31965f754dd)) and **only work in WebWorker**.
 
-#### `WaSqliteDialect`
+#### `WaSqliteDialect`: polyfill
 
-you can choose not only `OPFS` but also `IndexedDB` as backend storage for better compability, maybe better for **polyfill**
+you can choose not only `OPFS` but also `IndexedDB` as backend storage for better compatibility,
 
-- only worked in secure environment, like localhost or https
+- only work in secure environment, like localhost or https
 
-#### `NodeWasmDialect`
-
-**useful for Electron app**
+#### `NodeWasmDialect`: no compile
 
 you can choose to use `native file system` as backend storage, which is no need to recompile for different platform
 
-#### `CrsqliteDialect`
+- no `RETURNING` support
+- only return rows when executing raw sql
 
-**useful for CRDT**
+#### `CrsqliteDialect`: CRDT
 
 you can choose to use `IndexedDB` as backend storage
 
@@ -55,7 +54,7 @@ you can choose to use `IndexedDB` as backend storage
 
 see in jsdoc
 
-### usage and more detali
+### usage and more details
 
 see [test](../../test/dialect-wasm.test.ts) and [playground](../../playground/src/modules)
 

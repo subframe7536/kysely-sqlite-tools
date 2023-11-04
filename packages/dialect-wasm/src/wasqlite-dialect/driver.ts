@@ -1,3 +1,4 @@
+import type { ExecuteReturn, QueryReturn } from '../baseDriver'
 import { BaseDriver, BaseSqliteConnection } from '../baseDriver'
 import type { SQLiteCompatibleType, Sqlite, WaSqliteDatabase } from './type'
 import type { WaSqliteDialectConfig } from '.'
@@ -25,44 +26,32 @@ export class WaSqliteDriver extends BaseDriver {
 }
 
 class WaSqliteConnection extends BaseSqliteConnection {
-  readonly sqlite: Sqlite
-  readonly db: number
+  private sqlite: Sqlite
+  private db: number
   constructor(database: any) {
     super()
     this.db = database.db
     this.sqlite = database.sqlite
   }
 
-  async run(statement: { sql: string; param?: any[] }) {
-    const str = this.sqlite.str_new(this.db, statement.sql)
-    const prepared = await this.sqlite.prepare_v2(
-      this.db,
-      this.sqlite.str_value(str),
-    )
+  async run(sql: string, parameters?: any[]) {
+    const str = this.sqlite.str_new(this.db, sql)
+    const prepared = await this.sqlite.prepare_v2(this.db, this.sqlite.str_value(str))
 
-    if (prepared === null) {
-      return [] as any[]
+    if (!prepared) {
+      return []
     }
 
     const stmt = prepared.stmt
     try {
-      if (typeof statement.param !== 'undefined') {
-        this.sqlite.bind_collection(
-          stmt,
-          statement.param,
-        )
-      }
+      parameters?.length && this.sqlite.bind_collection(stmt, parameters as [])
 
       const rows: Record<string, SQLiteCompatibleType>[] = []
-      let cols: string[] = []
+      const cols = this.sqlite.column_names(stmt)
 
-      while ((await this.sqlite.step(stmt)) === /* SQLite.SQLITE_ROW */ 100) {
-        cols = cols.length === 0 ? this.sqlite.column_names(stmt) : cols
+      while ((await this.sqlite.step(stmt)) === 100/* SQLITE_ROW */) {
         const row = this.sqlite.row(stmt)
-        rows.push(cols.reduce((acc, key, i) => {
-          acc[key] = row[i]
-          return acc
-        }, {} as Record<string, SQLiteCompatibleType>))
+        rows.push(Object.fromEntries(cols.map((key, i) => [key, row[i]])))
       }
       return rows
     } finally {
@@ -70,15 +59,19 @@ class WaSqliteConnection extends BaseSqliteConnection {
     }
   }
 
-  async query(sql: string, param?: any[] | undefined) {
-    return await this.run({ sql, param })
+  async query(sql: string, param?: any[] | undefined): QueryReturn {
+    return { rows: await this.run(sql, param) }
   }
 
-  async exec(sql: string, param?: any[] | undefined) {
-    await this.run({ sql, param })
-    const v = await this.run({ sql: 'SELECT last_insert_rowid() as id' })
+  async execute(sql: string, param?: any[] | undefined): ExecuteReturn {
+    const rows = await this.run(sql, param)
     return {
-      insertId: BigInt(v[0].id),
+      rows,
+      insertId: await new Promise<bigint>(resolve => this.sqlite.exec(
+        this.db,
+        'SELECT last_insert_rowid()',
+        ([id]) => resolve(BigInt(id as number)),
+      )),
       numAffectedRows: BigInt(this.sqlite.changes(this.db)),
     }
   }

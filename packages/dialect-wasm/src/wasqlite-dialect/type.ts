@@ -15,4 +15,5 @@ export interface Sqlite {
   bind_collection: (stmt: number, params: any) => number
   changes: (db: number) => number
   close: (db: number) => Promise<number>
+  exec: (db: number, sql: string, callback: (data: any[]) => void) => Promise<number>
 }

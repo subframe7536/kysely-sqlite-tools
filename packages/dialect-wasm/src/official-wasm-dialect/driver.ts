@@ -1,3 +1,4 @@
+import type { ExecuteReturn, QueryReturn } from '../baseDriver'
 import { BaseDriver, BaseSqliteConnection } from '../baseDriver'
 import type { OfficialWasmDB } from './type'
 import type { OfficialWasmDialectConfig } from '.'
@@ -30,26 +31,27 @@ class OfficailSqliteWasmConnection extends BaseSqliteConnection {
     this.db = db
   }
 
-  query(sql: string, param?: any[]) {
-    const resultRows: any[] = []
+  async query(sql: string, param?: any[]): QueryReturn {
+    return { rows: this.run(sql, param) }
+  }
+
+  private run(sql: string, param?: any[] | undefined) {
+    const rows: any[] = []
     this.db.exec({
       sql,
       bind: param ?? [],
       rowMode: 'object',
-      resultRows,
+      resultRows: rows,
     })
-
-    return resultRows
+    return rows
   }
 
-  exec(sql: string, param?: any[]) {
-    this.db.exec({
-      sql,
-      bind: param ?? [],
-    })
+  async execute(sql: string, param?: any[]): ExecuteReturn {
+    const rows = this.run(sql, param)
     return {
+      rows,
       numAffectedRows: BigInt(this.db.changes(false, true)),
-      insertId: BigInt(this.query('SELECT last_insert_rowid() as id')[0].id),
+      insertId: BigInt(this.run('SELECT last_insert_rowid() as id')[0].id),
     }
   }
 }

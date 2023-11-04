@@ -26,7 +26,7 @@ export interface SqlJsDialectConfig {
   onCreateConnection?: (connection: DatabaseConnection) => Promisable<void>
 }
 export class SqlJsDialect extends BaseDialect {
-  readonly #config: SqlJsDialectConfig
+  private config: SqlJsDialectConfig
 
   /**
    * dialect for [sql.js](https://github.com/sql-js/sql.js)
@@ -35,10 +35,10 @@ export class SqlJsDialect extends BaseDialect {
    */
   constructor(config: SqlJsDialectConfig) {
     super()
-    this.#config = config
+    this.config = config
   }
 
   createDriver(): Driver {
-    return new SqlJsDriver(this.#config)
+    return new SqlJsDriver(this.config)
   }
 }

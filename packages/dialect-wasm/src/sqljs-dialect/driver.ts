@@ -1,5 +1,5 @@
-import { CompiledQuery } from 'kysely'
 import type { AnyFunction } from '../types'
+import type { ExecuteReturn, QueryReturn } from '../baseDriver'
 import { BaseDriver, BaseSqliteConnection } from '../baseDriver'
 import type { SqlJSDB } from './type'
 import type { SqlJsDialectConfig } from '.'
@@ -84,18 +84,18 @@ export class SqlJsDriver extends BaseDriver {
   }
 
   async beginTransaction(connection: SqlJsConnection): Promise<void> {
-    await connection.executeQuery(CompiledQuery.raw('begin'))
-    connection.transactionNum++
+    connection.trxCount++
+    await super.beginTransaction(connection)
   }
 
   async commitTransaction(connection: SqlJsConnection): Promise<void> {
-    await connection.executeQuery(CompiledQuery.raw('commit'))
-    connection.transactionNum--
+    connection.trxCount--
+    await super.commitTransaction(connection)
   }
 
   async rollbackTransaction(connection: SqlJsConnection): Promise<void> {
-    await connection.executeQuery(CompiledQuery.raw('rollback'))
-    connection.transactionNum--
+    connection.trxCount--
+    await super.rollbackTransaction(connection)
   }
 
   async destroy(): Promise<void> {
@@ -103,9 +103,9 @@ export class SqlJsDriver extends BaseDriver {
   }
 }
 class SqlJsConnection extends BaseSqliteConnection {
-  readonly db: SqlJSDB
-  readonly onWrite: ((buffer: Uint8Array) => void) | undefined
-  transactionNum = 0
+  private db: SqlJSDB
+  private onWrite: ((buffer: Uint8Array) => void) | undefined
+  trxCount = 0
 
   constructor(
     db: SqlJSDB,
@@ -123,7 +123,7 @@ class SqlJsConnection extends BaseSqliteConnection {
       : undefined
   }
 
-  query(sql: string, parameters?: readonly unknown[]) {
+  async query(sql: string, parameters?: readonly unknown[]): QueryReturn {
     const stmt = this.db.prepare(sql)
     stmt.bind(parameters as any[])
     const rows = []
@@ -131,18 +131,18 @@ class SqlJsConnection extends BaseSqliteConnection {
       rows.push(stmt.getAsObject())
     }
     stmt.free()
-    return rows
+    return { rows }
   }
 
-  exec(sql: string, param: any[]) {
+  async execute(sql: string, param: any[]): ExecuteReturn {
     this.db.run(sql, param as any[])
-    const insertId = BigInt(this.query('SELECT last_insert_rowid() as id')[0].id)
+    const insertId = BigInt((await this.query('SELECT last_insert_rowid() as id')).rows[0].id)
     const numAffectedRows = BigInt(this.db.getRowsModified())
-    this.transactionNum === 0 && this.onWrite?.(this.db.export())
+    this.trxCount === 0 && this.onWrite?.(this.db.export())
     return {
+      rows: [],
       numAffectedRows,
       insertId,
     }
   }
 }
-export const TRANSACTION_REGEX = /^(\s|;)*(?:begin|end|commit|rollback)/i

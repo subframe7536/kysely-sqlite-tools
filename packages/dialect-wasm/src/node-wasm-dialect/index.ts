@@ -10,16 +10,19 @@ export interface NodeWasmDialectConfig {
 }
 
 export class NodeWasmDialect extends BaseDialect {
-  #config: NodeWasmDialectConfig
+  config: NodeWasmDialectConfig
   /**
    * dialect for [node sqlite3 wasm](https://github.com/tndrle/node-sqlite3-wasm)
+   *
+   * - no `RETURNING` support
+   * - only return rows when executing raw sql
    */
   constructor(config: NodeWasmDialectConfig) {
     super()
-    this.#config = config
+    this.config = config
   }
 
   createDriver(): Driver {
-    return new NodeWasmDriver(this.#config)
+    return new NodeWasmDriver(this.config)
   }
 }

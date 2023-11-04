@@ -1,3 +1,4 @@
+import type { ExecuteReturn, QueryReturn } from '../baseDriver'
 import { BaseDriver, BaseSqliteConnection } from '../baseDriver'
 import type { CrSqliteDB } from './type'
 import type { CrSqliteDialectConfig } from '.'
@@ -24,23 +25,22 @@ export class CrSqliteDriver extends BaseDriver {
   }
 }
 class CrSqliteConnection extends BaseSqliteConnection {
-  readonly db: CrSqliteDB
-  lastId = 0n
+  private db: CrSqliteDB
   constructor(db: any) {
     super()
     this.db = db
-    this.db.onUpdate((_, __, ___, id) => this.lastId = id)
   }
 
-  async query(sql: string, param?: any[]) {
-    return this.db.execO(sql, param)
+  async query(sql: string, param?: any[]): QueryReturn {
+    return { rows: await this.db.execO(sql, param) }
   }
 
-  async exec(sql: string, param?: any[]) {
-    await this.db.exec(sql, param)
+  async execute(sql: string, param?: any[]): ExecuteReturn {
+    const rows = await this.db.execO(sql, param)
     return {
+      rows,
       numAffectedRows: BigInt(this.db.api.changes(this.db.db)),
-      insertId: this.lastId,
+      insertId: BigInt((await this.db.execA('SELECT last_insert_rowid() as id'))[0]),
     }
   }
 }
