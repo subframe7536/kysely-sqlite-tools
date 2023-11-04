@@ -53,40 +53,4 @@ describe('dialect test', () => {
     })
     await init(dialect)
   })
-
-  // test('crsqlite', async () => {
-  //   const path = new URL('../../node_modules/@vlcn.io/crsqlite-wasm/dist/crsqlite.wasm', import.meta.url).href
-  //   try {
-  //     const dialect = new CrSqliteDialect({
-  //       async database() {
-  //         const sqlite3 = await InitCrsqlite()
-  //         return sqlite3.open('crsqlite.db')
-  //       },
-  //     })
-  //     await init(dialect)
-  //   } catch (e) {
-  //     console.error(path, e)
-  //   }
-  // })
-
-  // todo)) find out test opfs
-  //
-  // test('official wasm', async () => {
-  //   const dialect = new OfficialWasmDialect({
-  //     database: async () => {
-  //       const sqlite3 = (await sqlite3InitModule()).oo1
-  //       if (!sqlite3) {
-  //         return Promise.reject('fail to load sqlite')
-  //       }
-  //       const path = '/test.db'
-  //       if (sqlite3.OpfsDb) {
-  //         console.log('support OPFS')
-  //         return new sqlite3.OpfsDb(path)
-  //       }
-  //       console.log('doesn\'t support OPFS')
-  //       return new sqlite3.DB(path)
-  //     },
-  //   })
-  //   await init(dialect)
-  // })
 })
