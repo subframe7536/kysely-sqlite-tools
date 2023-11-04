@@ -2,7 +2,7 @@ import type { KyselyPlugin, PluginTransformQueryArgs, PluginTransformResultArgs,
 import type { QueryId } from 'kysely/dist/esm/util/query-id'
 import { SerializeParametersTransformer } from './serialize-transformer'
 import type { Deserializer, Serializer } from './serializer'
-import { defaultDeserializer } from './serializer'
+import { defaultDeserializer, defaultSerializer } from './serializer'
 
 export interface SerializePluginOptions {
   /**
@@ -20,9 +20,9 @@ export interface SerializePluginOptions {
 }
 
 export class SerializePlugin implements KyselyPlugin {
-  private serializeParametersTransformer: SerializeParametersTransformer
+  private transformer: SerializeParametersTransformer
   private deserializer: Deserializer
-  private only: boolean
+  private only: boolean | undefined
   private ctx?: WeakSet<QueryId>
 
   /**
@@ -87,18 +87,26 @@ export class SerializePlugin implements KyselyPlugin {
    * ```
    */
   public constructor(options: SerializePluginOptions = {}) {
-    const { deserializer = defaultDeserializer, selectOrRawOnly = false, serializer } = options
-    this.serializeParametersTransformer = new SerializeParametersTransformer(serializer)
+    const {
+      deserializer = defaultDeserializer,
+      selectOrRawOnly,
+      serializer = defaultSerializer,
+    } = options
+
+    this.transformer = new SerializeParametersTransformer(serializer)
     this.deserializer = deserializer
     this.only = selectOrRawOnly
-    selectOrRawOnly && (this.ctx = new WeakSet())
+
+    if (selectOrRawOnly) {
+      this.ctx = new WeakSet()
+    }
   }
 
   public transformQuery({ node, queryId }: PluginTransformQueryArgs): RootOperationNode {
     if (this.only && ['SelectQueryNode', 'RawNode'].includes(node.kind)) {
       this.ctx?.add(queryId)
     }
-    return this.serializeParametersTransformer.transformNode(node)
+    return this.transformer.transformNode(node)
   }
 
   public async transformResult(

@@ -42,7 +42,7 @@ export class TauriSqlDialect<T extends 'sqlite' | 'mysql' | 'postgres'> {
    * using [official sql plugin](https://github.com/tauri-apps/plugins-workspace/tree/dev/plugins/sql),
    * support MySQL, PostgreSQL and SQLite
    *
-   * - no RETURNING support
+   * - no `RETURNING` support
    * - only return rows when executing raw sql
    */
   constructor(config: TauriSqlDialectConfig<T>) {

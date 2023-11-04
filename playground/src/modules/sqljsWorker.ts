@@ -22,6 +22,6 @@ const dialect = new SqlJsDialect({
 onmessage = () => {
   console.log('start sqljs test')
   testDB(dialect).then((data) => {
-    data?.forEach(e => console.log('[sqlijs]', e))
+    data?.forEach(e => console.log('[sqljs]', e))
   })
 }

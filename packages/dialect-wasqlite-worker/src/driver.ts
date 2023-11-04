@@ -114,7 +114,7 @@ class WaSqliteWorkerConnection implements DatabaseConnection {
   }
 
   streamQuery<R>(): AsyncIterableIterator<QueryResult<R>> {
-    throw new Error('wasqlite driver doesn\'t support streaming')
+    throw new Error('SQLite driver doesn\'t support streaming')
   }
 
   async executeQuery<R>(compiledQuery: CompiledQuery<unknown>): Promise<QueryResult<R>> {

@@ -1,14 +1,13 @@
 import type { ColumnUpdateNode, PrimitiveValueListNode, ValueNode } from 'kysely'
 import { OperationNodeTransformer } from 'kysely'
 import type { Serializer } from './serializer'
-import { defaultSerializer } from './serializer'
 
 export class SerializeParametersTransformer extends OperationNodeTransformer {
   private serializer: Serializer
 
-  public constructor(serializer?: Serializer) {
+  public constructor(serializer: Serializer) {
     super()
-    this.serializer = serializer || defaultSerializer
+    this.serializer = serializer
   }
 
   protected override transformPrimitiveValueList(
