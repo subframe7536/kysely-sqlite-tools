@@ -1,6 +1,6 @@
 import { type Kysely, sql } from 'kysely'
+import { getOrSetDBVersion } from 'kysely-sqlite-utils'
 import type { DBLogger } from '../types'
-import { getOrSetDBVersion } from '../utils'
 import type { Columns, Schema, Table } from './types'
 import {
   parseColumnType,

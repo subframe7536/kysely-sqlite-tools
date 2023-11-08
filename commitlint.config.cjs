@@ -19,6 +19,7 @@ module.exports = {
       'dialect-wasqlite-worker',
       'builder',
       'workspace',
+      'utils',
     ],
     markBreakingChangeMode: true,
     allowBreakingChanges: [

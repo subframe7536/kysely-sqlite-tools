@@ -1,5 +1,4 @@
 import type {
-  Compilable,
   DeleteQueryBuilder,
   Dialect,
   InsertQueryBuilder,
@@ -9,7 +8,7 @@ import type {
   UpdateQueryBuilder,
 } from 'kysely'
 import type { SerializePluginOptions } from 'kysely-plugin-serialize'
-import type { LoggerOptions } from './utils'
+import type { LoggerOptions } from 'kysely-sqlite-utils'
 
 export interface SqliteBuilderOptions {
   dialect: Dialect
@@ -41,8 +40,6 @@ export type AvailableBuilder<DB, O> =
   | UpdateQueryBuilder<DB, any, any, O>
   | InsertQueryBuilder<DB, any, O>
   | DeleteQueryBuilder<DB, any, O>
-
-export type QueryBuilderOutput<QB> = QB extends Compilable<infer O> ? O : never
 
 export type StatusResult =
   | { ready: true }

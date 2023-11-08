@@ -142,6 +142,15 @@ importers:
       kysely-plugin-serialize:
         specifier: workspace:*
         version: link:../plugin-serialize
+      kysely-sqlite-utils:
+        specifier: workspace:*
+        version: link:../sqlite-utils
+
+  packages/sqlite-utils:
+    dependencies:
+      kysely:
+        specifier: ^0.26
+        version: 0.26.3
 
   playground:
     dependencies:

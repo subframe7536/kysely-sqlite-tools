@@ -8,16 +8,16 @@ import type {
 } from 'kysely'
 import { CompiledQuery, Kysely } from 'kysely'
 import { SerializePlugin, defaultSerializer } from 'kysely-plugin-serialize'
+import type { QueryBuilderOutput } from 'kysely-sqlite-utils'
 import {
   createKyselyLogger,
   precompileQuery,
   checkIntegrity as runCheckIntegrity,
   savePoint,
-} from './utils'
+} from 'kysely-sqlite-utils'
 import type {
   AvailableBuilder,
   DBLogger,
-  QueryBuilderOutput,
   SqliteBuilderOptions,
   StatusResult,
   SyncTableFn,
@@ -130,7 +130,7 @@ export class SqliteBuilder<DB extends Record<string, any>> {
   }
 
   private getDB() {
-    return this.trx || this.kysely
+    return this.trxCount ? this.trx! : this.kysely
   }
 
   private logError(e: unknown, errorMsg?: string) {
