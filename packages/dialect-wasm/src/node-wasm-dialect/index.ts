@@ -13,9 +13,6 @@ export class NodeWasmDialect extends BaseDialect {
   config: NodeWasmDialectConfig
   /**
    * dialect for [node sqlite3 wasm](https://github.com/tndrle/node-sqlite3-wasm)
-   *
-   * - no `RETURNING` support
-   * - only return rows when executing raw sql
    */
   constructor(config: NodeWasmDialectConfig) {
     super()

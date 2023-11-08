@@ -1,4 +1,4 @@
-import type { ExecuteReturn, QueryReturn } from '../baseDriver'
+import type { InfoReturn, QueryReturn } from '../baseDriver'
 import { BaseDriver, BaseSqliteConnection } from '../baseDriver'
 import type { CrSqliteDB } from './type'
 import type { CrSqliteDialectConfig } from '.'
@@ -31,16 +31,14 @@ class CrSqliteConnection extends BaseSqliteConnection {
     this.db = db
   }
 
-  async query(sql: string, param?: any[]): QueryReturn {
-    return { rows: await this.db.execO(sql, param) }
+  async query(sql: string, params?: any[]): QueryReturn {
+    return await this.db.execO(sql, params as any[])
   }
 
-  async execute(sql: string, param?: any[]): ExecuteReturn {
-    const rows = await this.db.execO(sql, param)
+  async info(): InfoReturn {
     return {
-      rows,
       numAffectedRows: BigInt(this.db.api.changes(this.db.db)),
-      insertId: BigInt((await this.db.execA('SELECT last_insert_rowid() as id'))[0]),
+      insertId: BigInt((await this.db.execA('SELECT last_insert_rowid()'))[0]),
     }
   }
 }

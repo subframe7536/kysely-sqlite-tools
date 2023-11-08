@@ -1,5 +1,5 @@
 import type { AnyFunction } from '../types'
-import type { ExecuteReturn, QueryReturn } from '../baseDriver'
+import type { InfoReturn, QueryReturn } from '../baseDriver'
 import { BaseDriver, BaseSqliteConnection } from '../baseDriver'
 import type { SqlJSDB } from './type'
 import type { SqlJsDialectConfig } from '.'
@@ -131,18 +131,22 @@ class SqlJsConnection extends BaseSqliteConnection {
       rows.push(stmt.getAsObject())
     }
     stmt.free()
-    return { rows }
+    return rows
   }
 
-  async execute(sql: string, param: any[]): ExecuteReturn {
-    this.db.run(sql, param as any[])
-    const insertId = BigInt((await this.query('SELECT last_insert_rowid() as id')).rows[0].id)
-    const numAffectedRows = BigInt(this.db.getRowsModified())
+  async info(): InfoReturn {
+    let id = 0
+    const _stmt = this.db.prepare('SELECT last_insert_rowid()')
+    try {
+      _stmt.step()
+      id = _stmt.get()[0]
+    } finally {
+      _stmt.free()
+    }
     this.trxCount === 0 && this.onWrite?.(this.db.export())
     return {
-      rows: [],
-      numAffectedRows,
-      insertId,
+      insertId: BigInt(id),
+      numAffectedRows: BigInt(this.db.getRowsModified()),
     }
   }
 }

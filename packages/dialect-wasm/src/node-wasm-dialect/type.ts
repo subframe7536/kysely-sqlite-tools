@@ -8,6 +8,7 @@ export interface NodeWasmDBOptions {
 }
 
 export interface NodeWasmDataBase extends BaseDB {
+  get: (sql: string, param?: readonly unknown[]) => any
   all: (sql: string, param?: readonly unknown[]) => any[]
   run: (sql: string, param?: readonly unknown[]) => NodeWasmRunReturn
 }

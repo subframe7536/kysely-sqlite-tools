@@ -83,18 +83,15 @@ class TauriSqlConnection implements DatabaseConnection {
   }
 
   async executeQuery<R>({ parameters, query, sql }: CompiledQuery<unknown>): Promise<QueryResult<R>> {
-    switch (query.kind) {
-      case 'SelectQueryNode':
-      case 'RawNode':
-        return { rows: await this.db.select<any>(sql, parameters) }
-      default: {
-        const { lastInsertId, rowsAffected } = await this.db.execute(sql, parameters)
-        return {
-          rows: [],
-          insertId: BigInt(lastInsertId),
-          numAffectedRows: BigInt(rowsAffected),
-        }
-      }
+    const rows = await this.db.select<any[]>(sql, parameters)
+    if (query.kind === 'SelectQueryNode' || rows.length) {
+      return { rows }
+    }
+    const { lastInsertId, rowsAffected } = await this.db.execute('select 1')
+    return {
+      rows,
+      insertId: BigInt(lastInsertId),
+      numAffectedRows: BigInt(rowsAffected),
     }
   }
 }

@@ -1,7 +1,7 @@
 {
   "name": "kysely-wasqlite-worker",
   "version": "0.4.7",
-  "description": "kysely dialect for wa-sqlite, run sql in worker",
+  "description": "kysely dialect for wa-sqlite, run sql in worker, store data in OPFS or IndexedDB",
   "author": {
     "name": "subframe7536",
     "email": "1667077010@qq.com"
@@ -43,6 +43,6 @@
     "zen-mitt": "^0.3.0"
   },
   "devDependencies": {
-    "@subframe7536/sqlite-wasm": "^0.1.1"
+    "@subframe7536/sqlite-wasm": "^0.1.2"
   }
 }

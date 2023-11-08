@@ -1,5 +1,5 @@
-import type { CompiledQuery, DatabaseConnection, QueryResult } from 'kysely'
-import { BaseDriver } from '../baseDriver'
+import type { InfoReturn, QueryReturn } from '../baseDriver'
+import { BaseDriver, BaseSqliteConnection } from '../baseDriver'
 import type { NodeWasmDataBase } from './type'
 import type { NodeWasmDialectConfig } from '.'
 
@@ -25,29 +25,22 @@ export class NodeWasmDriver extends BaseDriver {
   }
 }
 
-class NodeWasmConnection implements DatabaseConnection {
+class NodeWasmConnection extends BaseSqliteConnection {
   private db: NodeWasmDataBase
   constructor(db: any) {
+    super()
     this.db = db
   }
 
-  async executeQuery<R>({ parameters, query, sql }: CompiledQuery<unknown>): Promise<QueryResult<R>> {
-    switch (query.kind) {
-      case 'SelectQueryNode':
-      case 'RawNode':
-        return { rows: this.db.all(sql, parameters) }
-      default: {
-        const { changes, lastInsertRowid } = this.db.run(sql, parameters)
-        return {
-          rows: [],
-          insertId: BigInt(lastInsertRowid),
-          numAffectedRows: BigInt(changes),
-        }
-      }
-    }
+  async query(sql: string, params?: any[] | undefined): QueryReturn {
+    return this.db.all(sql, params)
   }
 
-  streamQuery<R>(): AsyncIterableIterator<QueryResult<R>> {
-    throw new Error('SQLite driver doesn\'t support streaming')
+  async info(): InfoReturn {
+    const { changes, lastInsertRowid } = this.db.run('select 1')
+    return {
+      numAffectedRows: BigInt(changes),
+      insertId: BigInt(lastInsertRowid),
+    }
   }
 }

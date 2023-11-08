@@ -31,7 +31,7 @@ export class SqlJsDialect extends BaseDialect {
   /**
    * dialect for [sql.js](https://github.com/sql-js/sql.js)
    *
-   * currently no support for bigint
+   * no support for bigint
    */
   constructor(config: SqlJsDialectConfig) {
     super()

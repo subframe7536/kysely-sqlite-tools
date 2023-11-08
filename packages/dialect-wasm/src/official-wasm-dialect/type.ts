@@ -12,6 +12,7 @@ export type Option = {
 }
 
 export interface OfficialWasmDB extends BaseDB {
-  exec: (option: Option) => void
   changes: (isTotal: boolean, isBigint: boolean) => number | bigint
+  selectArray: (sql: string, bind?: any[]) => any[]
+  selectObjects: (sql: string, bind?: any[]) => any[]
 }

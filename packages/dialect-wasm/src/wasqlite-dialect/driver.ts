@@ -1,6 +1,6 @@
-import type { ExecuteReturn, QueryReturn } from '../baseDriver'
+import type { InfoReturn, QueryReturn } from '../baseDriver'
 import { BaseDriver, BaseSqliteConnection } from '../baseDriver'
-import type { SQLiteCompatibleType, Sqlite, WaSqliteDatabase } from './type'
+import type { Sqlite, WaSqliteDatabase } from './type'
 import type { WaSqliteDialectConfig } from '.'
 
 export class WaSqliteDriver extends BaseDriver {
@@ -34,39 +34,31 @@ class WaSqliteConnection extends BaseSqliteConnection {
     this.sqlite = database.sqlite
   }
 
-  async run(sql: string, parameters?: any[]) {
+  async query(sql: string, params?: any[] | undefined): QueryReturn {
+    const rows: any[] = []
     const str = this.sqlite.str_new(this.db, sql)
     const prepared = await this.sqlite.prepare_v2(this.db, this.sqlite.str_value(str))
 
-    if (!prepared) {
-      return []
-    }
+    if (prepared) {
+      const stmt = prepared.stmt
+      try {
+        params?.length && this.sqlite.bind_collection(stmt, params as [])
 
-    const stmt = prepared.stmt
-    try {
-      parameters?.length && this.sqlite.bind_collection(stmt, parameters as [])
+        const cols = this.sqlite.column_names(stmt)
 
-      const rows: Record<string, SQLiteCompatibleType>[] = []
-      const cols = this.sqlite.column_names(stmt)
-
-      while ((await this.sqlite.step(stmt)) === 100/* SQLITE_ROW */) {
-        const row = this.sqlite.row(stmt)
-        rows.push(Object.fromEntries(cols.map((key, i) => [key, row[i]])))
+        while ((await this.sqlite.step(stmt)) === 100/* SQLITE_ROW */) {
+          const row = this.sqlite.row(stmt)
+          rows.push(Object.fromEntries(cols.map((key, i) => [key, row[i]])))
+        }
+      } finally {
+        await this.sqlite.finalize(stmt)
       }
-      return rows
-    } finally {
-      await this.sqlite.finalize(stmt)
     }
+    return rows
   }
 
-  async query(sql: string, param?: any[] | undefined): QueryReturn {
-    return { rows: await this.run(sql, param) }
-  }
-
-  async execute(sql: string, param?: any[] | undefined): ExecuteReturn {
-    const rows = await this.run(sql, param)
+  async info(): InfoReturn {
     return {
-      rows,
       insertId: await new Promise<bigint>(resolve => this.sqlite.exec(
         this.db,
         'SELECT last_insert_rowid()',

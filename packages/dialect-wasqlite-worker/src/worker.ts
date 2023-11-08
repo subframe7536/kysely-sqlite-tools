@@ -7,7 +7,7 @@ let db: SQLiteDB
 
 async function init({ fileName, preferOPFS, url }: InitMsg) {
   let storage
-  if (isOpfsSupported() && preferOPFS) {
+  if (await isOpfsSupported() && preferOPFS) {
     storage = (await import('@subframe7536/sqlite-wasm/opfs')).useOpfsStorage(fileName, { url })
   } else {
     storage = (await import('@subframe7536/sqlite-wasm/idb')).useIdbStorage(fileName, { url })
@@ -17,12 +17,13 @@ async function init({ fileName, preferOPFS, url }: InitMsg) {
 }
 async function exec({ isSelect, sql, parameters }: RunMsg): Promise<QueryResult<any>> {
   const rows = await db.run(sql, parameters)
-  if (isSelect) {
-    return { rows }
-  }
-  const insertId = BigInt(await db.lastInsertRowId())
-  const numAffectedRows = BigInt(db.changes())
-  return { rows, insertId, numAffectedRows }
+  return isSelect || rows.length
+    ? { rows }
+    : {
+        rows,
+        insertId: BigInt(await db.lastInsertRowId()),
+        numAffectedRows: BigInt(db.changes()),
+      }
 }
 onmessage = async (ev: MessageEvent<MainMsg>) => {
   const data = ev.data

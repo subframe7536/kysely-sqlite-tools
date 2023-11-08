@@ -8,7 +8,7 @@ function run({ isSelect, sql, parameters }: RunMsg): QueryResult<any> {
   const stmt = db[cache ? 'query' : 'prepare'](sql)
   const rows = stmt.all(parameters as any)
 
-  if (isSelect) {
+  if (isSelect || rows.length) {
     return { rows }
   }
   return {
