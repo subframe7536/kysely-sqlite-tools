@@ -122,8 +122,8 @@ importers:
         version: 0.3.0
     devDependencies:
       '@subframe7536/sqlite-wasm':
-        specifier: ^0.1.1
-        version: 0.1.1
+        specifier: ^0.1.2
+        version: 0.1.2
 
   packages/plugin-serialize:
     dependencies:
@@ -876,6 +876,13 @@ packages:
     resolution: {integrity: sha512-VF0ZJ0r5ckWpDliINirmCGBusNKnrDD0zWQM9EXmSjOt33yEBhqS5/pTjFm0fGT3QWQkkiIFza8KXD8vhvsQbA==}
     dependencies:
       '@subframe7536/type-utils': 0.1.3
+    dev: false
+
+  /@subframe7536/sqlite-wasm@0.1.2:
+    resolution: {integrity: sha512-csgkRNTYKMhPdjwf3Ic6J0il+Akesak8ElUPMa3JzSZ3mfjL7cOx51gtDHVq5y/tAt1ZfA5cyIkuQq5/buUx7w==}
+    dependencies:
+      '@subframe7536/type-utils': 0.1.3
+    dev: true
 
   /@subframe7536/type-utils@0.1.3:
     resolution: {integrity: sha512-8a8NjrtSUXh6UXA6TVgCBzjLXWlOD5y2Q43tVaf58Nhqq5HhAHUsFFvk6ONsMMoDbu5FKSPPXW7634CJhfsLNg==}

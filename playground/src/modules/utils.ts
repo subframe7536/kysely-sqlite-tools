@@ -25,15 +25,19 @@ export async function testDB(dialect: Dialect) {
 
   for (let i = 0; i < 10; i++) {
     await db.transaction(async () => {
-      // await db.transaction(async (trx) => {
-      await db.execute(d => d
-        .insertInto('test')
-        .values({
-          name: `test at ${Date.now()}`,
-          blobtest: Uint8Array.from([2, 3, 4, 5, 6, 7, 8]),
-        }),
-      )
-      // })
+      await db.transaction(async () => {
+        if (i > 8) {
+          console.log('test rollback')
+          throw new Error('test rollback')
+        }
+        await db.execute(d => d
+          .insertInto('test')
+          .values({
+            name: `test at ${Date.now()}`,
+            blobtest: Uint8Array.from([2, 3, 4, 5, 6, 7, 8]),
+          }),
+        )
+      })
     })
   }
 

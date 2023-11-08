@@ -130,7 +130,7 @@ export class SqliteBuilder<DB extends Record<string, any>> {
   }
 
   private getDB() {
-    return this.trxCount ? this.trx! : this.kysely
+    return this.trx || this.kysely
   }
 
   private logError(e: unknown, errorMsg?: string) {
@@ -161,12 +161,11 @@ export class SqliteBuilder<DB extends Record<string, any>> {
       }
     }
     this.trxCount++
-    const _db = this.getDB()
-    const sp = await savePoint(_db, `sp_${this.trxCount}`)
-    this.logger?.debug(`run in savepoint:${this.trxCount}`)
+    const sp = await savePoint(this.trx, `sp_${this.trxCount}`)
+    this.logger?.debug(`run in savepoint: sp_${this.trxCount}`)
 
     try {
-      const result = await fn(_db as Transaction<DB>)
+      const result = await fn(this.trx)
       await sp.release()
       this.trxCount--
       return result

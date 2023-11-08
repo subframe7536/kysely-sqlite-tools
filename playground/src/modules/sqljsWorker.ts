@@ -10,18 +10,18 @@ const dialect = new SqlJsDialect({
       // locateFile: file => `https://sql.js.org/dist/${file}`,
       locateFile: () => WasmUrl,
     })
-    return new SQL.Database(await loadFile('sqlijsWorker'))
+    return new SQL.Database(await loadFile('sqljsWorker'))
   },
   onWrite: {
     func(data) {
       console.log(`[sqljs worker] write to indexeddb, length: ${data.length}`)
-      writeFile('sqlijsWorker', data)
+      writeFile('sqljsWorker', data)
     },
   },
 })
 onmessage = () => {
-  console.log('start sqljs test')
+  console.log('start sqljs worker test')
   testDB(dialect).then((data) => {
-    data?.forEach(e => console.log('[sqljs]', e))
+    data?.forEach(e => console.log('[sqljs Worker]', e))
   })
 }

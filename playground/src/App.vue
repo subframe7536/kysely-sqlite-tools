@@ -27,13 +27,15 @@ function testWaSqliteWorker() {
   useWaSqliteWorker()
 }
 async function deleteDatabase() {
-  const dbs = await window.indexedDB.databases()
-  dbs.forEach((db) => { window.indexedDB.deleteDatabase(db.name!) })
+  try {
+    const dbs = await window.indexedDB.databases()
+    dbs.forEach(db => window.indexedDB.deleteDatabase(db.name!))
+  } catch { }
 }
 async function clear() {
   // console.clear()
   await deleteFile('sqljs')
-  await deleteFile('sqlijsWorker')
+  await deleteFile('sqljsWorker')
   await deleteDatabase()
   const root = await navigator.storage?.getDirectory()
   try {
