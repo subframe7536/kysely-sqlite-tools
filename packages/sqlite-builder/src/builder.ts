@@ -240,11 +240,29 @@ export class SqliteBuilder<DB extends Record<string, any>> {
    * auto detect transaction, auto catch error
    */
   public async raw<O = unknown>(
+    rawSql: RawBuilder<O>,
+  ): Promise<QueryResult<O | unknown>>
+  public async raw<O = unknown>(
+    rawSql: string,
+    parameters?: unknown[]
+  ): Promise<QueryResult<O | unknown>>
+  public async raw<O = unknown>(
     rawSql: RawBuilder<O> | string,
+    parameters?: unknown[],
   ): Promise<QueryResult<O | unknown>> {
     return typeof rawSql === 'string'
-      ? await this.getDB().executeQuery(CompiledQuery.raw(rawSql))
+      ? await this.getDB().executeQuery(CompiledQuery.raw(rawSql, parameters))
       : await rawSql.execute(this.getDB())
+  }
+
+  /**
+   * optimize db file
+   * @param rebuild run `vacuum` instead of `pragma optimize`
+   * @see https://sqlite.org/pragma.html#pragma_optimize
+   * @see https://www.sqlite.org/lang_vacuum.html
+   */
+  public async optimize(rebuild?: boolean) {
+    await this.raw(rebuild ? 'vacuum' : 'pragma optimize')
   }
 
   /**
