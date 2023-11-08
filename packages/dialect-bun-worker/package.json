@@ -1,6 +1,6 @@
 {
   "name": "kysely-bun-worker",
-  "version": "0.4.7",
+  "version": "0.5.0",
   "description": "kysely dialect for bun:sqlite, running in worker",
   "author": {
     "name": "subframe7536",
