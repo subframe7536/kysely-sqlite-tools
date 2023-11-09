@@ -45,4 +45,4 @@ export type StatusResult =
   | { ready: true }
   | { ready: false; error: unknown }
 
-export type SyncTableFn = (db: Kysely<any>, logger?: DBLogger) => Promise<void>
+export type TablesUpdater = (db: Kysely<any>, logger?: DBLogger) => Promise<void>

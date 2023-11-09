@@ -2,7 +2,7 @@ import { SqliteDialect } from 'kysely'
 import Database from 'better-sqlite3'
 import { beforeEach, describe, expect, it } from 'vitest'
 import type { InferDatabase } from '../packages/sqlite-builder'
-import { SqliteBuilder, createAutoSyncSchemaFn, defineLiteral, defineObject, defineTable } from '../packages/sqlite-builder'
+import { SqliteBuilder, defineLiteral, defineObject, defineTable, useSchema } from '../packages/sqlite-builder/src'
 
 const testTable = defineTable({
   id: { type: 'increments' },
@@ -31,11 +31,11 @@ function getDatabase(debug = false) {
     onQuery: debug,
   })
 }
-describe('test auto sync table', async () => {
+describe('test sync table', async () => {
   let db: SqliteBuilder<any>
   beforeEach(async () => {
     db = getDatabase()
-    await db.syncSchema(createAutoSyncSchemaFn(baseTables, { log: false }))
+    await db.updateTableSchema(useSchema(baseTables, { log: false }))
   })
   it('should create new table', async () => {
     const foo = defineTable({
@@ -43,7 +43,7 @@ describe('test auto sync table', async () => {
       col2: { type: 'string' },
     })
 
-    await db.syncSchema(createAutoSyncSchemaFn({
+    await db.updateTableSchema(useSchema({
       ...baseTables,
       foo,
     }, { log: false }))
@@ -54,7 +54,7 @@ describe('test auto sync table', async () => {
     expect(_tables[1].name).toBe('test')
   })
   it('should drop old table', async () => {
-    await db.syncSchema(createAutoSyncSchemaFn({ }, { log: false }))
+    await db.updateTableSchema(useSchema({ }, { log: false }))
 
     const _tables = await db.kysely.introspection.getTables()
     expect(_tables.length).toBe(0)
@@ -73,7 +73,7 @@ describe('test auto sync table', async () => {
         timeTrigger: { create: true, update: true },
       },
     )
-    await db.syncSchema(createAutoSyncSchemaFn({ test: foo }, { log: false }))
+    await db.updateTableSchema(useSchema({ test: foo }, { log: false }))
     const [_tables] = await db.kysely.introspection.getTables()
     expect(_tables
       .columns
@@ -94,9 +94,9 @@ describe('test auto sync table', async () => {
 })
 describe('test builder', async () => {
   const db = getDatabase()
-  await db.syncSchema(createAutoSyncSchemaFn(baseTables))
+  await db.updateTableSchema(useSchema(baseTables))
   it('should insert', async () => {
-    // auto generate table
+    //  generate table
     console.log(await db.transaction((trx) => {
       trx.insertInto('test').values([{ gender: false }, { gender: true }]).execute()
       return trx.updateTable('test').set({ gender: true }).where('id', '=', 2).execute()

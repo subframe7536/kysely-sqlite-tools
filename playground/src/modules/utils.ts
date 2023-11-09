@@ -1,6 +1,6 @@
 import type { Dialect } from 'kysely'
 import type { InferDatabase } from 'kysely-sqlite-builder'
-import { SqliteBuilder, createAutoSyncSchemaFn, defineTable } from 'kysely-sqlite-builder'
+import { SqliteBuilder, defineTable, useSchema } from 'kysely-sqlite-builder'
 
 const tables = {
   test: defineTable({
@@ -17,7 +17,7 @@ export async function testDB(dialect: Dialect) {
     dialect,
     // onQuery: true,
   })
-  const result = await db.syncSchema(createAutoSyncSchemaFn(tables))
+  const result = await db.updateTableSchema(useSchema(tables))
   if (!result.ready) {
     throw result.error
   }

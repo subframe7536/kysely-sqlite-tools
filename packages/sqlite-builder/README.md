@@ -29,16 +29,11 @@ choose [NodeWasmDialect](../dialect-wasm/README.md#nodewasmdialect)
 
 ## example
 
-### define / initialze
+### define / initialize
 
 ```ts
-import {
-  SqliteBuilder,
-  createAutoSyncSchemaFn,
-  defineLiteral,
-  defineObject,
-  defineTable
-} from 'kysely-sqlite-builder'
+import { SqliteBuilder, defineLiteral, defineObject, defineTable, useMigrator, useSchema } from 'kysely-sqlite-builder'
+import { FileMigrationProvider } from 'kysely'
 
 // schemas for AutoSyncTables
 const testTable = defineTable({
@@ -69,10 +64,10 @@ const db = new SqliteBuilder<DB>({
 })
 
 // update tables using syncTable
-await db.updateTables(createAutoSyncTableFn(baseTables, { logger: false }))
+await db.updateTableSchema(useSchema(baseTables, { logger: false }))
 
 // update tables using MigrationProvider and migrate to latest
-await db.updateTables(createMigrateFn(new FileMigrationProvider(/**/)))
+await db.updateTableSchema(useMigrator(new FileMigrationProvider(/**/)))
 ```
 
 ### usage

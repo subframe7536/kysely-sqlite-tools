@@ -20,7 +20,7 @@ import type {
   DBLogger,
   SqliteBuilderOptions,
   StatusResult,
-  SyncTableFn,
+  TablesUpdater,
 } from './types'
 
 export class IntegrityError extends Error {
@@ -80,17 +80,17 @@ export class SqliteBuilder<DB extends Record<string, any>> {
 
   /**
    * sync db schema
-   * @param syncFn sync table function, built-in: {@link createAutoSyncSchemaFn}, {@link createMigrateFn}
+   * @param updater sync table function, built-in: {@link useSchema}, {@link useMigrator}
    * @param checkIntegrity whether to check integrity
    * @example
    * usage of `createAutoSyncSchemaFn`:
    * ```
    * import {
    *   SqliteBuilder,
-   *   createAutoSyncSchemaFn,
    *   defineLiteral,
    *   defineObject,
    *   defineTable
+   *   useSchema,
    * } from 'kysely-sqlite-builder'
    *
    * const testTable = defineTable({
@@ -105,19 +105,19 @@ export class SqliteBuilder<DB extends Record<string, any>> {
    *   index: ['person', ['id', 'gender']],
    *   timeTrigger: { create: true, update: true },
    * })
-   * await db.syncSchema(createAutoSyncSchemaFn(
+   * await db.updateTableSchema(useSchema(
    *   { test: testTable },
    *   { log: false }
    * ))
    * ```
    */
-  public async syncSchema(syncFn: SyncTableFn, checkIntegrity?: boolean): Promise<StatusResult> {
+  public async updateTableSchema(updater: TablesUpdater, checkIntegrity?: boolean): Promise<StatusResult> {
     try {
       if (checkIntegrity && !(await runCheckIntegrity(this.kysely))) {
         this.logger?.error('integrity check fail')
         return { ready: false, error: new IntegrityError() }
       }
-      await syncFn(this.kysely, this.logger)
+      await updater(this.kysely, this.logger)
     } catch (error) {
       this.logError(error, 'sync table fail')
       return {
