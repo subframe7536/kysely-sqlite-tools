@@ -1,7 +1,8 @@
 import { type Kysely, sql } from 'kysely'
 import { getOrSetDBVersion } from 'kysely-sqlite-utils'
+import type { Promisable } from '@subframe7536/type-utils'
 import type { DBLogger } from '../types'
-import type { Columns, Schema, Table } from './types'
+import type { Columns, InferDatabase, Schema, Table } from './types'
 import {
   parseColumnType,
   runCreateTable,
@@ -44,6 +45,11 @@ export type SyncOptions<T extends Schema> = {
    * reserve old data in temp, clear after destroy
    */
   reserveOldData?: boolean
+  /**
+   * after update hook
+   * @param db kysely instance
+   */
+  afterUpdate?: (db: Kysely<InferDatabase<T>>) => Promisable<void>
 }
 
 export async function syncTables<T extends Schema>(
@@ -58,6 +64,7 @@ export async function syncTables<T extends Schema>(
     log,
     version: { current, skipSyncWhenSame } = {},
     excludeTablePrefix,
+    afterUpdate,
   } = options
 
   if (current) {
@@ -69,7 +76,7 @@ export async function syncTables<T extends Schema>(
 
   const debug = (e: any) => log && logger?.debug(e)
   const { existTables, indexList, triggerList } = await parseExistDB(db, excludeTablePrefix)
-  debug('====== sync tables start ======')
+  debug('====== update tables start ======')
 
   const truncateTableSet = new Set(
     Array.isArray(truncateIfExists)
@@ -102,7 +109,10 @@ export async function syncTables<T extends Schema>(
       await runCreateTableWithIndexAndTrigger(db, targetTableName, targetTable)
     }
   }
-  debug('======= sync tables end =======')
+  debug('======= after update hook =======')
+  await afterUpdate?.(db)
+
+  debug('======= update tables end =======')
 
   async function diffTable(
     tableName: string,
