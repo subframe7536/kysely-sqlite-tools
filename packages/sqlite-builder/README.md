@@ -120,37 +120,11 @@ const result = await db.executeCompiledTakeList(
 
 ### utils
 
-```ts
-// util for `KyselyConfig.log`
-function createKyselyLogger(options: LoggerOptions): (event: LogEvent) => void
-
-// create savepoint, release or rollback it later
-function savePoint(db: Kysely<any> | Transaction<any>, name?: string): Promise<SavePoint>
-
-// check integrity_check pragma
-function checkIntegrity(db: Kysely<any>): Promise<boolean>
-
-// get or set user_version pragma
-function getOrSetDBVersion(db: Kysely<any>, version?: number): Promise<number>
-
-// call optimize pragma
-function optimzePragma(conn: DatabaseConnection, options?: OptimizePragmaOptions): Promise<void>
-
-// create precompiled query
-function precompileQuery<O>(
-  queryBuilder: QueryBuilderOutput<Compilable<O>>,
-  serializer?: (value: unknown) => unknown
-): {
-  setParam: <T extends Record<string, any>>(
-    paramBuilder: ({ param, qb }: SetParam<O, T>) => Compilable<O>
-  ) => CompileFn<O, T>
-}
-```
+see [sqlite-utils](../sqlite-utils/)
 
 ## credit
 
 - [trilogy](https://github.com/haltcase/trilogy)
-- [kysely-params](https://github.com/jtlapp/kysely-params)
 
 ## license
 MIT
