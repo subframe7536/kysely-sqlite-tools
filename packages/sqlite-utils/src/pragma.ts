@@ -14,6 +14,13 @@ export async function checkIntegrity(db: Kysely<any>): Promise<boolean> {
 }
 
 /**
+ * control whether to enable foreign keys
+ */
+export async function foreignKeys(db: Kysely<any>, enable: boolean): Promise<void> {
+  await sql`PRAGMA foreign_keys = ${sql.raw(`${enable}`)}`.execute(db)
+}
+
+/**
  * get or set user_version pragma
  */
 export async function getOrSetDBVersion(

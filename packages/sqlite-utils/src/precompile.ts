@@ -2,7 +2,7 @@ import type { Compilable, CompiledQuery, RootOperationNode } from 'kysely'
 
 export type QueryBuilderOutput<QB> = QB extends Compilable<infer O> ? O : never
 
-type SetParam<O, T extends Record<string, any>> = {
+export type SetParamFn<O, T extends Record<string, any>> = {
   /**
    * query builder for setup params
    */
@@ -17,7 +17,7 @@ type SetParam<O, T extends Record<string, any>> = {
  * @param processRootOperatorNode process `query` in {@link CompiledQuery},
  * default is `(node) => ({ kind: node.kind })`
  */
-type CompileFn<O, T extends Record<string, any>> = (
+export type CompileFn<O, T extends Record<string, any>> = (
   param: T,
   processRootOperatorNode?: ((node: RootOperationNode) => RootOperationNode)
 ) => CompiledQuery<QueryBuilderOutput<O>>
@@ -57,7 +57,7 @@ export function precompileQuery<O>(
      * @returns function to {@link CompileFn compile}
      */
     setParam: <T extends Record<string, any>>(
-      paramBuilder: ({ param, qb }: SetParam<O, T>) => Compilable<O>,
+      paramBuilder: ({ param, qb }: SetParamFn<O, T>) => Compilable<O>,
     ): CompileFn<O, T> => {
       let compiled: CompiledQuery<Compilable<O>>
       return (param, processRootOperatorNode) => {
