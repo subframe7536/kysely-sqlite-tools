@@ -3,9 +3,9 @@ import type { QueryResult } from 'kysely'
 import type { MainMsg, RunMsg, WorkerMsg } from './type'
 
 let db: Database
-let cache: boolean | undefined
+let fn: 'query' | 'prepare'
 function run({ isSelect, sql, parameters }: RunMsg): QueryResult<any> {
-  const stmt = db[cache ? 'query' : 'prepare'](sql)
+  const stmt = db[fn](sql)
   const rows = stmt.all(parameters as any)
 
   if (isSelect || rows.length) {
@@ -37,7 +37,7 @@ onmessage = ({ data }: MessageEvent<MainMsg>) => {
         break
       case 'init':
         db = new Database(data.url, { create: true })
-        cache = data.cache
+        fn = data.cache ? 'prepare' : 'query'
         break
     }
   } catch (error) {
