@@ -1,7 +1,8 @@
 import { SqliteDialect } from 'kysely'
 import Database from 'better-sqlite3'
 import { beforeEach, describe, expect, it } from 'vitest'
-import type { InferDatabase } from '../packages/sqlite-builder'
+import { getOrSetDBVersion, optimizePragma } from '../packages/sqlite-utils/src'
+import type { InferDatabase } from '../packages/sqlite-builder/src'
 import { SqliteBuilder, defineLiteral, defineObject, defineTable, useSchema } from '../packages/sqlite-builder/src'
 
 const testTable = defineTable({
@@ -26,6 +27,9 @@ function getDatabase(debug = false) {
   return new SqliteBuilder<DB>({
     dialect: new SqliteDialect({
       database: new Database(':memory:'),
+      async onCreateConnection(connection) {
+        await optimizePragma(connection)
+      },
     }),
     logger: debug ? console : undefined,
     onQuery: debug,
@@ -94,12 +98,13 @@ describe('test sync table', async () => {
 })
 describe('test builder', async () => {
   const db = getDatabase()
+  await getOrSetDBVersion(db.kysely, 2)
   await db.updateTableSchema(useSchema(baseTables))
   it('should insert', async () => {
     //  generate table
-    console.log(await db.transaction((trx) => {
-      trx.insertInto('test').values([{ gender: false }, { gender: true }]).execute()
-      return trx.updateTable('test').set({ gender: true }).where('id', '=', 2).execute()
+    console.log(await db.transaction(async () => {
+      await db.execute(d => d.insertInto('test').values([{ gender: false }, { gender: true }]))
+      return db.execute(d => d.updateTable('test').set({ gender: true }).where('id', '=', 2).returningAll())
     }))
     const result = await db.execute(d => d.selectFrom('test').selectAll())
     expect(result).toBeInstanceOf(Array)
@@ -146,9 +151,9 @@ describe('test builder', async () => {
 
     console.log('   compiled:', `${(performance.now() - start2).toFixed(2)}ms`)
 
-    const result = await db.executeCompiledTakeList(insert({ gender: true }))
-    expect(result).toStrictEqual([])
-    const result2 = await db.executeCompiledTakeList(update({ gender: false }))
-    expect(result2).toStrictEqual([])
+    const result = await db.execute(insert({ gender: true }))
+    expect(result.rows).toStrictEqual([])
+    const result2 = await db.execute(update({ gender: false }))
+    expect(result2.rows).toStrictEqual([])
   })
 })

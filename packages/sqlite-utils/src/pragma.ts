@@ -1,11 +1,11 @@
-import { CompiledQuery, sql } from 'kysely'
-import type { DatabaseConnection, Kysely } from 'kysely'
+import { CompiledQuery } from 'kysely'
+import type { DatabaseConnection, Kysely, Transaction } from 'kysely'
 
 /**
- * check integrity_check pragma
+ * check integrity_check pragma, **no param check**
  */
 export async function checkIntegrity(db: Kysely<any>): Promise<boolean> {
-  const { rows } = await sql`PRAGMA integrity_check`.execute(db)
+  const { rows } = await db.executeQuery(CompiledQuery.raw('PRAGMA integrity_check'))
   if (!rows.length) {
     throw new Error('fail to check integrity')
   }
@@ -14,24 +14,24 @@ export async function checkIntegrity(db: Kysely<any>): Promise<boolean> {
 }
 
 /**
- * control whether to enable foreign keys
+ * control whether to enable foreign keys, **no param check**
  */
 export async function foreignKeys(db: Kysely<any>, enable: boolean): Promise<void> {
-  await sql`PRAGMA foreign_keys = ${sql.raw(`${enable}`)}`.execute(db)
+  await db.executeQuery(CompiledQuery.raw(`PRAGMA foreign_keys = ${enable}`))
 }
 
 /**
- * get or set user_version pragma
+ * get or set user_version pragma, **no param check**
  */
 export async function getOrSetDBVersion(
   db: Kysely<any>,
   version?: number,
 ): Promise<number> {
   if (version) {
-    await sql`PRAGMA user_version = ${sql.raw(`${version}`)}`.execute(db)
+    await db.executeQuery(CompiledQuery.raw(`PRAGMA user_version = ${version}`))
     return version
   }
-  const { rows } = await sql`PRAGMA user_version`.execute(db)
+  const { rows } = await db.executeQuery(CompiledQuery.raw('PRAGMA user_version'))
   if (!rows.length) {
     throw new Error('fail to get DBVersion')
   }
@@ -50,26 +50,27 @@ export type OptimizePragmaOptions = {
    * @default 4096
    * @see https://sqlite.org/pragma.html#pragma_cache_size
    */
-  cacheSize?: number
+  cache_size?: number
   /**
    * @default 32768
    * @see https://sqlite.org/pragma.html#pragma_page_size
    */
-  pageSize?: number
+  page_size?: number
   /**
+   * @default -1 (default value)
    * @see https://sqlite.org/pragma.html#pragma_mmap_size
    */
-  mmapSize?: number
+  mmap_size?: number
   /**
    * @default 'WAL'
    * @see https://sqlite.org/pragma.html#pragma_journal_mode
    */
-  journalMode?: PragmaJournalMode
+  journal_mode?: PragmaJournalMode
   /**
    * @default 'MEMORY'
    * @see https://sqlite.org/pragma.html#pragma_temp_store
    */
-  tempStore?: PragmaTempStore
+  temp_store?: PragmaTempStore
   /**
    * @default 'NORMAL'
    * @see https://sqlite.org/pragma.html#pragma_synchronous
@@ -78,33 +79,24 @@ export type OptimizePragmaOptions = {
 }
 
 /**
- * call optimize pragma
- * @param conn database connection
+ * call optimize pragma, **no param check**
+ * @param db database connection
  * @param options pragma options, {@link OptimizePragmaOptions details}
  */
-export async function optimzePragma(
-  conn: DatabaseConnection,
+export async function optimizePragma(
+  db: DatabaseConnection | Kysely<any> | Transaction<any>,
   options: OptimizePragmaOptions = {},
-): Promise<void> {
-  const {
-    cacheSize = 4096,
-    pageSize = 32768,
-    mmapSize,
-    journalMode = 'WAL',
-    tempStore = 'MEMORY',
-    synchronous = 'NORMAL',
-  } = options
-  const exec = (
-    pragma: string,
-    data: string | number,
-  ) => conn.executeQuery(CompiledQuery.raw(
-    `PRAGMA ? = ?`,
-    [pragma, data],
-  ))
-  await exec('journal_mode', journalMode)
-  await exec('synchronous', synchronous)
-  await exec('temp_store', tempStore)
-  await exec('cache_size', cacheSize)
-  await exec('page_size', pageSize)
-  mmapSize && await exec('mmap_size', mmapSize)
+) {
+  const entries = Object.entries({
+    mmap_size: -1,
+    cache_size: 4096,
+    page_size: 32768,
+    journal_mode: 'WAL',
+    temp_store: 'MEMORY',
+    synchronous: 'NORMAL',
+    ...options,
+  })
+  for (const [pragma, value] of entries) {
+    await db.executeQuery(CompiledQuery.raw(`PRAGMA ${pragma} = ${value}`))
+  }
 }
