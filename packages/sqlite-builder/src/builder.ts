@@ -181,9 +181,17 @@ export class SqliteBuilder<DB extends Record<string, any>> {
    * auto detect transaction, auto catch error
    */
   public async execute<O>(
+    query: CompiledQuery<O>,
+  ): Promise<QueryResult<O>>
+  public async execute<O>(
     fn: (db: Kysely<DB> | Transaction<DB>) => AvailableBuilder<DB, O>,
-  ): Promise<Simplify<O>[] | undefined> {
-    return await fn(this.getDB()).execute()
+  ): Promise<Simplify<O>[] | undefined>
+  public async execute<O>(
+    data: CompiledQuery<O> | ((db: Kysely<DB> | Transaction<DB>) => AvailableBuilder<DB, O>),
+  ): Promise<QueryResult<O> | Simplify<O>[] | undefined> {
+    return typeof data === 'function'
+      ? await data(this.getDB()).execute()
+      : await this.getDB().executeQuery(data)
   }
 
   /**
@@ -212,26 +220,6 @@ export class SqliteBuilder<DB extends Record<string, any>> {
   ): ReturnType<typeof precompileQuery<O>> {
     this.logger?.debug?.('precompile')
     return precompileQuery(queryBuilder(this.kysely), this.serializer)
-  }
-
-  /**
-   * exec compiled query, return result,
-   * auto detect transaction, auto catch error
-   */
-  public async executeCompiled<O>(
-    query: CompiledQuery<O>,
-  ): Promise<QueryResult<O>> {
-    return await this.getDB().executeQuery(query)
-  }
-
-  /**
-   * run {@link execCompiled} and get its rows,
-   * auto detect transaction, auto catch error
-   */
-  public async executeCompiledTakeList<O>(
-    query: CompiledQuery<O>,
-  ): Promise<O[]> {
-    return (await this.executeCompiled(query)).rows
   }
 
   /**
