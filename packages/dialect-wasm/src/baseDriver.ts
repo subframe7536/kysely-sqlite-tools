@@ -1,5 +1,5 @@
 import type { DatabaseConnection, Driver, QueryResult } from 'kysely'
-import { CompiledQuery } from 'kysely'
+import { CompiledQuery, SelectQueryNode } from 'kysely'
 
 export interface BaseDB {
   close: () => void
@@ -72,7 +72,7 @@ export abstract class BaseSqliteConnection implements DatabaseConnection {
 
   async executeQuery<R>({ parameters, query, sql }: CompiledQuery<unknown>): Promise<QueryResult<R>> {
     const rows = await this.query(sql, parameters as any[])
-    return query.kind === 'SelectQueryNode' || rows.length
+    return SelectQueryNode.is(query) || rows.length
       ? { rows }
       : {
           rows,

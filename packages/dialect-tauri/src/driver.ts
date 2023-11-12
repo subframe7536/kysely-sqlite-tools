@@ -1,5 +1,5 @@
 import type { DatabaseConnection, QueryResult } from 'kysely'
-import { CompiledQuery } from 'kysely'
+import { CompiledQuery, SelectQueryNode } from 'kysely'
 import type { TauriSqlDB } from './type'
 import type { TauriSqlDialectConfig } from '.'
 
@@ -84,7 +84,7 @@ class TauriSqlConnection implements DatabaseConnection {
 
   async executeQuery<R>({ parameters, query, sql }: CompiledQuery<unknown>): Promise<QueryResult<R>> {
     const rows = await this.db.select<any[]>(sql, parameters)
-    if (query.kind === 'SelectQueryNode' || rows.length) {
+    if (SelectQueryNode.is(query) || rows.length) {
       return { rows }
     }
     const { lastInsertId, rowsAffected } = await this.db.execute('select 1')

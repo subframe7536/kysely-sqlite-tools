@@ -1,5 +1,5 @@
 import type { DatabaseConnection, Driver, QueryResult } from 'kysely'
-import { CompiledQuery } from 'kysely'
+import { CompiledQuery, SelectQueryNode } from 'kysely'
 import type { Emitter } from 'zen-mitt'
 import { mitt } from 'zen-mitt'
 import type { EventWithError, MainMsg, WorkerMsg } from './type'
@@ -119,7 +119,7 @@ class WaSqliteWorkerConnection implements DatabaseConnection {
 
   async executeQuery<R>(compiledQuery: CompiledQuery<unknown>): Promise<QueryResult<R>> {
     const { parameters, sql, query } = compiledQuery
-    const isSelect = query.kind === 'SelectQueryNode'
+    const isSelect = SelectQueryNode.is(query)
     this.worker.postMessage({ type: 'run', isSelect, sql, parameters } satisfies MainMsg)
     return new Promise((resolve, reject) => {
       !this.mitt && reject('kysely instance has been destroyed')

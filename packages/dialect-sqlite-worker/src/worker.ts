@@ -18,7 +18,7 @@ parentPort.on('message', (msg: MainMsg) => {
   try {
     if (msg.type === 'close') {
       db.close()
-      parentPort?.postMessage(ret)
+      parentPort!.postMessage(ret)
       return
     }
     const { sql, parameters } = msg
@@ -30,13 +30,13 @@ parentPort.on('message', (msg: MainMsg) => {
     } else {
       const { changes, lastInsertRowid } = stmt.run(parameters)
       ret.data = {
+        rows: [],
         numAffectedRows: BigInt(changes),
         insertId: BigInt(lastInsertRowid),
-        rows: [],
       }
     }
   } catch (error) {
     ret.err = error
   }
-  parentPort?.postMessage(ret)
+  parentPort!.postMessage(ret)
 })
