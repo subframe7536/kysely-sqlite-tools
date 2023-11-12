@@ -3,6 +3,7 @@ import { SqliteAdapter, SqliteIntrospector, SqliteQueryCompiler } from 'kysely'
 import { WaSqliteWorkerDriver } from './driver'
 import type { Promisable } from './type'
 
+export { isIdbSupported as isSupported } from '@subframe7536/sqlite-wasm'
 export interface WaSqliteWorkerDialectConfig {
   /**
    * db file name

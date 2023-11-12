@@ -56,7 +56,8 @@ export default defineConfig({
 
 ## limitation
 
-only worked in secure environment, like:
-
-- localhost
-- https
+- [minimal IndexedDB backend browser version](https://caniuse.com/mdn-api_lockmanager)
+- [minimal OPFS backend browser version](https://caniuse.com/mdn-api_filesystemsyncaccesshandle)
+- only worked in secure environment, like:
+  - localhost
+  - https

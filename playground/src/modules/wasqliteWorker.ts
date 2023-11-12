@@ -1,4 +1,4 @@
-import { WaSqliteWorkerDialect } from 'kysely-wasqlite-worker'
+import { WaSqliteWorkerDialect, isSupported } from 'kysely-wasqlite-worker'
 
 // import Worker from 'kysely-wasqlite-worker/dist/worker?worker'
 // import url from 'kysely-wasqlite-worker/dist/wa-sqlite-async.wasm?url'
@@ -13,7 +13,12 @@ const dialect = new WaSqliteWorkerDialect({
 
 export function useWaSqliteWorker() {
   console.log('start wa-sqlite-worker test')
-  testDB(dialect).then((data) => {
-    data?.forEach(e => console.log('[wa-sqlite-worker]', e))
-  })
+  if (!isSupported()) {
+    console.error('[wa-sqlite-worker]: unsupported browser')
+    return
+  }
+  testDB(dialect)
+    .then((data) => {
+      data?.forEach(e => console.log('[wa-sqlite-worker]', e))
+    })
 }

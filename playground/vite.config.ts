@@ -5,7 +5,7 @@ export default defineConfig({
   plugins: [vue()],
   base: './',
   build: {
-    minify: true,
+    minify: false,
     target: 'es2020',
     rollupOptions: {
       treeshake: true,

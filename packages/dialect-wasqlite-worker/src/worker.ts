@@ -6,14 +6,16 @@ import type { InitMsg, MainMsg, RunMsg, WorkerMsg } from './type'
 let db: SQLiteDB
 
 async function init({ fileName, preferOPFS, url }: InitMsg) {
-  let storage
-  if (await isOpfsSupported() && preferOPFS) {
-    storage = (await import('@subframe7536/sqlite-wasm/opfs')).useOpfsStorage(fileName, { url })
-  } else {
-    storage = (await import('@subframe7536/sqlite-wasm/idb')).useIdbStorage(fileName, { url })
-  }
-
-  db = await initSQLite(storage)
+  db = await initSQLite(
+    (
+      await isOpfsSupported() && preferOPFS
+        ? (await import('@subframe7536/sqlite-wasm/opfs')).useOpfsStorage
+        : (await import('@subframe7536/sqlite-wasm/idb')).useIdbStorage
+    )(
+      fileName,
+      { url },
+    ),
+  )
 }
 async function exec({ isSelect, sql, parameters }: RunMsg): Promise<QueryResult<any>> {
   const rows = await db.run(sql, parameters)
