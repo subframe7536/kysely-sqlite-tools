@@ -3,43 +3,66 @@ import { SqliteAdapter, SqliteIntrospector, SqliteQueryCompiler } from 'kysely'
 import { WaSqliteWorkerDriver } from './driver'
 import type { Promisable } from './type'
 
-export { isIdbSupported as isSupported } from '@subframe7536/sqlite-wasm'
 export interface WaSqliteWorkerDialectConfig {
   /**
    * db file name
    */
   fileName: string
   /**
-   * the URL of `wa-sqlite` WASM
-   * @example
-   * ```ts
-   * // vite
-   * import url from 'kysely-wasqlite-worker/dist/wa-sqlite-async.wasm?url'
-   * ```
-   */
-  url?: string
-  /**
-   * worker for executing sql
-   * @example
-   * ```ts
-   * // vite
-   * import Worker from 'kysely-wasqlite-worker/dist/worker?worker'
-   * ```
-   */
-  worker?: Worker
-  /**
-   * prefer to use OPFS, fallback to IndexedDB
+   * prefer to store data in OPFS
+   * @default true
    */
   preferOPFS?: boolean
+  /**
+   * wasqlite worker
+   *
+   * built-in: {@link useDefaultWorker}
+   * @param supportModuleWorker if support `{ type: 'module' }` in worker options
+   * @example
+   * import { useDefaultWorker } from 'kysely-wasqlite-worker'
+   * @example
+   * (supportModuleWorker) => supportModuleWorker
+   *   ? new Worker(
+   *       new URL('kysely-wasqlite-worker/worker-module', import.meta.url),
+   *       { type: 'module', credentials: 'same-origin' }
+   *     )
+   *   : new Worker(
+   *       new URL('kysely-wasqlite-worker/worker-classic', import.meta.url),
+   *       { type: 'classic', name: 'test' }
+   *     )
+   */
+  worker?: Worker | ((supportModuleWorker: boolean) => Worker)
+  /**
+   * wasm URL
+   *
+   * built-in: {@link useDefaultWasmURL}
+   * @param useAsyncWasm if need to use wa-sqlite-async.wasm
+   * @example
+   * import { useDefaultWasmURL } from 'kysely-wasqlite-worker'
+   * @example
+   * (useAsyncWasm) => useAsyncWasm
+   *   ? 'https://cdn.jsdelivr.net/gh/rhashimoto/wa-sqlite@v0.9.9/dist/wa-sqlite-async.wasm'
+   *   : new URL('kysely-wasqlite-worker/wasm-sync', import.meta.url).href
+   */
+  url?: string | ((useAsyncWasm: boolean) => string)
   onCreateConnection?: (connection: DatabaseConnection) => Promisable<void>
 }
+export { isIdbSupported, isOpfsSupported, isModuleWorkerSupport } from '@subframe7536/sqlite-wasm'
+
 export class WaSqliteWorkerDialect implements Dialect {
   readonly #config: WaSqliteWorkerDialectConfig
 
   /**
-   * dialect for [wa-sqlite](https://github.com/rhashimoto/wa-sqlite)
+   * dialect for [`wa-sqlite`](https://github.com/rhashimoto/wa-sqlite),
+   * execute sql in `Web Worker`,
+   * store data in [OPFS](https://developer.mozilla.org/en-US/docs/Web/API/File_System_API/Origin_private_file_system) or IndexedDB
    *
-   * execute sql in `Web Worker`, store data in IndexedDB
+   * @example
+   * import { WaSqliteWorkerDialect } from 'kysely-wasqlite-worker'
+   *
+   * const dialect = new WaSqliteWorkerDialect({
+   *   fileName: 'test',
+   * })
    */
   constructor(config: WaSqliteWorkerDialectConfig) {
     this.#config = config

@@ -11,9 +11,9 @@ export type RunMsg = {
 
 export type InitMsg = {
   type: 'init'
-  url?: string
+  url: string
   fileName: string
-  preferOPFS?: boolean
+  useOPFS: boolean
 }
 
 export type MainMsg =

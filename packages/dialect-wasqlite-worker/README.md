@@ -12,36 +12,66 @@ pnpm add kysely kysely-wasqlite-worker
 
 ```ts
 export interface WaSqliteWorkerDialectConfig {
-  dbName: string
   /**
-   * the URL of wa-sqlite WASM
-   * @example
-   * ```ts
-   * // vite
-   * import url from 'kysely-wasqlite-worker/dist/wa-sqlite-async.wasm?url'
-   * ```
+   * db file name
    */
-  url?: string
+  fileName: string
   /**
-   * worker for executing sql
-   * @example
-   * ```ts
-   * // vite
-   * import Worker from 'kysely-wasqlite-worker/dist/worker?worker'
-   * ```
-   */
-  worker?: Worker
-  /**
-   * prefer to store in OPFS, fallback to IndexedDB
+   * prefer to store data in OPFS
    */
   preferOPFS?: boolean
-  onCreateConnection?: (connection: DatabaseConnection) => Promise<void>
+  /**
+   * wasqlite worker
+   *
+   * built-in: {@link useDefaultWorker}
+   * @param supportModuleWorker if support { type: 'module' } in worker options
+   * @example
+   * import { useDefaultWorker } from 'kysely-wasqlite-worker'
+   * @example
+   * (support) => support
+   *   ? new Worker(
+   *       new URL('kysely-wasqlite-worker/worker-module', import.meta.url),
+   *       { type: 'module', credentials: 'same-origin' }
+   *     )
+   *   : new Worker(
+   *       new URL('kysely-wasqlite-worker/worker-classic', import.meta.url),
+   *       { type: 'classic', name: 'test' }
+   *     )
+   */
+  worker: Worker | ((supportModuleWorker: boolean) => Worker)
+  /**
+   * wasm URL
+   *
+   * built-in: {@link useDefaultWasmURL}
+   * @param useAsyncWasm if need to use wa-sqlite-async.wasm
+   * @example
+   * import { useDefaultWasmURL } from 'kysely-wasqlite-worker'
+   * @example
+   * (useAsync) => useAsync
+   *   ? 'https://cdn.jsdelivr.net/gh/rhashimoto/wa-sqlite@v0.9.9/dist/wa-sqlite-async.wasm'
+   *   : new URL('kysely-wasqlite-worker/wasm-sync', import.meta.url).href
+   */
+  url: string | ((useAsyncWasm: boolean) => string)
+  onCreateConnection?: (connection: DatabaseConnection) => Promisable<void>
 }
 ```
 
 ## usage
 
-see in [playground](../../playground/src/modules/wasqliteWorker.ts)
+```ts
+import {
+  WaSqliteWorkerDialect,
+  generateDialectOptions,
+  useDefaultWasmURL,
+  useDefaultWorker
+} from 'kysely-wasqlite-worker'
+
+const dialect = new WaSqliteWorkerDialect({
+  fileName: 'test',
+})
+```
+
+see more in [playground](../../playground/src/modules/wasqliteWorker.ts)
 
 if throw error when using `Vite` to build, add worker config
 

@@ -33,7 +33,7 @@ async function deleteDatabase() {
   } catch { }
 }
 async function clear() {
-  // console.clear()
+  console.clear()
   await deleteFile('sqljs')
   await deleteFile('sqljsWorker')
   await deleteDatabase()
@@ -45,9 +45,8 @@ async function clear() {
     await root.removeEntry('test.db-journal')
   } catch { }
   try {
-    await root.removeEntry('wa-sqlite-worker-test',{recursive:true})
+    await root.removeEntry('wa-sqlite-worker-test', { recursive:true })
   } catch { }
-  console.log('clear all')
 }
 </script>
 

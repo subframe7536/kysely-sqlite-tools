@@ -41,5 +41,9 @@ export async function testDB(dialect: Dialect) {
     })
   }
 
-  return db.execute(db => db.selectFrom('test').selectAll())
+  return db.execute(db => db.selectFrom('test').selectAll()).then(async (data) => {
+    await db.destroy()
+    console.log(data)
+    return data
+  })
 }

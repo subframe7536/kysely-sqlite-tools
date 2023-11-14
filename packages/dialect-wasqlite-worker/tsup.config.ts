@@ -21,8 +21,15 @@ export default defineConfig([
     format: ['cjs', 'esm'],
     dts: true,
     treeshake: true,
-    minify: true,
     plugins: [
+      {
+        name: 'classic worker',
+        renderChunk(code) {
+          if (this.format === 'cjs') {
+            return { code: code.replaceAll('import.meta.url', 'self.location.href') }
+          }
+        },
+      },
       {
         name: 'copy',
         buildEnd(this) {

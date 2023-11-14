@@ -1,14 +1,14 @@
 import type { SQLiteDB } from '@subframe7536/sqlite-wasm'
-import { initSQLite, isOpfsSupported } from '@subframe7536/sqlite-wasm'
+import { initSQLite } from '@subframe7536/sqlite-wasm'
 import type { QueryResult } from 'kysely'
 import type { InitMsg, MainMsg, RunMsg, WorkerMsg } from './type'
 
 let db: SQLiteDB
 
-async function init({ fileName, preferOPFS, url }: InitMsg) {
+async function init({ fileName, useOPFS, url }: InitMsg) {
   db = await initSQLite(
     (
-      await isOpfsSupported() && preferOPFS
+      useOPFS
         ? (await import('@subframe7536/sqlite-wasm/opfs')).useOpfsStorage
         : (await import('@subframe7536/sqlite-wasm/idb')).useIdbStorage
     )(

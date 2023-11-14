@@ -2,7 +2,9 @@ import type { DatabaseConnection, Driver, QueryResult } from 'kysely'
 import { CompiledQuery, SelectQueryNode } from 'kysely'
 import type { Emitter } from 'zen-mitt'
 import { mitt } from 'zen-mitt'
+import { isModuleWorkerSupport, isOpfsSupported } from '@subframe7536/sqlite-wasm'
 import type { EventWithError, MainMsg, WorkerMsg } from './type'
+import { defaultWasmURL, defaultWorker, parseObject } from './utils'
 import type { WaSqliteWorkerDialectConfig } from '.'
 
 export class WaSqliteWorkerDriver implements Driver {
@@ -16,8 +18,8 @@ export class WaSqliteWorkerDriver implements Driver {
   }
 
   async init(): Promise<void> {
-    this.worker = this.config.worker
-      ?? new Worker(new URL('./worker', import.meta.url), { type: 'module' })
+    const useOPFS = (this.config.preferOPFS ?? true) ? await isOpfsSupported() : false
+    this.worker = parseObject(this.config.worker || defaultWorker, useOPFS || isModuleWorkerSupport())
     this.mitt = mitt<EventWithError>()
     this.worker.onmessage = ({ data: { type, ...msg } }: MessageEvent<WorkerMsg>) => {
       this.mitt?.emit(type, msg)
@@ -25,8 +27,9 @@ export class WaSqliteWorkerDriver implements Driver {
     this.worker.postMessage({
       type: 'init',
       fileName: this.config.fileName,
-      url: this.config.url,
-      preferOPFS: this.config.preferOPFS,
+      // if use OPFS, wasm should use sync version
+      url: parseObject(this.config.url || defaultWasmURL, !useOPFS),
+      useOPFS,
     } satisfies MainMsg)
     await new Promise<void>((resolve, reject) => {
       this.mitt?.once('init', ({ err }) => {
