@@ -36,3 +36,22 @@ export async function savePoint(
     },
   }
 }
+export async function runWithSavePoint<
+  DB extends Kysely<any> | Transaction<any>,
+  O,
+>(
+  db: DB,
+  fn: (db: DB) => Promise<O>,
+  name?: string,
+): Promise<O> {
+  const _name = name || `sp_${Date.now() % 100000000}`
+  await sql`savepoint ${sql.raw(_name)}`.execute(db)
+  try {
+    const result = await fn(db)
+    await sql`release savepoint ${sql.raw(_name)}`.execute(db)
+    return result
+  } catch (e) {
+    await sql`rollback to savepoint ${sql.raw(_name)}`.execute(db)
+    throw e
+  }
+}
