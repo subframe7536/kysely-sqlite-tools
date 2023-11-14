@@ -13,8 +13,9 @@ import {
   createKyselyLogger,
   precompileQuery,
   checkIntegrity as runCheckIntegrity,
-  savePoint,
+  runWithSavePoint,
 } from 'kysely-sqlite-utils'
+import type { Promisable } from '@subframe7536/type-utils'
 import type {
   AvailableBuilder,
   DBLogger,
@@ -33,6 +34,14 @@ function isSelectQueryBuilder<DB, O>(
   builder: AvailableBuilder<DB, O>,
 ): builder is SelectQueryBuilder<DB, any, O> {
   return builder.toOperationNode().kind === 'SelectQueryNode'
+}
+
+type TransactionOptions = {
+  errorMsg?: string
+  /**
+   * after commit hook
+   */
+  afterCommit?: () => Promisable<void>
 }
 
 export class SqliteBuilder<DB extends Record<string, any>> {
@@ -143,37 +152,31 @@ export class SqliteBuilder<DB extends Record<string, any>> {
    */
   public async transaction<O>(
     fn: (trx: Transaction<DB>) => Promise<O>,
-    errorMsg?: string,
+    options: TransactionOptions = {},
   ): Promise<O | undefined> {
     if (!this.trx) {
-      try {
-        return await this.kysely
-          .transaction()
-          .execute(async (trx) => {
-            this.trx = trx
-            this.logger?.debug('run in transaction')
-            return await fn(trx)
-          })
-      } catch (e) {
-        return this.logError(e, errorMsg)
-      } finally {
-        this.trx = undefined
-      }
+      return await this.kysely.transaction()
+        .execute(async (trx) => {
+          this.trx = trx
+          this.logger?.debug('run in transaction')
+          return await fn(trx)
+        })
+        .then(async (result) => {
+          await options.afterCommit?.()
+          return result
+        })
+        .catch(e => this.logError(e, options.errorMsg))
+        .finally(() => this.trx = undefined)
     }
     this.trxCount++
-    const sp = await savePoint(this.trx, `sp_${this.trxCount}`)
     this.logger?.debug(`run in savepoint: sp_${this.trxCount}`)
-
-    try {
-      const result = await fn(this.trx)
-      await sp.release()
-      this.trxCount--
-      return result
-    } catch (e) {
-      await sp.rollback()
-      this.trxCount--
-      return this.logError(e, errorMsg)
-    }
+    return await runWithSavePoint(this.trx!, fn, `sp_${this.trxCount})`)
+      .then(async (result) => {
+        await options.afterCommit?.()
+        return result
+      })
+      .catch(e => this.logError(e, options.errorMsg))
+      .finally(() => this.trxCount--)
   }
 
   /**

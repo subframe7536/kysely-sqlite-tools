@@ -105,6 +105,10 @@ describe('test builder', async () => {
     console.log(await db.transaction(async () => {
       await db.execute(d => d.insertInto('test').values([{ gender: false }, { gender: true }]))
       return db.execute(d => d.updateTable('test').set({ gender: true }).where('id', '=', 2).returningAll())
+    }, {
+      afterCommit: () => {
+        console.log('after commit')
+      },
     }))
     const result = await db.execute(d => d.selectFrom('test').selectAll())
     expect(result).toBeInstanceOf(Array)
