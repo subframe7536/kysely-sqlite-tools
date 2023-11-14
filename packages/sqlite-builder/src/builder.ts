@@ -170,7 +170,7 @@ export class SqliteBuilder<DB extends Record<string, any>> {
     }
     this.trxCount++
     this.logger?.debug(`run in savepoint: sp_${this.trxCount}`)
-    return await runWithSavePoint(this.trx!, fn, `sp_${this.trxCount})`)
+    return await runWithSavePoint(this.trx!, fn, `sp_${this.trxCount}`)
       .then(async (result) => {
         await options.afterCommit?.()
         return result
