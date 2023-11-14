@@ -1,4 +1,11 @@
-import type { KyselyPlugin, PluginTransformQueryArgs, PluginTransformResultArgs, QueryResult, RootOperationNode, UnknownRow } from 'kysely'
+import type {
+  KyselyPlugin,
+  PluginTransformQueryArgs,
+  PluginTransformResultArgs,
+  QueryResult,
+  RootOperationNode,
+  UnknownRow,
+} from 'kysely'
 import type { QueryId } from 'kysely/dist/esm/util/query-id'
 import { SerializeParametersTransformer } from './serialize-transformer'
 import type { Deserializer, Serializer } from './serializer'
@@ -14,15 +21,15 @@ export interface SerializePluginOptions {
    */
   deserializer?: Deserializer
   /**
-   * only transform select query or raw sql return
+   * node kink to skip transform
    */
-  selectOrRawOnly?: boolean
+  skipNodeKind?: Array<RootOperationNode['kind']>
 }
 
 export class SerializePlugin implements KyselyPlugin {
   private transformer: SerializeParametersTransformer
   private deserializer: Deserializer
-  private only: boolean | undefined
+  private skipNodeSet?: Set<RootOperationNode['kind']>
   private ctx?: WeakSet<QueryId>
 
   /**
@@ -89,22 +96,22 @@ export class SerializePlugin implements KyselyPlugin {
   public constructor(options: SerializePluginOptions = {}) {
     const {
       deserializer = defaultDeserializer,
-      selectOrRawOnly,
       serializer = defaultSerializer,
+      skipNodeKind = [],
     } = options
 
     this.transformer = new SerializeParametersTransformer(serializer)
     this.deserializer = deserializer
-    this.only = selectOrRawOnly
-
-    if (selectOrRawOnly) {
+    if (skipNodeKind.length) {
+      this.skipNodeSet = new Set(skipNodeKind)
       this.ctx = new WeakSet()
     }
   }
 
   public transformQuery({ node, queryId }: PluginTransformQueryArgs): RootOperationNode {
-    if (this.only && ['SelectQueryNode', 'RawNode'].includes(node.kind)) {
+    if (this.skipNodeSet?.has(node.kind)) {
       this.ctx?.add(queryId)
+      return node
     }
     return this.transformer.transformNode(node)
   }
@@ -112,19 +119,16 @@ export class SerializePlugin implements KyselyPlugin {
   public async transformResult(
     { result, queryId }: PluginTransformResultArgs,
   ): Promise<QueryResult<UnknownRow>> {
-    const parsedResult = {
-      ...result,
-      rows: result.rows.map(row => Object.fromEntries(
-        Object.entries(row).map(([key, value]) =>
-          ([key, this.deserializer(value)]),
-        ),
-      )),
-    }
-    if (!this.only) {
-      return parsedResult
-    }
-    this.ctx?.delete(queryId)
-    return parsedResult
+    return this.ctx?.has(queryId)
+      ? result
+      : {
+          ...result,
+          rows: result.rows.map(row => Object.fromEntries(
+            Object.entries(row).map(([key, value]) =>
+              ([key, this.deserializer(value)]),
+            ),
+          )),
+        }
   }
 }
 
