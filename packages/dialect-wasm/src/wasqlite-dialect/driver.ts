@@ -37,22 +37,26 @@ class WaSqliteConnection extends BaseSqliteConnection {
   async query(sql: string, params?: any[] | undefined): QueryReturn {
     const rows: any[] = []
     const str = this.sqlite.str_new(this.db, sql)
-    const prepared = await this.sqlite.prepare_v2(this.db, this.sqlite.str_value(str))
+    try {
+      const prepared = await this.sqlite.prepare_v2(this.db, this.sqlite.str_value(str))
 
-    if (prepared) {
-      const stmt = prepared.stmt
-      try {
-        params?.length && this.sqlite.bind_collection(stmt, params as [])
+      if (prepared) {
+        const stmt = prepared.stmt
+        try {
+          params?.length && this.sqlite.bind_collection(stmt, params as [])
 
-        const cols = this.sqlite.column_names(stmt)
+          const cols = this.sqlite.column_names(stmt)
 
-        while ((await this.sqlite.step(stmt)) === 100/* SQLITE_ROW */) {
-          const row = this.sqlite.row(stmt)
-          rows.push(Object.fromEntries(cols.map((key, i) => [key, row[i]])))
+          while ((await this.sqlite.step(stmt)) === 100/* SQLITE_ROW */) {
+            const row = this.sqlite.row(stmt)
+            rows.push(Object.fromEntries(cols.map((key, i) => [key, row[i]])))
+          }
+        } finally {
+          await this.sqlite.finalize(stmt)
         }
-      } finally {
-        await this.sqlite.finalize(stmt)
       }
+    } finally {
+      this.sqlite.str_finish(str)
     }
     return rows
   }
