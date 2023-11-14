@@ -3,7 +3,7 @@
   "type": "module",
   "version": "0.5.1",
   "private": true,
-  "packageManager": "pnpm@8.10.2",
+  "packageManager": "pnpm@8.10.4",
   "description": "",
   "author": {
     "name": "subframe7536",
@@ -30,12 +30,12 @@
     "commit": "czg"
   },
   "devDependencies": {
-    "@commitlint/cli": "^17.8.1",
-    "@commitlint/config-conventional": "^17.8.1",
+    "@commitlint/cli": "^18.4.1",
+    "@commitlint/config-conventional": "^18.4.0",
     "@sqlite.org/sqlite-wasm": "3.43.2-prebuild1",
     "@subframe7536/eslint-config": "^0.4.2",
     "@types/better-sqlite3": "^7.6.7",
-    "@types/node": "^18.18.9",
+    "@types/node": "^20.9.0",
     "@types/sql.js": "^1.4.9",
     "@vlcn.io/crsqlite-wasm": "^0.15.2",
     "better-sqlite3": "^9.1.1",
@@ -45,7 +45,7 @@
     "eslint": "^8.53.0",
     "husky": "^8.0.3",
     "kysely": "^0.26.3",
-    "lint-staged": "^14.0.1",
+    "lint-staged": "^15.1.0",
     "node-sqlite3-wasm": "^0.8.1",
     "sql.js": "^1.8.0",
     "tsup": "^7.2.0",

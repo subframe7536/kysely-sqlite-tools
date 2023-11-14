@@ -3,9 +3,8 @@ import vue from '@vitejs/plugin-vue'
 
 export default defineConfig({
   plugins: [vue()],
-  base: './',
   build: {
-    minify: false,
+    minify: true,
     target: 'es2020',
     rollupOptions: {
       treeshake: true,
