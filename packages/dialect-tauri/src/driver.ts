@@ -17,9 +17,8 @@ export class TaruiSqlDriver<T extends 'sqlite' | 'mysql' | 'postgres'> {
       ? await this.config.database(`${this.config.type}:${this.config.type === 'sqlite' ? '' : '//'}` as any)
       : await this.config.database
     this.connection = new TauriSqlConnection(this.db)
-    if (this.config.onCreateConnection) {
-      await this.config.onCreateConnection(this.connection)
-    }
+
+    await this.config.onCreateConnection?.(this.connection)
   }
 
   async acquireConnection(): Promise<DatabaseConnection> {

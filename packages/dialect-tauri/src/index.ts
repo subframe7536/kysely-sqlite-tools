@@ -43,10 +43,7 @@ export class TauriSqlDialect<T extends 'sqlite' | 'mysql' | 'postgres'> {
    * support MySQL, PostgreSQL and SQLite
    */
   constructor(config: TauriSqlDialectConfig<T>) {
-    this.#config = {
-      ...config,
-      type: config.type ?? 'sqlite',
-    }
+    this.#config = config
   }
 
   createDriver(): Driver {
