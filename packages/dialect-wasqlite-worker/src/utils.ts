@@ -1,5 +1,5 @@
-export function parseObject<T, P extends T | ((is: boolean) => T)>(obj: P, is: boolean): T {
-  return typeof obj === 'function' ? obj(is) : is
+export function parseWorkerOrURL<T, P extends T | ((is: boolean) => T)>(obj: P, is: boolean): T {
+  return typeof obj === 'function' ? obj(is) : obj
 }
 
 /**

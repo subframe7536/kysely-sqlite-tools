@@ -4,7 +4,7 @@ import type { Emitter } from 'zen-mitt'
 import { mitt } from 'zen-mitt'
 import { isModuleWorkerSupport, isOpfsSupported } from '@subframe7536/sqlite-wasm'
 import type { EventWithError, MainMsg, WorkerMsg } from './type'
-import { defaultWasmURL, defaultWorker, parseObject } from './utils'
+import { defaultWasmURL, defaultWorker, parseWorkerOrURL } from './utils'
 import type { WaSqliteWorkerDialectConfig } from '.'
 
 export class WaSqliteWorkerDriver implements Driver {
@@ -18,9 +18,17 @@ export class WaSqliteWorkerDriver implements Driver {
   }
 
   async init(): Promise<void> {
+    // try to persist storage, https://web.dev/articles/persistent-storage#request_persistent_storage
+    try {
+      !await navigator.storage.persisted() && await navigator.storage.persist()
+    } catch { }
+
     const useOPFS = (this.config.preferOPFS ?? true) ? await isOpfsSupported() : false
-    this.worker = parseObject(this.config.worker || defaultWorker, useOPFS || isModuleWorkerSupport())
+
     this.mitt = mitt<EventWithError>()
+
+    this.worker = parseWorkerOrURL(this.config.worker || defaultWorker, useOPFS || isModuleWorkerSupport())
+
     this.worker.onmessage = ({ data: { type, ...msg } }: MessageEvent<WorkerMsg>) => {
       this.mitt?.emit(type, msg)
     }
@@ -28,7 +36,7 @@ export class WaSqliteWorkerDriver implements Driver {
       type: 'init',
       fileName: this.config.fileName,
       // if use OPFS, wasm should use sync version
-      url: parseObject(this.config.url || defaultWasmURL, !useOPFS),
+      url: parseWorkerOrURL(this.config.url || defaultWasmURL, !useOPFS),
       useOPFS,
     } satisfies MainMsg)
     await new Promise<void>((resolve, reject) => {
@@ -36,8 +44,8 @@ export class WaSqliteWorkerDriver implements Driver {
         err ? reject(err) : resolve()
       })
     })
-    this.connection = new WaSqliteWorkerConnection(this.worker, this.mitt)
 
+    this.connection = new WaSqliteWorkerConnection(this.worker, this.mitt)
     await this.config.onCreateConnection?.(this.connection)
   }
 
