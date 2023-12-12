@@ -31,7 +31,7 @@ function precompileQuery<O>(
 }
 ```
 
-## credit
+## Credit
 
 - [kysely-params](https://github.com/jtlapp/kysely-params)
 

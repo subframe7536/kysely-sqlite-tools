@@ -16,7 +16,7 @@ class _Buffer {
     return this._size
   }
 
-  read(offset: number, buffer: { length: any; set: (arg0: any) => void }) {
+  read(offset: number, buffer: { length: any, set: (arg0: any) => void }) {
     if (offset >= this._size) {
       return 0
     }

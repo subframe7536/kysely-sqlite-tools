@@ -1,14 +1,14 @@
-# Tauri dialect
+# kysely-dialect-tauri
 
 [kysely](https://github.com/kysely-org/kysely) dialect for [`Tauri`](https://tauri.app/), using [official sql plugin](https://github.com/tauri-apps/plugins-workspace/tree/dev/plugins/sql), support MySQL, PostgreSQL and SQLite
 
-## install
+## Install
 
 ```shell
 pnpm add kysely kysely-dialect-tauri @tauri-apps/plugin-sql
 ```
 
-## usage
+## Usage
 
 ```ts
 import { Kysely } from 'kysely'
@@ -23,7 +23,7 @@ const kysely = new Kysely<DB>({
 })
 ```
 
-## config
+## Config
 
 ```ts
 export interface TauriSqlDialectConfig<T extends 'sqlite' | 'mysql' | 'postgres'> {

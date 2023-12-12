@@ -1,16 +1,16 @@
-# wasm dialect
+# kysely-wasm
 
 [kysely](https://github.com/kysely-org/kysely) dialect for various SQLite wasm
 
 no wasm denpendencies, your need to install yourself
 
-## install
+## Install
 
 ```shell
 pnpm add -D kysely kysely-wasm
 ```
 
-## introduce
+## Introduce
 
 there are 6 dialects
 
@@ -47,17 +47,15 @@ you can choose to use `native file system` as backend storage, which is no need 
 
 you can choose to use `IndexedDB` as backend storage
 
-### type
+### Type
 
 see in jsdoc
 
-### usage and more details
+### Usage and more details
 
 see [test](../../test/dialect-wasm.test.ts) and [playground](../../playground/src/modules)
-
 
 ## TODO
 
 - [ ] add type and use [worker client](https://github.com/tomayac/sqlite-wasm#usage-with-the-bundled-sqliteclient-with-opfs-if-available) for `OfficialWasmDialect`
 - [ ] seem to have nodejs support for official wasm: https://github.com/tomayac/sqlite-wasm/blob/main/sqlite-wasm/jswasm/sqlite3-node.mjs
-- [ ] add indexeddb support for official wasm, [example](https://sqlite.org/src/file/ext/wasm/api/sqlite3-vfs-opfs.js)

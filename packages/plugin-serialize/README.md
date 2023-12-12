@@ -1,21 +1,21 @@
-# serialize plugin
+# kysely-plugin-serialize
 
 Auto serialize / deserialize plugin for [kysely](https://github.com/kysely-org/kysely)
 
-## install
+## Install
 
 ```shell
 pnpm add kysely kysely-plugin-serialize
 ```
 
-## usage
+## Usage
 
 The following example will return an error when using sqlite dialects, unless using this plugin:
 
 ```ts
 interface TestTable {
   id: Generated<number>
-  person: { name: string; age: number; time: Date } | null
+  person: { name: string, age: number, time: Date } | null
   gender: boolean
   blob: Uint8Array | null
   date: Date
@@ -67,7 +67,7 @@ const db = new Kysely<Database>({
 })
 ```
 
-## notice
+## Notice
 
 THIS PLUGIN SHOULD BE PLACED AT THE END OF PLUGINS ARRAY
 
@@ -80,6 +80,6 @@ rules:
 3. `Date` will be serialized to ISO string
 4. others will be serialized by `JSON.stringify` / `JSON.parse`, `Date` inside `object` will also be serialized
 
-## credit
+## Credit
 
 [kysely #138](https://github.com/koskimas/kysely/pull/138)

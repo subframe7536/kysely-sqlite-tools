@@ -1,16 +1,16 @@
-# worker dialect
+# kysely-sqlite-worker
 
 [kysely](https://github.com/kysely-org/kysely) dialect for better-sqlite, execute sql in `node:worker_threads`
 
 the type is also availiable for [`better-sqlite3-multiple-ciphers`](https://github.com/m4heshd/better-sqlite3-multiple-ciphers)
 
-## install
+## Install
 
 ```shell
 pnpm add kysely kysely-sqlite-worker better-sqlite3
 ```
 
-## config
+## Config
 
 ```ts
 export type SqliteWorkerDialectConfig = {

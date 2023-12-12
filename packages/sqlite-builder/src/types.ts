@@ -43,6 +43,6 @@ export type AvailableBuilder<DB, O> =
 
 export type StatusResult =
   | { ready: true }
-  | { ready: false; error: unknown }
+  | { ready: false, error: unknown }
 
 export type TablesUpdater = (db: Kysely<any>, logger?: DBLogger) => Promise<void>

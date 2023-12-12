@@ -21,7 +21,7 @@ export interface SerializePluginOptions {
    */
   deserializer?: Deserializer
   /**
-   * node kink to skip transform
+   * node kind to skip transform
    */
   skipNodeKind?: Array<RootOperationNode['kind']>
 }

@@ -184,8 +184,8 @@ function getRestoreColumnList(
     if (col in existColumns) {
       const { type, notNull = false } = existColumns[col]
       parseColumnType(targetColumn.type).dataType === type
-        && (targetColumn.notNull || false) === notNull
-        && list.push(col)
+      && (targetColumn.notNull || false) === notNull
+      && list.push(col)
     }
   }
   return list

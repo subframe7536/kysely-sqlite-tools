@@ -47,6 +47,7 @@ export interface WaSqliteWorkerDialectConfig {
   url?: string | ((useAsyncWasm: boolean) => string)
   onCreateConnection?: (connection: DatabaseConnection) => Promisable<void>
 }
+
 export { isIdbSupported, isOpfsSupported, isModuleWorkerSupport } from '@subframe7536/sqlite-wasm'
 
 export class WaSqliteWorkerDialect implements Dialect {

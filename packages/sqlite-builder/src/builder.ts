@@ -263,4 +263,6 @@ export class SqliteBuilder<DB extends Record<string, any>> {
     await this.kysely.destroy()
     this.trx = undefined
   }
+
+  // todo: pagination
 }

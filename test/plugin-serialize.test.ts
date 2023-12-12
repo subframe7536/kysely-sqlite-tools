@@ -10,7 +10,7 @@ interface DB {
 }
 interface TestTable {
   id: Generated<number>
-  person: { name: string; age: number; time: Date } | null
+  person: { name: string, age: number, time: Date } | null
   gender: boolean
   blob: Uint8Array | null
   date: Date

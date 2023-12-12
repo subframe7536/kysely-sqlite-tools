@@ -2,7 +2,7 @@
 
 [kysely](https://github.com/kysely-org/kysely) table builder for SQLite
 
-## features
+## Features
 
 - infer tables type by schema
 - support auto migrate by schema (experimental)
@@ -13,13 +13,13 @@
 - support precompile querys for performance
 - more utils for SQLite
 
-## install
+## Install
 
 ```shell
 pnpm add kysely kysely-sqlite-builder
 ```
 
-### dialect for Electron without recompile
+### Dialect for Electron without recompile
 
 ```shell
 pnpm i kysely-wasm
@@ -27,9 +27,9 @@ pnpm i kysely-wasm
 
 choose [NodeWasmDialect](../dialect-wasm/README.md#nodewasmdialect)
 
-## example
+## Example
 
-### define / initialize
+### Define / Initialize
 
 ```ts
 import { SqliteBuilder, defineLiteral, defineObject, defineTable, useMigrator, useSchema } from 'kysely-sqlite-builder'
@@ -70,7 +70,7 @@ await db.updateTableSchema(useSchema(baseTables, { logger: false }))
 await db.updateTableSchema(useMigrator(new FileMigrationProvider(/**/)))
 ```
 
-### usage
+### Usage
 
 ```ts
 // run transaction
@@ -97,7 +97,7 @@ await db.raw(sql`PRAGMA user_version = 2`, 'this is error message')
 await db.destroy()
 ```
 
-### precompile
+### Precompile
 
 inspired by [kysely-params](https://github.com/jtlapp/kysely-params), optimized for sqlite
 
@@ -113,13 +113,14 @@ const result = await db.executeCompiledTakeList(
 )
 ```
 
-### utils
+### Utils
 
 see [sqlite-utils](../sqlite-utils/)
 
-## credit
+## Credit
 
 - [trilogy](https://github.com/haltcase/trilogy)
 
-## license
+## License
+
 MIT

@@ -103,8 +103,8 @@ export class SqliteWorkerConnection implements DatabaseConnection {
     this.emit = emit
   }
 
-  streamQuery<R>(): AsyncIterableIterator<QueryResult<R>> {
-    throw new Error('SQLite driver doesn\'t support streaming')
+  async *streamQuery<R>(): AsyncIterableIterator<QueryResult<R>> {
+    throw new Error('sqlite-worker driver doesn\'t support streaming')
   }
 
   async executeQuery<R>(compiledQuery: CompiledQuery<unknown>): Promise<QueryResult<R>> {

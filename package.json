@@ -3,7 +3,7 @@
   "type": "module",
   "version": "0.5.3",
   "private": true,
-  "packageManager": "pnpm@8.10.4",
+  "packageManager": "pnpm@8.12.0",
   "description": "",
   "author": {
     "name": "subframe7536",
@@ -30,32 +30,37 @@
     "commit": "czg"
   },
   "devDependencies": {
-    "@commitlint/cli": "^18.4.1",
-    "@commitlint/config-conventional": "^18.4.0",
+    "@commitlint/cli": "^18.4.3",
+    "@commitlint/config-conventional": "^18.4.3",
     "@sqlite.org/sqlite-wasm": "3.43.2-prebuild1",
-    "@subframe7536/eslint-config": "^0.4.2",
-    "@types/better-sqlite3": "^7.6.7",
-    "@types/node": "^20.9.0",
+    "@subframe7536/eslint-config": "^0.5.5",
+    "@types/better-sqlite3": "^7.6.8",
+    "@types/node": "^20.10.4",
     "@types/sql.js": "^1.4.9",
     "@vlcn.io/crsqlite-wasm": "^0.15.2",
-    "better-sqlite3": "^9.1.1",
-    "bumpp": "^9.2.0",
-    "cz-git": "^1.7.1",
-    "czg": "^1.7.1",
-    "eslint": "^8.53.0",
+    "better-sqlite3": "^9.2.2",
+    "bumpp": "^9.2.1",
+    "cz-git": "^1.8.0",
+    "czg": "^1.8.0",
+    "eslint": "^8.55.0",
     "husky": "^8.0.3",
     "kysely": "^0.26.3",
-    "lint-staged": "^15.1.0",
-    "node-sqlite3-wasm": "^0.8.1",
-    "sql.js": "^1.8.0",
-    "tsup": "^7.2.0",
-    "typescript": "^5.2.2",
-    "vite": "4.5.0",
-    "vitest": "^0.34.6"
+    "lint-staged": "^15.2.0",
+    "node-sqlite3-wasm": "^0.8.4",
+    "sql.js": "^1.9.0",
+    "tsup": "^8.0.1",
+    "typescript": "^5.3.3",
+    "vite": "^5.0.8",
+    "vitest": "^1.0.4"
+  },
+  "pnpm": {
+    "overrides": {
+      "has": "npm:@nolyfill/has@latest"
+    }
   },
   "lint-staged": {
     "*": [
-      "eslint --cache --fix"
+      "eslint . --fix"
     ]
   },
   "config": {

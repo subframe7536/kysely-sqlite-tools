@@ -1,14 +1,16 @@
-# WaSqlite Worker Dialect
+# kysely-wasqlite-worker
 
 [kysely](https://github.com/kysely-org/kysely) dialect for [`wa-sqlite`](https://github.com/rhashimoto/wa-sqlite), execute sql in `Web Worker`, store data in [OPFS](https://developer.mozilla.org/en-US/docs/Web/API/File_System_API/Origin_private_file_system) or IndexedDB
 
-## install
+No need to set response header like [official wasm](../dialect-wasm/README.md#officialwasmdialect-performance)
+
+## Install
 
 ```shell
 pnpm add kysely kysely-wasqlite-worker
 ```
 
-## config
+## Config
 
 ```ts
 export interface WaSqliteWorkerDialectConfig {
@@ -18,6 +20,7 @@ export interface WaSqliteWorkerDialectConfig {
   fileName: string
   /**
    * prefer to store data in OPFS
+   * @default true
    */
   preferOPFS?: boolean
   /**
@@ -56,12 +59,15 @@ export interface WaSqliteWorkerDialectConfig {
 }
 ```
 
-## usage
+## Usage
 
 ```ts
 import {
   WaSqliteWorkerDialect,
   generateDialectOptions,
+  isIdbSupported,
+  isModuleWorkerSupport,
+  isOpfsSupported,
   useDefaultWasmURL,
   useDefaultWorker
 } from 'kysely-wasqlite-worker'
@@ -84,7 +90,7 @@ export default defineConfig({
 })
 ```
 
-## limitation
+## Limitation
 
 - [minimal IndexedDB backend browser version](https://caniuse.com/mdn-api_lockmanager)
 - [minimal OPFS backend browser version](https://caniuse.com/mdn-api_filesystemsyncaccesshandle)

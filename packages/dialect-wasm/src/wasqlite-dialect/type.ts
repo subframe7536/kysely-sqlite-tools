@@ -8,7 +8,7 @@ export interface Sqlite {
   str_new: (db: number, sql: string) => number
   str_value: (str: number) => number
   str_finish: (str: number) => void
-  prepare_v2: (db: number, sql: number) => Promise<{ stmt: number; sql: number } | null>
+  prepare_v2: (db: number, sql: number) => Promise<{ stmt: number, sql: number } | null>
   step: (stmt: number) => Promise<number>
   finalize: (stmt: number) => Promise<number>
   column_names: (stmt: number) => string[]

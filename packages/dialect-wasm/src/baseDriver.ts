@@ -67,7 +67,7 @@ export abstract class BaseSqliteConnection implements DatabaseConnection {
   abstract query(sql: string, params?: any[]): QueryReturn
   abstract info(): InfoReturn
   streamQuery<R>(): AsyncIterableIterator<QueryResult<R>> {
-    throw new Error('SQLite driver doesn\'t support streaming')
+    throw new Error('sqlite-wasm driver doesn\'t support streaming')
   }
 
   async executeQuery<R>({ parameters, query, sql }: CompiledQuery<unknown>): Promise<QueryResult<R>> {

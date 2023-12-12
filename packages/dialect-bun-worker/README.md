@@ -2,13 +2,13 @@
 
 [kysely](https://github.com/kysely-org/kysely) dialect for `bun:sqlite`, run sql in worker
 
-## install
+## Install
 
 ```shell
 bun install kysely kysely-bun-worker
 ```
 
-## config
+## Config
 
 ```ts
 export type BunWorkerDialectConfig = {
