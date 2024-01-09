@@ -76,7 +76,7 @@ jobs:
 
     strategy:
       matrix:
-        node: [16, 18]
+        node: [18, 20]
         os: [ubuntu-latest, windows-latest, macos-latest]
       fail-fast: false
 
