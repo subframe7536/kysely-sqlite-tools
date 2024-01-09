@@ -45,7 +45,7 @@ async function clear() {
     await root.removeEntry('test.db-journal')
   } catch { }
   try {
-    await root.removeEntry('wa-sqlite-worker-test', { recursive:true })
+    await root.removeEntry('wa-sqlite-worker-test', { recursive: true })
   } catch { }
 }
 </script>

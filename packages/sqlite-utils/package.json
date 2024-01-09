@@ -35,6 +35,6 @@
     "access": "public"
   },
   "peerDependencies": {
-    "kysely": "^0.26"
+    "kysely": ">=0.26"
   }
 }

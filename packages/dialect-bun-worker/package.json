@@ -35,7 +35,7 @@
     "build": "tsup"
   },
   "peerDependencies": {
-    "kysely": "^0.26"
+    "kysely": ">=0.26"
   },
   "dependencies": {
     "zen-mitt": "^0.3.0"

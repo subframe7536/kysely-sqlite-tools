@@ -58,4 +58,3 @@ see [test](../../test/dialect-wasm.test.ts) and [playground](../../playground/sr
 ## TODO
 
 - [ ] add type and use [worker client](https://github.com/tomayac/sqlite-wasm#usage-with-the-bundled-sqliteclient-with-opfs-if-available) for `OfficialWasmDialect`
-- [ ] seem to have nodejs support for official wasm: https://github.com/tomayac/sqlite-wasm/blob/main/sqlite-wasm/jswasm/sqlite3-node.mjs
