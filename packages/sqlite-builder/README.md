@@ -32,9 +32,8 @@ choose [NodeWasmDialect](../dialect-wasm/README.md#nodewasmdialect)
 ### Define / Initialize
 
 ```ts
-import { SqliteBuilder, useMigrator } from 'kysely-sqlite-builder'
+import { SqliteBuilder } from 'kysely-sqlite-builder'
 import { defineLiteral, defineObject, defineTable, useSchema } from 'kysely-sqlite-builder/schema'
-import { FileMigrationProvider } from 'kysely'
 
 // schemas for AutoSyncTables
 const testTable = defineTable({
@@ -67,6 +66,9 @@ const db = new SqliteBuilder<DB>({
 
 // update tables using syncTable
 await db.updateTableSchema(useSchema(baseTables, { logger: false }))
+
+import { useMigrator } from 'kysely-sqlite-builder'
+import { FileMigrationProvider } from 'kysely'
 
 // update tables using MigrationProvider and migrate to latest
 await db.updateTableSchema(useMigrator(new FileMigrationProvider(/* ... */)))
@@ -116,6 +118,8 @@ const result = await db.executeCompiledTakeList(
 ```
 
 ### Utils
+
+in `kysely-sqlite-builder/utils`
 
 see [sqlite-utils](../sqlite-utils/)
 

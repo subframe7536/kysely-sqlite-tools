@@ -92,12 +92,7 @@ export class SqliteBuilder<DB extends Record<string, any>> {
    * @param updater sync table function, built-in: {@link useSchema}, {@link useMigrator}
    * @param checkIntegrity whether to check integrity
    * @example
-   * import { useMigrator } from 'kysely-sqlite-builder'
-   * import { FileMigrationProvider } from 'kysely'
-   *
-   * // update tables using MigrationProvider and migrate to latest
-   * await db.updateTableSchema(useMigrator(new FileMigrationProvider(...)))
-   *
+   * import { SqliteBuilder } from 'kysely-sqlite-builder'
    * import { defineLiteral, defineObject, defineTable, useSchema } from 'kysely-sqlite-builder/schema'
    * // schemas for AutoSyncTables
    * const testTable = defineTable({
@@ -131,6 +126,11 @@ export class SqliteBuilder<DB extends Record<string, any>> {
    * // update tables using syncTable
    * await db.updateTableSchema(useSchema(baseTables, { logger: false }))
    *
+   * import { useMigrator } from 'kysely-sqlite-builder'
+   * import { FileMigrationProvider } from 'kysely'
+   *
+   * // update tables using MigrationProvider and migrate to latest
+   * await db.updateTableSchema(useMigrator(new FileMigrationProvider(...)))
    */
   public async updateTableSchema(updater: TablesUpdater, checkIntegrity?: boolean): Promise<StatusResult> {
     try {

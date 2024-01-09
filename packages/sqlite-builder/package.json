@@ -24,6 +24,10 @@
     "./schema": {
       "import": "./dist/schema.mjs",
       "require": "./dist/schema.js"
+    },
+    "./utils": {
+      "import": "./dist/utils.mjs",
+      "require": "./dist/utils.js"
     }
   },
   "main": "./dist/index.js",

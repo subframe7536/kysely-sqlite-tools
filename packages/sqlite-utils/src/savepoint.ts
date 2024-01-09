@@ -44,14 +44,13 @@ export async function runWithSavePoint<
   fn: (db: DB) => Promise<O>,
   name?: string,
 ): Promise<O> {
-  const _name = name || `sp_${Date.now() % 100000000}`
-  await sql`savepoint ${sql.raw(_name)}`.execute(db)
+  const { release, rollback } = await savePoint(db, name)
   try {
     const result = await fn(db)
-    await sql`release savepoint ${sql.raw(_name)}`.execute(db)
+    await release()
     return result
   } catch (e) {
-    await sql`rollback to savepoint ${sql.raw(_name)}`.execute(db)
+    await rollback()
     throw e
   }
 }
