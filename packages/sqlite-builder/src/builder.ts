@@ -92,33 +92,45 @@ export class SqliteBuilder<DB extends Record<string, any>> {
    * @param updater sync table function, built-in: {@link useSchema}, {@link useMigrator}
    * @param checkIntegrity whether to check integrity
    * @example
-   * usage of `createAutoSyncSchemaFn`:
-   * ```
-   * import {
-   *   SqliteBuilder,
-   *   defineLiteral,
-   *   defineObject,
-   *   defineTable
-   *   useSchema,
-   * } from 'kysely-sqlite-builder'
+   * import { useMigrator } from 'kysely-sqlite-builder'
+   * import { FileMigrationProvider } from 'kysely'
    *
+   * // update tables using MigrationProvider and migrate to latest
+   * await db.updateTableSchema(useMigrator(new FileMigrationProvider(...)))
+   *
+   * import { defineLiteral, defineObject, defineTable, useSchema } from 'kysely-sqlite-builder/schema'
+   * // schemas for AutoSyncTables
    * const testTable = defineTable({
    *   id: { type: 'increments' },
    *   person: { type: 'object', defaultTo: { name: 'test' } },
    *   gender: { type: 'boolean', notNull: true },
+   *   str: defineLiteral<'str1' | 'str2'>('str1'),
    *   array: defineObject<string[]>().NotNull(),
-   *   literal: defineLiteral<'l1' | 'l2'>('l1'),
    *   buffer: { type: 'blob' },
    * }, {
    *   primary: 'id',
    *   index: ['person', ['id', 'gender']],
    *   timeTrigger: { create: true, update: true },
    * })
-   * await db.updateTableSchema(useSchema(
-   *   { test: testTable },
-   *   { log: false }
-   * ))
-   * ```
+   *
+   * const baseTables = {
+   *   test: testTable,
+   * }
+   *
+   * // infer type from baseTables
+   * type DB = InferDatabase<typeof baseTables>
+   *
+   * const db = new SqliteBuilder<DB>({
+   *   dialect: new SqliteDialect({
+   *     database: new Database(':memory:'),
+   *   }),
+   *   logger: console,
+   *   onQuery: true,
+   * })
+   *
+   * // update tables using syncTable
+   * await db.updateTableSchema(useSchema(baseTables, { logger: false }))
+   *
    */
   public async updateTableSchema(updater: TablesUpdater, checkIntegrity?: boolean): Promise<StatusResult> {
     try {

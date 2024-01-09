@@ -20,6 +20,10 @@
     ".": {
       "import": "./dist/index.mjs",
       "require": "./dist/index.js"
+    },
+    "./schema": {
+      "import": "./dist/schema.mjs",
+      "require": "./dist/schema.js"
     }
   },
   "main": "./dist/index.js",

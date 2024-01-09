@@ -1,6 +1,7 @@
 import type { Dialect } from 'kysely'
-import type { InferDatabase } from 'kysely-sqlite-builder'
-import { SqliteBuilder, defineTable, useSchema } from 'kysely-sqlite-builder'
+import { SqliteBuilder } from 'kysely-sqlite-builder'
+import type { InferDatabase } from 'kysely-sqlite-builder/schema'
+import { defineTable, useSchema } from 'kysely-sqlite-builder/schema'
 
 const tables = {
   test: defineTable({

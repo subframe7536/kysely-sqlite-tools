@@ -2,8 +2,9 @@ import { SqliteDialect } from 'kysely'
 import Database from 'better-sqlite3'
 import { beforeEach, describe, expect, it } from 'vitest'
 import { getOrSetDBVersion, optimizePragma } from '../packages/sqlite-utils/src'
-import type { InferDatabase } from '../packages/sqlite-builder/src'
-import { SqliteBuilder, defineLiteral, defineObject, defineTable, useSchema } from '../packages/sqlite-builder/src'
+import type { InferDatabase } from '../packages/sqlite-builder/src/schema'
+import { defineLiteral, defineObject, defineTable, useSchema } from '../packages/sqlite-builder/src/schema'
+import { SqliteBuilder } from '../packages/sqlite-builder/src'
 
 const testTable = defineTable({
   id: { type: 'increments' },
