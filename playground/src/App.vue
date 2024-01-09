@@ -2,7 +2,6 @@
 import { useDB } from './modules/mainThread'
 import SqljsWorker from './modules/sqljsWorker?worker'
 import OfficialWorker from './modules/officialWasmWorker?worker'
-import { useWaSqlite } from './modules/wasqlite'
 import { useWaSqliteWorker } from './modules/wasqliteWorker'
 import { deleteFile } from './modules/indexeddb'
 
@@ -19,9 +18,6 @@ function testSqljsWorker() {
 }
 function testOfficialWasm() {
   officialWorker.postMessage('')
-}
-function testWaSqlite() {
-  useWaSqlite()
 }
 function testWaSqliteWorker() {
   useWaSqliteWorker()
@@ -82,11 +78,8 @@ async function clear() {
     <button @click="testOfficialWasm()">
       test officialWasm in Worker
     </button>
-    <button @click="testWaSqlite()">
-      test wa-sqlite in main thread
-    </button>
     <button @click="testWaSqliteWorker()">
-      test wa-sqlite in Worker
+      test wa-sqlite in Worker (Better Compability)
     </button>
     <button @click="clear()">
       clear
