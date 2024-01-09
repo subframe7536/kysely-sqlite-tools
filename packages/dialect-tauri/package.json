@@ -1,6 +1,6 @@
 {
   "name": "kysely-dialect-tauri",
-  "version": "0.5.4",
+  "version": "0.5.5",
   "description": "kysely Tauri dialect, using @tauri-apps/plugin-sql",
   "author": {
     "name": "subframe7536",
