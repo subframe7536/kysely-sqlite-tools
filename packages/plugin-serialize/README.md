@@ -78,7 +78,7 @@ rules:
 1. `number` / `bigint` / `ArrayBuffer` / `Buffer` will skip serialization
 2. `boolean` will be serialized to `'true'` / `'false'`
 3. `Date` will be serialized to ISO string
-4. others will be serialized by `JSON.stringify` / `JSON.parse`, `Date` inside `object` will also be serialized
+4. others will be serialized by `JSON.stringify` / `JSON.parse`
 
 ## Credit
 
