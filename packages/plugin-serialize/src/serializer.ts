@@ -16,7 +16,9 @@ export const defaultSerializer: Serializer = (parameter) => {
     }
   }
 }
+
 const dateRegex = /^\d{4}-\d{2}-\d{2}[T ]\d{2}:\d{2}:\d{2}(?:\.\d+)?Z?$/
+
 export const defaultDeserializer: Deserializer = (parameter) => {
   if (skipTransform(parameter)) {
     return parameter
@@ -26,15 +28,15 @@ export const defaultDeserializer: Deserializer = (parameter) => {
       return parameter === 'true'
     } else if (dateRegex.test(parameter)) {
       return new Date(parameter)
-    } else {
+    } else if (parameter.startsWith('{') && parameter.endsWith('}')){
       try {
-        return JSON.parse(parameter, (_k, v) => (typeof v === 'string' && dateRegex.exec(v)) ? new Date(v) : v)
-      } catch (e) {
-        return parameter
-      }
+        return JSON.parse(parameter)
+      } catch (ignore) { }
     }
+    return parameter
   }
 }
+
 function skipTransform(parameter: unknown) {
   return parameter === undefined
     || parameter === null
