@@ -50,7 +50,7 @@ describe('plugin basic test', () => {
       .executeTakeFirstOrThrow()
     expect(blob).toStrictEqual(Buffer.from([1, 2, 3]))
     expect(blob).toBeInstanceOf(Buffer)
-    expect(person).toStrictEqual({ name: 'test', age: 2, time: testDate })
+    expect(person).toStrictEqual({ name: 'test', age: 2, time: testDate.toISOString() })
     expect(gender).toStrictEqual(true)
     expect(date).toStrictEqual(testDate)
   })
