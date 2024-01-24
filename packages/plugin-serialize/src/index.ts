@@ -1,2 +1,4 @@
 export * from './serialize-plugin'
-export * from './serializer'
+
+export { skipTransform, dateRegex } from './serializer'
+export type { Deserializer, Serializer } from './serializer'
