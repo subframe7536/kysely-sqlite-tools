@@ -1,9 +1,6 @@
 export type Serializer = (parameter: unknown) => unknown
 export type Deserializer = (parameter: unknown) => unknown
 
-/**
- * @internal
- */
 export const defaultSerializer: Serializer = (parameter) => {
   if (skipTransform(parameter) || typeof parameter === 'string') {
     return parameter
@@ -22,9 +19,6 @@ export const defaultSerializer: Serializer = (parameter) => {
 
 export const dateRegex = /^\d{4}-\d{2}-\d{2}[T ]\d{2}:\d{2}:\d{2}(?:\.\d+)?Z?$/
 
-/**
- * @internal
- */
 export const defaultDeserializer: Deserializer = (parameter) => {
   if (skipTransform(parameter)) {
     return parameter
@@ -45,7 +39,7 @@ export const defaultDeserializer: Deserializer = (parameter) => {
 
 /**
  * check if the parameter does not need to be transformed
- * 
+ *
  * skip type: `undefined`/`null`, `bigint`/`number`, `ArrayBuffer`/`Buffer`
  */
 export function skipTransform(parameter: unknown) {
