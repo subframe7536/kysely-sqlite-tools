@@ -181,11 +181,12 @@ function getRestoreColumnList(
 ): string[] {
   const list: string[] = []
   for (const [col, targetColumn] of Object.entries(targetColumns as Columns)) {
-    if (col in existColumns) {
-      const { type, notNull = false } = existColumns[col]
-      parseColumnType(targetColumn.type).dataType === type
-      && (targetColumn.notNull || false) === notNull
-      && list.push(col)
+    if (
+      col in existColumns
+      && parseColumnType(targetColumn.type).dataType === existColumns[col].type
+      && (targetColumn.notNull || false) === (existColumns[col].notNull || false)
+    ) {
+      list.push(col)
     }
   }
   return list

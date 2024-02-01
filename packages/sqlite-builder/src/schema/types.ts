@@ -9,6 +9,7 @@ export type ColumnType =
   | 'date'
   | 'blob'
   | 'object'
+
 export type InferGenereated<T> = T extends Generated<infer P> ? P : T
 export type InferColumnTypeByString<T> =
   T extends 'string' ? string :
@@ -59,6 +60,7 @@ export type TableProperty<
   index?: Arrayable<keyof Cols & string>[]
   timeTrigger?: TimeTriggerOptions<Create, Update>
 }
+
 export type Columns = Record<string, ColumnProperty>
 
 export type ColumnsWithErrorInfo<T extends Columns> = {
@@ -81,6 +83,7 @@ export type ColumnsWithErrorInfo<T extends Columns> = {
         }
       };
 }
+
 export type Table<
   Cols extends Columns = any,
   Create extends string | true | null = null,
@@ -88,7 +91,9 @@ export type Table<
 > = {
   columns: ColumnsWithErrorInfo<Cols>
 } & TableProperty<Cols, Create, Update>
+
 export type Schema = Record<string, Table<any, any, any>>
+
 export type FilterGenerated<
   Table extends object,
   EscapeKeys extends string = never,
@@ -98,7 +103,7 @@ export type FilterGenerated<
     : InferGenereated<Table[K]>
 }
 
-type ERROR_INFO = 'HAVE_TYPE_ERROR_AT_DEFINITION'
+type ERROR_INFO = 'HAVE_TYPE_ERROR_IN_DEFINITION'
 
 type TriggerKey<A, B> =
   | (A extends true ? 'createAt' : A extends string ? A : never)
@@ -126,20 +131,26 @@ export type InferTable<
   P = ParseTableWithTrigger<T['columns'], T['timeTrigger']>,
 > = Prettify<{
   [K in keyof P]: P[K] extends ColumnProperty ? IsNotNull<P[K]['notNull']> extends true // if not null
-    ? Exclude<P[K]['defaultTo'], null> // return required defaultTo
-    : P[K]['type'] extends 'increments' // if type is "increments"
-      ? Exclude<P[K]['defaultTo'], null> // return "Generated<...>"
-      : IsNotNull<P[K]['defaultTo']> extends true // if defaultTo is required
-        ? Generated<Exclude<P[K]['defaultTo'], null>> // return Generated
-        : P[K]['defaultTo'] | null // return optional
-    : ERROR_INFO // return error info
-
+    // return required defaultTo
+    ? Exclude<P[K]['defaultTo'], null>
+    // if type is "increments"
+    : P[K]['type'] extends 'increments'
+      // return "Generated<...>"
+      ? Exclude<P[K]['defaultTo'], null>
+      // if defaultTo is required
+      : IsNotNull<P[K]['defaultTo']> extends true
+        // return Generated
+        ? Generated<Exclude<P[K]['defaultTo'], null>>
+        // return optional
+        : P[K]['defaultTo'] | null
+    // return error info
+    : ERROR_INFO
 }>
 
 /**
  * util type for infering type of database
  *
- * if infered type contains `"HAVE_DEFAULT_VALUE_TYPE_ERROR"`,
+ * if the infered type contains `"HAVE_TYPE_ERROR_IN_DEFINITION"`,
  * there is some error in target table's default value type
  *
  * use {@link InferTable} to check details

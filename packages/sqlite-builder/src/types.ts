@@ -9,6 +9,7 @@ import type {
 } from 'kysely'
 import type { SerializePluginOptions } from 'kysely-plugin-serialize'
 import type { LoggerOptions } from 'kysely-sqlite-utils'
+import type { IntegrityError } from './builder'
 
 export interface SqliteBuilderOptions {
   dialect: Dialect
@@ -43,6 +44,6 @@ export type AvailableBuilder<DB, O> =
 
 export type StatusResult =
   | { ready: true }
-  | { ready: false, error: unknown }
+  | { ready: false, error: IntegrityError | unknown }
 
 export type TablesUpdater = (db: Kysely<any>, logger?: DBLogger) => Promise<void>
