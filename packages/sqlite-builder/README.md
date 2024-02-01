@@ -121,7 +121,7 @@ const result = await db.execute(
 
 in `kysely-sqlite-builder/utils`
 
-see [sqlite-utils](../sqlite-utils/)
+see details in [sqlite-utils](../sqlite-utils/)
 
 ## Credit
 
