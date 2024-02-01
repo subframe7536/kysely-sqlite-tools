@@ -112,7 +112,7 @@ const select = db.precompile(
   qb.where('person', '=', param('person')),
 )
 
-const result = await db.executeCompiledTakeList(
+const result = await db.execute(
   select({ person: { name: 'John' } })
 )
 ```
