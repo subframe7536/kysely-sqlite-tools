@@ -11,7 +11,7 @@ export const defaultSerializer: Serializer = (parameter) => {
   } else {
     try {
       return JSON.stringify(parameter)
-    } catch (error) {
+    } catch (ignore) {
       return parameter
     }
   }
@@ -24,8 +24,10 @@ export const defaultDeserializer: Deserializer = (parameter) => {
     return parameter
   }
   if (typeof parameter === 'string') {
-    if (/^(true|false)$/.test(parameter)) {
-      return parameter === 'true'
+    if (parameter === 'true') {
+      return true
+    } else if (parameter === 'false') {
+      return false
     } else if (dateRegex.test(parameter)) {
       return new Date(parameter)
     } else if (
