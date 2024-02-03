@@ -20,7 +20,6 @@ export class SerializeParametersTransformer extends OperationNodeTransformer {
   }
 
   // https://www.npmjs.com/package/zodsql
-
   protected override transformColumnUpdate(node: ColumnUpdateNode): ColumnUpdateNode {
     const { value: valueNode } = node
 

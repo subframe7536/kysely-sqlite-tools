@@ -18,6 +18,8 @@ export type LoggerOptions = {
   logger: (data: LoggerParams) => void
   /**
    * whether to merge parameters into sql
+   *
+   * e.g. from `select ? from ?` to `select name from user`
    */
   merge?: boolean
   /**
@@ -27,7 +29,18 @@ export type LoggerOptions = {
 }
 
 /**
- * util for `KyselyConfig.log`
+ * util for `KyselyConfig.log`, log on every execution
+ * @example
+ * import { Kysely } from 'kysely'
+ * import { createKyselyLogger } from 'kysely-sqlite-utils'
+ *
+ * const db = new Kysely<DB>({
+ *   dialect,
+ *   log: createKyselyLogger({
+ *     logger: console.log,
+ *     merge: true,
+ *   })
+ * })
  */
 export function createKyselyLogger(
   options: LoggerOptions,

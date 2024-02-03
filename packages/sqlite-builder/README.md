@@ -113,7 +113,7 @@ const select = db.precompile(
   qb.where('person', '=', param('person')),
 )
 
-const result = await db.executeCompiledTakeList(
+const result = await db.execute(
   select({ person: { name: 'John' } })
 )
 ```
@@ -122,7 +122,7 @@ const result = await db.executeCompiledTakeList(
 
 in `kysely-sqlite-builder/utils`
 
-see [sqlite-utils](../sqlite-utils/)
+see details in [sqlite-utils](../sqlite-utils/)
 
 ## Credit
 

@@ -36,12 +36,16 @@ function isSelectQueryBuilder<DB, O>(
   return builder.toOperationNode().kind === 'SelectQueryNode'
 }
 
-type TransactionOptions = {
+type TransactionOptions<T> = {
   errorMsg?: string
   /**
    * after commit hook
    */
-  afterCommit?: () => Promisable<void>
+  afterCommit?: (result: T) => Promisable<void>
+  /**
+   * after rollback hook
+   */
+  afterRollback?: (err: unknown) => Promisable<void>
 }
 
 export class SqliteBuilder<DB extends Record<string, any>> {
@@ -157,7 +161,6 @@ export class SqliteBuilder<DB extends Record<string, any>> {
 
   private logError(e: unknown, errorMsg?: string) {
     errorMsg && this.logger?.error(errorMsg, e instanceof Error ? e : undefined)
-    return undefined
   }
 
   /**
@@ -165,7 +168,7 @@ export class SqliteBuilder<DB extends Record<string, any>> {
    */
   public async transaction<O>(
     fn: (trx: Transaction<DB>) => Promise<O>,
-    options: TransactionOptions = {},
+    options: TransactionOptions<O> = {},
   ): Promise<O | undefined> {
     if (!this.trx) {
       return await this.kysely.transaction()
@@ -175,20 +178,29 @@ export class SqliteBuilder<DB extends Record<string, any>> {
           return await fn(trx)
         })
         .then(async (result) => {
-          await options.afterCommit?.()
+          await options.afterCommit?.(result)
           return result
         })
-        .catch(e => this.logError(e, options.errorMsg))
+        .catch(async (e) => {
+          await options.afterRollback?.(e)
+          this.logError(e, options.errorMsg)
+          return undefined
+        })
         .finally(() => this.trx = undefined)
     }
+
     this.trxCount++
     this.logger?.debug(`run in savepoint: sp_${this.trxCount}`)
     return await runWithSavePoint(this.trx!, fn, `sp_${this.trxCount}`)
       .then(async (result) => {
-        await options.afterCommit?.()
+        await options.afterCommit?.(result)
         return result
       })
-      .catch(e => this.logError(e, options.errorMsg))
+      .catch(async (e) => {
+        await options.afterRollback?.(e)
+        this.logError(e, options.errorMsg)
+        return undefined
+      })
       .finally(() => this.trxCount--)
   }
 

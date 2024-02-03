@@ -11,31 +11,43 @@ export const defaultSerializer: Serializer = (parameter) => {
   } else {
     try {
       return JSON.stringify(parameter)
-    } catch (error) {
+    } catch (ignore) {
       return parameter
     }
   }
 }
-const dateRegex = /^\d{4}-\d{2}-\d{2}[T ]\d{2}:\d{2}:\d{2}(?:\.\d+)?Z?$/
+
+export const dateRegex = /^\d{4}-\d{2}-\d{2}[T ]\d{2}:\d{2}:\d{2}(?:\.\d+)?Z?$/
+
 export const defaultDeserializer: Deserializer = (parameter) => {
   if (skipTransform(parameter)) {
     return parameter
   }
   if (typeof parameter === 'string') {
-    if (/^(true|false)$/.test(parameter)) {
-      return parameter === 'true'
+    if (parameter === 'true') {
+      return true
+    } else if (parameter === 'false') {
+      return false
     } else if (dateRegex.test(parameter)) {
       return new Date(parameter)
-    } else {
+    } else if (
+      (parameter.startsWith('{') && parameter.endsWith('}'))
+      || (parameter.startsWith('[') && parameter.endsWith(']'))
+    ) {
       try {
-        return JSON.parse(parameter, (_k, v) => (typeof v === 'string' && dateRegex.exec(v)) ? new Date(v) : v)
-      } catch (e) {
-        return parameter
-      }
+        return JSON.parse(parameter)
+      } catch (ignore) { }
     }
+    return parameter
   }
 }
-function skipTransform(parameter: unknown) {
+
+/**
+ * check if the parameter does not need to be transformed
+ *
+ * skip type: `undefined`/`null`, `bigint`/`number`, `ArrayBuffer`/`Buffer`
+ */
+export function skipTransform(parameter: unknown) {
   return parameter === undefined
     || parameter === null
     || typeof parameter === 'bigint'
