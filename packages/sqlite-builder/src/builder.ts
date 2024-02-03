@@ -94,6 +94,7 @@ export class SqliteBuilder<DB extends Record<string, any>> {
    * @example
    * import { SqliteBuilder } from 'kysely-sqlite-builder'
    * import { defineLiteral, defineObject, defineTable, useSchema } from 'kysely-sqlite-builder/schema'
+   * import type { InferDatabase } from 'kysely-sqlite-builder/schema'
    * // schemas for AutoSyncTables
    * const testTable = defineTable({
    *   id: { type: 'increments' },

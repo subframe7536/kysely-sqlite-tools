@@ -34,6 +34,7 @@ choose [NodeWasmDialect](../dialect-wasm/README.md#nodewasmdialect)
 ```ts
 import { SqliteBuilder } from 'kysely-sqlite-builder'
 import { defineLiteral, defineObject, defineTable, useSchema } from 'kysely-sqlite-builder/schema'
+import type { InferDatabase } from 'kysely-sqlite-builder/schema'
 
 // schemas for AutoSyncTables
 const testTable = defineTable({
