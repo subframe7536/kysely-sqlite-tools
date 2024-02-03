@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import Database from 'better-sqlite3'
 import type { Generated, KyselyPlugin } from 'kysely'
 import { Kysely, SqliteDialect } from 'kysely'
-import { SerializePlugin } from '../packages/plugin-serialize'
+import { SerializePlugin } from '../packages/plugin-serialize/src'
 
 interface DB {
   test: TestTable
@@ -11,6 +11,7 @@ interface DB {
 interface TestTable {
   id: Generated<number>
   person: { name: string, age: number, time: Date } | null
+  tag: string[]
   gender: boolean
   blob: Uint8Array | null
   date: Date
@@ -33,6 +34,7 @@ describe('plugin basic test', () => {
     await db.schema.createTable('test')
       .addColumn('id', 'integer', build => build.autoIncrement().primaryKey())
       .addColumn('gender', 'text')
+      .addColumn('tag', 'text')
       .addColumn('person', 'text')
       .addColumn('blob', 'blob')
       .addColumn('date', 'text')
@@ -41,16 +43,18 @@ describe('plugin basic test', () => {
     await db.insertInto('test').values({
       gender: true,
       person: { name: 'test', age: 2, time: testDate },
+      tag: ['tag1', 'tag2'],
       blob: Buffer.from([1, 2, 3]),
       date: testDate,
     }).execute()
-    const { blob, person, gender, date } = await db.selectFrom('test')
+    const { blob, person, tag, gender, date } = await db.selectFrom('test')
       .selectAll()
       .limit(1)
       .executeTakeFirstOrThrow()
     expect(blob).toStrictEqual(Buffer.from([1, 2, 3]))
     expect(blob).toBeInstanceOf(Buffer)
     expect(person).toStrictEqual({ name: 'test', age: 2, time: testDate.toISOString() })
+    expect(tag).toStrictEqual(['tag1', 'tag2'])
     expect(gender).toStrictEqual(true)
     expect(date).toStrictEqual(testDate)
   })
