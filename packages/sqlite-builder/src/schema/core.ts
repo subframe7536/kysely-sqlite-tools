@@ -1,4 +1,5 @@
-import { type Kysely, sql } from 'kysely'
+import { sql } from 'kysely'
+import type { Kysely, Transaction } from 'kysely'
 import { getOrSetDBVersion } from 'kysely-sqlite-utils'
 import type { Promisable } from '@subframe7536/type-utils'
 import type { DBLogger } from '../types'
@@ -46,10 +47,14 @@ export type SyncOptions<T extends Schema> = {
    */
   reserveOldData?: boolean
   /**
-   * after update hook
+   * trigger on update success
    * @param db kysely instance
    */
-  afterUpdate?: (db: Kysely<InferDatabase<T>>) => Promisable<void>
+  onSyncSuccess?: (db: Kysely<InferDatabase<T>>) => Promisable<void>
+  /**
+   * trigger on update fail
+   */
+  onSyncFail?: (err: unknown) => Promisable<void>
 }
 
 export async function syncTables<T extends Schema>(
@@ -64,7 +69,8 @@ export async function syncTables<T extends Schema>(
     log,
     version: { current, skipSyncWhenSame } = {},
     excludeTablePrefix,
-    afterUpdate,
+    onSyncSuccess,
+    onSyncFail,
   } = options
 
   if (current) {
@@ -86,45 +92,52 @@ export async function syncTables<T extends Schema>(
         : [],
   )
 
-  for (const idx of indexList) {
-    await db.schema.dropIndex(idx).ifExists().execute()
-  }
-  for (const tgr of triggerList) {
-    await sql`drop trigger if exists ${sql.ref(tgr)}`.execute(db)
-  }
+  await db.transaction()
+    .execute(async (trx) => {
+      for (const idx of indexList) {
+        await trx.schema.dropIndex(idx).ifExists().execute()
+      }
+      for (const tgr of triggerList) {
+        await sql`drop trigger if exists ${sql.ref(tgr)}`.execute(trx)
+      }
 
-  for (const [existTableName, existColumns] of Object.entries(existTables)) {
-    if (!(existTableName in targetTables)) {
-      debug(`remove table: ${existTableName}`)
-      await runDropTable(db, existTableName)
-    } else {
-      debug(`diff table: ${existTableName}`)
-      await diffTable(existTableName, existColumns, targetTables[existTableName])
-    }
-  }
+      for (const [existTableName, existColumns] of Object.entries(existTables)) {
+        if (!(existTableName in targetTables)) {
+          debug(`remove table: ${existTableName}`)
+          await runDropTable(trx, existTableName)
+        } else {
+          debug(`diff table: ${existTableName}`)
+          try {
+            await diffTable(trx, existTableName, existColumns, targetTables[existTableName])
+          } catch (e) {
+            logger?.error(`fail to sync ${existTableName}`, e as any)
+            throw e
+          }
+        }
+      }
 
-  for (const [targetTableName, targetTable] of Object.entries(targetTables)) {
-    if (!(targetTableName in existTables)) {
-      debug(`create table: ${targetTableName}`)
-      await runCreateTableWithIndexAndTrigger(db, targetTableName, targetTable)
-    }
-  }
-  debug('======= after update hook =======')
-  await afterUpdate?.(db)
+      for (const [targetTableName, targetTable] of Object.entries(targetTables)) {
+        if (!(targetTableName in existTables)) {
+          debug(`create table: ${targetTableName}`)
+          await runCreateTableWithIndexAndTrigger(db, targetTableName, targetTable)
+        }
+      }
+    })
+    .then(() => onSyncSuccess?.(db))
+    .catch(e => onSyncFail?.(e))
 
   debug('======= update tables end =======')
 
   async function diffTable(
+    trx: Transaction<any>,
     tableName: string,
     existColumns: ParsedCreateTableSQL,
     targetColumns: Table,
   ): Promise<void> {
     if (truncateTableSet.has(tableName)) {
-      await db.transaction().execute(async (trx) => {
-        await runDropTable(trx, tableName)
-        await runCreateTableWithIndexAndTrigger(trx, tableName, targetColumns)
-        debug('clear and sync structure')
-      })
+      await runDropTable(trx, tableName)
+      await runCreateTableWithIndexAndTrigger(trx, tableName, targetColumns)
+      debug('clear and sync structure')
       return
     }
     const { index, ...props } = targetColumns
@@ -137,41 +150,38 @@ export async function syncTables<T extends Schema>(
       return
     }
     debug('different table structure, update')
-    await db.transaction().execute(async (trx) => {
-      const tempTableName = `_temp_${tableName}`
+    const tempTableName = `_temp_${tableName}`
 
-      // 1. copy struct to temporary table
-      // @ts-expect-error existColumns.columns has parsed column type
-      await runCreateTable(trx, tempTableName, existColumns, true)
+    // 1. copy struct to temporary table
+    // @ts-expect-error existColumns.columns has parsed column type
+    await runCreateTable(trx, tempTableName, existColumns, true)
 
-      // 2. copy all data to temporary table
-      await trx.insertInto(tempTableName)
-        .expression(eb => eb.selectFrom(tableName).selectAll())
+    // 2. copy all data to temporary table
+    await trx.insertInto(tempTableName)
+      .expression(eb => eb.selectFrom(tableName).selectAll())
+      .execute()
+
+    // 3. remove exist table
+    await runDropTable(trx, tableName)
+
+    // 4. create target table
+    const _triggerOptions = await runCreateTable(trx, tableName, props)
+
+    // 5. diff and restore data from temporary table to target table
+    if (restoreColumnList.length) {
+      await trx.insertInto(tableName)
+        .columns(restoreColumnList)
+        .expression(eb => eb.selectFrom(tempTableName).select(restoreColumnList))
         .execute()
+    }
 
-      // 3. remove exist table
-      await runDropTable(trx, tableName)
+    // 6. add indexes and triggers
+    await runCreateTableIndex(trx, tableName, index)
+    await runCreateTimeTrigger(trx, tableName, _triggerOptions)
 
-      // 4. create target table
-      const _triggerOptions = await runCreateTable(trx, tableName, props)
-
-      // 5. diff and restore data from temporary table to target table
-      if (restoreColumnList.length) {
-        await trx.insertInto(tableName)
-          .columns(restoreColumnList)
-          .expression(eb => eb.selectFrom(tempTableName).select(restoreColumnList))
-          .execute()
-      }
-
-      // 6. add indexes and triggers
-      await runCreateTableIndex(trx, tableName, index)
-      await runCreateTimeTrigger(trx, tableName, _triggerOptions)
-
-      // 7. if not reserve old data, remove temporary table
-      !reserveOldData && await runDropTable(trx, tempTableName)
-    })
-      .then(() => debug(`restore columns: ${restoreColumnList}`))
-      .catch(e => logger?.error(`fail to sync ${tableName}`, e))
+    // 7. if not reserve old data, remove temporary table
+    !reserveOldData && await runDropTable(trx, tempTableName)
+    debug(`restore columns: ${restoreColumnList}`)
   }
 }
 
