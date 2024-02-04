@@ -17,15 +17,15 @@ export type LoggerOptions = {
    */
   logger: (data: LoggerParams) => void
   /**
-   * whether to merge parameters into sql
+   * whether to merge parameters into sql, use `JSON.stringify` to serialize params
    *
-   * e.g. from `select ? from ?` to `select name from user`
+   * e.g. from `select ? from ?` to `select "name" from "user"`
    */
   merge?: boolean
   /**
    * whether to log queryNode
    */
-  queryNode?: boolean
+  logQueryNode?: boolean
 }
 
 /**
@@ -45,7 +45,7 @@ export type LoggerOptions = {
 export function createKyselyLogger(
   options: LoggerOptions,
 ): (event: LogEvent) => void {
-  const { logger, merge, queryNode } = options
+  const { logger, merge, logQueryNode } = options
 
   return (event: LogEvent) => {
     const { level, queryDurationMillis, query: { parameters, sql, query } } = event
@@ -53,7 +53,7 @@ export function createKyselyLogger(
     let _sql = sql.replace(/\r?\n/g, ' ').replace(/\s+/g, ' ')
     if (merge) {
       parameters.forEach((param) => {
-        _sql = _sql.replace('?', typeof param === 'string' ? param : JSON.stringify(param))
+        _sql = _sql.replace('?', JSON.stringify(param))
       })
     }
     const param: LoggerParams = {
@@ -62,7 +62,7 @@ export function createKyselyLogger(
       duration: queryDurationMillis,
       error: err,
     }
-    if (queryNode) {
+    if (logQueryNode) {
       param.queryNode = query
     }
     logger(param)
