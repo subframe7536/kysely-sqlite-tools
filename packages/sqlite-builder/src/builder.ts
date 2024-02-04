@@ -84,11 +84,7 @@ export class SqliteBuilder<DB extends Record<string, any>> {
       log = createKyselyLogger(onQuery)
     }
 
-    this.kysely = new Kysely<DB>({
-      dialect,
-      log,
-      plugins,
-    })
+    this.kysely = new Kysely<DB>({ dialect, log, plugins })
   }
 
   /**
@@ -155,6 +151,9 @@ export class SqliteBuilder<DB extends Record<string, any>> {
     return { ready: true }
   }
 
+  /**
+   * get current db instance, auto detect transaction
+   */
   private getDB() {
     return this.trx || this.kysely
   }
@@ -164,7 +163,7 @@ export class SqliteBuilder<DB extends Record<string, any>> {
   }
 
   /**
-   * run in transaction, support nest call (using savepoint)
+   * run in transaction, support nest call (using `savepoint`)
    */
   public async transaction<O>(
     fn: (trx: Transaction<DB>) => Promise<O>,
@@ -205,8 +204,7 @@ export class SqliteBuilder<DB extends Record<string, any>> {
   }
 
   /**
-   * execute and return result list,
-   * auto detect transaction, auto catch error
+   * execute and return result list, auto detect transaction
    */
   public async execute<O>(
     query: CompiledQuery<O>,
@@ -223,10 +221,9 @@ export class SqliteBuilder<DB extends Record<string, any>> {
   }
 
   /**
-   * execute and return first result,
-   * auto detect transaction, auto catch error
+   * execute and return first result, auto detect transaction
    *
-   * if is select, auto append `.limit(1)`
+   * if is `select`, auto append `.limit(1)`
    */
   public async executeTakeFirst<O>(
     fn: (db: Kysely<DB> | Transaction<DB>) => AvailableBuilder<DB, O>,
@@ -241,7 +238,7 @@ export class SqliteBuilder<DB extends Record<string, any>> {
   /**
    * precompile query, call it with different params later
    *
-   * used for better performance, details: {@link precompileQuery}
+   * design for better performance, details: {@link precompileQuery}
    */
   public precompile<O>(
     queryBuilder: (db: Kysely<DB>) => QueryBuilderOutput<Compilable<O>>,
@@ -251,8 +248,7 @@ export class SqliteBuilder<DB extends Record<string, any>> {
   }
 
   /**
-   * execute raw sql,
-   * auto detect transaction, auto catch error
+   * execute raw sql, auto detect transaction
    */
   public async raw<O = unknown>(
     rawSql: RawBuilder<O>,
@@ -272,7 +268,7 @@ export class SqliteBuilder<DB extends Record<string, any>> {
 
   /**
    * optimize db file
-   * @param rebuild run `vacuum` instead of `pragma optimize`
+   * @param rebuild if is true, run `vacuum` instead of `pragma optimize`
    * @see https://sqlite.org/pragma.html#pragma_optimize
    * @see https://www.sqlite.org/lang_vacuum.html
    */
@@ -288,6 +284,4 @@ export class SqliteBuilder<DB extends Record<string, any>> {
     await this.kysely.destroy()
     this.trx = undefined
   }
-
-  // todo: pagination
 }
