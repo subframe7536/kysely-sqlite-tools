@@ -30,7 +30,7 @@ export type SyncOptions<T extends Schema> = {
     /**
      * whether to skip sync when the db's `user_version` is same with `version.current`
      */
-    skipSyncWhenSame?: boolean
+    skipSyncWhenSame: boolean
   }
   /**
    * exclude table prefix list, append with `%`
