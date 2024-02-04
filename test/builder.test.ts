@@ -107,7 +107,7 @@ describe('test builder', async () => {
       await db.execute(d => d.insertInto('test').values([{ gender: false }, { gender: true }]))
       return db.execute(d => d.updateTable('test').set({ gender: true }).where('id', '=', 2).returningAll())
     }, {
-      afterCommit: () => {
+      onCommit: () => {
         console.log('after commit')
       },
     }))

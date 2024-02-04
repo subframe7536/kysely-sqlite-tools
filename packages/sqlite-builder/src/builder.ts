@@ -41,11 +41,11 @@ type TransactionOptions<T> = {
   /**
    * after commit hook
    */
-  afterCommit?: (result: T) => Promisable<void>
+  onCommit?: (result: T) => Promisable<void>
   /**
    * after rollback hook
    */
-  afterRollback?: (err: unknown) => Promisable<void>
+  onRollback?: (err: unknown) => Promisable<void>
 }
 
 export class SqliteBuilder<DB extends Record<string, any>> {
@@ -178,11 +178,11 @@ export class SqliteBuilder<DB extends Record<string, any>> {
           return await fn(trx)
         })
         .then(async (result) => {
-          await options.afterCommit?.(result)
+          await options.onCommit?.(result)
           return result
         })
         .catch(async (e) => {
-          await options.afterRollback?.(e)
+          await options.onRollback?.(e)
           this.logError(e, options.errorMsg)
           return undefined
         })
@@ -193,11 +193,11 @@ export class SqliteBuilder<DB extends Record<string, any>> {
     this.logger?.debug(`run in savepoint: sp_${this.trxCount}`)
     return await runWithSavePoint(this.trx!, fn, `sp_${this.trxCount}`)
       .then(async (result) => {
-        await options.afterCommit?.(result)
+        await options.onCommit?.(result)
         return result
       })
       .catch(async (e) => {
-        await options.afterRollback?.(e)
+        await options.onRollback?.(e)
         this.logError(e, options.errorMsg)
         return undefined
       })
