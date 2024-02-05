@@ -46,4 +46,4 @@ export type StatusResult =
   | { ready: true }
   | { ready: false, error: IntegrityError | unknown }
 
-export type TablesUpdater = (db: Kysely<any>, logger?: DBLogger) => Promise<void>
+export type TableUpdater = (db: Kysely<any>, logger?: DBLogger) => Promise<StatusResult>

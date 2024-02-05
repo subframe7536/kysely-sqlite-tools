@@ -1,6 +1,3 @@
-#!/usr/bin/env sh
-. "$(dirname -- "$0")/_/husky.sh"
-
 if git diff --name-only --cached | grep -vE '\.(md|yml)$' &> /dev/null; then
   npx lint-staged
   npm run typecheck
