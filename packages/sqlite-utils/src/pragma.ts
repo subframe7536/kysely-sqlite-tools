@@ -1,10 +1,12 @@
 import { CompiledQuery } from 'kysely'
 import type { DatabaseConnection, Kysely, Transaction } from 'kysely'
 
+type Executor = DatabaseConnection | Kysely<any> | Transaction<any>
+
 /**
- * check integrity_check pragma, **no param check**
+ * check integrity_check pragma
  */
-export async function checkIntegrity(db: Kysely<any>): Promise<boolean> {
+export async function checkIntegrity(db: Executor): Promise<boolean> {
   const { rows } = await db.executeQuery(CompiledQuery.raw('PRAGMA integrity_check'))
   if (!rows.length) {
     throw new Error('fail to check integrity')
@@ -16,7 +18,7 @@ export async function checkIntegrity(db: Kysely<any>): Promise<boolean> {
 /**
  * control whether to enable foreign keys, **no param check**
  */
-export async function foreignKeys(db: Kysely<any>, enable: boolean): Promise<void> {
+export async function foreignKeys(db: Executor, enable: boolean): Promise<void> {
   await db.executeQuery(CompiledQuery.raw(`PRAGMA foreign_keys = ${enable}`))
 }
 
@@ -24,7 +26,7 @@ export async function foreignKeys(db: Kysely<any>, enable: boolean): Promise<voi
  * get or set user_version pragma, **no param check**
  */
 export async function getOrSetDBVersion(
-  db: Kysely<any>,
+  db: Executor,
   version?: number,
 ): Promise<number> {
   if (version) {
@@ -84,7 +86,7 @@ export type OptimizePragmaOptions = {
  * @param options pragma options, {@link OptimizePragmaOptions details}
  */
 export async function optimizePragma(
-  db: DatabaseConnection | Kysely<any> | Transaction<any>,
+  db: Executor,
   options: OptimizePragmaOptions = {},
 ) {
   const entries = Object.entries({
