@@ -26,7 +26,7 @@
     "typecheck": "tsc --noEmit",
     "format": "eslint . --fix",
     "lint": "eslint .",
-    "postinstall": "husky install",
+    "prepare": "husky",
     "commit": "czg"
   },
   "devDependencies": {

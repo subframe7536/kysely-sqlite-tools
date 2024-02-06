@@ -21,7 +21,7 @@ import type {
   DBLogger,
   SqliteBuilderOptions,
   StatusResult,
-  TablesUpdater,
+  TableUpdater,
 } from './types'
 
 export class IntegrityError extends Error {
@@ -133,13 +133,15 @@ export class SqliteBuilder<DB extends Record<string, any>> {
    * // update tables using MigrationProvider and migrate to latest
    * await db.updateTableSchema(useMigrator(new FileMigrationProvider(...)))
    */
-  public async updateTableSchema(updater: TablesUpdater, checkIntegrity?: boolean): Promise<StatusResult> {
+  public async updateTableSchema(updater: TableUpdater, checkIntegrity?: boolean): Promise<StatusResult> {
     try {
       if (checkIntegrity && !(await runCheckIntegrity(this.kysely))) {
         this.logger?.error('integrity check fail')
         return { ready: false, error: new IntegrityError() }
       }
-      await updater(this.kysely, this.logger)
+      const result = await updater(this.kysely, this.logger)
+      this.logger?.info('table updated')
+      return result
     } catch (error) {
       this.logError(error, 'sync table fail')
       return {
@@ -147,8 +149,6 @@ export class SqliteBuilder<DB extends Record<string, any>> {
         error,
       }
     }
-    this.logger?.info('table updated')
-    return { ready: true }
   }
 
   /**

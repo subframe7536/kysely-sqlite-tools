@@ -1,4 +1,4 @@
-import type { ColumnDataType, Kysely } from 'kysely'
+import type { ColumnDataType, Kysely, Transaction } from 'kysely'
 import { sql } from 'kysely'
 import type { Arrayable } from '@subframe7536/type-utils'
 import type {
@@ -55,26 +55,24 @@ export async function runDropTable(db: Kysely<any>, tableName: string) {
 }
 
 export async function runCreateTableWithIndexAndTrigger(
-  db: Kysely<any>,
+  trx: Transaction<any>,
   tableName: string,
   table: Table<any>,
 ) {
   const { index, ...props } = table
-  await db.transaction().execute(async (trx) => {
-    const triggerOptions = await runCreateTable(trx, tableName, props)
-    await runCreateTimeTrigger(trx, tableName, triggerOptions)
-    await runCreateTableIndex(trx, tableName, index)
-  })
+  const triggerOptions = await runCreateTable(trx, tableName, props)
+  await runCreateTimeTrigger(trx, tableName, triggerOptions)
+  await runCreateTableIndex(trx, tableName, index)
 }
 export async function runCreateTableIndex(
-  db: Kysely<any>,
+  trx: Transaction<any>,
   tableName: string,
   index: Arrayable<string>[] | undefined,
 ) {
   for (const i of index || []) {
     const _i = parseArray(i)
 
-    await db.schema.createIndex(`idx_${tableName}_${_i.join('_')}`)
+    await trx.schema.createIndex(`idx_${tableName}_${_i.join('_')}`)
       .on(tableName)
       .columns(_i as string[])
       .ifNotExists()
@@ -83,7 +81,7 @@ export async function runCreateTableIndex(
 }
 
 export async function runCreateTable(
-  db: Kysely<any>,
+  trx: Transaction<any>,
   tableName: string,
   { columns, primary, timeTrigger, unique }: Omit<Table, 'index'>,
   temporary = false,
@@ -96,7 +94,7 @@ export async function runCreateTable(
     : undefined
 
   let _haveAutoKey = false
-  let tableSql = db.schema.createTable(tableName)
+  let tableSql = trx.schema.createTable(tableName)
 
   if (temporary) {
     tableSql = tableSql.temporary()
@@ -175,7 +173,7 @@ type RunTriggerOptions = {
 }
 
 export async function runCreateTimeTrigger(
-  db: Kysely<any>,
+  trx: Transaction<any>,
   tableName: string,
   options?: RunTriggerOptions,
 ) {
@@ -192,5 +190,5 @@ begin
   update ${sql.table(tableName)}
   set ${sql.ref(update)} = CURRENT_TIMESTAMP
   where ${sql.ref(triggerKey)} = NEW.${sql.ref(triggerKey)};
-end`.execute(db)
+end`.execute(trx)
 }

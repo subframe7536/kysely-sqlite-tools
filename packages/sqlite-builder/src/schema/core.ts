@@ -2,7 +2,7 @@ import { sql } from 'kysely'
 import type { Kysely, Transaction } from 'kysely'
 import { getOrSetDBVersion } from 'kysely-sqlite-utils'
 import type { Promisable } from '@subframe7536/type-utils'
-import type { DBLogger } from '../types'
+import type { DBLogger, StatusResult } from '../types'
 import type { Columns, InferDatabase, Schema, Table } from './types'
 import {
   parseColumnType,
@@ -62,7 +62,7 @@ export async function syncTables<T extends Schema>(
   targetTables: T,
   options: SyncOptions<T> = {},
   logger?: DBLogger,
-): Promise<void> {
+): Promise<StatusResult> {
   const {
     reserveOldData,
     truncateIfExists = [],
@@ -75,7 +75,7 @@ export async function syncTables<T extends Schema>(
 
   if (current) {
     if (skipSyncWhenSame && current === await getOrSetDBVersion(db)) {
-      return
+      return { ready: true }
     }
     await getOrSetDBVersion(db, current)
   }
@@ -92,7 +92,7 @@ export async function syncTables<T extends Schema>(
         : [],
   )
 
-  await db.transaction()
+  return await db.transaction()
     .execute(async (trx) => {
       for (const idx of indexList) {
         await trx.schema.dropIndex(idx).ifExists().execute()
@@ -119,14 +119,20 @@ export async function syncTables<T extends Schema>(
       for (const [targetTableName, targetTable] of Object.entries(targetTables)) {
         if (!(targetTableName in existTables)) {
           debug(`create table: ${targetTableName}`)
-          await runCreateTableWithIndexAndTrigger(db, targetTableName, targetTable)
+          await runCreateTableWithIndexAndTrigger(trx, targetTableName, targetTable)
         }
       }
     })
-    .then(() => onSyncSuccess?.(db))
-    .catch(e => onSyncFail?.(e))
-
-  debug('======= update tables end =======')
+    .then(() => {
+      onSyncSuccess?.(db)
+      debug('======= update tables success =======')
+      return { ready: true as const }
+    })
+    .catch((e) => {
+      onSyncFail?.(e)
+      debug('======= update tables fail =======')
+      return { ready: false, error: e }
+    })
 
   async function diffTable(
     trx: Transaction<any>,
