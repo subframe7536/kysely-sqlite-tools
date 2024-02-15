@@ -12,7 +12,12 @@ export type SqliteWorkerDialectConfig = {
   /**
    * better-sqlite3 initiate option
    */
-  option?: Options
+  dbOption?: Options
+  /**
+   * db worker path
+   * @default join(__dirname, 'worker.js')
+   */
+  workerPath?: string
   onCreateConnection?: (connection: DatabaseConnection) => Promisable<void>
 }
 

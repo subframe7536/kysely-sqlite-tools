@@ -28,4 +28,4 @@ export type SqliteWorkerDialectConfig = {
 
 ## Notice
 
-the worker script is read from `join(__dirname, 'worker.js')`, please make sure it exists
+the worker script is read from `join(__dirname, 'worker.js')` by default, you can customize the path

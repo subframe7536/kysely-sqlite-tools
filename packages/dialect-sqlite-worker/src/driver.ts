@@ -18,12 +18,12 @@ export class SqliteWorkerDriver implements Driver {
   }
 
   async init(): Promise<void> {
-    const { option, source, onCreateConnection } = this.config
+    const { dbOption, source, onCreateConnection } = this.config
     const src = typeof source === 'function' ? await source() : source
     this.emit = new EventEmitter()
     this.worker = new Worker(
-      join(__dirname, 'worker.js'),
-      { workerData: { src, option } },
+      this.config.workerPath || join(__dirname, 'worker.js'),
+      { workerData: { src, option: dbOption } },
     )
     this.worker.on('message', ({ data, type, err }: WorkerMsg) => {
       this.emit?.emit(type, data, err)
