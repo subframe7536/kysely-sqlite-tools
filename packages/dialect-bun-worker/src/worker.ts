@@ -37,7 +37,7 @@ onmessage = ({ data }: MessageEvent<MainMsg>) => {
         break
       case 'init':
         db = new Database(data.url, { create: true })
-        fn = data.cache ? 'prepare' : 'query'
+        fn = data.cache ? 'query' : 'prepare'
         break
     }
   } catch (error) {
