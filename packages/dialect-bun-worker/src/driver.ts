@@ -1,7 +1,6 @@
+import { EventEmitter } from 'node:events'
 import type { DatabaseConnection, Driver, QueryResult } from 'kysely'
 import { CompiledQuery, SelectQueryNode } from 'kysely'
-import type { Emitter } from 'zen-mitt'
-import { mitt } from 'zen-mitt'
 import type { EventWithError, MainMsg, WorkerMsg } from './type'
 import type { BunWorkerDialectConfig } from '.'
 
@@ -10,7 +9,7 @@ export class BunWorkerDriver implements Driver {
   private worker?: Worker
   private connection?: DatabaseConnection
   private connectionMutex = new ConnectionMutex()
-  private mitt?: Emitter<EventWithError>
+  private mitt?: EventEmitter<EventWithError>
   constructor(config?: BunWorkerDialectConfig) {
     this.config = config
   }
@@ -20,7 +19,7 @@ export class BunWorkerDriver implements Driver {
       new URL('./worker', import.meta.url),
       { type: 'module' },
     )
-    this.mitt = mitt<EventWithError>()
+    this.mitt = new EventEmitter()
     this.worker.onmessage = ({ data: { data, err, type } }: MessageEvent<WorkerMsg>) => {
       this.mitt?.emit(type, { data, err })
     }
@@ -73,7 +72,7 @@ export class BunWorkerDriver implements Driver {
           reject(err)
         } else {
           this.worker?.terminate()
-          this.mitt?.off()
+          this.mitt?.removeAllListeners()
           this.mitt = undefined
           resolve()
         }
@@ -107,12 +106,10 @@ class ConnectionMutex {
 }
 
 class BunWorkerConnection implements DatabaseConnection {
-  readonly worker: Worker
-  readonly mitt?: Emitter<EventWithError>
-  constructor(worker: Worker, mitt?: Emitter<EventWithError>) {
-    this.worker = worker
-    this.mitt = mitt
-  }
+  constructor(
+    private worker: Worker,
+    private mitt?: EventEmitter<EventWithError>,
+  ) { }
 
   streamQuery<R>(): AsyncIterableIterator<QueryResult<R>> {
     throw new Error('Bun:sqlite-worker driver doesn\'t support streaming')

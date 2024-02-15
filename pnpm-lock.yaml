@@ -80,9 +80,6 @@ importers:
       kysely:
         specifier: '>=0.26'
         version: 0.27.2
-      zen-mitt:
-        specifier: ^0.3.0
-        version: 0.3.0
     devDependencies:
       bun-types:
         specifier: latest

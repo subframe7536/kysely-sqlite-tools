@@ -27,14 +27,16 @@ export type WorkerMsg = {
     err: unknown
   }
 }[keyof Events]
+
 type Events = {
   run: QueryResult<any> | null
   init: null
   close: null
 }
+
 export type EventWithError = {
-  [K in keyof Events]: {
+  [K in keyof Events]: [{
     data: Events[K]
     err: unknown
-  }
+  }]
 }

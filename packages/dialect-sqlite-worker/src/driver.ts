@@ -96,12 +96,10 @@ class ConnectionMutex {
   }
 }
 export class SqliteWorkerConnection implements DatabaseConnection {
-  readonly worker: Worker
-  readonly emit?: EventEmitter
-  constructor(worker: Worker, emit?: EventEmitter) {
-    this.worker = worker
-    this.emit = emit
-  }
+  constructor(
+    private worker: Worker,
+    private emit?: EventEmitter,
+  ) { }
 
   async *streamQuery<R>(): AsyncIterableIterator<QueryResult<R>> {
     throw new Error('sqlite-worker driver doesn\'t support streaming')
