@@ -1,7 +1,7 @@
 {
   "name": "kysely-sqlite-tools",
   "type": "module",
-  "version": "0.5.6",
+  "version": "0.5.7",
   "private": true,
   "packageManager": "pnpm@8.15.3",
   "description": "",
