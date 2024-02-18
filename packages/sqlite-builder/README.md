@@ -65,14 +65,14 @@ const db = new SqliteBuilder<DB>({
   onQuery: true,
 })
 
-// update tables using syncTable
-await db.updateTableSchema(useSchema(baseTables, { logger: false }))
+// update table using schema
+await db.syncDB(useSchema(baseTables, { logger: false }))
 
 import { useMigrator } from 'kysely-sqlite-builder'
 import { FileMigrationProvider } from 'kysely'
 
 // update tables using MigrationProvider and migrate to latest
-await db.updateTableSchema(useMigrator(new FileMigrationProvider(/* ... */)))
+await db.syncDB(useMigrator(new FileMigrationProvider(/* ... */)))
 ```
 
 ### Usage
@@ -82,13 +82,12 @@ await db.updateTableSchema(useMigrator(new FileMigrationProvider(/* ... */)))
 await db.transaction(async (trx) => {
   // use transaction
   await trx.insertInto('test').values({ gender: false }).execute()
+  // auto use `trx`
+  await db.execute(d => d.insertInto('test').values({ gender: true }).execute())
   // nest transaction, using savepoint
   await db.transaction(async () => {
-    // auto load transaction with savepoint
-    await db.execute(
-      d => d.selectFrom('test').where('gender', '=', true),
-      'this is error message'
-    )
+    // auto use savepoint
+    await db.execute(d => d.selectFrom('test').where('gender', '=', true))
   })
 })
 
@@ -96,7 +95,7 @@ await db.transaction(async (trx) => {
 await db.kysely.insertInto('test').values({ gender: false }).execute()
 
 // run raw
-await db.raw(sql`PRAGMA user_version = 2`, 'this is error message')
+await db.raw(sql`PRAGMA user_version = 2`)
 
 // destroy
 await db.destroy()

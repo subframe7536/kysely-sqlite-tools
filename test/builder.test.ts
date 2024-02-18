@@ -40,7 +40,7 @@ describe('test sync table', async () => {
   let db: SqliteBuilder<any>
   beforeEach(async () => {
     db = getDatabase()
-    await db.updateTableSchema(useSchema(baseTables, { log: false }))
+    await db.syncDB(useSchema(baseTables, { log: false }))
   })
   it('should create new table', async () => {
     const foo = defineTable({
@@ -48,7 +48,7 @@ describe('test sync table', async () => {
       col2: { type: 'string' },
     })
 
-    await db.updateTableSchema(useSchema({
+    await db.syncDB(useSchema({
       ...baseTables,
       foo,
     }, { log: false }))
@@ -59,7 +59,7 @@ describe('test sync table', async () => {
     expect(_tables[1].name).toBe('test')
   })
   it('should drop old table', async () => {
-    await db.updateTableSchema(useSchema({ }, { log: false }))
+    await db.syncDB(useSchema({ }, { log: false }))
 
     const _tables = await db.kysely.introspection.getTables()
     expect(_tables.length).toBe(0)
@@ -78,7 +78,7 @@ describe('test sync table', async () => {
         timeTrigger: { create: true, update: true },
       },
     )
-    await db.updateTableSchema(useSchema({ test: foo }, { log: false }))
+    await db.syncDB(useSchema({ test: foo }, { log: false }))
     const [_tables] = await db.kysely.introspection.getTables()
     expect(_tables
       .columns
@@ -100,7 +100,7 @@ describe('test sync table', async () => {
 describe('test builder', async () => {
   const db = getDatabase()
   await getOrSetDBVersion(db.kysely, 2)
-  await db.updateTableSchema(useSchema(baseTables))
+  await db.syncDB(useSchema(baseTables))
   it('should insert', async () => {
     //  generate table
     console.log(await db.transaction(async () => {

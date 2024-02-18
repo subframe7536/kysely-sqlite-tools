@@ -124,16 +124,16 @@ export class SqliteBuilder<DB extends Record<string, any>> {
    *   onQuery: true,
    * })
    *
-   * // update tables using syncTable
-   * await db.updateTableSchema(useSchema(baseTables, { logger: false }))
+   * // update tables using schema
+   * await db.syncDB(useSchema(baseTables, { logger: false }))
    *
    * import { useMigrator } from 'kysely-sqlite-builder'
    * import { FileMigrationProvider } from 'kysely'
    *
    * // update tables using MigrationProvider and migrate to latest
-   * await db.updateTableSchema(useMigrator(new FileMigrationProvider(...)))
+   * await db.syncDB(useMigrator(new FileMigrationProvider(...)))
    */
-  public async updateTableSchema(updater: TableUpdater, checkIntegrity?: boolean): Promise<StatusResult> {
+  public async syncDB(updater: TableUpdater, checkIntegrity?: boolean): Promise<StatusResult> {
     try {
       if (checkIntegrity && !(await runCheckIntegrity(this.kysely))) {
         this.logger?.error('integrity check fail')
