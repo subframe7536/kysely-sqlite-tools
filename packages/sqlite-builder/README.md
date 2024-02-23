@@ -106,15 +106,23 @@ await db.destroy()
 inspired by [kysely-params](https://github.com/jtlapp/kysely-params), optimized for sqlite
 
 ```ts
-const select = db.precompile(
-  db => db.selectFrom('test').selectAll(),
-).setParam<{ person: { name: string } }>(({ qb, param }) =>
-  qb.where('person', '=', param('person')),
-)
+const select = db.precompile<{ name: string }>()
+  .query((d, param) =>
+    d.selectFrom('test').selectAll().where('name', '=', param('name')),
+  )
+const compileResult = select.generate({ name: 'test' })
+// {
+//   sql: 'select * from "test" where "name" = ?',
+//   parameters: ['test'],
+//   query: { kind: 'SelectQueryNode' } // only node kind by default
+// }
+select.dispose() // clear cached query
 
-const result = await db.execute(
-  select({ person: { name: 'John' } })
-)
+// or auto disposed by using
+using selectWithUsing = db.precompile<{ name: string }>()
+  .query((d, param) =>
+    d.selectFrom('test').selectAll().where('name', '=', param('name')),
+  )
 ```
 
 ### Utils

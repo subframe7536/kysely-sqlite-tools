@@ -10,27 +10,31 @@ export type SetParamFn<O, T extends Record<string, any>> = {
   /**
    * param builder
    */
-  param: typeof getParam<T>
+  param: <K extends keyof T>(name: K) => T[K]
 }
 /**
  * @param param custom params
  * @param processRootOperatorNode process `query` in {@link CompiledQuery},
  * default is `(node) => ({ kind: node.kind })`
  */
-export type CompileFn<O, T extends Record<string, any>> = (
-  param: T,
-  processRootOperatorNode?: ((node: RootOperationNode) => RootOperationNode)
-) => CompiledQuery<QueryBuilderOutput<O>>
+export type CompileFn<O, T extends Record<string, any>> = (param: T) => CompiledQuery<QueryBuilderOutput<O>>
 
-function getParam<T extends Record<string, any>>(name: keyof T): T[keyof T] {
-  return `__pre_${name as string}` as unknown as T[keyof T]
+export function getPrecompileParam<T extends Record<string, any>, K extends keyof T>(name: K): T[K] {
+  return `__pre_${name as string}` as unknown as T[K]
+}
+export function checkPrecompileKey(p: unknown) {
+  return (typeof p === 'string' && p.startsWith('__pre_')) ? p.slice(6) : undefined
+}
+
+export type PrecompileOptions = {
+  serialize?: (value: unknown) => unknown
+  processRootOperatorNode?: (node: RootOperationNode) => RootOperationNode
 }
 
 /**
- * create precompiled query,
- * included in `SqliteBuilder`
+ * create precompiled query
  * @param queryBuilder query builder without params
- * @param serialize custom parameter value serializer
+ * @param options custom parameter value serializer and node processor
  * @example
  * ```ts
  * const query = precompileQuery(
@@ -48,8 +52,12 @@ function getParam<T extends Record<string, any>>(name: keyof T): T[keyof T] {
  */
 export function precompileQuery<O>(
   queryBuilder: QueryBuilderOutput<Compilable<O>>,
-  serialize: (value: unknown) => unknown = v => v,
+  options: PrecompileOptions = {},
 ) {
+  const {
+    processRootOperatorNode = v => ({ kind: v.kind }),
+    serialize = v => v,
+  } = options
   return {
     /**
      * setup params
@@ -60,25 +68,88 @@ export function precompileQuery<O>(
       paramBuilder: ({ param, qb }: SetParamFn<O, T>) => Compilable<O>,
     ): CompileFn<O, T> => {
       let compiled: CompiledQuery<Compilable<O>>
-      return (param, processRootOperatorNode) => {
+      return (param) => {
         if (!compiled) {
           const { parameters, sql, query } = paramBuilder({
             qb: queryBuilder,
-            param: getParam,
+            param: getPrecompileParam,
           }).compile()
           compiled = {
             sql,
-            query: processRootOperatorNode?.(query) || { kind: query.kind } as any,
+            query: processRootOperatorNode(query) as any,
             parameters,
           }
         }
         return {
           ...compiled,
-          parameters: compiled.parameters.map(p => (typeof p === 'string' && p.startsWith('__pre_'))
-            ? serialize(param[p.slice(6)])
-            : p,
-          ),
+          parameters: compiled.parameters.map((p) => {
+            const key = checkPrecompileKey(p)
+            return key ? serialize(param[key]) : p
+          }),
         }
+      }
+    },
+  }
+}
+
+/**
+ * another way to precompile query
+ * @param options query options
+ * @example
+ * const select = createPrecompile<{ name: string }>(options)
+ *   .query((param) =>
+ *     db.selectFrom('test').selectAll().where('name', '=', param('name')),
+ *   )
+ * const compileResult = select.generate({ name: 'test' })
+ * // {
+ * //   sql: 'select * from "test" where "name" = ?',
+ * //   parameters: ['test'],
+ * //   query: { kind: 'SelectQueryNode' } // only node kind by default
+ * // }
+ * select.dispose() // clear cached query
+ *
+ * // or auto disposed by using
+ * using selectWithUsing = createPrecompile<{ name: string }>(options)
+ *   .query((param) =>
+ *     db.selectFrom('test').selectAll().where('name', '=', param('name')),
+ *   )
+ */
+export function createPrecompile<T extends Record<string, any>>(options: PrecompileOptions = {}) {
+  const {
+    processRootOperatorNode = v => ({ kind: v.kind }),
+    serialize = v => v,
+  } = options
+  return {
+    /**
+     * setup params
+     * @param queryBuilder param builder
+     * @returns function to {@link CompileFn compile}
+     */
+    query: <O>(
+      queryBuilder: (param: <K extends keyof T>(name: K) => T[K]) => Compilable<O>,
+    ) => {
+      let compiled: CompiledQuery<Compilable<O>> | null
+      const dispose = () => compiled = null
+      return {
+        [Symbol.dispose]: dispose,
+        dispose,
+        generate: (param: T) => {
+          if (!compiled) {
+            const { parameters, sql, query } = queryBuilder(getPrecompileParam).compile()
+            compiled = {
+              sql,
+              query: processRootOperatorNode(query) as any,
+              parameters,
+            }
+          }
+          return {
+            ...compiled,
+            parameters: compiled.parameters.map((p) => {
+              const key = checkPrecompileKey(p)
+              return key ? serialize(param[key]) : p
+            }),
+          } as CompiledQuery<QueryBuilderOutput<O>>
+        },
       }
     },
   }

@@ -125,40 +125,37 @@ describe('test builder', async () => {
     expect(result2!.updateAt).toBeInstanceOf(Date)
   })
   it('should precompile', async () => {
-    const select = db.precompile(
-      db => db.selectFrom('test').selectAll(),
-    ).setParam<{ person: { name: string } }>(({ qb, param }) =>
-      qb.where('person', '=', param('person')),
-    )
-    const insert = db.precompile(
-      db => db.insertInto('test'),
-    ).setParam<{ gender: boolean }>(({ qb, param }) =>
-      qb.values({ gender: param('gender') }),
-    )
-    const update = db.precompile(
-      db => db.updateTable('test'),
-    ).setParam<{ gender: boolean }>(({ qb, param }) =>
-      qb.set({ gender: param('gender') }).where('id', '=', 1),
-    )
+    const select = db.precompile<{ person: { name: string }, test?: 'asd' }>()
+      .query((d, param) =>
+        d.selectFrom('test').selectAll().where('person', '=', param('person')),
+      )
+    const insert = db.precompile<{ gender: boolean }>()
+      .query((db, param) =>
+        db.insertInto('test').values({ gender: param('gender') }),
+      )
+    const update = db.precompile<{ gender: boolean }>()
+      .query((db, param) =>
+        db.updateTable('test').set({ gender: param('gender') }).where('id', '=', 1),
+      )
 
     const start = performance.now()
 
-    const { parameters, sql } = select({ person: { name: '1' } })
+    const { parameters, sql } = select.generate({ person: { name: '1' } })
     expect(sql).toBe('select * from "test" where "person" = ?')
     expect(parameters).toStrictEqual(['{"name":"1"}'])
 
     const start2 = performance.now()
     console.log('no compiled:', `${(start2 - start).toFixed(2)}ms`)
 
-    const { parameters: p1, sql: s1 } = select({ person: { name: 'test' } })
+    const { parameters: p1, sql: s1 } = select.generate({ person: { name: 'test' } })
     expect(s1).toBe('select * from "test" where "person" = ?')
     expect(p1).toStrictEqual(['{"name":"test"}'])
 
     console.log('   compiled:', `${(performance.now() - start2).toFixed(2)}ms`)
 
-    const result = await db.execute(insert({ gender: true }))
+    const result = await db.execute(insert.generate({ gender: true }))
     expect(result.rows).toStrictEqual([])
-    const result2 = await db.execute(update({ gender: false }))
+    const result2 = await db.execute(update.generate({ gender: false }))
     expect(result2.rows).toStrictEqual([])
   })
 })

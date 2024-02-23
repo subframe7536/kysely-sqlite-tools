@@ -31,14 +31,27 @@ function optimzePragma(conn: DatabaseConnection | Kysely<any> | Transaction<any>
 export async function foreignKeys(db: DatabaseConnection | Kysely<any> | Transaction<any>, enable: boolean): Promise<void>
 
 // precompile querys for performance
-function precompileQuery<O>(
-  queryBuilder: QueryBuilderOutput<Compilable<O>>,
-  serializer?: (value: unknown) => unknown
-): {
-  setParam: <T extends Record<string, any>>(
-    paramBuilder: ({ param, qb }: SetParam<O, T>) => Compilable<O>
-  ) => CompileFn<O, T>
+function createPrecompile<T extends Record<string, any>>(options?: PrecompileOptions): {
+  /**
+   * setup params
+   * @param queryBuilder param builder
+   * @returns function to {@link CompileFn compile}
+   */
+  query: <O>(queryBuilder: (param: <K extends keyof T>(name: K) => T[K]) => Compilable<O>) => {
+    [Symbol.dispose]: () => null
+    dispose: () => null
+    generate: (param: T) => CompiledQuery<QueryBuilderOutput<O>>
+  }
 }
+// old util, reference from https://github.com/jtlapp/kysely-params
+// function precompileQuery<O>(
+//   queryBuilder: QueryBuilderOutput<Compilable<O>>,
+//   serializer?: (value: unknown) => unknown
+// ): {
+//   setParam: <T extends Record<string, any>>(
+//     paramBuilder: ({ param, qb }: SetParam<O, T>) => Compilable<O>
+//   ) => CompileFn<O, T>
+// }
 ```
 
 ## Credit

@@ -2,19 +2,22 @@ import type {
   Compilable,
   QueryResult,
   RawBuilder,
+  RootOperationNode,
   SelectQueryBuilder,
   Simplify,
   Transaction,
 } from 'kysely'
 import { CompiledQuery, Kysely } from 'kysely'
 import { SerializePlugin, defaultSerializer } from 'kysely-plugin-serialize'
-import type { QueryBuilderOutput } from 'kysely-sqlite-utils'
 import {
+  type QueryBuilderOutput,
+  checkPrecompileKey,
   createKyselyLogger,
-  precompileQuery,
+  getPrecompileParam,
   checkIntegrity as runCheckIntegrity,
   runWithSavePoint,
 } from 'kysely-sqlite-utils'
+
 import type { Promisable } from '@subframe7536/type-utils'
 import type {
   AvailableBuilder,
@@ -236,15 +239,64 @@ export class SqliteBuilder<DB extends Record<string, any>> {
   }
 
   /**
-   * precompile query, call it with different params later
+   * precompile query, call it with different params later, design for better performance
+   * @example
+   * const select = db.precompile<{ name: string }>(processRootOperatorNode)
+   *   .query((d, param) =>
+   *     d.selectFrom('test').selectAll().where('name', '=', param('name')),
+   *   )
+   * const compileResult = select.generate({ name: 'test' })
+   * // {
+   * //   sql: 'select * from "test" where "name" = ?',
+   * //   parameters: ['test'],
+   * //   query: { kind: 'SelectQueryNode' } // only node kind by default
+   * // }
+   * select.dispose() // clear cached query
    *
-   * design for better performance, details: {@link precompileQuery}
+   * // or auto disposed by using
+   * using selectWithUsing = db.precompile<{ name: string }>()
+   *   .query((d, param) =>
+   *     d.selectFrom('test').selectAll().where('name', '=', param('name')),
+   *   )
    */
-  public precompile<O>(
-    queryBuilder: (db: Kysely<DB>) => QueryBuilderOutput<Compilable<O>>,
-  ): ReturnType<typeof precompileQuery<O>> {
+  public precompile<T extends Record<string, any>>(
+    processRootOperatorNode: (node: RootOperationNode) => RootOperationNode = v => ({ kind: v.kind }) as any,
+  ) {
     this.logger?.debug?.('precompile')
-    return precompileQuery(queryBuilder(this.kysely), this.serializer)
+    return {
+      /**
+       * setup params
+       * @param queryBuilder param builder
+       * @returns function to {@link CompileFn compile}
+       */
+      query: <O>(
+        queryBuilder: (db: Kysely<DB>, param: <K extends keyof T>(name: K) => T[K]) => Compilable<O>,
+      ) => {
+        let compiled: CompiledQuery<Compilable<O>> | null
+        const dispose = () => compiled = null
+        return {
+          [Symbol.dispose]: dispose,
+          dispose,
+          generate: (param: T) => {
+            if (!compiled) {
+              const { parameters, sql, query } = queryBuilder(this.kysely, getPrecompileParam).compile()
+              compiled = {
+                sql,
+                query: processRootOperatorNode(query) as any,
+                parameters,
+              }
+            }
+            return {
+              ...compiled,
+              parameters: compiled.parameters.map((p) => {
+                const key = checkPrecompileKey(p)
+                return key ? this.serializer(param[key]) : p
+              }),
+            } as CompiledQuery<QueryBuilderOutput<O>>
+          },
+        }
+      },
+    }
   }
 
   /**
