@@ -100,7 +100,7 @@ export function precompileQuery<O>(
  *   .query((param) =>
  *     db.selectFrom('test').selectAll().where('name', '=', param('name')),
  *   )
- * const compileResult = select.generate({ name: 'test' })
+ * const compileResult = select.compile({ name: 'test' })
  * // {
  * //   sql: 'select * from "test" where "name" = ?',
  * //   parameters: ['test'],
@@ -110,7 +110,7 @@ export function precompileQuery<O>(
  *
  * // or auto disposed by using
  * using selectWithUsing = createPrecompile<{ name: string }>(options)
- *   .query((param) =>
+ *   .build((param) =>
  *     db.selectFrom('test').selectAll().where('name', '=', param('name')),
  *   )
  */
@@ -125,7 +125,7 @@ export function createPrecompile<T extends Record<string, any>>(options: Precomp
      * @param queryBuilder param builder
      * @returns function to {@link CompileFn compile}
      */
-    query: <O>(
+    build: <O>(
       queryBuilder: (param: <K extends keyof T>(name: K) => T[K]) => Compilable<O>,
     ) => {
       let compiled: CompiledQuery<Compilable<O>> | null
@@ -133,7 +133,7 @@ export function createPrecompile<T extends Record<string, any>>(options: Precomp
       return {
         [Symbol.dispose]: dispose,
         dispose,
-        generate: (param: T) => {
+        compile: (param: T) => {
           if (!compiled) {
             const { parameters, sql, query } = queryBuilder(getPrecompileParam).compile()
             compiled = {

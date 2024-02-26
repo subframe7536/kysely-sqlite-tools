@@ -126,36 +126,36 @@ describe('test builder', async () => {
   })
   it('should precompile', async () => {
     const select = db.precompile<{ person: { name: string }, test?: 'asd' }>()
-      .query((d, param) =>
+      .build((d, param) =>
         d.selectFrom('test').selectAll().where('person', '=', param('person')),
       )
     const insert = db.precompile<{ gender: boolean }>()
-      .query((db, param) =>
+      .build((db, param) =>
         db.insertInto('test').values({ gender: param('gender') }),
       )
     const update = db.precompile<{ gender: boolean }>()
-      .query((db, param) =>
+      .build((db, param) =>
         db.updateTable('test').set({ gender: param('gender') }).where('id', '=', 1),
       )
 
     const start = performance.now()
 
-    const { parameters, sql } = select.generate({ person: { name: '1' } })
+    const { parameters, sql } = select.compile({ person: { name: '1' } })
     expect(sql).toBe('select * from "test" where "person" = ?')
     expect(parameters).toStrictEqual(['{"name":"1"}'])
 
     const start2 = performance.now()
     console.log('no compiled:', `${(start2 - start).toFixed(2)}ms`)
 
-    const { parameters: p1, sql: s1 } = select.generate({ person: { name: 'test' } })
+    const { parameters: p1, sql: s1 } = select.compile({ person: { name: 'test' } })
     expect(s1).toBe('select * from "test" where "person" = ?')
     expect(p1).toStrictEqual(['{"name":"test"}'])
 
     console.log('   compiled:', `${(performance.now() - start2).toFixed(2)}ms`)
 
-    const result = await db.execute(insert.generate({ gender: true }))
+    const result = await db.execute(insert.compile({ gender: true }))
     expect(result.rows).toStrictEqual([])
-    const result2 = await db.execute(update.generate({ gender: false }))
+    const result2 = await db.execute(update.compile({ gender: false }))
     expect(result2.rows).toStrictEqual([])
   })
 })

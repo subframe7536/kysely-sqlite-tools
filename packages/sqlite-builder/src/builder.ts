@@ -269,7 +269,7 @@ export class SqliteBuilder<DB extends Record<string, any>> {
        * @param queryBuilder param builder
        * @returns function to {@link CompileFn compile}
        */
-      query: <O>(
+      build: <O>(
         queryBuilder: (db: Kysely<DB>, param: <K extends keyof T>(name: K) => T[K]) => Compilable<O>,
       ) => {
         let compiled: CompiledQuery<Compilable<O>> | null
@@ -277,7 +277,7 @@ export class SqliteBuilder<DB extends Record<string, any>> {
         return {
           [Symbol.dispose]: dispose,
           dispose,
-          generate: (param: T) => {
+          compile: (param: T) => {
             if (!compiled) {
               const { parameters, sql, query } = queryBuilder(this.kysely, getPrecompileParam).compile()
               compiled = {

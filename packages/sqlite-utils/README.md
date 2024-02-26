@@ -37,10 +37,10 @@ function createPrecompile<T extends Record<string, any>>(options?: PrecompileOpt
    * @param queryBuilder param builder
    * @returns function to {@link CompileFn compile}
    */
-  query: <O>(queryBuilder: (param: <K extends keyof T>(name: K) => T[K]) => Compilable<O>) => {
+  build: <O>(queryBuilder: (param: <K extends keyof T>(name: K) => T[K]) => Compilable<O>) => {
     [Symbol.dispose]: () => null
     dispose: () => null
-    generate: (param: T) => CompiledQuery<QueryBuilderOutput<O>>
+    compile: (param: T) => CompiledQuery<QueryBuilderOutput<O>>
   }
 }
 // old util, reference from https://github.com/jtlapp/kysely-params
