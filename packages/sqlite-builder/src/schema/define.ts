@@ -1,6 +1,7 @@
 import type { RawBuilder } from 'kysely'
 import type { IsNotNull } from '@subframe7536/type-utils'
 import type {
+  ColumnType,
   Columns,
   ColumnsWithErrorInfo,
   Table,
@@ -11,18 +12,16 @@ import type {
 export const TGR = '__TIME_TRIGGER__'
 
 /**
- * define table function
+ * define table, use it with {@link Column}
  *
- * if you want to explicitly declare column type,
- * use {@link defineObject} or {@link defineLiteral}
  * @example
  * const testTable = defineTable({
- *   id: { type: 'increments' },
- *   person: { type: 'object', defaultTo: { name: 'test' } },
- *   gender: { type: 'boolean', notNull: true },
- *   array: defineObject<string[]>(),
- *   literal: defineLiteral<'l1' | 'l2'>(),
- *   buffer: { type: 'blob' },
+ *   id: Column.Increments(),
+ *   person: Column.Object({ name: 'test' }),
+ *   gender: Column.Boolean().NotNull(),
+ *   array: Column.Object<string[]>(),
+ *   literal: Column.String<'l1' | 'l2'>(),
+ *   buffer: Column.Blob(),
  * }, {
  *   primary: 'id',
  *   index: ['person', ['id', 'gender']],
@@ -61,20 +60,9 @@ export function defineTable<
   }
 }
 
-/**
- * explicitly declare object column type
- *
- * @example
- * ```ts
- * const pet = defineTable({
- *   // NotNull is optional
- *   owner: defineColumn<{ name: string }>().NotNull(),
- * }
- * ```
- */
-export function defineObject<T extends object>(defaultTo?: T | RawBuilder<unknown> | null) {
+function base<T>(type: ColumnType, defaultTo?: T | RawBuilder<unknown> | null) {
   const base = {
-    type: 'object',
+    type,
     defaultTo: defaultTo as IsNotNull<typeof defaultTo> extends true ? T : T | null,
   } as const
   return {
@@ -87,29 +75,41 @@ export function defineObject<T extends object>(defaultTo?: T | RawBuilder<unknow
     },
   }
 }
+
 /**
- * explicitly declare string column type
- *
- * @example
- * ```ts
- * const typeTable = defineTable({
- *   // NotNull is optional
- *   type: defineColumn<'generic' | 'custom'>().NotNull(),
- * }
- * ```
+ * define column
  */
-export function defineLiteral<T extends string>(defaultTo?: T | RawBuilder<unknown> | null) {
-  const base = {
-    type: 'string',
-    defaultTo: defaultTo as IsNotNull<typeof defaultTo> extends true ? T : T | null,
-  } as const
-  return {
-    ...base,
-    NotNull() {
-      return {
-        ...base,
-        notNull: true,
-      } as const
-    },
-  }
+export const Column = {
+  /**
+   * column type: text
+   */
+  String: <T extends string>(defaultTo?: T | RawBuilder<unknown> | null) => base('string', defaultTo),
+  /**
+   * column type: integer
+   */
+  Int: <T extends number>(defaultTo?: T | RawBuilder<unknown> | null) => base('int', defaultTo),
+  /**
+   * column type: real
+   */
+  Float: <T extends number>(defaultTo?: T | RawBuilder<unknown> | null) => base('float', defaultTo),
+  /**
+   * column type: blob
+   */
+  Blob: () => base<ArrayBufferLike>('blob'),
+  /**
+   * column type: interger auto increment
+   */
+  Increments: () => ({ type: 'increments' } as const),
+  /**
+   * column type: text (parse with `JSON.parse`)
+   */
+  Boolean: (defaultTo?: boolean | RawBuilder<unknown> | null) => base('boolean', defaultTo),
+  /**
+   * column type: text (parse with `JSON.parse`)
+   */
+  Date: (defaultTo?: Date | RawBuilder<unknown> | null) => base('date', defaultTo),
+  /**
+   * column type: text (parse with `JSON.parse`)
+   */
+  Object: <T extends object>(defaultTo?: T | RawBuilder<unknown> | null) => base('object', defaultTo),
 }

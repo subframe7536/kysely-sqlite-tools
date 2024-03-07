@@ -7,7 +7,7 @@ import { syncTables } from './core'
 
 export * from './types'
 
-export { defineTable, defineLiteral, defineObject } from './define'
+export { defineTable, Column } from './define'
 
 /**
  * auto sync table using schema, only sync table/index/trigger

@@ -33,17 +33,17 @@ choose [NodeWasmDialect](../dialect-wasm/README.md#nodewasmdialect)
 
 ```ts
 import { SqliteBuilder } from 'kysely-sqlite-builder'
-import { defineLiteral, defineObject, defineTable, useSchema } from 'kysely-sqlite-builder/schema'
+import { Column, defineTable, useSchema } from 'kysely-sqlite-builder/schema'
 import type { InferDatabase } from 'kysely-sqlite-builder/schema'
 
 // schemas for AutoSyncTables
 const testTable = defineTable({
-  id: { type: 'increments' },
-  person: { type: 'object', defaultTo: { name: 'test' } },
-  gender: { type: 'boolean', notNull: true },
-  str: defineLiteral<'str1' | 'str2'>('str1'),
-  array: defineObject<string[]>().NotNull(),
-  buffer: { type: 'blob' },
+  id: Column.Increments(),
+  person: Column.Object({ name: 'test' }),
+  gender: Column.Boolean().NotNull(),
+  array: Column.Object<string[]>(),
+  literal: Column.String<'l1' | 'l2'>(),
+  buffer: Column.Blob(),
 }, {
   primary: 'id',
   index: ['person', ['id', 'gender']],

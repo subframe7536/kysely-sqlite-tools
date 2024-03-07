@@ -3,16 +3,16 @@ import Database from 'better-sqlite3'
 import { beforeEach, describe, expect, it } from 'vitest'
 import { getOrSetDBVersion, optimizePragma } from '../packages/sqlite-utils/src'
 import type { InferDatabase } from '../packages/sqlite-builder/src/schema'
-import { defineLiteral, defineObject, defineTable, useSchema } from '../packages/sqlite-builder/src/schema'
+import { Column, defineTable, useSchema } from '../packages/sqlite-builder/src/schema'
 import { SqliteBuilder } from '../packages/sqlite-builder/src'
 
 const testTable = defineTable({
-  id: { type: 'increments' },
-  person: { type: 'object', defaultTo: { name: 'test' } },
-  gender: { type: 'boolean', notNull: true },
-  array: defineObject<string[]>(),
-  literal: defineLiteral<'l1' | 'l2'>(),
-  buffer: { type: 'blob' },
+  id: Column.Increments(),
+  person: Column.Object({ name: 'test' }),
+  gender: Column.Boolean().NotNull(),
+  array: Column.Object<string[]>(),
+  literal: Column.String<'l1' | 'l2'>(),
+  buffer: Column.Blob(),
 }, {
   primary: 'id',
   index: ['person', ['id', 'gender']],
@@ -67,11 +67,11 @@ describe('test sync table', async () => {
   it('should update and diff same table with columns', async () => {
     const foo = defineTable(
       {
-        id: { type: 'increments' },
-        person: { type: 'int' },
-        bool: { type: 'boolean', notNull: true },
-        array: defineObject<string[]>(),
-        buffer: { type: 'blob' },
+        id: Column.Increments(),
+        person: Column.Int(),
+        bool: Column.Boolean().NotNull(),
+        array: Column.Object<string[]>(),
+        buffer: Column.Blob(),
       },
       {
         primary: 'id',
