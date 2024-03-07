@@ -2,6 +2,10 @@
 
 Auto serialize / deserialize plugin for [kysely](https://github.com/kysely-org/kysely)
 
+## Purpose
+
+Kysely does not process the values passed in, so in some cases you may need to manually handle the values to ensure they can be processed correctly by the dialect. Therefore, the main goal of this plugin is DX, so the values serialized by the default serializer may not conform to the usual standards. If you need to ensure the actual values in the database, you can write your own serializer.
+
 ## Install
 
 ```shell
@@ -71,7 +75,7 @@ const db = new Kysely<Database>({
 
 THIS PLUGIN SHOULD BE PLACED AT THE END OF PLUGINS ARRAY
 
-default serializer / deserializer is for SQLite
+default serializer / deserializer is built for SQLite
 
 rules:
 
