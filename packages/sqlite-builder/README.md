@@ -36,9 +36,11 @@ import { SqliteBuilder } from 'kysely-sqlite-builder'
 import { Column, defineTable, useSchema } from 'kysely-sqlite-builder/schema'
 import type { InferDatabase } from 'kysely-sqlite-builder/schema'
 
-// schemas for AutoSyncTables
+// schemas for sync database
 const testTable = defineTable({
   id: Column.Increments(),
+  // or just object
+  simple: { type: 'string', defaultTo: 'test' }
   person: Column.Object({ name: 'test' }),
   gender: Column.Boolean().NotNull(),
   array: Column.Object<string[]>(),

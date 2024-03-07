@@ -12,11 +12,15 @@ import type {
 export const TGR = '__TIME_TRIGGER__'
 
 /**
- * define table, use it with {@link Column}
+ * define table
+ *
+ * you can use it with {@link Column}
  *
  * @example
  * const testTable = defineTable({
  *   id: Column.Increments(),
+ *   // or just object
+ *   simple: { type: 'string', defaultTo: 'test' }
  *   person: Column.Object({ name: 'test' }),
  *   gender: Column.Boolean().NotNull(),
  *   array: Column.Object<string[]>(),
