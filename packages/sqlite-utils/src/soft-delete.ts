@@ -12,6 +12,9 @@ export type SqliteExecutor<DB extends Record<string, any>, Extra extends Record<
   selectFrom: Kysely<DB>['selectFrom']
   insertInto: Kysely<DB>['insertInto']
   updateTable: Kysely<DB>['updateTable']
+  /**
+   * see {@link Kysely.deleteFrom}
+   */
   deleteFrom: {
     <TR extends keyof DB & string>(from: TR): Omit<DeleteQueryBuilder<DB, ExtractTableAlias<DB, TR>, DeleteResult>, JoinFnName>
     <TR extends TableReference<DB>>(table: TR): Omit<DeleteQueryBuilder<From<DB, TR>, FromTables<DB, never, TR>, DeleteResult>, JoinFnName>

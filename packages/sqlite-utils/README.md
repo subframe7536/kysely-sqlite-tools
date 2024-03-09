@@ -52,11 +52,20 @@ function createPrecompile<T extends Record<string, any>>(options?: PrecompileOpt
 //     paramBuilder: ({ param, qb }: SetParam<O, T>) => Compilable<O>
 //   ) => CompileFn<O, T>
 // }
+
+// create a wrapper for soft delete
+function createSoftDeleteExecutorFn<DB extends Record<string, any>>(deleteColumnName?: string): SqliteExecutorFn<DB, {
+  withoutDelete: <W extends WhereInterface<DB, keyof DB>>(qb: W) => WhereInterface<DB, keyof DB>
+}>
 ```
 
 ## Credit
 
 - [kysely-params](https://github.com/jtlapp/kysely-params)
+
+## Todo
+
+- [ ] improve docs
 
 ## license
 

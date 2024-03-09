@@ -32,6 +32,8 @@ choose [NodeWasmDialect](../dialect-wasm/README.md#nodewasmdialect)
 ### Define / Initialize
 
 ```ts
+import { SqliteDialect } from 'kysely'
+import Database from 'better-sqlite3'
 import { SqliteBuilder } from 'kysely-sqlite-builder'
 import { Column, defineTable, useSchema } from 'kysely-sqlite-builder/schema'
 import type { InferDatabase } from 'kysely-sqlite-builder/schema'
@@ -127,7 +129,42 @@ using selectWithUsing = db.precompile<{ name: string }>()
   )
 ```
 
-### Utils
+### Soft delete
+
+```ts
+import { SqliteDialect } from 'kysely'
+import Database from 'better-sqlite3'
+import type { InferDatabase } from 'sqlite-builder/schema'
+import { Column, defineTable, useSchema } from 'sqlite-builder/schema'
+import { SqliteBuilder } from 'sqlite-builder'
+import { createSoftDeleteExecutorFn } from 'sqlite-builder/utils'
+
+const softDeleteTable = defineTable({
+  id: Column.Increments(),
+  name: Column.String(),
+}, {
+  primary: 'id',
+  softDelete: true,
+})
+const softDeleteSchema = {
+  testSoftDelete: softDeleteTable,
+}
+
+const db = new SqliteBuilder<InferDatabase<typeof softDeleteSchema>>({
+  dialect: new SqliteDialect({
+    database: new Database(':memory:'),
+    async onCreateConnection(connection) {
+      await optimizePragma(connection)
+    },
+  }),
+  executorFn: createSoftDeleteExecutorFn(),
+})
+
+await db.executeTakeFirst(d => d.deleteFrom('testSoftDelete').where('id', '=', 1))
+// update "testSoftDelete" set "isDeleted" = 1 where "id" = 1
+```
+
+## Utils
 
 in `kysely-sqlite-builder/utils`
 
