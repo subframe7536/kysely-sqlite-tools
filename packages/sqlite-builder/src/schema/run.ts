@@ -121,8 +121,8 @@ export async function runCreateTable(
       // time trigger column is default with TGR
       if (defaultTo === TGR) {
         // update trigger column is not null
-        // @ts-expect-error #hack to detect update column
-        if (_triggerOptions && notNull === 0) {
+        // #hack to detect update column
+        if (_triggerOptions && notNull) {
           _triggerOptions.update = columnName
         }
         // default with current_timestamp

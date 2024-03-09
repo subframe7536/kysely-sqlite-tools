@@ -36,28 +36,42 @@ export function defineTable<
   T extends Columns,
   C extends string | true | null = null,
   U extends string | true | null = null,
+  D extends string | true | null = null,
 >(
   columns: T,
-  property?: Omit<TableProperty<T>, 'timeTrigger'> & {
+  property?: Omit<TableProperty<T>, 'timeTrigger' | 'softDelete'> & {
     timeTrigger?: TimeTriggerOptions<C, U>
+    softDelete?: D
   },
-): Table<T, C, U> {
+): Table<T, C, U, D> {
   const { create, update } = property?.timeTrigger || {}
-  const options = { type: 'date', defaultTo: TGR }
+  const triggerOptions = { type: 'date', defaultTo: TGR }
   if (create === true) {
     // @ts-expect-error assign
-    columns.createAt = options
+    columns.createAt = triggerOptions
   } else if (create) {
     // @ts-expect-error assign
-    columns[create] = options
+    columns[create] = triggerOptions
   }
   if (update === true) {
-    // @ts-expect-error assign #hack
-    columns.updateAt = { ...options, notNull: 0 }
+    // #hack if `notNull === true` and `defaultTo === TGR`, the column is updateAt
+    // @ts-expect-error assign
+    columns.updateAt = { ...triggerOptions, notNull: true }
   } else if (update) {
-    // @ts-expect-error assign #hack
-    columns[update] = { ...options, notNull: 0 }
+    // #hack if `notNull === true` and `defaultTo === TGR`, the column is updateAt
+    // @ts-expect-error assign
+    columns[update] = { ...triggerOptions, notNull: true }
   }
+  const softDelete = property?.softDelete
+  const softDeleteOptions = { type: 'int', defaultTo: 0 }
+  if (softDelete === true) {
+    // @ts-expect-error assign
+    columns.isDeleted = softDeleteOptions
+  } else if (softDelete) {
+    // @ts-expect-error assign
+    columns[softDelete] = softDeleteOptions
+  }
+
   return {
     columns: columns as unknown as ColumnsWithErrorInfo<T>,
     ...property,

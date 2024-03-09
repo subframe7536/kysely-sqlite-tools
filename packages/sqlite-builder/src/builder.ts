@@ -11,6 +11,8 @@ import { CompiledQuery, Kysely } from 'kysely'
 import { SerializePlugin, defaultSerializer } from 'kysely-plugin-serialize'
 import {
   type QueryBuilderOutput,
+  type SqliteExecutor,
+  basicExecutorFn,
   checkPrecompileKey,
   createKyselyLogger,
   getPrecompileParam,
@@ -50,25 +52,31 @@ type TransactionOptions<T> = {
    */
   onRollback?: (err: unknown) => Promisable<void>
 }
-
-export class SqliteBuilder<DB extends Record<string, any>> {
-  public kysely: Kysely<DB>
+// ({select, ..., kysely})=>
+export class SqliteBuilder<DB extends Record<string, any>, Extra extends Record<string, any> = {}> {
+  private _kysely: Kysely<DB>
   public trxCount = 0
   private trx?: Transaction<DB>
   private logger?: DBLogger
+  private executor: SqliteExecutor<DB, Extra>
   private serializer = defaultSerializer
+
+  public get kysely() {
+    return this.trx || this._kysely
+  }
 
   /**
    * sqlite builder
    * @param options options
    */
-  constructor(options: SqliteBuilderOptions) {
+  constructor(options: SqliteBuilderOptions<DB, Extra>) {
     const {
       dialect,
       logger,
       onQuery,
       plugins = [],
       serializerPluginOptions,
+      executorFn = basicExecutorFn<DB>,
     } = options
     this.logger = logger
 
@@ -87,7 +95,8 @@ export class SqliteBuilder<DB extends Record<string, any>> {
       log = createKyselyLogger(onQuery)
     }
 
-    this.kysely = new Kysely<DB>({ dialect, log, plugins })
+    this._kysely = new Kysely<DB>({ dialect, log, plugins })
+    this.executor = executorFn(() => this.kysely) as any
   }
 
   /**
@@ -138,11 +147,11 @@ export class SqliteBuilder<DB extends Record<string, any>> {
    */
   public async syncDB(updater: TableUpdater, checkIntegrity?: boolean): Promise<StatusResult> {
     try {
-      if (checkIntegrity && !(await runCheckIntegrity(this.kysely))) {
+      if (checkIntegrity && !(await runCheckIntegrity(this._kysely))) {
         this.logger?.error('integrity check fail')
         return { ready: false, error: new IntegrityError() }
       }
-      const result = await updater(this.kysely, this.logger)
+      const result = await updater(this._kysely, this.logger)
       this.logger?.info('table updated')
       return result
     } catch (error) {
@@ -152,13 +161,6 @@ export class SqliteBuilder<DB extends Record<string, any>> {
         error,
       }
     }
-  }
-
-  /**
-   * get current db instance, auto detect transaction
-   */
-  private getDB() {
-    return this.trx || this.kysely
   }
 
   private logError(e: unknown, errorMsg?: string) {
@@ -173,7 +175,7 @@ export class SqliteBuilder<DB extends Record<string, any>> {
     options: TransactionOptions<O> = {},
   ): Promise<O | undefined> {
     if (!this.trx) {
-      return await this.kysely.transaction()
+      return await this._kysely.transaction()
         .execute(async (trx) => {
           this.trx = trx
           this.logger?.debug('run in transaction')
@@ -213,14 +215,14 @@ export class SqliteBuilder<DB extends Record<string, any>> {
     query: CompiledQuery<O>,
   ): Promise<QueryResult<O>>
   public async execute<O>(
-    fn: (db: Kysely<DB> | Transaction<DB>) => AvailableBuilder<DB, O>,
+    fn: (db: SqliteExecutor<DB, Extra>) => AvailableBuilder<DB, O>,
   ): Promise<Simplify<O>[] | undefined>
   public async execute<O>(
-    data: CompiledQuery<O> | ((db: Kysely<DB> | Transaction<DB>) => AvailableBuilder<DB, O>),
+    data: CompiledQuery<O> | ((db: SqliteExecutor<DB, Extra>) => AvailableBuilder<DB, O>),
   ): Promise<QueryResult<O> | Simplify<O>[] | undefined> {
     return typeof data === 'function'
-      ? await data(this.getDB()).execute()
-      : await this.getDB().executeQuery(data)
+      ? await data(this.executor).execute()
+      : await this.kysely.executeQuery(data)
   }
 
   /**
@@ -229,13 +231,13 @@ export class SqliteBuilder<DB extends Record<string, any>> {
    * if is `select`, auto append `.limit(1)`
    */
   public async executeTakeFirst<O>(
-    fn: (db: Kysely<DB> | Transaction<DB>) => AvailableBuilder<DB, O>,
+    fn: (db: SqliteExecutor<DB, Extra>) => AvailableBuilder<DB, O>,
   ): Promise<Simplify<O> | undefined> {
-    let _sql = fn(this.getDB())
+    let _sql = fn(this.executor)
     if (isSelectQueryBuilder(_sql)) {
       _sql = _sql.limit(1)
     }
-    return await _sql.executeTakeFirstOrThrow()
+    return await _sql.executeTakeFirst()
   }
 
   /**
@@ -270,7 +272,7 @@ export class SqliteBuilder<DB extends Record<string, any>> {
        * @returns function to {@link CompileFn compile}
        */
       build: <O>(
-        queryBuilder: (db: Kysely<DB>, param: <K extends keyof T>(name: K) => T[K]) => Compilable<O>,
+        queryBuilder: (db: SqliteExecutor<DB>, param: <K extends keyof T>(name: K) => T[K]) => Compilable<O>,
       ) => {
         let compiled: CompiledQuery<Compilable<O>> | null
         const dispose = () => compiled = null
@@ -279,7 +281,7 @@ export class SqliteBuilder<DB extends Record<string, any>> {
           dispose,
           compile: (param: T) => {
             if (!compiled) {
-              const { parameters, sql, query } = queryBuilder(this.kysely, getPrecompileParam).compile()
+              const { parameters, sql, query } = queryBuilder(this.executor, getPrecompileParam).compile()
               compiled = {
                 sql,
                 query: processRootOperatorNode(query) as any,
@@ -314,8 +316,8 @@ export class SqliteBuilder<DB extends Record<string, any>> {
     parameters?: unknown[],
   ): Promise<QueryResult<O | unknown>> {
     return typeof rawSql === 'string'
-      ? await this.getDB().executeQuery(CompiledQuery.raw(rawSql, parameters))
-      : await rawSql.execute(this.getDB())
+      ? await this.kysely.executeQuery(CompiledQuery.raw(rawSql, parameters))
+      : await rawSql.execute(this.kysely)
   }
 
   /**
@@ -333,7 +335,7 @@ export class SqliteBuilder<DB extends Record<string, any>> {
    */
   public async destroy() {
     this.logger?.info('destroyed')
-    await this.kysely.destroy()
+    await this._kysely.destroy()
     this.trx = undefined
   }
 }

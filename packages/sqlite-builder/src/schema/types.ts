@@ -54,11 +54,13 @@ export type TableProperty<
   Cols extends Columns,
   Create extends string | true | null = null,
   Update extends string | true | null = null,
+  Delete extends string | true | null = null,
 > = {
   primary?: Arrayable<keyof Cols & string>
   unique?: Arrayable<keyof Cols & string>[]
   index?: Arrayable<keyof Cols & string>[]
   timeTrigger?: TimeTriggerOptions<Create, Update>
+  softDelete?: Delete
 }
 
 export type Columns = Record<string, ColumnProperty>
@@ -88,20 +90,21 @@ export type Table<
   Cols extends Columns = any,
   Create extends string | true | null = null,
   Update extends string | true | null = null,
+  Delete extends string | true | null = null,
 > = {
   columns: ColumnsWithErrorInfo<Cols>
-} & TableProperty<Cols, Create, Update>
+} & TableProperty<Cols, Create, Update, Delete>
 
-export type Schema = Record<string, Table<any, any, any>>
+export type Schema = Record<string, Table<any, any, any, any>>
 
-export type FilterGenerated<
-  Table extends object,
-  EscapeKeys extends string = never,
-> = {
-  [K in keyof Table]: K extends EscapeKeys
-    ? Table[K]
-    : InferGenereated<Table[K]>
-}
+// export type FilterGenerated<
+//   Table extends object,
+//   EscapeKeys extends string = never,
+// > = {
+//   [K in keyof Table]: K extends EscapeKeys
+//     ? Table[K]
+//     : InferGenereated<Table[K]>
+// }
 
 type ERROR_INFO = 'HAVE_TYPE_ERROR_IN_DEFINITION'
 
@@ -109,16 +112,29 @@ type TriggerKey<A, B> =
   | (A extends true ? 'createAt' : A extends string ? A : never)
   | (B extends true ? 'updateAt' : B extends string ? B : never)
 
-type ParseTableWithTrigger<
+type ExtraColumnsKey<
+  TriggerKey extends string,
+  Delete extends string | true | undefined,
+> = Delete extends string
+  ? (TriggerKey | Delete)
+  : Delete extends true
+    ? (TriggerKey | 'isDeleted')
+    : TriggerKey
+
+export type ParseTableWithExtraColumns<
   T extends Columns,
   P extends TimeTriggerOptions<any, any> | undefined,
-> = P extends TimeTriggerOptions<infer A, infer B> ? Omit<T, TriggerKey<A, B>> & ({
-  [K in TriggerKey<A, B>]: {
-    type: 'increments' // #hack to ensure Generated
-    defaultTo: Generated<Date> | null
-    notNull: null
-  }
-}) : never
+  Delete extends string | true | undefined,
+> = P extends TimeTriggerOptions<infer A, infer B>
+  // eslint-disable-next-line style/indent-binary-ops
+  ? Omit<T, ExtraColumnsKey<TriggerKey<A, B>, Delete>> & ({
+    [K in ExtraColumnsKey<TriggerKey<A, B>, Delete>]: {
+      type: 'increments' // #hack to ensure Generated
+      defaultTo: Generated<K extends TriggerKey<A, B> ? Date : number> | null
+      notNull: null
+    }
+  })
+  : never
 
 /**
  * util type for infering type of table
@@ -127,22 +143,25 @@ export type InferTable<
   T extends {
     columns: Columns
     timeTrigger?: TimeTriggerOptions<any, any>
+    softDelete?: any
   },
-  P = ParseTableWithTrigger<T['columns'], T['timeTrigger']>,
+  P = ParseTableWithExtraColumns<T['columns'], T['timeTrigger'], T['softDelete']>,
 > = Prettify<{
-  [K in keyof P]: P[K] extends ColumnProperty ? IsNotNull<P[K]['notNull']> extends true // if not null
-    // return required defaultTo
-    ? Exclude<P[K]['defaultTo'], null>
-    // if type is "increments"
-    : P[K]['type'] extends 'increments'
-      // return "Generated<...>"
+  [K in keyof P]: P[K] extends ColumnProperty
+    // if not null
+    ? IsNotNull<P[K]['notNull']> extends true
+      // return required defaultTo
       ? Exclude<P[K]['defaultTo'], null>
-      // if defaultTo is required
-      : IsNotNull<P[K]['defaultTo']> extends true
-        // return Generated
-        ? Generated<Exclude<P[K]['defaultTo'], null>>
-        // return optional
-        : P[K]['defaultTo'] | null
+      // if type is "increments"
+      : P[K]['type'] extends 'increments'
+        // return "Generated<...>"
+        ? Exclude<P[K]['defaultTo'], null>
+        // if defaultTo is required
+        : IsNotNull<P[K]['defaultTo']> extends true
+          // return Generated
+          ? Generated<Exclude<P[K]['defaultTo'], null>>
+          // return optional
+          : P[K]['defaultTo'] | null
     // return error info
     : ERROR_INFO
 }>
@@ -159,5 +178,6 @@ export type InferDatabase<T extends Schema> = Prettify<{
   [K in keyof T]: T[K] extends {
     columns: Columns
     timeTrigger?: TimeTriggerOptions<any, any>
+    softDelete?: any
   } ? InferTable<T[K]> : ERROR_INFO
 }>

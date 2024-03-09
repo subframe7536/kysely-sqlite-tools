@@ -5,6 +5,7 @@ import { getOrSetDBVersion, optimizePragma } from '../packages/sqlite-utils/src'
 import type { InferDatabase } from '../packages/sqlite-builder/src/schema'
 import { Column, defineTable, useSchema } from '../packages/sqlite-builder/src/schema'
 import { SqliteBuilder } from '../packages/sqlite-builder/src'
+import { createSoftDeleteExecutorFn } from '../packages/sqlite-builder/src/utils'
 
 const testTable = defineTable({
   id: Column.Increments(),
@@ -157,5 +158,40 @@ describe('test builder', async () => {
     expect(result.rows).toStrictEqual([])
     const result2 = await db.execute(update.compile({ gender: false }))
     expect(result2.rows).toStrictEqual([])
+  })
+
+  it('test soft delete', async () => {
+    const softDeleteTable = defineTable({
+      id: Column.Increments(),
+      name: Column.String(),
+    }, {
+      primary: 'id',
+      softDelete: true,
+    })
+    const softDeleteSchema = {
+      testSoftDelete: softDeleteTable,
+    }
+
+    const db = new SqliteBuilder<InferDatabase<typeof softDeleteSchema>>({
+      dialect: new SqliteDialect({
+        database: new Database(':memory:'),
+        async onCreateConnection(connection) {
+          await optimizePragma(connection)
+        },
+      }),
+      executorFn: createSoftDeleteExecutorFn(),
+      // onQuery: true,
+    })
+    await db.syncDB(useSchema(softDeleteSchema, { log: false }))
+
+    const insertResult = await db.executeTakeFirst(d => d.insertInto('testSoftDelete').values({ name: 'test' }).returning('isDeleted'))
+    expect(insertResult?.isDeleted).toBe(0)
+
+    await db.executeTakeFirst(d => d.deleteFrom('testSoftDelete').where('id', '=', 1))
+    const selectResult = await db.executeTakeFirst(d => d.selectFrom('testSoftDelete').selectAll())
+    expect(selectResult).toBeUndefined()
+
+    const updateResult = await db.executeTakeFirst(d => d.updateTable('testSoftDelete').set({ name: 'test' }).where('id', '=', 1))
+    expect(updateResult?.numUpdatedRows).toBe(0n)
   })
 })

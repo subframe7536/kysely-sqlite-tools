@@ -19,7 +19,7 @@ export async function testDB(dialect: Dialect) {
     // onQuery: true,
   })
 
-  const result = await db.updateTableSchema(useSchema(tables))
+  const result = await db.syncDB(useSchema(tables))
   if (!result.ready) {
     throw result.error
   }

@@ -8,13 +8,13 @@ import type {
   UpdateQueryBuilder,
 } from 'kysely'
 import type { SerializePluginOptions } from 'kysely-plugin-serialize'
-import type { LoggerOptions } from 'kysely-sqlite-utils'
+import type { LoggerOptions, SqliteExecutorFn } from 'kysely-sqlite-utils'
 import type { IntegrityError } from './builder'
 
-export interface SqliteBuilderOptions {
+export interface SqliteBuilderOptions<T extends Record<string, any>, Extra extends Record<string, any>> {
   dialect: Dialect
   /**
-   * call on `dialect.log`, wrapped with {@link createKyselyLogger}
+   * call on `dialect.log`, wrapped with `createKyselyLogger`
    *
    * if value is `true`, logger is `console.log` and `merge: true`
    */
@@ -22,11 +22,33 @@ export interface SqliteBuilderOptions {
   /**
    * additional plugins
    *
-   * **do NOT use camelCase plugin**, this will lead to sync table fail
+   * **do NOT use camelCase plugin with useSchema**, this will lead to sync table fail
    */
   plugins?: KyselyPlugin[]
+  /**
+   * db logger
+   */
   logger?: DBLogger
+  /**
+   * options for serializer plugin
+   */
   serializerPluginOptions?: SerializePluginOptions
+  /**
+   * custom executor
+   * @example
+   * import { createSoftDeleteExecutorFn } from 'kysely-sqlite-builder/utils'
+   *
+   * const softDeleteExecutorFn = createSoftDeleteExecutorFn({
+   *   deleteColumn: 'isDeleted',
+   *   deleteValue: 1,
+   *   notDeleteValue: 0,
+   * })
+   * const db = new SqliteBuilder({
+   *   dialect,
+   *   executorFn: softDeleteExecutorFn,
+   * })
+   */
+  executorFn?: SqliteExecutorFn<T, Extra>
 }
 export type DBLogger = {
   trace?: (args: any) => void
