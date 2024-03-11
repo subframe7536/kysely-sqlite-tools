@@ -192,3 +192,11 @@ begin
   where ${sql.ref(triggerKey)} = NEW.${sql.ref(triggerKey)};
 end`.execute(trx)
 }
+
+export async function runRenameTable(
+  trx: Transaction<any>,
+  tableName: string,
+  newTableName: string,
+) {
+  await trx.schema.alterTable(tableName).renameTo(newTableName).execute()
+}

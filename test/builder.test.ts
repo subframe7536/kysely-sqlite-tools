@@ -73,6 +73,7 @@ describe('test sync table', async () => {
         bool: Column.Boolean().NotNull(),
         array: Column.Object<string[]>(),
         buffer: Column.Blob(),
+        newColumn: Column.Int(),
       },
       {
         primary: 'id',
@@ -96,6 +97,11 @@ describe('test sync table', async () => {
       .filter(({ name }) => name === 'bool')[0]
       .dataType,
     ).toBe('TEXT')
+    expect(_tables
+      .columns
+      .filter(({ name }) => name === 'newColumn')[0]
+      .dataType,
+    ).toBe('INTEGER')
   })
 })
 describe('test builder', async () => {
@@ -160,7 +166,7 @@ describe('test builder', async () => {
     expect(result2.rows).toStrictEqual([])
   })
 
-  it('test soft delete', async () => {
+  it('should soft delete', async () => {
     const softDeleteTable = defineTable({
       id: Column.Increments(),
       name: Column.String(),

@@ -11,6 +11,7 @@ import {
   runCreateTableWithIndexAndTrigger,
   runCreateTimeTrigger,
   runDropTable,
+  runRenameTable,
 } from './run'
 import { type ParsedCreateTableSQL, parseExistDB } from './parseExist'
 
@@ -43,10 +44,6 @@ export type SyncOptions<T extends Schema> = {
    */
   truncateIfExists?: boolean | Array<keyof T & string>
   /**
-   * reserve old data in temp, clear after destroy
-   */
-  reserveOldData?: boolean
-  /**
    * trigger on update success
    * @param db kysely instance
    */
@@ -64,7 +61,6 @@ export async function syncTables<T extends Schema>(
   logger?: DBLogger,
 ): Promise<StatusResult> {
   const {
-    reserveOldData,
     truncateIfExists = [],
     log,
     version: { current, skipSyncWhenSame } = {},
@@ -134,6 +130,10 @@ export async function syncTables<T extends Schema>(
       return { ready: false, error: e }
     })
 
+  /**
+   * diff table data
+   * @see {@link https://sqlite.org/lang_altertable.html official doc} 7. Making Other Kinds Of Table Schema Changes
+   */
   async function diffTable(
     trx: Transaction<any>,
     tableName: string,
@@ -158,35 +158,26 @@ export async function syncTables<T extends Schema>(
     debug('different table structure, update')
     const tempTableName = `_temp_${tableName}`
 
-    // 1. copy struct to temporary table
-    // @ts-expect-error existColumns.columns has parsed column type
-    await runCreateTable(trx, tempTableName, existColumns, true)
+    // 1. create target table with temp name
+    const _triggerOptions = await runCreateTable(trx, tempTableName, props)
 
-    // 2. copy all data to temporary table
-    await trx.insertInto(tempTableName)
-      .expression(eb => eb.selectFrom(tableName).selectAll())
-      .execute()
-
-    // 3. remove exist table
-    await runDropTable(trx, tableName)
-
-    // 4. create target table
-    const _triggerOptions = await runCreateTable(trx, tableName, props)
-
-    // 5. diff and restore data from temporary table to target table
+    // 2. diff and restore data from source table to target table
     if (restoreColumnList.length) {
-      await trx.insertInto(tableName)
+      await trx.insertInto(tempTableName)
         .columns(restoreColumnList)
-        .expression(eb => eb.selectFrom(tempTableName).select(restoreColumnList))
+        .expression(eb => eb.selectFrom(tableName).select(restoreColumnList))
         .execute()
     }
+    // 3. remove old table
+    await runDropTable(trx, tableName)
 
-    // 6. add indexes and triggers
+    // 4. rename temp table to target table name
+    await runRenameTable(trx, tempTableName, tableName)
+
+    // 5. add indexes and triggers
     await runCreateTableIndex(trx, tableName, index)
     await runCreateTimeTrigger(trx, tableName, _triggerOptions)
 
-    // 7. if not reserve old data, remove temporary table
-    !reserveOldData && await runDropTable(trx, tempTableName)
     debug(`restore columns: ${restoreColumnList}`)
   }
 }
