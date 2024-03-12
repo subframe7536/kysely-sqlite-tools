@@ -1,7 +1,7 @@
 import { sql } from 'kysely'
 import type { Kysely, Transaction } from 'kysely'
 import { getOrSetDBVersion } from 'kysely-sqlite-utils'
-import type { Promisable } from '@subframe7536/type-utils'
+import type { Promisable, StringKeys } from '@subframe7536/type-utils'
 import type { DBLogger, StatusResult } from '../types'
 import type { Columns, InferDatabase, Schema, Table } from './types'
 import {
@@ -42,7 +42,7 @@ export type SyncOptions<T extends Schema> = {
   /**
    * do not restore data from old table to new table
    */
-  truncateIfExists?: boolean | Array<keyof T & string>
+  truncateIfExists?: boolean | Array<StringKeys<T> | string & {}>
   /**
    * trigger on update success
    * @param db kysely instance
@@ -130,10 +130,6 @@ export async function syncTables<T extends Schema>(
       return { ready: false, error: e }
     })
 
-  /**
-   * diff table data
-   * @see {@link https://sqlite.org/lang_altertable.html official doc} 7. Making Other Kinds Of Table Schema Changes
-   */
   async function diffTable(
     trx: Transaction<any>,
     tableName: string,
@@ -155,6 +151,10 @@ export async function syncTables<T extends Schema>(
       debug('same table structure, skip')
       return
     }
+    //
+    // migrate table data
+    // see https://sqlite.org/lang_altertable.html 7. Making Other Kinds Of Table Schema Changes
+    //
     debug('different table structure, update')
     const tempTableName = `_temp_${tableName}`
 

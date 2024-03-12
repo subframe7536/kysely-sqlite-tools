@@ -61,6 +61,9 @@ export class SqliteBuilder<DB extends Record<string, any>, Extra extends Record<
   private executor: SqliteExecutor<DB, Extra>
   private serializer = defaultSerializer
 
+  /**
+   * current kysely / transaction instance
+   */
   public get kysely() {
     return this.trx || this._kysely
   }
