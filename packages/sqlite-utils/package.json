@@ -1,6 +1,6 @@
 {
   "name": "kysely-sqlite-utils",
-  "version": "0.5.7",
+  "version": "0.5.8",
   "description": "sqlite utils for Kysely",
   "author": {
     "name": "subframe7536",
