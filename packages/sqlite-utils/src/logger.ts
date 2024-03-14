@@ -49,15 +49,23 @@ export function createKyselyLogger(
 
   return (event: LogEvent) => {
     const { level, queryDurationMillis, query: { parameters, sql, query } } = event
+    const questionMarker = '__Q__'
     const err = level === 'error' ? event.error : undefined
     let _sql = sql.replace(/\r?\n/g, ' ').replace(/\s+/g, ' ')
     if (merge) {
       parameters.forEach((param) => {
-        _sql = _sql.replace('?', JSON.stringify(param))
+        let data: any = param
+        if (param instanceof Date) {
+          data = param.toLocaleString()
+        }
+        if (typeof data === 'string') {
+          data = `'${data}'`.replace(/\?/g, questionMarker)
+        }
+        _sql = _sql.replace(/\?/, data)
       })
     }
     const param: LoggerParams = {
-      sql: _sql,
+      sql: _sql.replace(new RegExp(questionMarker, 'g'), '?'),
       params: parameters,
       duration: queryDurationMillis,
       error: err,
