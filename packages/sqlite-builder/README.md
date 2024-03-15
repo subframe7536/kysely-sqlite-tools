@@ -11,6 +11,7 @@
 - auto detect transaction, catch all errors
 - support nest transaction (using `savepoint`)
 - support precompile querys for performance
+- support soft delete
 - more utils for SQLite
 
 ## Install
