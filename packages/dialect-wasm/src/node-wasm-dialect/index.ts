@@ -1,11 +1,11 @@
 import type { DatabaseConnection, Driver } from 'kysely'
 import type { Promisable } from '../types'
 import { BaseDialect } from '../baseDialect'
-import type { NodeWasmDataBase } from './type'
+import type { NodeWasmDatabase } from './type'
 import { NodeWasmDriver } from './driver'
 
 export interface NodeWasmDialectConfig {
-  database: NodeWasmDataBase | (() => Promisable<NodeWasmDataBase>)
+  database: NodeWasmDatabase | (() => Promisable<NodeWasmDatabase>)
   onCreateConnection?: (connection: DatabaseConnection) => Promisable<void>
 }
 

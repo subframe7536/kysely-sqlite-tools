@@ -1,11 +1,11 @@
 import type { InfoReturn, QueryReturn } from '../baseDriver'
 import { BaseDriver, BaseSqliteConnection } from '../baseDriver'
-import type { NodeWasmDataBase } from './type'
+import type { NodeWasmDatabase } from './type'
 import type { NodeWasmDialectConfig } from '.'
 
 export class NodeWasmDriver extends BaseDriver {
   private config: NodeWasmDialectConfig
-  private db?: NodeWasmDataBase
+  private db?: NodeWasmDatabase
   constructor(config: NodeWasmDialectConfig) {
     super()
     this.config = config
@@ -26,13 +26,13 @@ export class NodeWasmDriver extends BaseDriver {
 }
 
 class NodeWasmConnection extends BaseSqliteConnection {
-  private db: NodeWasmDataBase
-  constructor(db: any) {
+  private db: NodeWasmDatabase
+  constructor(db: NodeWasmDatabase) {
     super()
     this.db = db
   }
 
-  async query(sql: string, params?: any[] | undefined): QueryReturn {
+  async query(sql: string, params?: any[]): QueryReturn {
     return this.db.all(sql, params)
   }
 

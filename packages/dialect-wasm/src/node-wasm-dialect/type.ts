@@ -7,13 +7,13 @@ export interface NodeWasmDBOptions {
   }
 }
 
-export interface NodeWasmDataBase extends BaseDB {
-  get: (sql: string, param?: readonly unknown[]) => any
-  all: (sql: string, param?: readonly unknown[]) => any[]
-  run: (sql: string, param?: readonly unknown[]) => NodeWasmRunReturn
+export interface NodeWasmDatabase extends BaseDB {
+  get: (sql: string, param?: any[]) => any
+  all: (sql: string, param?: any[]) => any[]
+  run: (sql: string, param?: any[]) => NodeWasmRunReturn
 }
 
 export interface NodeWasmRunReturn {
-  lastInsertRowid: number
-  changes: number | bigint
+  lastInsertRowid: number | bigint
+  changes: number
 }
