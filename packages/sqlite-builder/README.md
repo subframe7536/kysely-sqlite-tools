@@ -1,3 +1,5 @@
+# Move to [kysely sqlite builder](https://github.com/subframe7536/kysely-sqlite-builder)
+
 # Kysely-sqlite-builder
 
 [kysely](https://github.com/kysely-org/kysely) table builder for SQLite

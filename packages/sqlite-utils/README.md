@@ -1,3 +1,5 @@
+# DEPRECATED
+
 # Kysely-sqlite-utils
 
 SQLite utils for [kysely](https://github.com/kysely-org/kysely)

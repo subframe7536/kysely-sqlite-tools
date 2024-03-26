@@ -6,5 +6,5 @@
 - [dialect](packages/dialect-tauri) for [`Tauri`](https://tauri.app/), using [official sql plugin](https://github.com/tauri-apps/plugins-workspace/tree/dev/plugins/sql)
 - [dialect](packages/dialect-bun-worker/) for [`Bun SQLite`](https://bun.sh/docs/api/sqlite), running sql in worker
 - [plugin](packages/plugin-serialize) that auto serialize and deserialize params
-- [sqlite utils](packages/sqlite-utils) useful utils for SQLite
-- [sqlite builder](packages/sqlite-builder) for various features
+- ~~[sqlite utils](packages/sqlite-utils) useful utils for SQLite~~ deprecated
+- ~~[sqlite builder](packages/sqlite-builder) for various features~~ move to [kysely sqlite builder](https://github.com/subframe7536/kysely-sqlite-builder)
