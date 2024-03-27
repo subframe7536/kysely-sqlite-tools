@@ -2,7 +2,8 @@ import { afterAll, describe, expect, it } from 'vitest'
 import type { Dialect, Generated } from 'kysely'
 import InitSqlJs from 'sql.js'
 import { Kysely } from 'kysely'
-import { SqlJsDialect } from '../packages/dialect-wasm'
+import { Database } from 'node-sqlite3-wasm'
+import { NodeWasmDialect, SqlJsDialect } from '../packages/dialect-wasm/src'
 
 interface DB {
   test: TestTable
@@ -50,6 +51,13 @@ describe('dialect test', () => {
         },
         isThrottle: true,
       },
+    })
+    await init(dialect)
+  })
+
+  it('node-wasm', async () => {
+    const dialect = new NodeWasmDialect({
+      database: new Database(':memory:'),
     })
     await init(dialect)
   })

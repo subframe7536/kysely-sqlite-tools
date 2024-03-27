@@ -57,6 +57,6 @@
     "zen-mitt": "^0.3.0"
   },
   "devDependencies": {
-    "@subframe7536/sqlite-wasm": "^0.2.1"
+    "@subframe7536/sqlite-wasm": "^0.2.2"
   }
 }
