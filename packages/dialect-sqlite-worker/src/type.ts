@@ -2,29 +2,24 @@ import type { QueryResult } from 'kysely'
 
 export type Promisable<T> = T | Promise<T>
 
-export type SqlData = {
-  sql: string
-  parameters?: readonly unknown[]
-}
+type RunMsg = [
+  type: '0',
+  sql: string,
+  parameters?: readonly unknown[],
+]
 
-export type MainMsg =
-  | {
-    type: 'exec'
-    sql: string
-    parameters?: readonly unknown[]
-  }
-  | {
-    type: 'close'
-  }
+type CloseMsg = [type: '1']
+
+export type MainMsg = RunMsg | CloseMsg
 
 export type WorkerMsg =
-  | {
-    type: 'exec'
-    data: QueryResult<any> | null
-    err: unknown
-  }
-  | {
-    type: 'close'
-    data: null
-    err: unknown
-  }
+  | [
+    type: '0',
+    data: QueryResult<any> | null,
+    err: unknown,
+  ]
+  | [
+    type: '1',
+    data: null,
+    err: unknown,
+  ]

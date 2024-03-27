@@ -1,10 +1,10 @@
 import Database from 'bun:sqlite'
 import type { QueryResult } from 'kysely'
-import type { MainMsg, RunMsg, WorkerMsg } from './type'
+import type { MainMsg, WorkerMsg } from './type'
 
 let db: Database
 let fn: 'query' | 'prepare'
-function run({ isSelect, sql, parameters }: RunMsg): QueryResult<any> {
+function run(isSelect: boolean, sql: string, parameters: readonly unknown[]): QueryResult<any> {
   const stmt = db[fn](sql)
   const rows = stmt.all(parameters as any)
 
@@ -22,26 +22,27 @@ function run({ isSelect, sql, parameters }: RunMsg): QueryResult<any> {
 
 // @ts-expect-error bun worker
 onmessage = ({ data }: MessageEvent<MainMsg>) => {
-  const ret: WorkerMsg = {
-    type: data.type,
-    data: null,
-    err: null,
-  }
+  const ret: WorkerMsg = [
+    data[0],
+    null,
+    null,
+  ]
+
   try {
-    switch (data.type) {
-      case 'run':
-        ret.data = run(data)
+    switch (data[0]) {
+      case 0:
+        db = new Database(data[1], { create: true })
+        fn = data[2] ? 'query' : 'prepare'
         break
-      case 'close':
+      case 1:
+        ret[1] = run(data[1], data[2], data[3] || [])
+        break
+      case 2:
         db.close()
-        break
-      case 'init':
-        db = new Database(data.url, { create: true })
-        fn = data.cache ? 'query' : 'prepare'
         break
     }
   } catch (error) {
-    ret.err = error
+    ret[2] = error
   }
   postMessage(ret)
 }

@@ -1,11 +1,11 @@
 import type { SQLiteDB } from '@subframe7536/sqlite-wasm'
 import { initSQLite } from '@subframe7536/sqlite-wasm'
 import type { QueryResult } from 'kysely'
-import type { InitMsg, MainMsg, RunMsg, WorkerMsg } from './type'
+import type { MainMsg, WorkerMsg } from './type'
 
 let db: SQLiteDB
 
-async function init({ fileName, useOPFS, url }: InitMsg) {
+async function init(url: string, fileName: string, useOPFS: boolean) {
   db = await initSQLite(
     (
       useOPFS
@@ -17,8 +17,8 @@ async function init({ fileName, useOPFS, url }: InitMsg) {
     ),
   )
 }
-async function exec({ isSelect, sql, parameters }: RunMsg): Promise<QueryResult<any>> {
-  const rows = await db.run(sql, parameters)
+async function exec(isSelect: boolean, sql: string, parameters?: readonly unknown[]): Promise<QueryResult<any>> {
+  const rows = await db.run(sql, parameters as any[])
   return isSelect || rows.length
     ? { rows }
     : {
@@ -27,27 +27,26 @@ async function exec({ isSelect, sql, parameters }: RunMsg): Promise<QueryResult<
         numAffectedRows: BigInt(db.changes()),
       }
 }
-onmessage = async (ev: MessageEvent<MainMsg>) => {
-  const data = ev.data
-  const ret: WorkerMsg = {
-    type: data.type,
-    data: null,
-    err: null,
-  }
+onmessage = async ({ data }: MessageEvent<MainMsg>) => {
+  const ret: WorkerMsg = [
+    data[0],
+    null,
+    null,
+  ]
   try {
-    switch (data.type) {
-      case 'init':
-        await init(data)
+    switch (data[0]) {
+      case 0:
+        await init(data[1], data[2], data[3])
         break
-      case 'run':
-        ret.data = await exec(data)
+      case 1:
+        ret[1] = await exec(data[1], data[2], data[3])
         break
-      case 'close':
+      case 2:
         await db.close()
         break
     }
   } catch (error) {
-    ret.err = error
+    ret[2] = error
   }
   postMessage(ret)
 }

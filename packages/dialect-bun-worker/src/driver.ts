@@ -20,16 +20,16 @@ export class BunWorkerDriver implements Driver {
       { type: 'module' },
     )
     this.mitt = new EventEmitter()
-    this.worker.onmessage = ({ data: { data, err, type } }: MessageEvent<WorkerMsg>) => {
-      this.mitt?.emit(type, { data, err })
+    this.worker.onmessage = ({ data: [type, data, err] }: MessageEvent<WorkerMsg>) => {
+      this.mitt?.emit(type, data, err)
     }
-    this.worker.postMessage({
-      type: 'init',
-      url: this.config?.url,
-      cache: this.config?.cacheStatment,
-    } satisfies MainMsg)
+    this.worker.postMessage([
+      0, // init
+      this.config?.url,
+      this.config?.cacheStatment,
+    ] satisfies MainMsg)
     await new Promise<void>((resolve, reject) => {
-      this.mitt?.once('init', ({ err }) => {
+      this.mitt?.once(0/* init */, (_, err) => {
         err ? reject(err) : resolve()
       })
     })
@@ -65,9 +65,8 @@ export class BunWorkerDriver implements Driver {
     if (!this.worker) {
       return
     }
-    this.worker.postMessage({ type: 'close' } satisfies MainMsg)
     return new Promise<void>((resolve, reject) => {
-      this.mitt?.once('close', ({ err }) => {
+      this.mitt?.once(2/* close */, (_, err) => {
         if (err) {
           reject(err)
         } else {
@@ -118,12 +117,12 @@ class BunWorkerConnection implements DatabaseConnection {
   async executeQuery<R>(compiledQuery: CompiledQuery<unknown>): Promise<QueryResult<R>> {
     const { parameters, sql, query } = compiledQuery
     const isSelect = SelectQueryNode.is(query)
-    this.worker.postMessage({ type: 'run', isSelect, sql, parameters } satisfies MainMsg)
+    this.worker.postMessage([1/* run */, isSelect, sql, parameters] satisfies MainMsg)
     return new Promise((resolve, reject) => {
       if (!this.mitt) {
         reject(new Error('kysely instance has been destroyed'))
       }
-      this.mitt!.once('run', ({ data, err }) => {
+      this.mitt!.once(1/* run */, (data, err) => {
         (!err && data) ? resolve(data) : reject(err)
       })
     })

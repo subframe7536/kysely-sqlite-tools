@@ -25,7 +25,7 @@ export class SqliteWorkerDriver implements Driver {
       this.config.workerPath || join(__dirname, 'worker.js'),
       { workerData: { src, option: dbOption } },
     )
-    this.worker.on('message', ({ data, type, err }: WorkerMsg) => {
+    this.worker.on('message', ([type, data, err]: WorkerMsg) => {
       this.emit?.emit(type, data, err)
     })
     this.connection = new SqliteWorkerConnection(this.worker, this.emit)
@@ -57,9 +57,9 @@ export class SqliteWorkerDriver implements Driver {
   }
 
   async destroy(): Promise<void> {
-    this.worker?.postMessage({ type: 'close' } satisfies MainMsg)
+    this.worker?.postMessage(['1'] satisfies MainMsg)
     return new Promise<void>((resolve, reject) => {
-      this.emit?.once('close', (_, err) => {
+      this.emit?.once('1', (_, err) => {
         if (err) {
           reject(err)
           return
@@ -107,12 +107,12 @@ export class SqliteWorkerConnection implements DatabaseConnection {
 
   async executeQuery<R>(compiledQuery: CompiledQuery<unknown>): Promise<QueryResult<R>> {
     const { parameters, sql } = compiledQuery
-    this.worker.postMessage({ type: 'exec', sql, parameters } satisfies MainMsg)
+    this.worker.postMessage(['0', sql, parameters] satisfies MainMsg)
     return new Promise((resolve, reject) => {
       if (!this.emit) {
         reject(new Error('kysely instance has been destroyed'))
       }
-      this.emit!.once('exec', (data: QueryResult<any>, err) => {
+      this.emit!.once('0', (data: QueryResult<any>, err) => {
         (data && !err) ? resolve(data) : reject(err)
       })
     })

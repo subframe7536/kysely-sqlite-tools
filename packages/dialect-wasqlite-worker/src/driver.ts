@@ -29,18 +29,18 @@ export class WaSqliteWorkerDriver implements Driver {
 
     this.worker = parseWorkerOrURL(this.config.worker || defaultWorker, useOPFS || isModuleWorkerSupport())
 
-    this.worker.onmessage = ({ data: { type, ...msg } }: MessageEvent<WorkerMsg>) => {
-      this.mitt?.emit(type, msg)
+    this.worker.onmessage = ({ data: [type, ...msg] }: MessageEvent<WorkerMsg>) => {
+      this.mitt?.emit(type, ...msg)
     }
-    this.worker.postMessage({
-      type: 'init',
-      fileName: this.config.fileName,
+    this.worker.postMessage([
+      0,
+      this.config.fileName,
       // if use OPFS, wasm should use sync version
-      url: parseWorkerOrURL(this.config.url || defaultWasmURL, !useOPFS),
+      parseWorkerOrURL(this.config.url || defaultWasmURL, !useOPFS),
       useOPFS,
-    } satisfies MainMsg)
+    ] satisfies MainMsg)
     await new Promise<void>((resolve, reject) => {
-      this.mitt?.once('init', ({ err }) => {
+      this.mitt?.once(0, (_, err) => {
         err ? reject(err) : resolve()
       })
     })
@@ -76,9 +76,9 @@ export class WaSqliteWorkerDriver implements Driver {
     if (!this.worker) {
       return
     }
-    this.worker.postMessage({ type: 'close' } satisfies MainMsg)
+    this.worker.postMessage([2] satisfies MainMsg)
     return new Promise<void>((resolve, reject) => {
-      this.mitt?.once('close', ({ err }) => {
+      this.mitt?.once(2, (_, err) => {
         if (err) {
           reject(err)
         } else {
@@ -131,11 +131,11 @@ class WaSqliteWorkerConnection implements DatabaseConnection {
   async executeQuery<R>(compiledQuery: CompiledQuery<unknown>): Promise<QueryResult<R>> {
     const { parameters, sql, query } = compiledQuery
     const isSelect = SelectQueryNode.is(query)
-    this.worker.postMessage({ type: 'run', isSelect, sql, parameters } satisfies MainMsg)
+    this.worker.postMessage([1, isSelect, sql, parameters] satisfies MainMsg)
     return new Promise((resolve, reject) => {
       !this.mitt && reject(new Error('kysely instance has been destroyed'))
 
-      this.mitt!.once('run', ({ data, err }) => {
+      this.mitt!.once(1, (data, err) => {
         (!err && data) ? resolve(data) : reject(err)
       })
     })
