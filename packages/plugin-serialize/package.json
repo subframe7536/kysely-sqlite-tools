@@ -1,6 +1,6 @@
 {
   "name": "kysely-plugin-serialize",
-  "version": "0.5.7",
+  "version": "0.6.0",
   "description": "kysely serialize plugin",
   "author": {
     "name": "subframe7536",
