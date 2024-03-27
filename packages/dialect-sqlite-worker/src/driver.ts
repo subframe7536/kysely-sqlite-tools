@@ -110,7 +110,7 @@ export class SqliteWorkerConnection implements DatabaseConnection {
     this.worker.postMessage({ type: 'exec', sql, parameters } satisfies MainMsg)
     return new Promise((resolve, reject) => {
       if (!this.emit) {
-        reject('kysely instance has been destroyed')
+        reject(new Error('kysely instance has been destroyed'))
       }
       this.emit!.once('exec', (data: QueryResult<any>, err) => {
         (data && !err) ? resolve(data) : reject(err)

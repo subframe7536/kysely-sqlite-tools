@@ -121,7 +121,7 @@ class BunWorkerConnection implements DatabaseConnection {
     this.worker.postMessage({ type: 'run', isSelect, sql, parameters } satisfies MainMsg)
     return new Promise((resolve, reject) => {
       if (!this.mitt) {
-        reject('kysely instance has been destroyed')
+        reject(new Error('kysely instance has been destroyed'))
       }
       this.mitt!.once('run', ({ data, err }) => {
         (!err && data) ? resolve(data) : reject(err)
