@@ -5,7 +5,7 @@ export const defaultSerializer: Serializer = (parameter) => {
   if (skipTransform(parameter) || typeof parameter === 'string') {
     return parameter
   } else if (typeof parameter === 'boolean') {
-    return `${parameter}`
+    return '' + parameter
   } else if (parameter instanceof Date) {
     return parameter.toISOString()
   } else {
@@ -31,8 +31,8 @@ export const defaultDeserializer: Deserializer = (parameter) => {
     } else if (dateRegex.test(parameter)) {
       return new Date(parameter)
     } else if (
-      (parameter.startsWith('{') && parameter.endsWith('}'))
-      || (parameter.startsWith('[') && parameter.endsWith(']'))
+      (parameter[0] === '{' && parameter[parameter.length - 1] === '}')
+      || (parameter[0] === '[' && parameter[parameter.length - 1] === ']')
     ) {
       try {
         return JSON.parse(parameter)

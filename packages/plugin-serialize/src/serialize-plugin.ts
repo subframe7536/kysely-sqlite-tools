@@ -121,14 +121,19 @@ export class SerializePlugin implements KyselyPlugin {
   ): Promise<QueryResult<UnknownRow>> {
     return this.ctx?.has(queryId)
       ? result
-      : {
-          ...result,
-          rows: result.rows.map(row => Object.fromEntries(
-            Object.entries(row).map(([key, value]) =>
-              ([key, this.deserializer(value)]),
-            ),
-          )),
-        }
+      : { ...result, rows: this.parseRows(result.rows) }
+  }
+
+  private parseRows(rows: UnknownRow[]): UnknownRow[] {
+    const result: UnknownRow[] = []
+    for (const row of rows) {
+      const parsedRow: UnknownRow = {}
+      for (const [key, value] of Object.entries(row)) {
+        parsedRow[key] = this.deserializer(value)
+      }
+      result.push(parsedRow)
+    }
+    return result
   }
 }
 
