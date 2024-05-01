@@ -11,7 +11,7 @@ export interface OfficialWasmDialectConfig {
 }
 
 export class OfficialWasmDialect extends BaseDialect {
-  #config: OfficialWasmDialectConfig
+  private config: OfficialWasmDialectConfig
   /**
    * dialect for [official wasm build](https://sqlite.org/wasm/doc/trunk/index.md)
    *
@@ -57,10 +57,10 @@ export class OfficialWasmDialect extends BaseDialect {
    */
   constructor(config: OfficialWasmDialectConfig) {
     super()
-    this.#config = config
+    this.config = config
   }
 
   createDriver() {
-    return new OfficialWasmDriver(this.#config)
+    return new OfficialWasmDriver(this.config)
   }
 }

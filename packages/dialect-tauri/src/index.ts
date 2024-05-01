@@ -36,22 +36,22 @@ export interface TauriSqlDialectConfig<T extends 'sqlite' | 'mysql' | 'postgres'
  * https://github.com/tauri-apps/plugins-workspace/tree/dev/plugins/sql
  */
 export class TauriSqlDialect<T extends 'sqlite' | 'mysql' | 'postgres'> {
-  #config: TauriSqlDialectConfig<T>
+  private config: TauriSqlDialectConfig<T>
   /**
    * dialect for Tauri,
    * using [official sql plugin](https://github.com/tauri-apps/plugins-workspace/tree/dev/plugins/sql),
    * support MySQL, PostgreSQL and SQLite
    */
   constructor(config: TauriSqlDialectConfig<T>) {
-    this.#config = config
+    this.config = config
   }
 
   createDriver(): Driver {
-    return new TaruiSqlDriver(this.#config)
+    return new TaruiSqlDriver(this.config)
   }
 
   createQueryCompiler(): QueryCompiler {
-    switch (this.#config.type) {
+    switch (this.config.type) {
       case 'mysql':
         return new MysqlQueryCompiler()
       case 'postgres':
@@ -62,7 +62,7 @@ export class TauriSqlDialect<T extends 'sqlite' | 'mysql' | 'postgres'> {
   }
 
   createAdapter(): DialectAdapter {
-    switch (this.#config.type) {
+    switch (this.config.type) {
       case 'mysql':
         return new MysqlAdapter()
       case 'postgres':
@@ -73,7 +73,7 @@ export class TauriSqlDialect<T extends 'sqlite' | 'mysql' | 'postgres'> {
   }
 
   createIntrospector(db: Kysely<any>): DatabaseIntrospector {
-    switch (this.#config.type) {
+    switch (this.config.type) {
       case 'mysql':
         return new MysqlIntrospector(db)
       case 'postgres':

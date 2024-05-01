@@ -6,7 +6,7 @@ export interface BaseDB {
 }
 
 export abstract class BaseDriver implements Driver {
-  readonly #connectionMutex = new ConnectionMutex()
+  readonly connectionMutex = new ConnectionMutex()
   connection?: DatabaseConnection
 
   abstract init(): Promise<void>
@@ -14,7 +14,7 @@ export abstract class BaseDriver implements Driver {
   async acquireConnection(): Promise<DatabaseConnection> {
     // SQLite only has one single connection. We use a mutex here to wait
     // until the single connection has been released.
-    await this.#connectionMutex.lock()
+    await this.connectionMutex.lock()
     return this.connection!
   }
 
@@ -31,7 +31,7 @@ export abstract class BaseDriver implements Driver {
   }
 
   async releaseConnection(): Promise<void> {
-    this.#connectionMutex.unlock()
+    this.connectionMutex.unlock()
   }
 
   abstract destroy(): Promise<void>

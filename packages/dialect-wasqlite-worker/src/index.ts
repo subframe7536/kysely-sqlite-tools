@@ -51,7 +51,7 @@ export interface WaSqliteWorkerDialectConfig {
 export { isIdbSupported, isOpfsSupported, isModuleWorkerSupport } from '@subframe7536/sqlite-wasm'
 
 export class WaSqliteWorkerDialect implements Dialect {
-  readonly #config: WaSqliteWorkerDialectConfig
+  private config: WaSqliteWorkerDialectConfig
 
   /**
    * dialect for [`wa-sqlite`](https://github.com/rhashimoto/wa-sqlite),
@@ -66,11 +66,11 @@ export class WaSqliteWorkerDialect implements Dialect {
    * })
    */
   constructor(config: WaSqliteWorkerDialectConfig) {
-    this.#config = config
+    this.config = config
   }
 
   createDriver(): Driver {
-    return new WaSqliteWorkerDriver(this.#config)
+    return new WaSqliteWorkerDriver(this.config)
   }
 
   createQueryCompiler(): QueryCompiler {

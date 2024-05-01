@@ -22,17 +22,17 @@ export type SqliteWorkerDialectConfig = {
 }
 
 export class SqliteWorkerDialect implements Dialect {
-  #config: SqliteWorkerDialectConfig
+  private config: SqliteWorkerDialectConfig
 
   /**
    * dialect for better-sqlite, execute sql in `node:worker_threads`
    */
   constructor(config: SqliteWorkerDialectConfig) {
-    this.#config = config
+    this.config = config
   }
 
   createDriver(): Driver {
-    return new SqliteWorkerDriver(this.#config)
+    return new SqliteWorkerDriver(this.config)
   }
 
   createQueryCompiler(): QueryCompiler {

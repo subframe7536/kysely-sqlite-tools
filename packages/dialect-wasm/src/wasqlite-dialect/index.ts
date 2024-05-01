@@ -9,7 +9,7 @@ export interface WaSqliteDialectConfig {
   onCreateConnection?: (connection: DatabaseConnection) => Promisable<void>
 }
 export class WaSqliteDialect extends BaseDialect {
-  readonly #config: WaSqliteDialectConfig
+  private config: WaSqliteDialectConfig
 
   /**
    * dialect for [wa-sqlite](https://github.com/rhashimoto/wa-sqlite)
@@ -44,10 +44,10 @@ export class WaSqliteDialect extends BaseDialect {
    */
   constructor(config: WaSqliteDialectConfig) {
     super()
-    this.#config = config
+    this.config = config
   }
 
   createDriver(): Driver {
-    return new WaSqliteDriver(this.#config)
+    return new WaSqliteDriver(this.config)
   }
 }
