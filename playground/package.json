@@ -7,11 +7,11 @@
     "preview": "pnpm build && vite preview"
   },
   "dependencies": {
-    "@subframe7536/sqlite-wasm": "^0.2.1",
+    "@subframe7536/sqlite-wasm": "^0.2.2",
     "kysely-sqlite-builder": "workspace:*",
     "kysely-wasm": "workspace:*",
     "kysely-wasqlite-worker": "workspace:*",
-    "vue": "^3.4.21"
+    "vue": "^3.4.27"
   },
   "devDependencies": {
     "@vitejs/plugin-vue": "^5.0.4"

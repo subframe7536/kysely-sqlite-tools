@@ -15,11 +15,11 @@ pnpm add -D kysely kysely-wasm
 there are 6 dialects
 
 - SqlJsDialect: dialect for [sql.js](https://github.com/sql-js/sql.js)
-- WaSqliteDialect: dialect for [wa-sqlite](https://github.com/rhashimoto/wa-sqlite)
 - OfficialWasmDialct: dialect for [official wasm build](https://sqlite.org/wasm/doc/trunk/index.md)
 - NodeWasmDialct: dialect for [node sqlite3 wasm](https://github.com/tndrle/node-sqlite3-wasm)
 - EmptyDialect: only for sql generation, no backend
 - CrsqliteDialect: dialect for [vlcn.io/wasm](https://vlcn.io/js/wasm)
+~~- WaSqliteDialect: dialect for [wa-sqlite](https://github.com/rhashimoto/wa-sqlite)~~
 
 ### Differences
 
@@ -35,9 +35,7 @@ you can choose to use [OPFS](https://developer.mozilla.org/en-US/docs/Web/API/Fi
 
 #### `WaSqliteDialect`: polyfill
 
-you can choose not only `OPFS` but also `IndexedDB` as backend storage for better compatibility,
-
-- only work in secure environment, like localhost or https
+deprecated, you can choose to use [worker dialect](../dialect-wasqlite-worker/)
 
 #### `NodeWasmDialect`: no compile
 
@@ -54,7 +52,3 @@ see in jsdoc
 ### Usage and more details
 
 see [test](../../test/dialect-wasm.test.ts) and [playground](../../playground/src/modules)
-
-## TODO
-
-- [ ] add type and use [worker client](https://github.com/tomayac/sqlite-wasm#usage-with-the-bundled-sqliteclient-with-opfs-if-available) for `OfficialWasmDialect`
