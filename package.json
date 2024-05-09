@@ -3,7 +3,7 @@
   "type": "module",
   "version": "0.6.0",
   "private": true,
-  "packageManager": "pnpm@9.0.6",
+  "packageManager": "pnpm@9.1.0",
   "description": "",
   "author": {
     "name": "subframe7536",
