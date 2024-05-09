@@ -4,6 +4,9 @@ import { BaseDialect } from '../baseDialect'
 import { WaSqliteDriver } from './driver'
 import type { WaSqliteDatabase } from './type'
 
+/**
+ * @deprecated please use 'kysely-wasqlite-dialect'
+ */
 export interface WaSqliteDialectConfig {
   database: WaSqliteDatabase | (() => Promisable<WaSqliteDatabase>)
   onCreateConnection?: (connection: DatabaseConnection) => Promisable<void>
@@ -13,6 +16,8 @@ export class WaSqliteDialect extends BaseDialect {
   private config: WaSqliteDialectConfig
 
   /**
+   * @deprecated Please use 'kysely-wasqlite-dialect'
+   *
    * dialect for [wa-sqlite](https://github.com/rhashimoto/wa-sqlite)
    *
    * better for polyfill, can use `IndexedDB` or `OPFS` as backend
