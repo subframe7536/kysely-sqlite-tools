@@ -65,6 +65,7 @@ export class BunWorkerDriver implements Driver {
     if (!this.worker) {
       return
     }
+    this.worker.postMessage([2] satisfies MainMsg)
     return new Promise<void>((resolve, reject) => {
       this.mitt?.once(2/* close */, (_, err) => {
         if (err) {

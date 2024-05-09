@@ -8,6 +8,7 @@ export interface WaSqliteDialectConfig {
   database: WaSqliteDatabase | (() => Promisable<WaSqliteDatabase>)
   onCreateConnection?: (connection: DatabaseConnection) => Promisable<void>
 }
+
 export class WaSqliteDialect extends BaseDialect {
   private config: WaSqliteDialectConfig
 

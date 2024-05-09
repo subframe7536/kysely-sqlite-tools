@@ -38,5 +38,6 @@ describe('test', () => {
     expect(age).toStrictEqual(18)
     expect(name).toStrictEqual('test')
     expect(int8).toStrictEqual(Uint8Array.from([1, 2, 3]))
+    await db.destroy()
   })
 })

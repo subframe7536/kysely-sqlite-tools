@@ -9,7 +9,7 @@ export interface TauriSqlDialectConfig<T extends 'sqlite' | 'mysql' | 'postgres'
    *
    * @example
    * ```ts
-   * import Database from 'tauri-plugin-sql-api'
+   * import Database from '@tauri-apps/plugin-sql'
    * import { appDataDir } from '@tauri-apps/api/path'
    *
    * const kysely = new Kysely<DB>({
