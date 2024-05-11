@@ -1,20 +1,20 @@
 import type { DatabaseConnection, QueryResult } from 'kysely'
 import { CompiledQuery, SelectQueryNode } from 'kysely'
 import type { TauriSqlDB } from './type'
-import type { TauriSqlDialectConfig } from '.'
+import type { TauriSqliteDialectConfig } from '.'
 
-export class TaruiSqlDriver<T extends 'sqlite' | 'mysql' | 'postgres'> {
-  private config: TauriSqlDialectConfig<T>
+export class TaruiSqlDriver {
+  private config: TauriSqliteDialectConfig
   private db?: TauriSqlDB
   private connectionMutex = new ConnectionMutex()
   private connection?: DatabaseConnection
-  constructor(config: TauriSqlDialectConfig<T>) {
+  constructor(config: TauriSqliteDialectConfig) {
     this.config = config
   }
 
   async init(): Promise<void> {
     this.db = typeof this.config.database === 'function'
-      ? await this.config.database(this.config.type + this.config.type === 'sqlite' ? ':' : '://' as any)
+      ? await this.config.database('sqlite:' as any)
       : await this.config.database
     this.connection = new TauriSqlConnection(this.db)
 

@@ -1,6 +1,6 @@
 # kysely-dialect-tauri
 
-[kysely](https://github.com/kysely-org/kysely) dialect for [`Tauri`](https://tauri.app/), using [official sql plugin](https://github.com/tauri-apps/plugins-workspace/tree/dev/plugins/sql), support MySQL, PostgreSQL and SQLite
+[kysely](https://github.com/kysely-org/kysely) dialect for [`Tauri`](https://tauri.app/) with SQLite, using [official sql plugin](https://github.com/tauri-apps/plugins-workspace/tree/dev/plugins/sql)
 
 ## Install
 
@@ -17,7 +17,6 @@ import { appDataDir } from '@tauri-apps/api/path'
 
 const kysely = new Kysely<DB>({
   dialect: new TauriSqlDialect({
-    type: 'sqlite',
     database: prefix => Database.load(`${prefix}${await appDataDir()}test.db`)
   }),
 })
@@ -26,9 +25,13 @@ const kysely = new Kysely<DB>({
 ## Config
 
 ```ts
-export interface TauriSqlDialectConfig<T extends 'sqlite' | 'mysql' | 'postgres'> {
-  database: Promisable<TauriSqlDB> | ((prefix: T extends 'sqlite' ? `${T}:` : `${T}://`) => Promisable<TauriSqlDB>)
-  type: T
+export interface TauriSqliteDialectConfig {
+  database: Promisable<TauriSqlDB> | ((prefix: 'sqlite:') => Promisable<TauriSqlDB>)
+  /**
+   * Called once when the first query is executed.
+   *
+   * This is a Kysely specific feature and does not come from the `better-sqlite3` module.
+   */
   onCreateConnection?: (connection: DatabaseConnection) => Promisable<void>
 }
 ```

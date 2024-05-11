@@ -1,9 +1,9 @@
 import type { DatabaseConnection, DatabaseIntrospector, DialectAdapter, Driver, Kysely, QueryCompiler } from 'kysely'
-import { MysqlAdapter, MysqlIntrospector, MysqlQueryCompiler, PostgresAdapter, PostgresIntrospector, PostgresQueryCompiler, SqliteAdapter, SqliteIntrospector, SqliteQueryCompiler } from 'kysely'
+import { SqliteAdapter, SqliteIntrospector, SqliteQueryCompiler } from 'kysely'
 import { TaruiSqlDriver } from './driver'
 import type { Promisable, TauriSqlDB } from './type'
 
-export interface TauriSqlDialectConfig<T extends 'sqlite' | 'mysql' | 'postgres'> {
+export interface TauriSqliteDialectConfig {
   /**
    * Tauri database instance.
    *
@@ -14,17 +14,12 @@ export interface TauriSqlDialectConfig<T extends 'sqlite' | 'mysql' | 'postgres'
    *
    * const kysely = new Kysely<DB>({
    *   dialect: new TauriSqlDialect({
-   *     type: 'sqlite',
    *     database: prefix => Database.load(`${prefix}${await appDataDir()}test.db`)
    *   }),
    * })
    * ```
    */
-  database: Promisable<TauriSqlDB> | ((prefix: T extends 'sqlite' ? `${T}:` : `${T}://`) => Promisable<TauriSqlDB>)
-  /**
-   * database type
-   */
-  type: T
+  database: Promisable<TauriSqlDB> | ((prefix: 'sqlite:') => Promisable<TauriSqlDB>)
   /**
    * Called once when the first query is executed.
    *
@@ -35,14 +30,14 @@ export interface TauriSqlDialectConfig<T extends 'sqlite' | 'mysql' | 'postgres'
 /**
  * https://github.com/tauri-apps/plugins-workspace/tree/dev/plugins/sql
  */
-export class TauriSqlDialect<T extends 'sqlite' | 'mysql' | 'postgres'> {
-  private config: TauriSqlDialectConfig<T>
+export class TauriSqliteDialect {
+  private config: TauriSqliteDialectConfig
   /**
    * dialect for Tauri,
    * using [official sql plugin](https://github.com/tauri-apps/plugins-workspace/tree/dev/plugins/sql),
    * support MySQL, PostgreSQL and SQLite
    */
-  constructor(config: TauriSqlDialectConfig<T>) {
+  constructor(config: TauriSqliteDialectConfig) {
     this.config = config
   }
 
@@ -51,35 +46,14 @@ export class TauriSqlDialect<T extends 'sqlite' | 'mysql' | 'postgres'> {
   }
 
   createQueryCompiler(): QueryCompiler {
-    switch (this.config.type) {
-      case 'mysql':
-        return new MysqlQueryCompiler()
-      case 'postgres':
-        return new PostgresQueryCompiler()
-      default:
-        return new SqliteQueryCompiler()
-    }
+    return new SqliteQueryCompiler()
   }
 
   createAdapter(): DialectAdapter {
-    switch (this.config.type) {
-      case 'mysql':
-        return new MysqlAdapter()
-      case 'postgres':
-        return new PostgresAdapter()
-      default:
-        return new SqliteAdapter()
-    }
+    return new SqliteAdapter()
   }
 
   createIntrospector(db: Kysely<any>): DatabaseIntrospector {
-    switch (this.config.type) {
-      case 'mysql':
-        return new MysqlIntrospector(db)
-      case 'postgres':
-        return new PostgresIntrospector(db)
-      default:
-        return new SqliteIntrospector(db)
-    }
+    return new SqliteIntrospector(db)
   }
 }
