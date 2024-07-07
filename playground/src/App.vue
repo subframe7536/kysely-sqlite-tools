@@ -5,8 +5,6 @@ import OfficialWorker from './modules/officialWasmWorker?worker'
 import { useWaSqliteWorker } from './modules/wasqliteWorker'
 import { deleteFile } from './modules/indexeddb'
 
-// import { testCRSqlite } from './modules/crsqlite'
-
 const sqljsWorker = new SqljsWorker()
 const { result, run } = useDB()
 const officialWorker = new OfficialWorker()
@@ -56,7 +54,10 @@ async function clear() {
   <h3>see worker result in console</h3>
   <h3>
     you can explore
-    <a href="https://developer.mozilla.org/en-US/docs/Web/API/File_System_Access_API#origin_private_file_system" target="_blank">
+    <a
+      href="https://developer.mozilla.org/en-US/docs/Web/API/File_System_Access_API#origin_private_file_system"
+      target="_blank"
+    >
       OPFS
     </a>
     file using
@@ -95,31 +96,41 @@ async function clear() {
 </template>
 
 <style>
-button, a {
+button,
+a {
   font-family: sans-serif;
 }
+
 button {
   margin: 0 10px 10px;
   padding: 4px 8px;
   border-radius: 4px;
 }
+
 button:hover {
   background-color: lightblue;
   transition: 0.2s;
 }
-h1, h3 {
+
+h1,
+h3 {
   text-align: center;
 }
+
 h1 {
   margin-bottom: 0;
 }
-div, pre {
+
+div,
+pre {
   width: fit-content;
   margin: 0 auto 20px;
 }
+
 .buttons {
   display: flex;
 }
+
 pre {
   padding: 0 20px;
   border: 2px solid lightblue;
@@ -128,11 +139,13 @@ pre {
   width: 380px;
   overflow-y: scroll;
 }
-::-webkit-scrollbar{
+
+::-webkit-scrollbar {
   width: 6px;
   height: 6px;
 }
-::-webkit-scrollbar-thumb{
+
+::-webkit-scrollbar-thumb {
   width: 6px;
   border-radius: 6px;
   background-color: gray;

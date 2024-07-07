@@ -5,20 +5,21 @@ import {
   isOpfsSupported,
 } from 'kysely-wasqlite-worker'
 
-// import wasmURL from 'kysely-wasqlite-worker/wasm-sync?url'
+import wasmURL from 'kysely-wasqlite-worker/wasm-sync?url'
+
 import { testDB } from './utils'
 
-const dialect = new WaSqliteWorkerDialect({
-  fileName: 'wa-sqlite-worker-test',
-  // test classic worker
-  // worker: () => new Worker(
-  //   new URL('kysely-wasqlite-worker/worker-classic', import.meta.url),
-  // ),
-  // test custom wasm URL
-  // url: () => wasmURL,
-})
-
 export async function useWaSqliteWorker() {
+  console.log(wasmURL)
+  const dialect = new WaSqliteWorkerDialect({
+    fileName: 'wa-sqlite-worker-test',
+    // test classic worker
+    // worker: () => new Worker(
+    //   new URL('kysely-wasqlite-worker/worker-classic', import.meta.url),
+    // ),
+    // test custom wasm URL
+    // url: () => wasmURL,
+  })
   console.log('start wa-sqlite-worker test')
   testDB(dialect)
     .then(async (data) => {

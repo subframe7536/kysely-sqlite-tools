@@ -25,6 +25,7 @@ export type ParsedColumnProperty = {
  * @todo support extra constraints
  */
 export function parseCreateTableSQL(definition: string): ParsedCreateTableSQL {
+  // eslint-disable-next-line regexp/no-super-linear-backtracking
   const baseRegex = /create table (?:if not exist)?\s*"([^"]+)".*?\((.*)\)/i
   const columnRegex = /"([^"]+)"\s+(\w+)\s?(not null)?/gi
   const [, tableName, cols] = definition.replace(/\r?\n/g, '').match(baseRegex)!

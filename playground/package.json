@@ -8,12 +8,12 @@
   },
   "dependencies": {
     "@subframe7536/sqlite-wasm": "^0.2.2",
-    "kysely-sqlite-builder": "workspace:*",
+    "kysely-sqlite-builder": "^0.8.7",
     "kysely-wasm": "workspace:*",
     "kysely-wasqlite-worker": "workspace:*",
-    "vue": "^3.4.27"
+    "vue": "^3.4.31"
   },
   "devDependencies": {
-    "@vitejs/plugin-vue": "^5.0.4"
+    "@vitejs/plugin-vue": "^5.0.5"
   }
 }

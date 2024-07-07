@@ -3,6 +3,8 @@ import { SqliteAdapter, SqliteIntrospector, SqliteQueryCompiler } from 'kysely'
 import { WaSqliteWorkerDriver } from './driver'
 import type { Promisable } from './type'
 
+export { isIdbSupported, isOpfsSupported, isModuleWorkerSupport } from '@subframe7536/sqlite-wasm'
+
 export interface WaSqliteWorkerDialectConfig {
   /**
    * db file name
@@ -41,14 +43,12 @@ export interface WaSqliteWorkerDialectConfig {
    * import { useDefaultWasmURL } from 'kysely-wasqlite-worker'
    * @example
    * (useAsyncWasm) => useAsyncWasm
-   *   ? 'https://cdn.jsdelivr.net/gh/rhashimoto/wa-sqlite@v0.9.9/dist/wa-sqlite-async.wasm'
+   *   ? 'https://cdn.jsdelivr.net/gh/rhashimoto/wa-sqlite@v1.0.0/dist/wa-sqlite-async.wasm'
    *   : new URL('kysely-wasqlite-worker/wasm-sync', import.meta.url).href
    */
   url?: string | ((useAsyncWasm: boolean) => string)
   onCreateConnection?: (connection: DatabaseConnection) => Promisable<void>
 }
-
-export { isIdbSupported, isOpfsSupported, isModuleWorkerSupport } from '@subframe7536/sqlite-wasm'
 
 export class WaSqliteWorkerDialect implements Dialect {
   private config: WaSqliteWorkerDialectConfig

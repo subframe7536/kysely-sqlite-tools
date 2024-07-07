@@ -5,7 +5,7 @@ import type { MainMsg, WorkerMsg } from './type'
 
 let db: SQLiteDB
 
-async function init(url: string, fileName: string, useOPFS: boolean) {
+async function init(fileName: string, url: string, useOPFS: boolean) {
   db = await initSQLite(
     (
       useOPFS

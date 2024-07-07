@@ -5,4 +5,5 @@ export default defineEslintConfig({
   overrideRules: {
     'prefer-template': 'off',
   },
+  vue: true,
 })
