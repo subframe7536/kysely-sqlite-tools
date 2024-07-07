@@ -1,8 +1,7 @@
 import { EventEmitter } from 'node:events'
 import type { DatabaseConnection, Driver, QueryResult } from 'kysely'
 import { CompiledQuery, SelectQueryNode } from 'kysely'
-import type { EventWithError, MainMsg, WorkerMsg } from './type'
-import type { BunWorkerDialectConfig } from '.'
+import type { BunWorkerDialectConfig, EventWithError, MainMsg, WorkerMsg } from './type'
 
 export class BunWorkerDriver implements Driver {
   private config?: BunWorkerDialectConfig

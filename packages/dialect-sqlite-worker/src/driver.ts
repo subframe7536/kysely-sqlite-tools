@@ -3,8 +3,7 @@ import { join } from 'node:path'
 import { EventEmitter } from 'node:events'
 import type { DatabaseConnection, Driver, QueryResult } from 'kysely'
 import { CompiledQuery } from 'kysely'
-import type { MainMsg, WorkerMsg } from './type'
-import type { SqliteWorkerDialectConfig } from '.'
+import type { MainMsg, SqliteWorkerDialectConfig, WorkerMsg } from './type'
 
 export class SqliteWorkerDriver implements Driver {
   private connectionMutex = new ConnectionMutex()

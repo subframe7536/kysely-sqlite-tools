@@ -1,7 +1,6 @@
 import type { DatabaseConnection, QueryResult } from 'kysely'
 import { CompiledQuery, SelectQueryNode } from 'kysely'
-import type { TauriSqlDB } from './type'
-import type { TauriSqliteDialectConfig } from '.'
+import type { TauriSqlDB, TauriSqliteDialectConfig } from './type'
 
 export class TaruiSqlDriver {
   private config: TauriSqliteDialectConfig

@@ -1,6 +1,24 @@
-import type { QueryResult } from 'kysely'
+import type { Options } from 'better-sqlite3'
+import type { DatabaseConnection, QueryResult } from 'kysely'
 
 export type Promisable<T> = T | Promise<T>
+
+export type SqliteWorkerDialectConfig = {
+  /**
+   * db file path or existing buffer
+   */
+  source: string | Buffer | (() => Promisable<string | Buffer>)
+  /**
+   * better-sqlite3 initiate option
+   */
+  dbOption?: Options
+  /**
+   * db worker path
+   * @default join(__dirname, 'worker.js')
+   */
+  workerPath?: string
+  onCreateConnection?: (connection: DatabaseConnection) => Promisable<void>
+}
 
 type RunMsg = [
   type: '0',

@@ -3,9 +3,8 @@ import { CompiledQuery, SelectQueryNode } from 'kysely'
 import type { Emitter } from 'zen-mitt'
 import { mitt } from 'zen-mitt'
 import { isModuleWorkerSupport, isOpfsSupported } from '@subframe7536/sqlite-wasm'
-import type { EventWithError, MainMsg, WorkerMsg } from './type'
+import type { EventWithError, MainMsg, WaSqliteWorkerDialectConfig, WorkerMsg } from './type'
 import { defaultWasmURL, defaultWorker, parseWorkerOrURL } from './utils'
-import type { WaSqliteWorkerDialectConfig } from '.'
 
 export class WaSqliteWorkerDriver implements Driver {
   private config: WaSqliteWorkerDialectConfig

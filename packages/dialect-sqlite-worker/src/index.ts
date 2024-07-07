@@ -1,25 +1,7 @@
-import type { DatabaseConnection, DatabaseIntrospector, Dialect, DialectAdapter, Driver, Kysely, QueryCompiler } from 'kysely'
+import type { DatabaseIntrospector, Dialect, DialectAdapter, Driver, Kysely, QueryCompiler } from 'kysely'
 import { SqliteAdapter, SqliteIntrospector, SqliteQueryCompiler } from 'kysely'
-import type { Options } from 'better-sqlite3'
 import { SqliteWorkerDriver } from './driver'
-import type { Promisable } from './type'
-
-export type SqliteWorkerDialectConfig = {
-  /**
-   * db file path or existing buffer
-   */
-  source: string | Buffer | (() => Promisable<string | Buffer>)
-  /**
-   * better-sqlite3 initiate option
-   */
-  dbOption?: Options
-  /**
-   * db worker path
-   * @default join(__dirname, 'worker.js')
-   */
-  workerPath?: string
-  onCreateConnection?: (connection: DatabaseConnection) => Promisable<void>
-}
+import type { SqliteWorkerDialectConfig } from './type'
 
 export class SqliteWorkerDialect implements Dialect {
   private config: SqliteWorkerDialectConfig

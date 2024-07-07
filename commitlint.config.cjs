@@ -17,9 +17,9 @@ module.exports = {
       'dialect-bun-worker',
       'dialect-sqlite-worker',
       'dialect-wasqlite-worker',
-      'builder',
+      // 'builder',
       'workspace',
-      'utils',
+      // 'utils',
     ],
     markBreakingChangeMode: true,
     allowBreakingChanges: [
