@@ -2,7 +2,7 @@ import type { DatabaseConnection, QueryResult } from 'kysely'
 import { CompiledQuery, SelectQueryNode } from 'kysely'
 import type { TauriSqlDB, TauriSqliteDialectConfig } from './type'
 
-export class TaruiSqlDriver {
+export class TauriSqlDriver {
   private config: TauriSqliteDialectConfig
   private db?: TauriSqlDB
   private connectionMutex = new ConnectionMutex()

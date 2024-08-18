@@ -1,6 +1,6 @@
 import type { DatabaseIntrospector, DialectAdapter, Driver, Kysely, QueryCompiler } from 'kysely'
 import { SqliteAdapter, SqliteIntrospector, SqliteQueryCompiler } from 'kysely'
-import { TaruiSqlDriver } from './driver'
+import { TauriSqlDriver } from './driver'
 import type { TauriSqliteDialectConfig } from './type'
 
 /**
@@ -9,16 +9,14 @@ import type { TauriSqliteDialectConfig } from './type'
 export class TauriSqliteDialect {
   private config: TauriSqliteDialectConfig
   /**
-   * dialect for Tauri,
-   * using [official sql plugin](https://github.com/tauri-apps/plugins-workspace/tree/dev/plugins/sql),
-   * support MySQL, PostgreSQL and SQLite
+   * SQLite dialect for Tauri, using [official sql plugin](https://github.com/tauri-apps/plugins-workspace/tree/dev/plugins/sql)
    */
   constructor(config: TauriSqliteDialectConfig) {
     this.config = config
   }
 
   createDriver(): Driver {
-    return new TaruiSqlDriver(this.config)
+    return new TauriSqlDriver(this.config)
   }
 
   createQueryCompiler(): QueryCompiler {
