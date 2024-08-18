@@ -1,6 +1,6 @@
 {
   "name": "kysely-wasqlite-worker",
-  "version": "0.6.2",
+  "version": "0.6.3",
   "description": "kysely dialect for wa-sqlite, run sql in worker, store data in OPFS or IndexedDB",
   "author": {
     "name": "subframe7536",
