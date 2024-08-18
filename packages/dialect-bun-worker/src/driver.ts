@@ -28,9 +28,7 @@ export class BunWorkerDriver implements Driver {
       this.config?.cacheStatment,
     ] satisfies MainMsg)
     await new Promise<void>((resolve, reject) => {
-      this.mitt?.once(0/* init */, (_, err) => {
-        err ? reject(err) : resolve()
-      })
+      this.mitt?.once(0/* init */, (_, err) => err ? reject(err) : resolve())
     })
     this.connection = new BunWorkerConnection(this.worker, this.mitt)
 
@@ -122,9 +120,7 @@ class BunWorkerConnection implements DatabaseConnection {
       if (!this.mitt) {
         reject(new Error('kysely instance has been destroyed'))
       }
-      this.mitt!.once(1/* run */, (data, err) => {
-        (!err && data) ? resolve(data) : reject(err)
-      })
+      this.mitt!.once(1/* run */, (data, err) => (!err && data) ? resolve(data) : reject(err))
     })
   }
 }

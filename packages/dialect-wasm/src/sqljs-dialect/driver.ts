@@ -22,18 +22,22 @@ function throttle<T>(func: AnyFunction, delay: number, maxCalls: number): (s: T)
   let callCount = 0
   let lastArgs: T | null = null
 
-  function reset() {
-    timer && clearTimeout(timer)
+  function reset(): void {
+    if (timer) {
+      clearTimeout(timer)
+    }
     callCount = 0
     lastArgs = null
   }
 
-  function callFunc() {
+  function callFunc(): void {
     if (callCount >= maxCalls) {
       func(lastArgs!)
       reset()
     } else {
-      timer && clearTimeout(timer)
+      if (timer) {
+        clearTimeout(timer)
+      }
       timer = setTimeout(() => {
         func(lastArgs!)
         reset()
@@ -143,7 +147,9 @@ class SqlJsConnection extends BaseSqliteConnection {
     } finally {
       _stmt.free()
     }
-    this.trxCount === 0 && this.onWrite?.(this.db.export())
+    if (this.trxCount === 0) {
+      this.onWrite?.(this.db.export())
+    }
     return {
       insertId: BigInt(id),
       numAffectedRows: BigInt(this.db.getRowsModified()),

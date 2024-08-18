@@ -33,16 +33,18 @@ export default defineConfig([
       {
         name: 'copy',
         buildEnd(this) {
-          this.format === 'esm' && Promise.all([
-            copyFile(
-              './node_modules/@subframe7536/sqlite-wasm/dist/wa-sqlite.wasm',
-              './dist/wa-sqlite.wasm',
-            ),
-            copyFile(
-              './node_modules/@subframe7536/sqlite-wasm/dist/wa-sqlite-async.wasm',
-              './dist/wa-sqlite-async.wasm',
-            ),
-          ])
+          if (this.format === 'esm') {
+            Promise.all([
+              copyFile(
+                './node_modules/@subframe7536/sqlite-wasm/dist/wa-sqlite.wasm',
+                './dist/wa-sqlite.wasm',
+              ),
+              copyFile(
+                './node_modules/@subframe7536/sqlite-wasm/dist/wa-sqlite-async.wasm',
+                './dist/wa-sqlite-async.wasm',
+              ),
+            ])
+          }
         },
       },
     ],

@@ -43,7 +43,9 @@ class WaSqliteConnection extends BaseSqliteConnection {
       if (prepared) {
         const stmt = prepared.stmt
         try {
-          params?.length && this.sqlite.bind_collection(stmt, params as [])
+          if (params?.length) {
+            this.sqlite.bind_collection(stmt, params as [])
+          }
 
           const cols = this.sqlite.column_names(stmt)
 

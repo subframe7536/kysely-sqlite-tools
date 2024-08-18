@@ -11,9 +11,9 @@
     "kysely-sqlite-builder": "^0.8.7",
     "kysely-wasm": "workspace:*",
     "kysely-wasqlite-worker": "workspace:*",
-    "vue": "^3.4.31"
+    "vue": "^3.4.38"
   },
   "devDependencies": {
-    "@vitejs/plugin-vue": "^5.0.5"
+    "@vitejs/plugin-vue": "^5.1.2"
   }
 }

@@ -1,4 +1,4 @@
-import type { DatabaseConnection } from 'kysely'
+import type { DatabaseConnection, Driver } from 'kysely'
 import type { Promisable } from '../types'
 import { BaseDialect } from '../baseDialect'
 import { OfficialWasmDriver } from './driver'
@@ -60,7 +60,7 @@ export class OfficialWasmDialect extends BaseDialect {
     this.config = config
   }
 
-  createDriver() {
+  createDriver(): Driver {
     return new OfficialWasmDriver(this.config)
   }
 }

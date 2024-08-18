@@ -11,7 +11,7 @@ export const defaultSerializer: Serializer = (parameter) => {
   } else {
     try {
       return JSON.stringify(parameter)
-    } catch (ignore) {
+    } catch {
       return parameter
     }
   }
@@ -36,7 +36,7 @@ export const defaultDeserializer: Deserializer = (parameter) => {
     ) {
       try {
         return JSON.parse(parameter)
-      } catch (ignore) { }
+      } catch { }
     }
     return parameter
   }
@@ -47,7 +47,7 @@ export const defaultDeserializer: Deserializer = (parameter) => {
  *
  * skip type: `undefined`/`null`, `bigint`/`number`, `ArrayBuffer`/`Buffer`
  */
-export function skipTransform(parameter: unknown) {
+export function skipTransform(parameter: unknown): boolean {
   return parameter === undefined
     || parameter === null
     || typeof parameter === 'bigint'

@@ -111,9 +111,7 @@ export class SqliteWorkerConnection implements DatabaseConnection {
       if (!this.emit) {
         reject(new Error('kysely instance has been destroyed'))
       }
-      this.emit!.once('0', (data: QueryResult<any>, err) => {
-        (data && !err) ? resolve(data) : reject(err)
-      })
+      this.emit!.once('0', (data: QueryResult<any>, err) => (data && !err) ? resolve(data) : reject(err))
     })
   }
 }
