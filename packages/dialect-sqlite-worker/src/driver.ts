@@ -2,7 +2,7 @@ import { Worker } from 'node:worker_threads'
 import { join } from 'node:path'
 import { EventEmitter } from 'node:events'
 import type { DatabaseConnection, Driver, QueryResult } from 'kysely'
-import { CompiledQuery } from 'kysely'
+import { CompiledQuery, SelectQueryNode } from 'kysely'
 import type { MainMsg, SqliteWorkerDialectConfig, WorkerMsg } from './type'
 
 export class SqliteWorkerDriver implements Driver {
@@ -100,8 +100,48 @@ export class SqliteWorkerConnection implements DatabaseConnection {
     private emit?: EventEmitter,
   ) { }
 
-  async *streamQuery<R>(): AsyncIterableIterator<QueryResult<R>> {
-    throw new Error('sqlite-worker driver doesn\'t support streaming')
+  async *streamQuery<R>(compiledQuery: CompiledQuery): AsyncIterableIterator<QueryResult<R>> {
+    const { parameters, sql, query } = compiledQuery
+    if (!SelectQueryNode.is(query)) {
+      throw new Error('WaSqlite dialect only supported SELECT queries')
+    }
+    this.worker.postMessage(['2', sql, parameters] satisfies MainMsg)
+    let resolver: ((value: IteratorResult<{ rows: QueryResult<R>[] }>) => void) | null = null
+    let rejecter: ((reason: any) => void) | null = null
+
+    this.emit!.on('2', (data, err) => {
+      if (err && rejecter) {
+        rejecter(err)
+      }
+      if (resolver) {
+        resolver({ value: { rows: data! }, done: false })
+        resolver = null
+      }
+    })
+
+    this.emit!.on('3', (_, err) => {
+      if (err && rejecter) {
+        rejecter(err)
+      }
+      if (resolver) {
+        resolver({ value: undefined, done: true })
+      }
+    })
+
+    return {
+      [Symbol.asyncIterator]() {
+        return this
+      },
+      async next() {
+        return new Promise<IteratorResult<any>>((resolve, reject) => {
+          resolver = resolve
+          rejecter = reject
+        })
+      },
+      async return() {
+        return { value: undefined, done: true }
+      },
+    }
   }
 
   async executeQuery<R>(compiledQuery: CompiledQuery<unknown>): Promise<QueryResult<R>> {

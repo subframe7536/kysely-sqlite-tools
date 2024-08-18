@@ -30,13 +30,8 @@ async function exec(isSelect: boolean, sql: string, parameters?: readonly unknow
 async function stream(onData: (data: any) => void, sql: string, parameters?: readonly unknown[]): Promise<void> {
   await db.stream(onData, sql, parameters as any[])
 }
-onmessage = async ({ data }: MessageEvent<MainMsg>) => {
-  const [msg, data1, data2, data3] = data
-  const ret: WorkerMsg = [
-    msg,
-    null,
-    null,
-  ]
+onmessage = async ({ data: [msg, data1, data2, data3] }: MessageEvent<MainMsg>) => {
+  const ret: WorkerMsg = [msg, null, null]
   try {
     switch (msg) {
       case 0:
@@ -48,19 +43,10 @@ onmessage = async ({ data }: MessageEvent<MainMsg>) => {
       case 2:
         await db.close()
         break
-      case 3: {
-        let result: any[] = []
-        await stream((val) => {
-          if (result.length < data1) {
-            result.push(val)
-          } else {
-            postMessage([3, result, null] satisfies WorkerMsg)
-            result = []
-          }
-        }, data2, data3)
+      case 3:
+        await stream(val => postMessage([3, [val], null] satisfies WorkerMsg), data1, data2)
         ret[0] = 4
         break
-      }
     }
   } catch (error) {
     ret[2] = error

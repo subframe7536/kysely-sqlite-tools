@@ -33,6 +33,12 @@ describe('sqlite worker dialect test', () => {
     expect(age).toStrictEqual(18)
     expect(name).toStrictEqual(`test ${dialect.toString()}`)
     expect(int8).toStrictEqual(Uint8Array.from([1, 2, 3]))
+    const rows = db.selectFrom('test').selectAll().stream()
+    for await (const row of rows) {
+      expect(row.age).toStrictEqual(18)
+      expect(row.name).toStrictEqual(`test ${dialect.toString()}`)
+      expect(row.int8).toStrictEqual(Uint8Array.from([1, 2, 3]))
+    }
   }
   afterAll(async () => {
     await db.destroy()

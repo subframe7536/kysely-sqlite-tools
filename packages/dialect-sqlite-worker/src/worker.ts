@@ -9,30 +9,42 @@ if (!parentPort) {
 const { src, option } = workerData
 const db = new Database(src, option)
 
-parentPort.on('message', (msg: MainMsg) => {
+parentPort.on('message', ([msg, data1, data2]: MainMsg) => {
   const ret: WorkerMsg = [
-    msg[0],
+    msg,
     null,
     null,
   ]
 
   try {
-    if (msg[0] === '1') {
-      db.close()
-      parentPort!.postMessage(ret)
-      return
-    }
-    const stmt = db.prepare(msg[1])
-    if (stmt.reader) {
-      ret[1] = {
-        rows: stmt.all(msg[2]),
+    switch (msg) {
+      case '0': {
+        const stmt = db.prepare(data1)
+        if (stmt.reader) {
+          ret[1] = {
+            rows: stmt.all(data2),
+          }
+        } else {
+          const { changes, lastInsertRowid } = stmt.run(data2)
+          ret[1] = {
+            rows: [],
+            numAffectedRows: BigInt(changes),
+            insertId: BigInt(lastInsertRowid),
+          }
+        }
+        break
       }
-    } else {
-      const { changes, lastInsertRowid } = stmt.run(msg[2])
-      ret[1] = {
-        rows: [],
-        numAffectedRows: BigInt(changes),
-        insertId: BigInt(lastInsertRowid),
+      case '1':
+        db.close()
+        break
+      case '2': {
+        const stmt = db.prepare(data1)
+        const iter = stmt.iterate(data2)
+        for (const row of iter) {
+          parentPort!.postMessage([msg, [row as any], null] satisfies WorkerMsg)
+        }
+        ret[0] = '3'
+        break
       }
     }
   } catch (error) {

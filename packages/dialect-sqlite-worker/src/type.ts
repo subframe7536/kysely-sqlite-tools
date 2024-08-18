@@ -27,8 +27,9 @@ type RunMsg = [
 ]
 
 type CloseMsg = [type: '1']
+type StreamMsg = [type: '2', sql: string, parameters?: readonly unknown[]]
 
-export type MainMsg = RunMsg | CloseMsg
+export type MainMsg = RunMsg | CloseMsg | StreamMsg
 
 export type WorkerMsg =
   | [
@@ -38,6 +39,16 @@ export type WorkerMsg =
   ]
   | [
     type: '1',
+    data: null,
+    err: unknown,
+  ]
+  | [
+    type: '2',
+    data: QueryResult<any>[] | null,
+    err: unknown,
+  ]
+  | [
+    type: '3',
     data: null,
     err: unknown,
   ]

@@ -37,7 +37,7 @@ export class WaSqliteWorkerDriver implements Driver {
       0,
       this.config.fileName,
       // if use OPFS, wasm should use sync version
-      parseWorkerOrURL(this.config.url ?? defaultWasmURL, !useOPFS),
+      parseWorkerOrURL(this.config.url ?? defaultWasmURL, !useOPFS) as string,
       useOPFS,
     ] satisfies MainMsg)
     await new Promise<void>((resolve, reject) => {
@@ -123,12 +123,12 @@ class WaSqliteWorkerConnection implements DatabaseConnection {
     this.mitt = mitt
   }
 
-  streamQuery<R>(compiledQuery: CompiledQuery, chunkSize = 1): AsyncIterableIterator<QueryResult<R>> {
+  streamQuery<R>(compiledQuery: CompiledQuery): AsyncIterableIterator<QueryResult<R>> {
     const { parameters, sql, query } = compiledQuery
     if (!SelectQueryNode.is(query)) {
       throw new Error('WaSqlite dialect only supported SELECT queries')
     }
-    this.worker.postMessage([3, chunkSize, sql, parameters] satisfies MainMsg)
+    this.worker.postMessage([3, sql, parameters] satisfies MainMsg)
     let resolver: ((value: IteratorResult<{ rows: QueryResult<R>[] }>) => void) | null = null
     let rejecter: ((reason: any) => void) | null = null
 

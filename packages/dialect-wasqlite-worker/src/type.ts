@@ -55,7 +55,6 @@ type RunMsg = [
 ]
 type StreamMsg = [
   type: 3,
-  chunkSize: number,
   sql: string,
   parameters?: readonly unknown[],
 ]
