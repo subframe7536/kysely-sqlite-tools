@@ -7,7 +7,7 @@ export function parseWorkerOrURL<T, P extends T | ((is: boolean) => T)>(obj: P, 
  *
  * **only basic worker options**
  */
-export function defaultWorker(support: boolean) {
+export function defaultWorker(support: boolean): Worker {
   return support
     ? new Worker(new URL('worker.mjs', import.meta.url), { type: 'module' })
     : new Worker(new URL('worker.js', import.meta.url))
@@ -16,7 +16,7 @@ export function defaultWorker(support: boolean) {
 /**
  * auto load target wasm
  */
-export function defaultWasmURL(useAsyncWasm: boolean) {
+export function defaultWasmURL(useAsyncWasm: boolean): string {
   return useAsyncWasm
     ? new URL('wa-sqlite-async.wasm', import.meta.url).href
     : new URL('wa-sqlite.wasm', import.meta.url).href

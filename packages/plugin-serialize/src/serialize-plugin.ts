@@ -73,7 +73,7 @@ export class BaseSerializePlugin implements KyselyPlugin {
   }
 }
 
-interface SerializePluginOptions extends Partial<BaseSerializePluginOptions> {
+export interface SerializePluginOptions extends Partial<BaseSerializePluginOptions> {
 }
 
 export class SerializePlugin extends BaseSerializePlugin {

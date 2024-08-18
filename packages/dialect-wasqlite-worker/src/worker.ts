@@ -5,7 +5,7 @@ import type { MainMsg, WorkerMsg } from './type'
 
 let db: SQLiteDB
 
-async function init(fileName: string, url: string, useOPFS: boolean) {
+async function init(fileName: string, url: string, useOPFS: boolean): Promise<void> {
   db = await initSQLite(
     (
       useOPFS
@@ -27,23 +27,40 @@ async function exec(isSelect: boolean, sql: string, parameters?: readonly unknow
         numAffectedRows: BigInt(db.changes()),
       }
 }
+async function stream(onData: (data: any) => void, sql: string, parameters?: readonly unknown[]): Promise<void> {
+  await db.stream(onData, sql, parameters as any[])
+}
 onmessage = async ({ data }: MessageEvent<MainMsg>) => {
+  const [msg, data1, data2, data3] = data
   const ret: WorkerMsg = [
-    data[0],
+    msg,
     null,
     null,
   ]
   try {
-    switch (data[0]) {
+    switch (msg) {
       case 0:
-        await init(data[1], data[2], data[3])
+        await init(data1, data2, data3)
         break
       case 1:
-        ret[1] = await exec(data[1], data[2], data[3])
+        ret[1] = await exec(data1, data2, data3)
         break
       case 2:
         await db.close()
         break
+      case 3: {
+        let result: any[] = []
+        await stream((val) => {
+          if (result.length < data1) {
+            result.push(val)
+          } else {
+            postMessage([3, result, null] satisfies WorkerMsg)
+            result = []
+          }
+        }, data2, data3)
+        ret[0] = 4
+        break
+      }
     }
   } catch (error) {
     ret[2] = error

@@ -19,7 +19,9 @@ export class WaSqliteWorkerDriver implements Driver {
   async init(): Promise<void> {
     // try to persist storage, https://web.dev/articles/persistent-storage#request_persistent_storage
     try {
-      !await navigator.storage.persisted() && await navigator.storage.persist()
+      if (!await navigator.storage.persisted()) {
+        await navigator.storage.persist()
+      }
     } catch { }
 
     const useOPFS = (this.config.preferOPFS ?? true) ? await isOpfsSupported() : false
@@ -35,13 +37,11 @@ export class WaSqliteWorkerDriver implements Driver {
       0,
       this.config.fileName,
       // if use OPFS, wasm should use sync version
-      parseWorkerOrURL(this.config.url || defaultWasmURL, !useOPFS),
+      parseWorkerOrURL(this.config.url ?? defaultWasmURL, !useOPFS),
       useOPFS,
     ] satisfies MainMsg)
     await new Promise<void>((resolve, reject) => {
-      this.mitt?.once(0, (_, err) => {
-        err ? reject(err) : resolve()
-      })
+      this.mitt?.once(0, (_, err) => err ? reject(err) : resolve())
     })
 
     this.connection = new WaSqliteWorkerConnection(this.worker, this.mitt)
@@ -123,8 +123,48 @@ class WaSqliteWorkerConnection implements DatabaseConnection {
     this.mitt = mitt
   }
 
-  streamQuery<R>(): AsyncIterableIterator<QueryResult<R>> {
-    throw new Error('wa-sqlite worker driver doesn\'t support streaming')
+  streamQuery<R>(compiledQuery: CompiledQuery, chunkSize = 1): AsyncIterableIterator<QueryResult<R>> {
+    const { parameters, sql, query } = compiledQuery
+    if (!SelectQueryNode.is(query)) {
+      throw new Error('WaSqlite dialect only supported SELECT queries')
+    }
+    this.worker.postMessage([3, chunkSize, sql, parameters] satisfies MainMsg)
+    let resolver: ((value: IteratorResult<{ rows: QueryResult<R>[] }>) => void) | null = null
+    let rejecter: ((reason: any) => void) | null = null
+
+    this.mitt!.on(3, (data, err) => {
+      if (err && rejecter) {
+        rejecter(err)
+      }
+      if (resolver) {
+        resolver({ value: { rows: data! }, done: false })
+        resolver = null
+      }
+    })
+
+    this.mitt!.on(4, (_, err) => {
+      if (err && rejecter) {
+        rejecter(err)
+      }
+      if (resolver) {
+        resolver({ value: undefined, done: true })
+      }
+    })
+
+    return {
+      [Symbol.asyncIterator]() {
+        return this
+      },
+      async next() {
+        return new Promise<IteratorResult<any>>((resolve, reject) => {
+          resolver = resolve
+          rejecter = reject
+        })
+      },
+      async return() {
+        return { value: undefined, done: true }
+      },
+    }
   }
 
   async executeQuery<R>(compiledQuery: CompiledQuery<unknown>): Promise<QueryResult<R>> {
@@ -132,11 +172,11 @@ class WaSqliteWorkerConnection implements DatabaseConnection {
     const isSelect = SelectQueryNode.is(query)
     this.worker.postMessage([1, isSelect, sql, parameters] satisfies MainMsg)
     return new Promise((resolve, reject) => {
-      !this.mitt && reject(new Error('kysely instance has been destroyed'))
+      if (!this.mitt) {
+        reject(new Error('kysely instance has been destroyed'))
+      }
 
-      this.mitt!.once(1, (data, err) => {
-        (!err && data) ? resolve(data) : reject(err)
-      })
+      this.mitt!.once(1, (data, err) => (!err && data) ? resolve(data) : reject(err))
     })
   }
 }
