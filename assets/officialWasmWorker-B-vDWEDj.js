@@ -24892,6 +24892,13 @@ async function testDB(dialect2) {
       });
     });
   }
+  try {
+    for await (const v2 of db.selectFrom("test").selectAll().stream(2)) {
+      console.log("Stream Query", v2);
+    }
+  } catch (error) {
+    console.error(error);
+  }
   return db.selectFrom("test").selectAll().execute().then(async (data) => {
     await db.destroy();
     console.log(data);

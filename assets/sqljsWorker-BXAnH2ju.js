@@ -10,5643 +10,6 @@ var __privateAdd = (obj, member, value) => member.has(obj) ? __typeError("Cannot
 var __privateSet = (obj, member, value, setter) => (__accessCheck(obj, member, "write to private field"), setter ? setter.call(obj, value) : member.set(obj, value), value);
 var __privateMethod = (obj, member, method) => (__accessCheck(obj, member, "access private method"), method);
 var _dynamicReference, _props, _props2, _props3, _props4, _props5, _props6, _props7, _props8, _props9, _queryId, _transformers, _schema, _schemableIds, _ctes, _WithSchemaTransformer_instances, isRootOperationNode_fn, collectSchemableIds_fn, collectCTEs_fn, collectSchemableIdsFromTableExpr_fn, collectSchemableId_fn, collectCTEIds_fn, _transformer, _promise, _resolve, _reject, _plugins, _QueryExecutorBase_instances, transformResult_fn, _props10, _props11, _WheneableMergeQueryBuilder_instances, whenMatched_fn, whenNotMatched_fn, _props12, _props13, _props14, _node, _expr, _alias, _node2, _node3, _props15, _queryBuilder, _alias2, _props16, _aggregateFunctionBuilder, _alias3, _props17, _props18, _props19, _props20, _node4, _JSONPathBuilder_instances, createBuilderWithPathLeg_fn, _node5, _jsonPath, _alias4, _node6, _node7, _column, _alterColumnNode, _props21, _props22, _props23, _props24, _node8, _props25, _props26, _props27, _props28, _props29, _props30, _props31, _props32, _transformer2, _props33, _props34, _props35, _props36, _executor, _driver, _compiler, _adapter, _connectionProvider, _driver2, _log, _initPromise, _initDone, _destroyPromise, _connections, _RuntimeDriver_instances, needsLogging_fn, addLogging_fn, logError_fn, logQuery_fn, calculateDurationMillis_fn, _connection, _runningPromise, _SingleConnectionProvider_instances, run_fn, _levels, _logger, _props37, _props38, _props39, _props40, _props41, _RawBuilderImpl_instances, getExecutor_fn, toOperationNode_fn, compile_fn, _rawBuilder, _alias5, _visitors, _sql, _parameters, _db, _SqliteIntrospector_instances, getTableMetadata_fn;
-(function polyfill() {
-  const relList = document.createElement("link").relList;
-  if (relList && relList.supports && relList.supports("modulepreload")) {
-    return;
-  }
-  for (const link of document.querySelectorAll('link[rel="modulepreload"]')) {
-    processPreload(link);
-  }
-  new MutationObserver((mutations) => {
-    for (const mutation of mutations) {
-      if (mutation.type !== "childList") {
-        continue;
-      }
-      for (const node of mutation.addedNodes) {
-        if (node.tagName === "LINK" && node.rel === "modulepreload")
-          processPreload(node);
-      }
-    }
-  }).observe(document, { childList: true, subtree: true });
-  function getFetchOpts(link) {
-    const fetchOpts = {};
-    if (link.integrity) fetchOpts.integrity = link.integrity;
-    if (link.referrerPolicy) fetchOpts.referrerPolicy = link.referrerPolicy;
-    if (link.crossOrigin === "use-credentials")
-      fetchOpts.credentials = "include";
-    else if (link.crossOrigin === "anonymous") fetchOpts.credentials = "omit";
-    else fetchOpts.credentials = "same-origin";
-    return fetchOpts;
-  }
-  function processPreload(link) {
-    if (link.ep)
-      return;
-    link.ep = true;
-    const fetchOpts = getFetchOpts(link);
-    fetch(link.href, fetchOpts);
-  }
-})();
-/**
-* @vue/shared v3.4.31
-* (c) 2018-present Yuxi (Evan) You and Vue contributors
-* @license MIT
-**/
-/*! #__NO_SIDE_EFFECTS__ */
-// @__NO_SIDE_EFFECTS__
-function makeMap(str, expectsLowerCase) {
-  const set2 = new Set(str.split(","));
-  return expectsLowerCase ? (val) => set2.has(val.toLowerCase()) : (val) => set2.has(val);
-}
-const EMPTY_OBJ = {};
-const EMPTY_ARR = [];
-const NOOP = () => {
-};
-const NO = () => false;
-const isOn = (key) => key.charCodeAt(0) === 111 && key.charCodeAt(1) === 110 && // uppercase letter
-(key.charCodeAt(2) > 122 || key.charCodeAt(2) < 97);
-const isModelListener = (key) => key.startsWith("onUpdate:");
-const extend = Object.assign;
-const remove = (arr, el) => {
-  const i = arr.indexOf(el);
-  if (i > -1) {
-    arr.splice(i, 1);
-  }
-};
-const hasOwnProperty$1 = Object.prototype.hasOwnProperty;
-const hasOwn = (val, key) => hasOwnProperty$1.call(val, key);
-const isArray = Array.isArray;
-const isMap = (val) => toTypeString(val) === "[object Map]";
-const isSet = (val) => toTypeString(val) === "[object Set]";
-const isFunction$1 = (val) => typeof val === "function";
-const isString$1 = (val) => typeof val === "string";
-const isSymbol = (val) => typeof val === "symbol";
-const isObject$1 = (val) => val !== null && typeof val === "object";
-const isPromise = (val) => {
-  return (isObject$1(val) || isFunction$1(val)) && isFunction$1(val.then) && isFunction$1(val.catch);
-};
-const objectToString = Object.prototype.toString;
-const toTypeString = (value) => objectToString.call(value);
-const toRawType = (value) => {
-  return toTypeString(value).slice(8, -1);
-};
-const isPlainObject = (val) => toTypeString(val) === "[object Object]";
-const isIntegerKey = (key) => isString$1(key) && key !== "NaN" && key[0] !== "-" && "" + parseInt(key, 10) === key;
-const isReservedProp = /* @__PURE__ */ makeMap(
-  // the leading comma is intentional so empty string "" is also included
-  ",key,ref,ref_for,ref_key,onVnodeBeforeMount,onVnodeMounted,onVnodeBeforeUpdate,onVnodeUpdated,onVnodeBeforeUnmount,onVnodeUnmounted"
-);
-const cacheStringFunction = (fn) => {
-  const cache = /* @__PURE__ */ Object.create(null);
-  return (str) => {
-    const hit = cache[str];
-    return hit || (cache[str] = fn(str));
-  };
-};
-const camelizeRE = /-(\w)/g;
-const camelize = cacheStringFunction((str) => {
-  return str.replace(camelizeRE, (_, c) => c ? c.toUpperCase() : "");
-});
-const hyphenateRE = /\B([A-Z])/g;
-const hyphenate = cacheStringFunction(
-  (str) => str.replace(hyphenateRE, "-$1").toLowerCase()
-);
-const capitalize = cacheStringFunction((str) => {
-  return str.charAt(0).toUpperCase() + str.slice(1);
-});
-const toHandlerKey = cacheStringFunction((str) => {
-  const s = str ? `on${capitalize(str)}` : ``;
-  return s;
-});
-const hasChanged = (value, oldValue) => !Object.is(value, oldValue);
-const invokeArrayFns = (fns, ...arg) => {
-  for (let i = 0; i < fns.length; i++) {
-    fns[i](...arg);
-  }
-};
-const def = (obj, key, value, writable = false) => {
-  Object.defineProperty(obj, key, {
-    configurable: true,
-    enumerable: false,
-    writable,
-    value
-  });
-};
-const looseToNumber = (val) => {
-  const n = parseFloat(val);
-  return isNaN(n) ? val : n;
-};
-let _globalThis;
-const getGlobalThis = () => {
-  return _globalThis || (_globalThis = typeof globalThis !== "undefined" ? globalThis : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : typeof global !== "undefined" ? global : {});
-};
-function normalizeStyle(value) {
-  if (isArray(value)) {
-    const res = {};
-    for (let i = 0; i < value.length; i++) {
-      const item = value[i];
-      const normalized = isString$1(item) ? parseStringStyle(item) : normalizeStyle(item);
-      if (normalized) {
-        for (const key in normalized) {
-          res[key] = normalized[key];
-        }
-      }
-    }
-    return res;
-  } else if (isString$1(value) || isObject$1(value)) {
-    return value;
-  }
-}
-const listDelimiterRE = /;(?![^(]*\))/g;
-const propertyDelimiterRE = /:([^]+)/;
-const styleCommentRE = /\/\*[^]*?\*\//g;
-function parseStringStyle(cssText) {
-  const ret = {};
-  cssText.replace(styleCommentRE, "").split(listDelimiterRE).forEach((item) => {
-    if (item) {
-      const tmp = item.split(propertyDelimiterRE);
-      tmp.length > 1 && (ret[tmp[0].trim()] = tmp[1].trim());
-    }
-  });
-  return ret;
-}
-function normalizeClass(value) {
-  let res = "";
-  if (isString$1(value)) {
-    res = value;
-  } else if (isArray(value)) {
-    for (let i = 0; i < value.length; i++) {
-      const normalized = normalizeClass(value[i]);
-      if (normalized) {
-        res += normalized + " ";
-      }
-    }
-  } else if (isObject$1(value)) {
-    for (const name in value) {
-      if (value[name]) {
-        res += name + " ";
-      }
-    }
-  }
-  return res.trim();
-}
-const specialBooleanAttrs = `itemscope,allowfullscreen,formnovalidate,ismap,nomodule,novalidate,readonly`;
-const isSpecialBooleanAttr = /* @__PURE__ */ makeMap(specialBooleanAttrs);
-function includeBooleanAttr(value) {
-  return !!value || value === "";
-}
-const isRef$1 = (val) => {
-  return !!(val && val.__v_isRef === true);
-};
-const toDisplayString = (val) => {
-  return isString$1(val) ? val : val == null ? "" : isArray(val) || isObject$1(val) && (val.toString === objectToString || !isFunction$1(val.toString)) ? isRef$1(val) ? toDisplayString(val.value) : JSON.stringify(val, replacer, 2) : String(val);
-};
-const replacer = (_key, val) => {
-  if (isRef$1(val)) {
-    return replacer(_key, val.value);
-  } else if (isMap(val)) {
-    return {
-      [`Map(${val.size})`]: [...val.entries()].reduce(
-        (entries, [key, val2], i) => {
-          entries[stringifySymbol(key, i) + " =>"] = val2;
-          return entries;
-        },
-        {}
-      )
-    };
-  } else if (isSet(val)) {
-    return {
-      [`Set(${val.size})`]: [...val.values()].map((v) => stringifySymbol(v))
-    };
-  } else if (isSymbol(val)) {
-    return stringifySymbol(val);
-  } else if (isObject$1(val) && !isArray(val) && !isPlainObject(val)) {
-    return String(val);
-  }
-  return val;
-};
-const stringifySymbol = (v, i = "") => {
-  var _a;
-  return (
-    // Symbol.description in es2019+ so we need to cast here to pass
-    // the lib: es2016 check
-    isSymbol(v) ? `Symbol(${(_a = v.description) != null ? _a : i})` : v
-  );
-};
-/**
-* @vue/reactivity v3.4.31
-* (c) 2018-present Yuxi (Evan) You and Vue contributors
-* @license MIT
-**/
-let activeEffectScope;
-class EffectScope {
-  constructor(detached = false) {
-    this.detached = detached;
-    this._active = true;
-    this.effects = [];
-    this.cleanups = [];
-    this.parent = activeEffectScope;
-    if (!detached && activeEffectScope) {
-      this.index = (activeEffectScope.scopes || (activeEffectScope.scopes = [])).push(
-        this
-      ) - 1;
-    }
-  }
-  get active() {
-    return this._active;
-  }
-  run(fn) {
-    if (this._active) {
-      const currentEffectScope = activeEffectScope;
-      try {
-        activeEffectScope = this;
-        return fn();
-      } finally {
-        activeEffectScope = currentEffectScope;
-      }
-    }
-  }
-  /**
-   * This should only be called on non-detached scopes
-   * @internal
-   */
-  on() {
-    activeEffectScope = this;
-  }
-  /**
-   * This should only be called on non-detached scopes
-   * @internal
-   */
-  off() {
-    activeEffectScope = this.parent;
-  }
-  stop(fromParent) {
-    if (this._active) {
-      let i, l;
-      for (i = 0, l = this.effects.length; i < l; i++) {
-        this.effects[i].stop();
-      }
-      for (i = 0, l = this.cleanups.length; i < l; i++) {
-        this.cleanups[i]();
-      }
-      if (this.scopes) {
-        for (i = 0, l = this.scopes.length; i < l; i++) {
-          this.scopes[i].stop(true);
-        }
-      }
-      if (!this.detached && this.parent && !fromParent) {
-        const last = this.parent.scopes.pop();
-        if (last && last !== this) {
-          this.parent.scopes[this.index] = last;
-          last.index = this.index;
-        }
-      }
-      this.parent = void 0;
-      this._active = false;
-    }
-  }
-}
-function recordEffectScope(effect2, scope = activeEffectScope) {
-  if (scope && scope.active) {
-    scope.effects.push(effect2);
-  }
-}
-function getCurrentScope() {
-  return activeEffectScope;
-}
-let activeEffect;
-class ReactiveEffect {
-  constructor(fn, trigger2, scheduler, scope) {
-    this.fn = fn;
-    this.trigger = trigger2;
-    this.scheduler = scheduler;
-    this.active = true;
-    this.deps = [];
-    this._dirtyLevel = 4;
-    this._trackId = 0;
-    this._runnings = 0;
-    this._shouldSchedule = false;
-    this._depsLength = 0;
-    recordEffectScope(this, scope);
-  }
-  get dirty() {
-    if (this._dirtyLevel === 2 || this._dirtyLevel === 3) {
-      this._dirtyLevel = 1;
-      pauseTracking();
-      for (let i = 0; i < this._depsLength; i++) {
-        const dep = this.deps[i];
-        if (dep.computed) {
-          triggerComputed(dep.computed);
-          if (this._dirtyLevel >= 4) {
-            break;
-          }
-        }
-      }
-      if (this._dirtyLevel === 1) {
-        this._dirtyLevel = 0;
-      }
-      resetTracking();
-    }
-    return this._dirtyLevel >= 4;
-  }
-  set dirty(v) {
-    this._dirtyLevel = v ? 4 : 0;
-  }
-  run() {
-    this._dirtyLevel = 0;
-    if (!this.active) {
-      return this.fn();
-    }
-    let lastShouldTrack = shouldTrack;
-    let lastEffect = activeEffect;
-    try {
-      shouldTrack = true;
-      activeEffect = this;
-      this._runnings++;
-      preCleanupEffect(this);
-      return this.fn();
-    } finally {
-      postCleanupEffect(this);
-      this._runnings--;
-      activeEffect = lastEffect;
-      shouldTrack = lastShouldTrack;
-    }
-  }
-  stop() {
-    if (this.active) {
-      preCleanupEffect(this);
-      postCleanupEffect(this);
-      this.onStop && this.onStop();
-      this.active = false;
-    }
-  }
-}
-function triggerComputed(computed2) {
-  return computed2.value;
-}
-function preCleanupEffect(effect2) {
-  effect2._trackId++;
-  effect2._depsLength = 0;
-}
-function postCleanupEffect(effect2) {
-  if (effect2.deps.length > effect2._depsLength) {
-    for (let i = effect2._depsLength; i < effect2.deps.length; i++) {
-      cleanupDepEffect(effect2.deps[i], effect2);
-    }
-    effect2.deps.length = effect2._depsLength;
-  }
-}
-function cleanupDepEffect(dep, effect2) {
-  const trackId = dep.get(effect2);
-  if (trackId !== void 0 && effect2._trackId !== trackId) {
-    dep.delete(effect2);
-    if (dep.size === 0) {
-      dep.cleanup();
-    }
-  }
-}
-let shouldTrack = true;
-let pauseScheduleStack = 0;
-const trackStack = [];
-function pauseTracking() {
-  trackStack.push(shouldTrack);
-  shouldTrack = false;
-}
-function resetTracking() {
-  const last = trackStack.pop();
-  shouldTrack = last === void 0 ? true : last;
-}
-function pauseScheduling() {
-  pauseScheduleStack++;
-}
-function resetScheduling() {
-  pauseScheduleStack--;
-  while (!pauseScheduleStack && queueEffectSchedulers.length) {
-    queueEffectSchedulers.shift()();
-  }
-}
-function trackEffect(effect2, dep, debuggerEventExtraInfo) {
-  if (dep.get(effect2) !== effect2._trackId) {
-    dep.set(effect2, effect2._trackId);
-    const oldDep = effect2.deps[effect2._depsLength];
-    if (oldDep !== dep) {
-      if (oldDep) {
-        cleanupDepEffect(oldDep, effect2);
-      }
-      effect2.deps[effect2._depsLength++] = dep;
-    } else {
-      effect2._depsLength++;
-    }
-  }
-}
-const queueEffectSchedulers = [];
-function triggerEffects(dep, dirtyLevel, debuggerEventExtraInfo) {
-  pauseScheduling();
-  for (const effect2 of dep.keys()) {
-    let tracking;
-    if (effect2._dirtyLevel < dirtyLevel && (tracking != null ? tracking : tracking = dep.get(effect2) === effect2._trackId)) {
-      effect2._shouldSchedule || (effect2._shouldSchedule = effect2._dirtyLevel === 0);
-      effect2._dirtyLevel = dirtyLevel;
-    }
-    if (effect2._shouldSchedule && (tracking != null ? tracking : tracking = dep.get(effect2) === effect2._trackId)) {
-      effect2.trigger();
-      if ((!effect2._runnings || effect2.allowRecurse) && effect2._dirtyLevel !== 2) {
-        effect2._shouldSchedule = false;
-        if (effect2.scheduler) {
-          queueEffectSchedulers.push(effect2.scheduler);
-        }
-      }
-    }
-  }
-  resetScheduling();
-}
-const createDep = (cleanup, computed2) => {
-  const dep = /* @__PURE__ */ new Map();
-  dep.cleanup = cleanup;
-  dep.computed = computed2;
-  return dep;
-};
-const targetMap = /* @__PURE__ */ new WeakMap();
-const ITERATE_KEY = Symbol("");
-const MAP_KEY_ITERATE_KEY = Symbol("");
-function track(target, type, key) {
-  if (shouldTrack && activeEffect) {
-    let depsMap = targetMap.get(target);
-    if (!depsMap) {
-      targetMap.set(target, depsMap = /* @__PURE__ */ new Map());
-    }
-    let dep = depsMap.get(key);
-    if (!dep) {
-      depsMap.set(key, dep = createDep(() => depsMap.delete(key)));
-    }
-    trackEffect(
-      activeEffect,
-      dep
-    );
-  }
-}
-function trigger(target, type, key, newValue, oldValue, oldTarget) {
-  const depsMap = targetMap.get(target);
-  if (!depsMap) {
-    return;
-  }
-  let deps = [];
-  if (type === "clear") {
-    deps = [...depsMap.values()];
-  } else if (key === "length" && isArray(target)) {
-    const newLength = Number(newValue);
-    depsMap.forEach((dep, key2) => {
-      if (key2 === "length" || !isSymbol(key2) && key2 >= newLength) {
-        deps.push(dep);
-      }
-    });
-  } else {
-    if (key !== void 0) {
-      deps.push(depsMap.get(key));
-    }
-    switch (type) {
-      case "add":
-        if (!isArray(target)) {
-          deps.push(depsMap.get(ITERATE_KEY));
-          if (isMap(target)) {
-            deps.push(depsMap.get(MAP_KEY_ITERATE_KEY));
-          }
-        } else if (isIntegerKey(key)) {
-          deps.push(depsMap.get("length"));
-        }
-        break;
-      case "delete":
-        if (!isArray(target)) {
-          deps.push(depsMap.get(ITERATE_KEY));
-          if (isMap(target)) {
-            deps.push(depsMap.get(MAP_KEY_ITERATE_KEY));
-          }
-        }
-        break;
-      case "set":
-        if (isMap(target)) {
-          deps.push(depsMap.get(ITERATE_KEY));
-        }
-        break;
-    }
-  }
-  pauseScheduling();
-  for (const dep of deps) {
-    if (dep) {
-      triggerEffects(
-        dep,
-        4
-      );
-    }
-  }
-  resetScheduling();
-}
-const isNonTrackableKeys = /* @__PURE__ */ makeMap(`__proto__,__v_isRef,__isVue`);
-const builtInSymbols = new Set(
-  /* @__PURE__ */ Object.getOwnPropertyNames(Symbol).filter((key) => key !== "arguments" && key !== "caller").map((key) => Symbol[key]).filter(isSymbol)
-);
-const arrayInstrumentations = /* @__PURE__ */ createArrayInstrumentations();
-function createArrayInstrumentations() {
-  const instrumentations = {};
-  ["includes", "indexOf", "lastIndexOf"].forEach((key) => {
-    instrumentations[key] = function(...args) {
-      const arr = toRaw(this);
-      for (let i = 0, l = this.length; i < l; i++) {
-        track(arr, "get", i + "");
-      }
-      const res = arr[key](...args);
-      if (res === -1 || res === false) {
-        return arr[key](...args.map(toRaw));
-      } else {
-        return res;
-      }
-    };
-  });
-  ["push", "pop", "shift", "unshift", "splice"].forEach((key) => {
-    instrumentations[key] = function(...args) {
-      pauseTracking();
-      pauseScheduling();
-      const res = toRaw(this)[key].apply(this, args);
-      resetScheduling();
-      resetTracking();
-      return res;
-    };
-  });
-  return instrumentations;
-}
-function hasOwnProperty(key) {
-  if (!isSymbol(key)) key = String(key);
-  const obj = toRaw(this);
-  track(obj, "has", key);
-  return obj.hasOwnProperty(key);
-}
-class BaseReactiveHandler {
-  constructor(_isReadonly = false, _isShallow = false) {
-    this._isReadonly = _isReadonly;
-    this._isShallow = _isShallow;
-  }
-  get(target, key, receiver) {
-    const isReadonly2 = this._isReadonly, isShallow2 = this._isShallow;
-    if (key === "__v_isReactive") {
-      return !isReadonly2;
-    } else if (key === "__v_isReadonly") {
-      return isReadonly2;
-    } else if (key === "__v_isShallow") {
-      return isShallow2;
-    } else if (key === "__v_raw") {
-      if (receiver === (isReadonly2 ? isShallow2 ? shallowReadonlyMap : readonlyMap : isShallow2 ? shallowReactiveMap : reactiveMap).get(target) || // receiver is not the reactive proxy, but has the same prototype
-      // this means the reciever is a user proxy of the reactive proxy
-      Object.getPrototypeOf(target) === Object.getPrototypeOf(receiver)) {
-        return target;
-      }
-      return;
-    }
-    const targetIsArray = isArray(target);
-    if (!isReadonly2) {
-      if (targetIsArray && hasOwn(arrayInstrumentations, key)) {
-        return Reflect.get(arrayInstrumentations, key, receiver);
-      }
-      if (key === "hasOwnProperty") {
-        return hasOwnProperty;
-      }
-    }
-    const res = Reflect.get(target, key, receiver);
-    if (isSymbol(key) ? builtInSymbols.has(key) : isNonTrackableKeys(key)) {
-      return res;
-    }
-    if (!isReadonly2) {
-      track(target, "get", key);
-    }
-    if (isShallow2) {
-      return res;
-    }
-    if (isRef(res)) {
-      return targetIsArray && isIntegerKey(key) ? res : res.value;
-    }
-    if (isObject$1(res)) {
-      return isReadonly2 ? readonly(res) : reactive(res);
-    }
-    return res;
-  }
-}
-class MutableReactiveHandler extends BaseReactiveHandler {
-  constructor(isShallow2 = false) {
-    super(false, isShallow2);
-  }
-  set(target, key, value, receiver) {
-    let oldValue = target[key];
-    if (!this._isShallow) {
-      const isOldValueReadonly = isReadonly(oldValue);
-      if (!isShallow(value) && !isReadonly(value)) {
-        oldValue = toRaw(oldValue);
-        value = toRaw(value);
-      }
-      if (!isArray(target) && isRef(oldValue) && !isRef(value)) {
-        if (isOldValueReadonly) {
-          return false;
-        } else {
-          oldValue.value = value;
-          return true;
-        }
-      }
-    }
-    const hadKey = isArray(target) && isIntegerKey(key) ? Number(key) < target.length : hasOwn(target, key);
-    const result = Reflect.set(target, key, value, receiver);
-    if (target === toRaw(receiver)) {
-      if (!hadKey) {
-        trigger(target, "add", key, value);
-      } else if (hasChanged(value, oldValue)) {
-        trigger(target, "set", key, value);
-      }
-    }
-    return result;
-  }
-  deleteProperty(target, key) {
-    const hadKey = hasOwn(target, key);
-    target[key];
-    const result = Reflect.deleteProperty(target, key);
-    if (result && hadKey) {
-      trigger(target, "delete", key, void 0);
-    }
-    return result;
-  }
-  has(target, key) {
-    const result = Reflect.has(target, key);
-    if (!isSymbol(key) || !builtInSymbols.has(key)) {
-      track(target, "has", key);
-    }
-    return result;
-  }
-  ownKeys(target) {
-    track(
-      target,
-      "iterate",
-      isArray(target) ? "length" : ITERATE_KEY
-    );
-    return Reflect.ownKeys(target);
-  }
-}
-class ReadonlyReactiveHandler extends BaseReactiveHandler {
-  constructor(isShallow2 = false) {
-    super(true, isShallow2);
-  }
-  set(target, key) {
-    return true;
-  }
-  deleteProperty(target, key) {
-    return true;
-  }
-}
-const mutableHandlers = /* @__PURE__ */ new MutableReactiveHandler();
-const readonlyHandlers = /* @__PURE__ */ new ReadonlyReactiveHandler();
-const shallowReactiveHandlers = /* @__PURE__ */ new MutableReactiveHandler(
-  true
-);
-const shallowReadonlyHandlers = /* @__PURE__ */ new ReadonlyReactiveHandler(true);
-const toShallow = (value) => value;
-const getProto = (v) => Reflect.getPrototypeOf(v);
-function get(target, key, isReadonly2 = false, isShallow2 = false) {
-  target = target["__v_raw"];
-  const rawTarget = toRaw(target);
-  const rawKey = toRaw(key);
-  if (!isReadonly2) {
-    if (hasChanged(key, rawKey)) {
-      track(rawTarget, "get", key);
-    }
-    track(rawTarget, "get", rawKey);
-  }
-  const { has: has2 } = getProto(rawTarget);
-  const wrap = isShallow2 ? toShallow : isReadonly2 ? toReadonly : toReactive;
-  if (has2.call(rawTarget, key)) {
-    return wrap(target.get(key));
-  } else if (has2.call(rawTarget, rawKey)) {
-    return wrap(target.get(rawKey));
-  } else if (target !== rawTarget) {
-    target.get(key);
-  }
-}
-function has(key, isReadonly2 = false) {
-  const target = this["__v_raw"];
-  const rawTarget = toRaw(target);
-  const rawKey = toRaw(key);
-  if (!isReadonly2) {
-    if (hasChanged(key, rawKey)) {
-      track(rawTarget, "has", key);
-    }
-    track(rawTarget, "has", rawKey);
-  }
-  return key === rawKey ? target.has(key) : target.has(key) || target.has(rawKey);
-}
-function size(target, isReadonly2 = false) {
-  target = target["__v_raw"];
-  !isReadonly2 && track(toRaw(target), "iterate", ITERATE_KEY);
-  return Reflect.get(target, "size", target);
-}
-function add(value) {
-  value = toRaw(value);
-  const target = toRaw(this);
-  const proto = getProto(target);
-  const hadKey = proto.has.call(target, value);
-  if (!hadKey) {
-    target.add(value);
-    trigger(target, "add", value, value);
-  }
-  return this;
-}
-function set(key, value) {
-  value = toRaw(value);
-  const target = toRaw(this);
-  const { has: has2, get: get2 } = getProto(target);
-  let hadKey = has2.call(target, key);
-  if (!hadKey) {
-    key = toRaw(key);
-    hadKey = has2.call(target, key);
-  }
-  const oldValue = get2.call(target, key);
-  target.set(key, value);
-  if (!hadKey) {
-    trigger(target, "add", key, value);
-  } else if (hasChanged(value, oldValue)) {
-    trigger(target, "set", key, value);
-  }
-  return this;
-}
-function deleteEntry(key) {
-  const target = toRaw(this);
-  const { has: has2, get: get2 } = getProto(target);
-  let hadKey = has2.call(target, key);
-  if (!hadKey) {
-    key = toRaw(key);
-    hadKey = has2.call(target, key);
-  }
-  get2 ? get2.call(target, key) : void 0;
-  const result = target.delete(key);
-  if (hadKey) {
-    trigger(target, "delete", key, void 0);
-  }
-  return result;
-}
-function clear() {
-  const target = toRaw(this);
-  const hadItems = target.size !== 0;
-  const result = target.clear();
-  if (hadItems) {
-    trigger(target, "clear", void 0, void 0);
-  }
-  return result;
-}
-function createForEach(isReadonly2, isShallow2) {
-  return function forEach(callback, thisArg) {
-    const observed = this;
-    const target = observed["__v_raw"];
-    const rawTarget = toRaw(target);
-    const wrap = isShallow2 ? toShallow : isReadonly2 ? toReadonly : toReactive;
-    !isReadonly2 && track(rawTarget, "iterate", ITERATE_KEY);
-    return target.forEach((value, key) => {
-      return callback.call(thisArg, wrap(value), wrap(key), observed);
-    });
-  };
-}
-function createIterableMethod(method, isReadonly2, isShallow2) {
-  return function(...args) {
-    const target = this["__v_raw"];
-    const rawTarget = toRaw(target);
-    const targetIsMap = isMap(rawTarget);
-    const isPair = method === "entries" || method === Symbol.iterator && targetIsMap;
-    const isKeyOnly = method === "keys" && targetIsMap;
-    const innerIterator = target[method](...args);
-    const wrap = isShallow2 ? toShallow : isReadonly2 ? toReadonly : toReactive;
-    !isReadonly2 && track(
-      rawTarget,
-      "iterate",
-      isKeyOnly ? MAP_KEY_ITERATE_KEY : ITERATE_KEY
-    );
-    return {
-      // iterator protocol
-      next() {
-        const { value, done } = innerIterator.next();
-        return done ? { value, done } : {
-          value: isPair ? [wrap(value[0]), wrap(value[1])] : wrap(value),
-          done
-        };
-      },
-      // iterable protocol
-      [Symbol.iterator]() {
-        return this;
-      }
-    };
-  };
-}
-function createReadonlyMethod(type) {
-  return function(...args) {
-    return type === "delete" ? false : type === "clear" ? void 0 : this;
-  };
-}
-function createInstrumentations() {
-  const mutableInstrumentations2 = {
-    get(key) {
-      return get(this, key);
-    },
-    get size() {
-      return size(this);
-    },
-    has,
-    add,
-    set,
-    delete: deleteEntry,
-    clear,
-    forEach: createForEach(false, false)
-  };
-  const shallowInstrumentations2 = {
-    get(key) {
-      return get(this, key, false, true);
-    },
-    get size() {
-      return size(this);
-    },
-    has,
-    add,
-    set,
-    delete: deleteEntry,
-    clear,
-    forEach: createForEach(false, true)
-  };
-  const readonlyInstrumentations2 = {
-    get(key) {
-      return get(this, key, true);
-    },
-    get size() {
-      return size(this, true);
-    },
-    has(key) {
-      return has.call(this, key, true);
-    },
-    add: createReadonlyMethod("add"),
-    set: createReadonlyMethod("set"),
-    delete: createReadonlyMethod("delete"),
-    clear: createReadonlyMethod("clear"),
-    forEach: createForEach(true, false)
-  };
-  const shallowReadonlyInstrumentations2 = {
-    get(key) {
-      return get(this, key, true, true);
-    },
-    get size() {
-      return size(this, true);
-    },
-    has(key) {
-      return has.call(this, key, true);
-    },
-    add: createReadonlyMethod("add"),
-    set: createReadonlyMethod("set"),
-    delete: createReadonlyMethod("delete"),
-    clear: createReadonlyMethod("clear"),
-    forEach: createForEach(true, true)
-  };
-  const iteratorMethods = [
-    "keys",
-    "values",
-    "entries",
-    Symbol.iterator
-  ];
-  iteratorMethods.forEach((method) => {
-    mutableInstrumentations2[method] = createIterableMethod(method, false, false);
-    readonlyInstrumentations2[method] = createIterableMethod(method, true, false);
-    shallowInstrumentations2[method] = createIterableMethod(method, false, true);
-    shallowReadonlyInstrumentations2[method] = createIterableMethod(
-      method,
-      true,
-      true
-    );
-  });
-  return [
-    mutableInstrumentations2,
-    readonlyInstrumentations2,
-    shallowInstrumentations2,
-    shallowReadonlyInstrumentations2
-  ];
-}
-const [
-  mutableInstrumentations,
-  readonlyInstrumentations,
-  shallowInstrumentations,
-  shallowReadonlyInstrumentations
-] = /* @__PURE__ */ createInstrumentations();
-function createInstrumentationGetter(isReadonly2, shallow) {
-  const instrumentations = shallow ? isReadonly2 ? shallowReadonlyInstrumentations : shallowInstrumentations : isReadonly2 ? readonlyInstrumentations : mutableInstrumentations;
-  return (target, key, receiver) => {
-    if (key === "__v_isReactive") {
-      return !isReadonly2;
-    } else if (key === "__v_isReadonly") {
-      return isReadonly2;
-    } else if (key === "__v_raw") {
-      return target;
-    }
-    return Reflect.get(
-      hasOwn(instrumentations, key) && key in target ? instrumentations : target,
-      key,
-      receiver
-    );
-  };
-}
-const mutableCollectionHandlers = {
-  get: /* @__PURE__ */ createInstrumentationGetter(false, false)
-};
-const shallowCollectionHandlers = {
-  get: /* @__PURE__ */ createInstrumentationGetter(false, true)
-};
-const readonlyCollectionHandlers = {
-  get: /* @__PURE__ */ createInstrumentationGetter(true, false)
-};
-const shallowReadonlyCollectionHandlers = {
-  get: /* @__PURE__ */ createInstrumentationGetter(true, true)
-};
-const reactiveMap = /* @__PURE__ */ new WeakMap();
-const shallowReactiveMap = /* @__PURE__ */ new WeakMap();
-const readonlyMap = /* @__PURE__ */ new WeakMap();
-const shallowReadonlyMap = /* @__PURE__ */ new WeakMap();
-function targetTypeMap(rawType) {
-  switch (rawType) {
-    case "Object":
-    case "Array":
-      return 1;
-    case "Map":
-    case "Set":
-    case "WeakMap":
-    case "WeakSet":
-      return 2;
-    default:
-      return 0;
-  }
-}
-function getTargetType(value) {
-  return value["__v_skip"] || !Object.isExtensible(value) ? 0 : targetTypeMap(toRawType(value));
-}
-function reactive(target) {
-  if (isReadonly(target)) {
-    return target;
-  }
-  return createReactiveObject(
-    target,
-    false,
-    mutableHandlers,
-    mutableCollectionHandlers,
-    reactiveMap
-  );
-}
-function shallowReactive(target) {
-  return createReactiveObject(
-    target,
-    false,
-    shallowReactiveHandlers,
-    shallowCollectionHandlers,
-    shallowReactiveMap
-  );
-}
-function readonly(target) {
-  return createReactiveObject(
-    target,
-    true,
-    readonlyHandlers,
-    readonlyCollectionHandlers,
-    readonlyMap
-  );
-}
-function shallowReadonly(target) {
-  return createReactiveObject(
-    target,
-    true,
-    shallowReadonlyHandlers,
-    shallowReadonlyCollectionHandlers,
-    shallowReadonlyMap
-  );
-}
-function createReactiveObject(target, isReadonly2, baseHandlers, collectionHandlers, proxyMap) {
-  if (!isObject$1(target)) {
-    return target;
-  }
-  if (target["__v_raw"] && !(isReadonly2 && target["__v_isReactive"])) {
-    return target;
-  }
-  const existingProxy = proxyMap.get(target);
-  if (existingProxy) {
-    return existingProxy;
-  }
-  const targetType = getTargetType(target);
-  if (targetType === 0) {
-    return target;
-  }
-  const proxy = new Proxy(
-    target,
-    targetType === 2 ? collectionHandlers : baseHandlers
-  );
-  proxyMap.set(target, proxy);
-  return proxy;
-}
-function isReactive(value) {
-  if (isReadonly(value)) {
-    return isReactive(value["__v_raw"]);
-  }
-  return !!(value && value["__v_isReactive"]);
-}
-function isReadonly(value) {
-  return !!(value && value["__v_isReadonly"]);
-}
-function isShallow(value) {
-  return !!(value && value["__v_isShallow"]);
-}
-function isProxy(value) {
-  return value ? !!value["__v_raw"] : false;
-}
-function toRaw(observed) {
-  const raw = observed && observed["__v_raw"];
-  return raw ? toRaw(raw) : observed;
-}
-function markRaw(value) {
-  if (Object.isExtensible(value)) {
-    def(value, "__v_skip", true);
-  }
-  return value;
-}
-const toReactive = (value) => isObject$1(value) ? reactive(value) : value;
-const toReadonly = (value) => isObject$1(value) ? readonly(value) : value;
-class ComputedRefImpl {
-  constructor(getter, _setter, isReadonly2, isSSR) {
-    this.getter = getter;
-    this._setter = _setter;
-    this.dep = void 0;
-    this.__v_isRef = true;
-    this["__v_isReadonly"] = false;
-    this.effect = new ReactiveEffect(
-      () => getter(this._value),
-      () => triggerRefValue(
-        this,
-        this.effect._dirtyLevel === 2 ? 2 : 3
-      )
-    );
-    this.effect.computed = this;
-    this.effect.active = this._cacheable = !isSSR;
-    this["__v_isReadonly"] = isReadonly2;
-  }
-  get value() {
-    const self2 = toRaw(this);
-    if ((!self2._cacheable || self2.effect.dirty) && hasChanged(self2._value, self2._value = self2.effect.run())) {
-      triggerRefValue(self2, 4);
-    }
-    trackRefValue(self2);
-    if (self2.effect._dirtyLevel >= 2) {
-      triggerRefValue(self2, 2);
-    }
-    return self2._value;
-  }
-  set value(newValue) {
-    this._setter(newValue);
-  }
-  // #region polyfill _dirty for backward compatibility third party code for Vue <= 3.3.x
-  get _dirty() {
-    return this.effect.dirty;
-  }
-  set _dirty(v) {
-    this.effect.dirty = v;
-  }
-  // #endregion
-}
-function computed$1(getterOrOptions, debugOptions, isSSR = false) {
-  let getter;
-  let setter;
-  const onlyGetter = isFunction$1(getterOrOptions);
-  if (onlyGetter) {
-    getter = getterOrOptions;
-    setter = NOOP;
-  } else {
-    getter = getterOrOptions.get;
-    setter = getterOrOptions.set;
-  }
-  const cRef = new ComputedRefImpl(getter, setter, onlyGetter || !setter, isSSR);
-  return cRef;
-}
-function trackRefValue(ref2) {
-  var _a;
-  if (shouldTrack && activeEffect) {
-    ref2 = toRaw(ref2);
-    trackEffect(
-      activeEffect,
-      (_a = ref2.dep) != null ? _a : ref2.dep = createDep(
-        () => ref2.dep = void 0,
-        ref2 instanceof ComputedRefImpl ? ref2 : void 0
-      )
-    );
-  }
-}
-function triggerRefValue(ref2, dirtyLevel = 4, newVal, oldVal) {
-  ref2 = toRaw(ref2);
-  const dep = ref2.dep;
-  if (dep) {
-    triggerEffects(
-      dep,
-      dirtyLevel
-    );
-  }
-}
-function isRef(r) {
-  return !!(r && r.__v_isRef === true);
-}
-function ref(value) {
-  return createRef(value, false);
-}
-function createRef(rawValue, shallow) {
-  if (isRef(rawValue)) {
-    return rawValue;
-  }
-  return new RefImpl(rawValue, shallow);
-}
-class RefImpl {
-  constructor(value, __v_isShallow) {
-    this.__v_isShallow = __v_isShallow;
-    this.dep = void 0;
-    this.__v_isRef = true;
-    this._rawValue = __v_isShallow ? value : toRaw(value);
-    this._value = __v_isShallow ? value : toReactive(value);
-  }
-  get value() {
-    trackRefValue(this);
-    return this._value;
-  }
-  set value(newVal) {
-    const useDirectValue = this.__v_isShallow || isShallow(newVal) || isReadonly(newVal);
-    newVal = useDirectValue ? newVal : toRaw(newVal);
-    if (hasChanged(newVal, this._rawValue)) {
-      this._rawValue;
-      this._rawValue = newVal;
-      this._value = useDirectValue ? newVal : toReactive(newVal);
-      triggerRefValue(this, 4);
-    }
-  }
-}
-function unref(ref2) {
-  return isRef(ref2) ? ref2.value : ref2;
-}
-const shallowUnwrapHandlers = {
-  get: (target, key, receiver) => unref(Reflect.get(target, key, receiver)),
-  set: (target, key, value, receiver) => {
-    const oldValue = target[key];
-    if (isRef(oldValue) && !isRef(value)) {
-      oldValue.value = value;
-      return true;
-    } else {
-      return Reflect.set(target, key, value, receiver);
-    }
-  }
-};
-function proxyRefs(objectWithRefs) {
-  return isReactive(objectWithRefs) ? objectWithRefs : new Proxy(objectWithRefs, shallowUnwrapHandlers);
-}
-/**
-* @vue/runtime-core v3.4.31
-* (c) 2018-present Yuxi (Evan) You and Vue contributors
-* @license MIT
-**/
-const stack = [];
-function warn$1(msg, ...args) {
-  pauseTracking();
-  const instance = stack.length ? stack[stack.length - 1].component : null;
-  const appWarnHandler = instance && instance.appContext.config.warnHandler;
-  const trace = getComponentTrace();
-  if (appWarnHandler) {
-    callWithErrorHandling(
-      appWarnHandler,
-      instance,
-      11,
-      [
-        // eslint-disable-next-line no-restricted-syntax
-        msg + args.map((a) => {
-          var _a, _b;
-          return (_b = (_a = a.toString) == null ? void 0 : _a.call(a)) != null ? _b : JSON.stringify(a);
-        }).join(""),
-        instance && instance.proxy,
-        trace.map(
-          ({ vnode }) => `at <${formatComponentName(instance, vnode.type)}>`
-        ).join("\n"),
-        trace
-      ]
-    );
-  } else {
-    const warnArgs = [`[Vue warn]: ${msg}`, ...args];
-    if (trace.length && // avoid spamming console during tests
-    true) {
-      warnArgs.push(`
-`, ...formatTrace(trace));
-    }
-    console.warn(...warnArgs);
-  }
-  resetTracking();
-}
-function getComponentTrace() {
-  let currentVNode = stack[stack.length - 1];
-  if (!currentVNode) {
-    return [];
-  }
-  const normalizedStack = [];
-  while (currentVNode) {
-    const last = normalizedStack[0];
-    if (last && last.vnode === currentVNode) {
-      last.recurseCount++;
-    } else {
-      normalizedStack.push({
-        vnode: currentVNode,
-        recurseCount: 0
-      });
-    }
-    const parentInstance = currentVNode.component && currentVNode.component.parent;
-    currentVNode = parentInstance && parentInstance.vnode;
-  }
-  return normalizedStack;
-}
-function formatTrace(trace) {
-  const logs = [];
-  trace.forEach((entry, i) => {
-    logs.push(...i === 0 ? [] : [`
-`], ...formatTraceEntry(entry));
-  });
-  return logs;
-}
-function formatTraceEntry({ vnode, recurseCount }) {
-  const postfix = recurseCount > 0 ? `... (${recurseCount} recursive calls)` : ``;
-  const isRoot = vnode.component ? vnode.component.parent == null : false;
-  const open = ` at <${formatComponentName(
-    vnode.component,
-    vnode.type,
-    isRoot
-  )}`;
-  const close = `>` + postfix;
-  return vnode.props ? [open, ...formatProps(vnode.props), close] : [open + close];
-}
-function formatProps(props) {
-  const res = [];
-  const keys = Object.keys(props);
-  keys.slice(0, 3).forEach((key) => {
-    res.push(...formatProp(key, props[key]));
-  });
-  if (keys.length > 3) {
-    res.push(` ...`);
-  }
-  return res;
-}
-function formatProp(key, value, raw) {
-  if (isString$1(value)) {
-    value = JSON.stringify(value);
-    return raw ? value : [`${key}=${value}`];
-  } else if (typeof value === "number" || typeof value === "boolean" || value == null) {
-    return raw ? value : [`${key}=${value}`];
-  } else if (isRef(value)) {
-    value = formatProp(key, toRaw(value.value), true);
-    return raw ? value : [`${key}=Ref<`, value, `>`];
-  } else if (isFunction$1(value)) {
-    return [`${key}=fn${value.name ? `<${value.name}>` : ``}`];
-  } else {
-    value = toRaw(value);
-    return raw ? value : [`${key}=`, value];
-  }
-}
-function callWithErrorHandling(fn, instance, type, args) {
-  try {
-    return args ? fn(...args) : fn();
-  } catch (err) {
-    handleError(err, instance, type);
-  }
-}
-function callWithAsyncErrorHandling(fn, instance, type, args) {
-  if (isFunction$1(fn)) {
-    const res = callWithErrorHandling(fn, instance, type, args);
-    if (res && isPromise(res)) {
-      res.catch((err) => {
-        handleError(err, instance, type);
-      });
-    }
-    return res;
-  }
-  if (isArray(fn)) {
-    const values = [];
-    for (let i = 0; i < fn.length; i++) {
-      values.push(callWithAsyncErrorHandling(fn[i], instance, type, args));
-    }
-    return values;
-  }
-}
-function handleError(err, instance, type, throwInDev = true) {
-  const contextVNode = instance ? instance.vnode : null;
-  if (instance) {
-    let cur = instance.parent;
-    const exposedInstance = instance.proxy;
-    const errorInfo = `https://vuejs.org/error-reference/#runtime-${type}`;
-    while (cur) {
-      const errorCapturedHooks = cur.ec;
-      if (errorCapturedHooks) {
-        for (let i = 0; i < errorCapturedHooks.length; i++) {
-          if (errorCapturedHooks[i](err, exposedInstance, errorInfo) === false) {
-            return;
-          }
-        }
-      }
-      cur = cur.parent;
-    }
-    const appErrorHandler = instance.appContext.config.errorHandler;
-    if (appErrorHandler) {
-      pauseTracking();
-      callWithErrorHandling(
-        appErrorHandler,
-        null,
-        10,
-        [err, exposedInstance, errorInfo]
-      );
-      resetTracking();
-      return;
-    }
-  }
-  logError(err, type, contextVNode, throwInDev);
-}
-function logError(err, type, contextVNode, throwInDev = true) {
-  {
-    console.error(err);
-  }
-}
-let isFlushing = false;
-let isFlushPending = false;
-const queue = [];
-let flushIndex = 0;
-const pendingPostFlushCbs = [];
-let activePostFlushCbs = null;
-let postFlushIndex = 0;
-const resolvedPromise = /* @__PURE__ */ Promise.resolve();
-let currentFlushPromise = null;
-function nextTick(fn) {
-  const p2 = currentFlushPromise || resolvedPromise;
-  return fn ? p2.then(this ? fn.bind(this) : fn) : p2;
-}
-function findInsertionIndex(id) {
-  let start = flushIndex + 1;
-  let end = queue.length;
-  while (start < end) {
-    const middle = start + end >>> 1;
-    const middleJob = queue[middle];
-    const middleJobId = getId(middleJob);
-    if (middleJobId < id || middleJobId === id && middleJob.pre) {
-      start = middle + 1;
-    } else {
-      end = middle;
-    }
-  }
-  return start;
-}
-function queueJob(job) {
-  if (!queue.length || !queue.includes(
-    job,
-    isFlushing && job.allowRecurse ? flushIndex + 1 : flushIndex
-  )) {
-    if (job.id == null) {
-      queue.push(job);
-    } else {
-      queue.splice(findInsertionIndex(job.id), 0, job);
-    }
-    queueFlush();
-  }
-}
-function queueFlush() {
-  if (!isFlushing && !isFlushPending) {
-    isFlushPending = true;
-    currentFlushPromise = resolvedPromise.then(flushJobs);
-  }
-}
-function invalidateJob(job) {
-  const i = queue.indexOf(job);
-  if (i > flushIndex) {
-    queue.splice(i, 1);
-  }
-}
-function queuePostFlushCb(cb) {
-  if (!isArray(cb)) {
-    if (!activePostFlushCbs || !activePostFlushCbs.includes(
-      cb,
-      cb.allowRecurse ? postFlushIndex + 1 : postFlushIndex
-    )) {
-      pendingPostFlushCbs.push(cb);
-    }
-  } else {
-    pendingPostFlushCbs.push(...cb);
-  }
-  queueFlush();
-}
-function flushPreFlushCbs(instance, seen, i = isFlushing ? flushIndex + 1 : 0) {
-  for (; i < queue.length; i++) {
-    const cb = queue[i];
-    if (cb && cb.pre) {
-      if (instance && cb.id !== instance.uid) {
-        continue;
-      }
-      queue.splice(i, 1);
-      i--;
-      cb();
-    }
-  }
-}
-function flushPostFlushCbs(seen) {
-  if (pendingPostFlushCbs.length) {
-    const deduped = [...new Set(pendingPostFlushCbs)].sort(
-      (a, b) => getId(a) - getId(b)
-    );
-    pendingPostFlushCbs.length = 0;
-    if (activePostFlushCbs) {
-      activePostFlushCbs.push(...deduped);
-      return;
-    }
-    activePostFlushCbs = deduped;
-    for (postFlushIndex = 0; postFlushIndex < activePostFlushCbs.length; postFlushIndex++) {
-      const cb = activePostFlushCbs[postFlushIndex];
-      if (cb.active !== false) cb();
-    }
-    activePostFlushCbs = null;
-    postFlushIndex = 0;
-  }
-}
-const getId = (job) => job.id == null ? Infinity : job.id;
-const comparator = (a, b) => {
-  const diff = getId(a) - getId(b);
-  if (diff === 0) {
-    if (a.pre && !b.pre) return -1;
-    if (b.pre && !a.pre) return 1;
-  }
-  return diff;
-};
-function flushJobs(seen) {
-  isFlushPending = false;
-  isFlushing = true;
-  queue.sort(comparator);
-  try {
-    for (flushIndex = 0; flushIndex < queue.length; flushIndex++) {
-      const job = queue[flushIndex];
-      if (job && job.active !== false) {
-        if (false) ;
-        callWithErrorHandling(job, null, 14);
-      }
-    }
-  } finally {
-    flushIndex = 0;
-    queue.length = 0;
-    flushPostFlushCbs();
-    isFlushing = false;
-    currentFlushPromise = null;
-    if (queue.length || pendingPostFlushCbs.length) {
-      flushJobs();
-    }
-  }
-}
-function emit(instance, event, ...rawArgs) {
-  if (instance.isUnmounted) return;
-  const props = instance.vnode.props || EMPTY_OBJ;
-  let args = rawArgs;
-  const isModelListener2 = event.startsWith("update:");
-  const modelArg = isModelListener2 && event.slice(7);
-  if (modelArg && modelArg in props) {
-    const modifiersKey = `${modelArg === "modelValue" ? "model" : modelArg}Modifiers`;
-    const { number, trim: trim2 } = props[modifiersKey] || EMPTY_OBJ;
-    if (trim2) {
-      args = rawArgs.map((a) => isString$1(a) ? a.trim() : a);
-    }
-    if (number) {
-      args = rawArgs.map(looseToNumber);
-    }
-  }
-  let handlerName;
-  let handler = props[handlerName = toHandlerKey(event)] || // also try camelCase event handler (#2249)
-  props[handlerName = toHandlerKey(camelize(event))];
-  if (!handler && isModelListener2) {
-    handler = props[handlerName = toHandlerKey(hyphenate(event))];
-  }
-  if (handler) {
-    callWithAsyncErrorHandling(
-      handler,
-      instance,
-      6,
-      args
-    );
-  }
-  const onceHandler = props[handlerName + `Once`];
-  if (onceHandler) {
-    if (!instance.emitted) {
-      instance.emitted = {};
-    } else if (instance.emitted[handlerName]) {
-      return;
-    }
-    instance.emitted[handlerName] = true;
-    callWithAsyncErrorHandling(
-      onceHandler,
-      instance,
-      6,
-      args
-    );
-  }
-}
-function normalizeEmitsOptions(comp, appContext, asMixin = false) {
-  const cache = appContext.emitsCache;
-  const cached = cache.get(comp);
-  if (cached !== void 0) {
-    return cached;
-  }
-  const raw = comp.emits;
-  let normalized = {};
-  let hasExtends = false;
-  if (!isFunction$1(comp)) {
-    const extendEmits = (raw2) => {
-      const normalizedFromExtend = normalizeEmitsOptions(raw2, appContext, true);
-      if (normalizedFromExtend) {
-        hasExtends = true;
-        extend(normalized, normalizedFromExtend);
-      }
-    };
-    if (!asMixin && appContext.mixins.length) {
-      appContext.mixins.forEach(extendEmits);
-    }
-    if (comp.extends) {
-      extendEmits(comp.extends);
-    }
-    if (comp.mixins) {
-      comp.mixins.forEach(extendEmits);
-    }
-  }
-  if (!raw && !hasExtends) {
-    if (isObject$1(comp)) {
-      cache.set(comp, null);
-    }
-    return null;
-  }
-  if (isArray(raw)) {
-    raw.forEach((key) => normalized[key] = null);
-  } else {
-    extend(normalized, raw);
-  }
-  if (isObject$1(comp)) {
-    cache.set(comp, normalized);
-  }
-  return normalized;
-}
-function isEmitListener(options, key) {
-  if (!options || !isOn(key)) {
-    return false;
-  }
-  key = key.slice(2).replace(/Once$/, "");
-  return hasOwn(options, key[0].toLowerCase() + key.slice(1)) || hasOwn(options, hyphenate(key)) || hasOwn(options, key);
-}
-let currentRenderingInstance = null;
-let currentScopeId = null;
-function setCurrentRenderingInstance(instance) {
-  const prev = currentRenderingInstance;
-  currentRenderingInstance = instance;
-  currentScopeId = instance && instance.type.__scopeId || null;
-  return prev;
-}
-function withCtx(fn, ctx = currentRenderingInstance, isNonScopedSlot) {
-  if (!ctx) return fn;
-  if (fn._n) {
-    return fn;
-  }
-  const renderFnWithContext = (...args) => {
-    if (renderFnWithContext._d) {
-      setBlockTracking(-1);
-    }
-    const prevInstance = setCurrentRenderingInstance(ctx);
-    let res;
-    try {
-      res = fn(...args);
-    } finally {
-      setCurrentRenderingInstance(prevInstance);
-      if (renderFnWithContext._d) {
-        setBlockTracking(1);
-      }
-    }
-    return res;
-  };
-  renderFnWithContext._n = true;
-  renderFnWithContext._c = true;
-  renderFnWithContext._d = true;
-  return renderFnWithContext;
-}
-function markAttrsAccessed() {
-}
-function renderComponentRoot(instance) {
-  const {
-    type: Component,
-    vnode,
-    proxy,
-    withProxy,
-    propsOptions: [propsOptions],
-    slots,
-    attrs,
-    emit: emit2,
-    render,
-    renderCache,
-    props,
-    data,
-    setupState,
-    ctx,
-    inheritAttrs
-  } = instance;
-  const prev = setCurrentRenderingInstance(instance);
-  let result;
-  let fallthroughAttrs;
-  try {
-    if (vnode.shapeFlag & 4) {
-      const proxyToUse = withProxy || proxy;
-      const thisProxy = false ? new Proxy(proxyToUse, {
-        get(target, key, receiver) {
-          warn$1(
-            `Property '${String(
-              key
-            )}' was accessed via 'this'. Avoid using 'this' in templates.`
-          );
-          return Reflect.get(target, key, receiver);
-        }
-      }) : proxyToUse;
-      result = normalizeVNode(
-        render.call(
-          thisProxy,
-          proxyToUse,
-          renderCache,
-          false ? shallowReadonly(props) : props,
-          setupState,
-          data,
-          ctx
-        )
-      );
-      fallthroughAttrs = attrs;
-    } else {
-      const render2 = Component;
-      if (false) ;
-      result = normalizeVNode(
-        render2.length > 1 ? render2(
-          false ? shallowReadonly(props) : props,
-          false ? {
-            get attrs() {
-              markAttrsAccessed();
-              return shallowReadonly(attrs);
-            },
-            slots,
-            emit: emit2
-          } : { attrs, slots, emit: emit2 }
-        ) : render2(
-          false ? shallowReadonly(props) : props,
-          null
-        )
-      );
-      fallthroughAttrs = Component.props ? attrs : getFunctionalFallthrough(attrs);
-    }
-  } catch (err) {
-    blockStack.length = 0;
-    handleError(err, instance, 1);
-    result = createVNode(Comment);
-  }
-  let root = result;
-  if (fallthroughAttrs && inheritAttrs !== false) {
-    const keys = Object.keys(fallthroughAttrs);
-    const { shapeFlag } = root;
-    if (keys.length) {
-      if (shapeFlag & (1 | 6)) {
-        if (propsOptions && keys.some(isModelListener)) {
-          fallthroughAttrs = filterModelListeners(
-            fallthroughAttrs,
-            propsOptions
-          );
-        }
-        root = cloneVNode(root, fallthroughAttrs, false, true);
-      }
-    }
-  }
-  if (vnode.dirs) {
-    root = cloneVNode(root, null, false, true);
-    root.dirs = root.dirs ? root.dirs.concat(vnode.dirs) : vnode.dirs;
-  }
-  if (vnode.transition) {
-    root.transition = vnode.transition;
-  }
-  {
-    result = root;
-  }
-  setCurrentRenderingInstance(prev);
-  return result;
-}
-const getFunctionalFallthrough = (attrs) => {
-  let res;
-  for (const key in attrs) {
-    if (key === "class" || key === "style" || isOn(key)) {
-      (res || (res = {}))[key] = attrs[key];
-    }
-  }
-  return res;
-};
-const filterModelListeners = (attrs, props) => {
-  const res = {};
-  for (const key in attrs) {
-    if (!isModelListener(key) || !(key.slice(9) in props)) {
-      res[key] = attrs[key];
-    }
-  }
-  return res;
-};
-function shouldUpdateComponent(prevVNode, nextVNode, optimized) {
-  const { props: prevProps, children: prevChildren, component } = prevVNode;
-  const { props: nextProps, children: nextChildren, patchFlag } = nextVNode;
-  const emits = component.emitsOptions;
-  if (nextVNode.dirs || nextVNode.transition) {
-    return true;
-  }
-  if (optimized && patchFlag >= 0) {
-    if (patchFlag & 1024) {
-      return true;
-    }
-    if (patchFlag & 16) {
-      if (!prevProps) {
-        return !!nextProps;
-      }
-      return hasPropsChanged(prevProps, nextProps, emits);
-    } else if (patchFlag & 8) {
-      const dynamicProps = nextVNode.dynamicProps;
-      for (let i = 0; i < dynamicProps.length; i++) {
-        const key = dynamicProps[i];
-        if (nextProps[key] !== prevProps[key] && !isEmitListener(emits, key)) {
-          return true;
-        }
-      }
-    }
-  } else {
-    if (prevChildren || nextChildren) {
-      if (!nextChildren || !nextChildren.$stable) {
-        return true;
-      }
-    }
-    if (prevProps === nextProps) {
-      return false;
-    }
-    if (!prevProps) {
-      return !!nextProps;
-    }
-    if (!nextProps) {
-      return true;
-    }
-    return hasPropsChanged(prevProps, nextProps, emits);
-  }
-  return false;
-}
-function hasPropsChanged(prevProps, nextProps, emitsOptions) {
-  const nextKeys = Object.keys(nextProps);
-  if (nextKeys.length !== Object.keys(prevProps).length) {
-    return true;
-  }
-  for (let i = 0; i < nextKeys.length; i++) {
-    const key = nextKeys[i];
-    if (nextProps[key] !== prevProps[key] && !isEmitListener(emitsOptions, key)) {
-      return true;
-    }
-  }
-  return false;
-}
-function updateHOCHostEl({ vnode, parent }, el) {
-  while (parent) {
-    const root = parent.subTree;
-    if (root.suspense && root.suspense.activeBranch === vnode) {
-      root.el = vnode.el;
-    }
-    if (root === vnode) {
-      (vnode = parent.vnode).el = el;
-      parent = parent.parent;
-    } else {
-      break;
-    }
-  }
-}
-const NULL_DYNAMIC_COMPONENT = Symbol.for("v-ndc");
-const isSuspense = (type) => type.__isSuspense;
-function queueEffectWithSuspense(fn, suspense) {
-  if (suspense && suspense.pendingBranch) {
-    if (isArray(fn)) {
-      suspense.effects.push(...fn);
-    } else {
-      suspense.effects.push(fn);
-    }
-  } else {
-    queuePostFlushCb(fn);
-  }
-}
-function injectHook(type, hook, target = currentInstance, prepend = false) {
-  if (target) {
-    const hooks = target[type] || (target[type] = []);
-    const wrappedHook = hook.__weh || (hook.__weh = (...args) => {
-      pauseTracking();
-      const reset = setCurrentInstance(target);
-      const res = callWithAsyncErrorHandling(hook, target, type, args);
-      reset();
-      resetTracking();
-      return res;
-    });
-    if (prepend) {
-      hooks.unshift(wrappedHook);
-    } else {
-      hooks.push(wrappedHook);
-    }
-    return wrappedHook;
-  }
-}
-const createHook = (lifecycle) => (hook, target = currentInstance) => {
-  if (!isInSSRComponentSetup || lifecycle === "sp") {
-    injectHook(lifecycle, (...args) => hook(...args), target);
-  }
-};
-const onBeforeMount = createHook("bm");
-const onMounted = createHook("m");
-const onBeforeUpdate = createHook("bu");
-const onUpdated = createHook("u");
-const onBeforeUnmount = createHook("bum");
-const onUnmounted = createHook("um");
-const onServerPrefetch = createHook("sp");
-const onRenderTriggered = createHook(
-  "rtg"
-);
-const onRenderTracked = createHook(
-  "rtc"
-);
-function onErrorCaptured(hook, target = currentInstance) {
-  injectHook("ec", hook, target);
-}
-function invokeDirectiveHook(vnode, prevVNode, instance, name) {
-  const bindings = vnode.dirs;
-  const oldBindings = prevVNode && prevVNode.dirs;
-  for (let i = 0; i < bindings.length; i++) {
-    const binding = bindings[i];
-    if (oldBindings) {
-      binding.oldValue = oldBindings[i].value;
-    }
-    let hook = binding.dir[name];
-    if (hook) {
-      pauseTracking();
-      callWithAsyncErrorHandling(hook, instance, 8, [
-        vnode.el,
-        binding,
-        vnode,
-        prevVNode
-      ]);
-      resetTracking();
-    }
-  }
-}
-/*! #__NO_SIDE_EFFECTS__ */
-// @__NO_SIDE_EFFECTS__
-function defineComponent(options, extraOptions) {
-  return isFunction$1(options) ? (
-    // #8326: extend call and options.name access are considered side-effects
-    // by Rollup, so we have to wrap it in a pure-annotated IIFE.
-    /* @__PURE__ */ (() => extend({ name: options.name }, extraOptions, { setup: options }))()
-  ) : options;
-}
-const isAsyncWrapper = (i) => !!i.type.__asyncLoader;
-const getPublicInstance = (i) => {
-  if (!i) return null;
-  if (isStatefulComponent(i)) return getComponentPublicInstance(i);
-  return getPublicInstance(i.parent);
-};
-const publicPropertiesMap = (
-  // Move PURE marker to new line to workaround compiler discarding it
-  // due to type annotation
-  /* @__PURE__ */ extend(/* @__PURE__ */ Object.create(null), {
-    $: (i) => i,
-    $el: (i) => i.vnode.el,
-    $data: (i) => i.data,
-    $props: (i) => i.props,
-    $attrs: (i) => i.attrs,
-    $slots: (i) => i.slots,
-    $refs: (i) => i.refs,
-    $parent: (i) => getPublicInstance(i.parent),
-    $root: (i) => getPublicInstance(i.root),
-    $emit: (i) => i.emit,
-    $options: (i) => resolveMergedOptions(i),
-    $forceUpdate: (i) => i.f || (i.f = () => {
-      i.effect.dirty = true;
-      queueJob(i.update);
-    }),
-    $nextTick: (i) => i.n || (i.n = nextTick.bind(i.proxy)),
-    $watch: (i) => instanceWatch.bind(i)
-  })
-);
-const hasSetupBinding = (state, key) => state !== EMPTY_OBJ && !state.__isScriptSetup && hasOwn(state, key);
-const PublicInstanceProxyHandlers = {
-  get({ _: instance }, key) {
-    if (key === "__v_skip") {
-      return true;
-    }
-    const { ctx, setupState, data, props, accessCache, type, appContext } = instance;
-    let normalizedProps;
-    if (key[0] !== "$") {
-      const n = accessCache[key];
-      if (n !== void 0) {
-        switch (n) {
-          case 1:
-            return setupState[key];
-          case 2:
-            return data[key];
-          case 4:
-            return ctx[key];
-          case 3:
-            return props[key];
-        }
-      } else if (hasSetupBinding(setupState, key)) {
-        accessCache[key] = 1;
-        return setupState[key];
-      } else if (data !== EMPTY_OBJ && hasOwn(data, key)) {
-        accessCache[key] = 2;
-        return data[key];
-      } else if (
-        // only cache other properties when instance has declared (thus stable)
-        // props
-        (normalizedProps = instance.propsOptions[0]) && hasOwn(normalizedProps, key)
-      ) {
-        accessCache[key] = 3;
-        return props[key];
-      } else if (ctx !== EMPTY_OBJ && hasOwn(ctx, key)) {
-        accessCache[key] = 4;
-        return ctx[key];
-      } else if (shouldCacheAccess) {
-        accessCache[key] = 0;
-      }
-    }
-    const publicGetter = publicPropertiesMap[key];
-    let cssModule, globalProperties;
-    if (publicGetter) {
-      if (key === "$attrs") {
-        track(instance.attrs, "get", "");
-      }
-      return publicGetter(instance);
-    } else if (
-      // css module (injected by vue-loader)
-      (cssModule = type.__cssModules) && (cssModule = cssModule[key])
-    ) {
-      return cssModule;
-    } else if (ctx !== EMPTY_OBJ && hasOwn(ctx, key)) {
-      accessCache[key] = 4;
-      return ctx[key];
-    } else if (
-      // global properties
-      globalProperties = appContext.config.globalProperties, hasOwn(globalProperties, key)
-    ) {
-      {
-        return globalProperties[key];
-      }
-    } else ;
-  },
-  set({ _: instance }, key, value) {
-    const { data, setupState, ctx } = instance;
-    if (hasSetupBinding(setupState, key)) {
-      setupState[key] = value;
-      return true;
-    } else if (data !== EMPTY_OBJ && hasOwn(data, key)) {
-      data[key] = value;
-      return true;
-    } else if (hasOwn(instance.props, key)) {
-      return false;
-    }
-    if (key[0] === "$" && key.slice(1) in instance) {
-      return false;
-    } else {
-      {
-        ctx[key] = value;
-      }
-    }
-    return true;
-  },
-  has({
-    _: { data, setupState, accessCache, ctx, appContext, propsOptions }
-  }, key) {
-    let normalizedProps;
-    return !!accessCache[key] || data !== EMPTY_OBJ && hasOwn(data, key) || hasSetupBinding(setupState, key) || (normalizedProps = propsOptions[0]) && hasOwn(normalizedProps, key) || hasOwn(ctx, key) || hasOwn(publicPropertiesMap, key) || hasOwn(appContext.config.globalProperties, key);
-  },
-  defineProperty(target, key, descriptor) {
-    if (descriptor.get != null) {
-      target._.accessCache[key] = 0;
-    } else if (hasOwn(descriptor, "value")) {
-      this.set(target, key, descriptor.value, null);
-    }
-    return Reflect.defineProperty(target, key, descriptor);
-  }
-};
-function normalizePropsOrEmits(props) {
-  return isArray(props) ? props.reduce(
-    (normalized, p2) => (normalized[p2] = null, normalized),
-    {}
-  ) : props;
-}
-let shouldCacheAccess = true;
-function applyOptions(instance) {
-  const options = resolveMergedOptions(instance);
-  const publicThis = instance.proxy;
-  const ctx = instance.ctx;
-  shouldCacheAccess = false;
-  if (options.beforeCreate) {
-    callHook(options.beforeCreate, instance, "bc");
-  }
-  const {
-    // state
-    data: dataOptions,
-    computed: computedOptions,
-    methods,
-    watch: watchOptions,
-    provide: provideOptions,
-    inject: injectOptions,
-    // lifecycle
-    created,
-    beforeMount,
-    mounted,
-    beforeUpdate,
-    updated,
-    activated,
-    deactivated,
-    beforeDestroy,
-    beforeUnmount,
-    destroyed,
-    unmounted,
-    render,
-    renderTracked,
-    renderTriggered,
-    errorCaptured,
-    serverPrefetch,
-    // public API
-    expose,
-    inheritAttrs,
-    // assets
-    components,
-    directives,
-    filters
-  } = options;
-  const checkDuplicateProperties = null;
-  if (injectOptions) {
-    resolveInjections(injectOptions, ctx, checkDuplicateProperties);
-  }
-  if (methods) {
-    for (const key in methods) {
-      const methodHandler = methods[key];
-      if (isFunction$1(methodHandler)) {
-        {
-          ctx[key] = methodHandler.bind(publicThis);
-        }
-      }
-    }
-  }
-  if (dataOptions) {
-    const data = dataOptions.call(publicThis, publicThis);
-    if (!isObject$1(data)) ;
-    else {
-      instance.data = reactive(data);
-    }
-  }
-  shouldCacheAccess = true;
-  if (computedOptions) {
-    for (const key in computedOptions) {
-      const opt = computedOptions[key];
-      const get2 = isFunction$1(opt) ? opt.bind(publicThis, publicThis) : isFunction$1(opt.get) ? opt.get.bind(publicThis, publicThis) : NOOP;
-      const set2 = !isFunction$1(opt) && isFunction$1(opt.set) ? opt.set.bind(publicThis) : NOOP;
-      const c = computed({
-        get: get2,
-        set: set2
-      });
-      Object.defineProperty(ctx, key, {
-        enumerable: true,
-        configurable: true,
-        get: () => c.value,
-        set: (v) => c.value = v
-      });
-    }
-  }
-  if (watchOptions) {
-    for (const key in watchOptions) {
-      createWatcher(watchOptions[key], ctx, publicThis, key);
-    }
-  }
-  if (provideOptions) {
-    const provides = isFunction$1(provideOptions) ? provideOptions.call(publicThis) : provideOptions;
-    Reflect.ownKeys(provides).forEach((key) => {
-      provide(key, provides[key]);
-    });
-  }
-  if (created) {
-    callHook(created, instance, "c");
-  }
-  function registerLifecycleHook(register, hook) {
-    if (isArray(hook)) {
-      hook.forEach((_hook) => register(_hook.bind(publicThis)));
-    } else if (hook) {
-      register(hook.bind(publicThis));
-    }
-  }
-  registerLifecycleHook(onBeforeMount, beforeMount);
-  registerLifecycleHook(onMounted, mounted);
-  registerLifecycleHook(onBeforeUpdate, beforeUpdate);
-  registerLifecycleHook(onUpdated, updated);
-  registerLifecycleHook(onActivated, activated);
-  registerLifecycleHook(onDeactivated, deactivated);
-  registerLifecycleHook(onErrorCaptured, errorCaptured);
-  registerLifecycleHook(onRenderTracked, renderTracked);
-  registerLifecycleHook(onRenderTriggered, renderTriggered);
-  registerLifecycleHook(onBeforeUnmount, beforeUnmount);
-  registerLifecycleHook(onUnmounted, unmounted);
-  registerLifecycleHook(onServerPrefetch, serverPrefetch);
-  if (isArray(expose)) {
-    if (expose.length) {
-      const exposed = instance.exposed || (instance.exposed = {});
-      expose.forEach((key) => {
-        Object.defineProperty(exposed, key, {
-          get: () => publicThis[key],
-          set: (val) => publicThis[key] = val
-        });
-      });
-    } else if (!instance.exposed) {
-      instance.exposed = {};
-    }
-  }
-  if (render && instance.render === NOOP) {
-    instance.render = render;
-  }
-  if (inheritAttrs != null) {
-    instance.inheritAttrs = inheritAttrs;
-  }
-  if (components) instance.components = components;
-  if (directives) instance.directives = directives;
-}
-function resolveInjections(injectOptions, ctx, checkDuplicateProperties = NOOP) {
-  if (isArray(injectOptions)) {
-    injectOptions = normalizeInject(injectOptions);
-  }
-  for (const key in injectOptions) {
-    const opt = injectOptions[key];
-    let injected;
-    if (isObject$1(opt)) {
-      if ("default" in opt) {
-        injected = inject(
-          opt.from || key,
-          opt.default,
-          true
-        );
-      } else {
-        injected = inject(opt.from || key);
-      }
-    } else {
-      injected = inject(opt);
-    }
-    if (isRef(injected)) {
-      Object.defineProperty(ctx, key, {
-        enumerable: true,
-        configurable: true,
-        get: () => injected.value,
-        set: (v) => injected.value = v
-      });
-    } else {
-      ctx[key] = injected;
-    }
-  }
-}
-function callHook(hook, instance, type) {
-  callWithAsyncErrorHandling(
-    isArray(hook) ? hook.map((h2) => h2.bind(instance.proxy)) : hook.bind(instance.proxy),
-    instance,
-    type
-  );
-}
-function createWatcher(raw, ctx, publicThis, key) {
-  const getter = key.includes(".") ? createPathGetter(publicThis, key) : () => publicThis[key];
-  if (isString$1(raw)) {
-    const handler = ctx[raw];
-    if (isFunction$1(handler)) {
-      watch(getter, handler);
-    }
-  } else if (isFunction$1(raw)) {
-    watch(getter, raw.bind(publicThis));
-  } else if (isObject$1(raw)) {
-    if (isArray(raw)) {
-      raw.forEach((r) => createWatcher(r, ctx, publicThis, key));
-    } else {
-      const handler = isFunction$1(raw.handler) ? raw.handler.bind(publicThis) : ctx[raw.handler];
-      if (isFunction$1(handler)) {
-        watch(getter, handler, raw);
-      }
-    }
-  } else ;
-}
-function resolveMergedOptions(instance) {
-  const base = instance.type;
-  const { mixins, extends: extendsOptions } = base;
-  const {
-    mixins: globalMixins,
-    optionsCache: cache,
-    config: { optionMergeStrategies }
-  } = instance.appContext;
-  const cached = cache.get(base);
-  let resolved;
-  if (cached) {
-    resolved = cached;
-  } else if (!globalMixins.length && !mixins && !extendsOptions) {
-    {
-      resolved = base;
-    }
-  } else {
-    resolved = {};
-    if (globalMixins.length) {
-      globalMixins.forEach(
-        (m) => mergeOptions(resolved, m, optionMergeStrategies, true)
-      );
-    }
-    mergeOptions(resolved, base, optionMergeStrategies);
-  }
-  if (isObject$1(base)) {
-    cache.set(base, resolved);
-  }
-  return resolved;
-}
-function mergeOptions(to, from, strats, asMixin = false) {
-  const { mixins, extends: extendsOptions } = from;
-  if (extendsOptions) {
-    mergeOptions(to, extendsOptions, strats, true);
-  }
-  if (mixins) {
-    mixins.forEach(
-      (m) => mergeOptions(to, m, strats, true)
-    );
-  }
-  for (const key in from) {
-    if (asMixin && key === "expose") ;
-    else {
-      const strat = internalOptionMergeStrats[key] || strats && strats[key];
-      to[key] = strat ? strat(to[key], from[key]) : from[key];
-    }
-  }
-  return to;
-}
-const internalOptionMergeStrats = {
-  data: mergeDataFn,
-  props: mergeEmitsOrPropsOptions,
-  emits: mergeEmitsOrPropsOptions,
-  // objects
-  methods: mergeObjectOptions,
-  computed: mergeObjectOptions,
-  // lifecycle
-  beforeCreate: mergeAsArray,
-  created: mergeAsArray,
-  beforeMount: mergeAsArray,
-  mounted: mergeAsArray,
-  beforeUpdate: mergeAsArray,
-  updated: mergeAsArray,
-  beforeDestroy: mergeAsArray,
-  beforeUnmount: mergeAsArray,
-  destroyed: mergeAsArray,
-  unmounted: mergeAsArray,
-  activated: mergeAsArray,
-  deactivated: mergeAsArray,
-  errorCaptured: mergeAsArray,
-  serverPrefetch: mergeAsArray,
-  // assets
-  components: mergeObjectOptions,
-  directives: mergeObjectOptions,
-  // watch
-  watch: mergeWatchOptions,
-  // provide / inject
-  provide: mergeDataFn,
-  inject: mergeInject
-};
-function mergeDataFn(to, from) {
-  if (!from) {
-    return to;
-  }
-  if (!to) {
-    return from;
-  }
-  return function mergedDataFn() {
-    return extend(
-      isFunction$1(to) ? to.call(this, this) : to,
-      isFunction$1(from) ? from.call(this, this) : from
-    );
-  };
-}
-function mergeInject(to, from) {
-  return mergeObjectOptions(normalizeInject(to), normalizeInject(from));
-}
-function normalizeInject(raw) {
-  if (isArray(raw)) {
-    const res = {};
-    for (let i = 0; i < raw.length; i++) {
-      res[raw[i]] = raw[i];
-    }
-    return res;
-  }
-  return raw;
-}
-function mergeAsArray(to, from) {
-  return to ? [...new Set([].concat(to, from))] : from;
-}
-function mergeObjectOptions(to, from) {
-  return to ? extend(/* @__PURE__ */ Object.create(null), to, from) : from;
-}
-function mergeEmitsOrPropsOptions(to, from) {
-  if (to) {
-    if (isArray(to) && isArray(from)) {
-      return [.../* @__PURE__ */ new Set([...to, ...from])];
-    }
-    return extend(
-      /* @__PURE__ */ Object.create(null),
-      normalizePropsOrEmits(to),
-      normalizePropsOrEmits(from != null ? from : {})
-    );
-  } else {
-    return from;
-  }
-}
-function mergeWatchOptions(to, from) {
-  if (!to) return from;
-  if (!from) return to;
-  const merged = extend(/* @__PURE__ */ Object.create(null), to);
-  for (const key in from) {
-    merged[key] = mergeAsArray(to[key], from[key]);
-  }
-  return merged;
-}
-function createAppContext() {
-  return {
-    app: null,
-    config: {
-      isNativeTag: NO,
-      performance: false,
-      globalProperties: {},
-      optionMergeStrategies: {},
-      errorHandler: void 0,
-      warnHandler: void 0,
-      compilerOptions: {}
-    },
-    mixins: [],
-    components: {},
-    directives: {},
-    provides: /* @__PURE__ */ Object.create(null),
-    optionsCache: /* @__PURE__ */ new WeakMap(),
-    propsCache: /* @__PURE__ */ new WeakMap(),
-    emitsCache: /* @__PURE__ */ new WeakMap()
-  };
-}
-let uid$1 = 0;
-function createAppAPI(render, hydrate) {
-  return function createApp2(rootComponent, rootProps = null) {
-    if (!isFunction$1(rootComponent)) {
-      rootComponent = extend({}, rootComponent);
-    }
-    if (rootProps != null && !isObject$1(rootProps)) {
-      rootProps = null;
-    }
-    const context = createAppContext();
-    const installedPlugins = /* @__PURE__ */ new WeakSet();
-    let isMounted = false;
-    const app = context.app = {
-      _uid: uid$1++,
-      _component: rootComponent,
-      _props: rootProps,
-      _container: null,
-      _context: context,
-      _instance: null,
-      version,
-      get config() {
-        return context.config;
-      },
-      set config(v) {
-      },
-      use(plugin, ...options) {
-        if (installedPlugins.has(plugin)) ;
-        else if (plugin && isFunction$1(plugin.install)) {
-          installedPlugins.add(plugin);
-          plugin.install(app, ...options);
-        } else if (isFunction$1(plugin)) {
-          installedPlugins.add(plugin);
-          plugin(app, ...options);
-        } else ;
-        return app;
-      },
-      mixin(mixin) {
-        {
-          if (!context.mixins.includes(mixin)) {
-            context.mixins.push(mixin);
-          }
-        }
-        return app;
-      },
-      component(name, component) {
-        if (!component) {
-          return context.components[name];
-        }
-        context.components[name] = component;
-        return app;
-      },
-      directive(name, directive) {
-        if (!directive) {
-          return context.directives[name];
-        }
-        context.directives[name] = directive;
-        return app;
-      },
-      mount(rootContainer, isHydrate, namespace) {
-        if (!isMounted) {
-          const vnode = createVNode(rootComponent, rootProps);
-          vnode.appContext = context;
-          if (namespace === true) {
-            namespace = "svg";
-          } else if (namespace === false) {
-            namespace = void 0;
-          }
-          if (isHydrate && hydrate) {
-            hydrate(vnode, rootContainer);
-          } else {
-            render(vnode, rootContainer, namespace);
-          }
-          isMounted = true;
-          app._container = rootContainer;
-          rootContainer.__vue_app__ = app;
-          return getComponentPublicInstance(vnode.component);
-        }
-      },
-      unmount() {
-        if (isMounted) {
-          render(null, app._container);
-          delete app._container.__vue_app__;
-        }
-      },
-      provide(key, value) {
-        context.provides[key] = value;
-        return app;
-      },
-      runWithContext(fn) {
-        const lastApp = currentApp;
-        currentApp = app;
-        try {
-          return fn();
-        } finally {
-          currentApp = lastApp;
-        }
-      }
-    };
-    return app;
-  };
-}
-let currentApp = null;
-function provide(key, value) {
-  if (!currentInstance) ;
-  else {
-    let provides = currentInstance.provides;
-    const parentProvides = currentInstance.parent && currentInstance.parent.provides;
-    if (parentProvides === provides) {
-      provides = currentInstance.provides = Object.create(parentProvides);
-    }
-    provides[key] = value;
-  }
-}
-function inject(key, defaultValue, treatDefaultAsFactory = false) {
-  const instance = currentInstance || currentRenderingInstance;
-  if (instance || currentApp) {
-    const provides = instance ? instance.parent == null ? instance.vnode.appContext && instance.vnode.appContext.provides : instance.parent.provides : currentApp._context.provides;
-    if (provides && key in provides) {
-      return provides[key];
-    } else if (arguments.length > 1) {
-      return treatDefaultAsFactory && isFunction$1(defaultValue) ? defaultValue.call(instance && instance.proxy) : defaultValue;
-    } else ;
-  }
-}
-const internalObjectProto = {};
-const createInternalObject = () => Object.create(internalObjectProto);
-const isInternalObject = (obj) => Object.getPrototypeOf(obj) === internalObjectProto;
-function initProps(instance, rawProps, isStateful, isSSR = false) {
-  const props = {};
-  const attrs = createInternalObject();
-  instance.propsDefaults = /* @__PURE__ */ Object.create(null);
-  setFullProps(instance, rawProps, props, attrs);
-  for (const key in instance.propsOptions[0]) {
-    if (!(key in props)) {
-      props[key] = void 0;
-    }
-  }
-  if (isStateful) {
-    instance.props = isSSR ? props : shallowReactive(props);
-  } else {
-    if (!instance.type.props) {
-      instance.props = attrs;
-    } else {
-      instance.props = props;
-    }
-  }
-  instance.attrs = attrs;
-}
-function updateProps(instance, rawProps, rawPrevProps, optimized) {
-  const {
-    props,
-    attrs,
-    vnode: { patchFlag }
-  } = instance;
-  const rawCurrentProps = toRaw(props);
-  const [options] = instance.propsOptions;
-  let hasAttrsChanged = false;
-  if (
-    // always force full diff in dev
-    // - #1942 if hmr is enabled with sfc component
-    // - vite#872 non-sfc component used by sfc component
-    (optimized || patchFlag > 0) && !(patchFlag & 16)
-  ) {
-    if (patchFlag & 8) {
-      const propsToUpdate = instance.vnode.dynamicProps;
-      for (let i = 0; i < propsToUpdate.length; i++) {
-        let key = propsToUpdate[i];
-        if (isEmitListener(instance.emitsOptions, key)) {
-          continue;
-        }
-        const value = rawProps[key];
-        if (options) {
-          if (hasOwn(attrs, key)) {
-            if (value !== attrs[key]) {
-              attrs[key] = value;
-              hasAttrsChanged = true;
-            }
-          } else {
-            const camelizedKey = camelize(key);
-            props[camelizedKey] = resolvePropValue(
-              options,
-              rawCurrentProps,
-              camelizedKey,
-              value,
-              instance,
-              false
-            );
-          }
-        } else {
-          if (value !== attrs[key]) {
-            attrs[key] = value;
-            hasAttrsChanged = true;
-          }
-        }
-      }
-    }
-  } else {
-    if (setFullProps(instance, rawProps, props, attrs)) {
-      hasAttrsChanged = true;
-    }
-    let kebabKey;
-    for (const key in rawCurrentProps) {
-      if (!rawProps || // for camelCase
-      !hasOwn(rawProps, key) && // it's possible the original props was passed in as kebab-case
-      // and converted to camelCase (#955)
-      ((kebabKey = hyphenate(key)) === key || !hasOwn(rawProps, kebabKey))) {
-        if (options) {
-          if (rawPrevProps && // for camelCase
-          (rawPrevProps[key] !== void 0 || // for kebab-case
-          rawPrevProps[kebabKey] !== void 0)) {
-            props[key] = resolvePropValue(
-              options,
-              rawCurrentProps,
-              key,
-              void 0,
-              instance,
-              true
-            );
-          }
-        } else {
-          delete props[key];
-        }
-      }
-    }
-    if (attrs !== rawCurrentProps) {
-      for (const key in attrs) {
-        if (!rawProps || !hasOwn(rawProps, key) && true) {
-          delete attrs[key];
-          hasAttrsChanged = true;
-        }
-      }
-    }
-  }
-  if (hasAttrsChanged) {
-    trigger(instance.attrs, "set", "");
-  }
-}
-function setFullProps(instance, rawProps, props, attrs) {
-  const [options, needCastKeys] = instance.propsOptions;
-  let hasAttrsChanged = false;
-  let rawCastValues;
-  if (rawProps) {
-    for (let key in rawProps) {
-      if (isReservedProp(key)) {
-        continue;
-      }
-      const value = rawProps[key];
-      let camelKey;
-      if (options && hasOwn(options, camelKey = camelize(key))) {
-        if (!needCastKeys || !needCastKeys.includes(camelKey)) {
-          props[camelKey] = value;
-        } else {
-          (rawCastValues || (rawCastValues = {}))[camelKey] = value;
-        }
-      } else if (!isEmitListener(instance.emitsOptions, key)) {
-        if (!(key in attrs) || value !== attrs[key]) {
-          attrs[key] = value;
-          hasAttrsChanged = true;
-        }
-      }
-    }
-  }
-  if (needCastKeys) {
-    const rawCurrentProps = toRaw(props);
-    const castValues = rawCastValues || EMPTY_OBJ;
-    for (let i = 0; i < needCastKeys.length; i++) {
-      const key = needCastKeys[i];
-      props[key] = resolvePropValue(
-        options,
-        rawCurrentProps,
-        key,
-        castValues[key],
-        instance,
-        !hasOwn(castValues, key)
-      );
-    }
-  }
-  return hasAttrsChanged;
-}
-function resolvePropValue(options, props, key, value, instance, isAbsent) {
-  const opt = options[key];
-  if (opt != null) {
-    const hasDefault = hasOwn(opt, "default");
-    if (hasDefault && value === void 0) {
-      const defaultValue = opt.default;
-      if (opt.type !== Function && !opt.skipFactory && isFunction$1(defaultValue)) {
-        const { propsDefaults } = instance;
-        if (key in propsDefaults) {
-          value = propsDefaults[key];
-        } else {
-          const reset = setCurrentInstance(instance);
-          value = propsDefaults[key] = defaultValue.call(
-            null,
-            props
-          );
-          reset();
-        }
-      } else {
-        value = defaultValue;
-      }
-    }
-    if (opt[
-      0
-      /* shouldCast */
-    ]) {
-      if (isAbsent && !hasDefault) {
-        value = false;
-      } else if (opt[
-        1
-        /* shouldCastTrue */
-      ] && (value === "" || value === hyphenate(key))) {
-        value = true;
-      }
-    }
-  }
-  return value;
-}
-function normalizePropsOptions(comp, appContext, asMixin = false) {
-  const cache = appContext.propsCache;
-  const cached = cache.get(comp);
-  if (cached) {
-    return cached;
-  }
-  const raw = comp.props;
-  const normalized = {};
-  const needCastKeys = [];
-  let hasExtends = false;
-  if (!isFunction$1(comp)) {
-    const extendProps = (raw2) => {
-      hasExtends = true;
-      const [props, keys] = normalizePropsOptions(raw2, appContext, true);
-      extend(normalized, props);
-      if (keys) needCastKeys.push(...keys);
-    };
-    if (!asMixin && appContext.mixins.length) {
-      appContext.mixins.forEach(extendProps);
-    }
-    if (comp.extends) {
-      extendProps(comp.extends);
-    }
-    if (comp.mixins) {
-      comp.mixins.forEach(extendProps);
-    }
-  }
-  if (!raw && !hasExtends) {
-    if (isObject$1(comp)) {
-      cache.set(comp, EMPTY_ARR);
-    }
-    return EMPTY_ARR;
-  }
-  if (isArray(raw)) {
-    for (let i = 0; i < raw.length; i++) {
-      const normalizedKey = camelize(raw[i]);
-      if (validatePropName(normalizedKey)) {
-        normalized[normalizedKey] = EMPTY_OBJ;
-      }
-    }
-  } else if (raw) {
-    for (const key in raw) {
-      const normalizedKey = camelize(key);
-      if (validatePropName(normalizedKey)) {
-        const opt = raw[key];
-        const prop = normalized[normalizedKey] = isArray(opt) || isFunction$1(opt) ? { type: opt } : extend({}, opt);
-        if (prop) {
-          const booleanIndex = getTypeIndex(Boolean, prop.type);
-          const stringIndex = getTypeIndex(String, prop.type);
-          prop[
-            0
-            /* shouldCast */
-          ] = booleanIndex > -1;
-          prop[
-            1
-            /* shouldCastTrue */
-          ] = stringIndex < 0 || booleanIndex < stringIndex;
-          if (booleanIndex > -1 || hasOwn(prop, "default")) {
-            needCastKeys.push(normalizedKey);
-          }
-        }
-      }
-    }
-  }
-  const res = [normalized, needCastKeys];
-  if (isObject$1(comp)) {
-    cache.set(comp, res);
-  }
-  return res;
-}
-function validatePropName(key) {
-  if (key[0] !== "$" && !isReservedProp(key)) {
-    return true;
-  }
-  return false;
-}
-function getType(ctor) {
-  if (ctor === null) {
-    return "null";
-  }
-  if (typeof ctor === "function") {
-    return ctor.name || "";
-  } else if (typeof ctor === "object") {
-    const name = ctor.constructor && ctor.constructor.name;
-    return name || "";
-  }
-  return "";
-}
-function isSameType(a, b) {
-  return getType(a) === getType(b);
-}
-function getTypeIndex(type, expectedTypes) {
-  if (isArray(expectedTypes)) {
-    return expectedTypes.findIndex((t) => isSameType(t, type));
-  } else if (isFunction$1(expectedTypes)) {
-    return isSameType(expectedTypes, type) ? 0 : -1;
-  }
-  return -1;
-}
-const isInternalKey = (key) => key[0] === "_" || key === "$stable";
-const normalizeSlotValue = (value) => isArray(value) ? value.map(normalizeVNode) : [normalizeVNode(value)];
-const normalizeSlot = (key, rawSlot, ctx) => {
-  if (rawSlot._n) {
-    return rawSlot;
-  }
-  const normalized = withCtx((...args) => {
-    if (false) ;
-    return normalizeSlotValue(rawSlot(...args));
-  }, ctx);
-  normalized._c = false;
-  return normalized;
-};
-const normalizeObjectSlots = (rawSlots, slots, instance) => {
-  const ctx = rawSlots._ctx;
-  for (const key in rawSlots) {
-    if (isInternalKey(key)) continue;
-    const value = rawSlots[key];
-    if (isFunction$1(value)) {
-      slots[key] = normalizeSlot(key, value, ctx);
-    } else if (value != null) {
-      const normalized = normalizeSlotValue(value);
-      slots[key] = () => normalized;
-    }
-  }
-};
-const normalizeVNodeSlots = (instance, children) => {
-  const normalized = normalizeSlotValue(children);
-  instance.slots.default = () => normalized;
-};
-const initSlots = (instance, children) => {
-  const slots = instance.slots = createInternalObject();
-  if (instance.vnode.shapeFlag & 32) {
-    const type = children._;
-    if (type) {
-      extend(slots, children);
-      def(slots, "_", type, true);
-    } else {
-      normalizeObjectSlots(children, slots);
-    }
-  } else if (children) {
-    normalizeVNodeSlots(instance, children);
-  }
-};
-const updateSlots = (instance, children, optimized) => {
-  const { vnode, slots } = instance;
-  let needDeletionCheck = true;
-  let deletionComparisonTarget = EMPTY_OBJ;
-  if (vnode.shapeFlag & 32) {
-    const type = children._;
-    if (type) {
-      if (optimized && type === 1) {
-        needDeletionCheck = false;
-      } else {
-        extend(slots, children);
-        if (!optimized && type === 1) {
-          delete slots._;
-        }
-      }
-    } else {
-      needDeletionCheck = !children.$stable;
-      normalizeObjectSlots(children, slots);
-    }
-    deletionComparisonTarget = children;
-  } else if (children) {
-    normalizeVNodeSlots(instance, children);
-    deletionComparisonTarget = { default: 1 };
-  }
-  if (needDeletionCheck) {
-    for (const key in slots) {
-      if (!isInternalKey(key) && deletionComparisonTarget[key] == null) {
-        delete slots[key];
-      }
-    }
-  }
-};
-function setRef(rawRef, oldRawRef, parentSuspense, vnode, isUnmount = false) {
-  if (isArray(rawRef)) {
-    rawRef.forEach(
-      (r, i) => setRef(
-        r,
-        oldRawRef && (isArray(oldRawRef) ? oldRawRef[i] : oldRawRef),
-        parentSuspense,
-        vnode,
-        isUnmount
-      )
-    );
-    return;
-  }
-  if (isAsyncWrapper(vnode) && !isUnmount) {
-    return;
-  }
-  const refValue = vnode.shapeFlag & 4 ? getComponentPublicInstance(vnode.component) : vnode.el;
-  const value = isUnmount ? null : refValue;
-  const { i: owner, r: ref3 } = rawRef;
-  const oldRef = oldRawRef && oldRawRef.r;
-  const refs = owner.refs === EMPTY_OBJ ? owner.refs = {} : owner.refs;
-  const setupState = owner.setupState;
-  if (oldRef != null && oldRef !== ref3) {
-    if (isString$1(oldRef)) {
-      refs[oldRef] = null;
-      if (hasOwn(setupState, oldRef)) {
-        setupState[oldRef] = null;
-      }
-    } else if (isRef(oldRef)) {
-      oldRef.value = null;
-    }
-  }
-  if (isFunction$1(ref3)) {
-    callWithErrorHandling(ref3, owner, 12, [value, refs]);
-  } else {
-    const _isString = isString$1(ref3);
-    const _isRef = isRef(ref3);
-    if (_isString || _isRef) {
-      const doSet = () => {
-        if (rawRef.f) {
-          const existing = _isString ? hasOwn(setupState, ref3) ? setupState[ref3] : refs[ref3] : ref3.value;
-          if (isUnmount) {
-            isArray(existing) && remove(existing, refValue);
-          } else {
-            if (!isArray(existing)) {
-              if (_isString) {
-                refs[ref3] = [refValue];
-                if (hasOwn(setupState, ref3)) {
-                  setupState[ref3] = refs[ref3];
-                }
-              } else {
-                ref3.value = [refValue];
-                if (rawRef.k) refs[rawRef.k] = ref3.value;
-              }
-            } else if (!existing.includes(refValue)) {
-              existing.push(refValue);
-            }
-          }
-        } else if (_isString) {
-          refs[ref3] = value;
-          if (hasOwn(setupState, ref3)) {
-            setupState[ref3] = value;
-          }
-        } else if (_isRef) {
-          ref3.value = value;
-          if (rawRef.k) refs[rawRef.k] = value;
-        } else ;
-      };
-      if (value) {
-        doSet.id = -1;
-        queuePostRenderEffect(doSet, parentSuspense);
-      } else {
-        doSet();
-      }
-    }
-  }
-}
-const queuePostRenderEffect = queueEffectWithSuspense;
-function createRenderer(options) {
-  return baseCreateRenderer(options);
-}
-function baseCreateRenderer(options, createHydrationFns) {
-  const target = getGlobalThis();
-  target.__VUE__ = true;
-  const {
-    insert: hostInsert,
-    remove: hostRemove,
-    patchProp: hostPatchProp,
-    createElement: hostCreateElement,
-    createText: hostCreateText,
-    createComment: hostCreateComment,
-    setText: hostSetText,
-    setElementText: hostSetElementText,
-    parentNode: hostParentNode,
-    nextSibling: hostNextSibling,
-    setScopeId: hostSetScopeId = NOOP,
-    insertStaticContent: hostInsertStaticContent
-  } = options;
-  const patch = (n1, n2, container, anchor = null, parentComponent = null, parentSuspense = null, namespace = void 0, slotScopeIds = null, optimized = !!n2.dynamicChildren) => {
-    if (n1 === n2) {
-      return;
-    }
-    if (n1 && !isSameVNodeType(n1, n2)) {
-      anchor = getNextHostNode(n1);
-      unmount(n1, parentComponent, parentSuspense, true);
-      n1 = null;
-    }
-    if (n2.patchFlag === -2) {
-      optimized = false;
-      n2.dynamicChildren = null;
-    }
-    const { type, ref: ref3, shapeFlag } = n2;
-    switch (type) {
-      case Text:
-        processText(n1, n2, container, anchor);
-        break;
-      case Comment:
-        processCommentNode(n1, n2, container, anchor);
-        break;
-      case Static:
-        if (n1 == null) {
-          mountStaticNode(n2, container, anchor, namespace);
-        }
-        break;
-      case Fragment:
-        processFragment(
-          n1,
-          n2,
-          container,
-          anchor,
-          parentComponent,
-          parentSuspense,
-          namespace,
-          slotScopeIds,
-          optimized
-        );
-        break;
-      default:
-        if (shapeFlag & 1) {
-          processElement(
-            n1,
-            n2,
-            container,
-            anchor,
-            parentComponent,
-            parentSuspense,
-            namespace,
-            slotScopeIds,
-            optimized
-          );
-        } else if (shapeFlag & 6) {
-          processComponent(
-            n1,
-            n2,
-            container,
-            anchor,
-            parentComponent,
-            parentSuspense,
-            namespace,
-            slotScopeIds,
-            optimized
-          );
-        } else if (shapeFlag & 64) {
-          type.process(
-            n1,
-            n2,
-            container,
-            anchor,
-            parentComponent,
-            parentSuspense,
-            namespace,
-            slotScopeIds,
-            optimized,
-            internals
-          );
-        } else if (shapeFlag & 128) {
-          type.process(
-            n1,
-            n2,
-            container,
-            anchor,
-            parentComponent,
-            parentSuspense,
-            namespace,
-            slotScopeIds,
-            optimized,
-            internals
-          );
-        } else ;
-    }
-    if (ref3 != null && parentComponent) {
-      setRef(ref3, n1 && n1.ref, parentSuspense, n2 || n1, !n2);
-    }
-  };
-  const processText = (n1, n2, container, anchor) => {
-    if (n1 == null) {
-      hostInsert(
-        n2.el = hostCreateText(n2.children),
-        container,
-        anchor
-      );
-    } else {
-      const el = n2.el = n1.el;
-      if (n2.children !== n1.children) {
-        hostSetText(el, n2.children);
-      }
-    }
-  };
-  const processCommentNode = (n1, n2, container, anchor) => {
-    if (n1 == null) {
-      hostInsert(
-        n2.el = hostCreateComment(n2.children || ""),
-        container,
-        anchor
-      );
-    } else {
-      n2.el = n1.el;
-    }
-  };
-  const mountStaticNode = (n2, container, anchor, namespace) => {
-    [n2.el, n2.anchor] = hostInsertStaticContent(
-      n2.children,
-      container,
-      anchor,
-      namespace,
-      n2.el,
-      n2.anchor
-    );
-  };
-  const moveStaticNode = ({ el, anchor }, container, nextSibling) => {
-    let next;
-    while (el && el !== anchor) {
-      next = hostNextSibling(el);
-      hostInsert(el, container, nextSibling);
-      el = next;
-    }
-    hostInsert(anchor, container, nextSibling);
-  };
-  const removeStaticNode = ({ el, anchor }) => {
-    let next;
-    while (el && el !== anchor) {
-      next = hostNextSibling(el);
-      hostRemove(el);
-      el = next;
-    }
-    hostRemove(anchor);
-  };
-  const processElement = (n1, n2, container, anchor, parentComponent, parentSuspense, namespace, slotScopeIds, optimized) => {
-    if (n2.type === "svg") {
-      namespace = "svg";
-    } else if (n2.type === "math") {
-      namespace = "mathml";
-    }
-    if (n1 == null) {
-      mountElement(
-        n2,
-        container,
-        anchor,
-        parentComponent,
-        parentSuspense,
-        namespace,
-        slotScopeIds,
-        optimized
-      );
-    } else {
-      patchElement(
-        n1,
-        n2,
-        parentComponent,
-        parentSuspense,
-        namespace,
-        slotScopeIds,
-        optimized
-      );
-    }
-  };
-  const mountElement = (vnode, container, anchor, parentComponent, parentSuspense, namespace, slotScopeIds, optimized) => {
-    let el;
-    let vnodeHook;
-    const { props, shapeFlag, transition, dirs } = vnode;
-    el = vnode.el = hostCreateElement(
-      vnode.type,
-      namespace,
-      props && props.is,
-      props
-    );
-    if (shapeFlag & 8) {
-      hostSetElementText(el, vnode.children);
-    } else if (shapeFlag & 16) {
-      mountChildren(
-        vnode.children,
-        el,
-        null,
-        parentComponent,
-        parentSuspense,
-        resolveChildrenNamespace(vnode, namespace),
-        slotScopeIds,
-        optimized
-      );
-    }
-    if (dirs) {
-      invokeDirectiveHook(vnode, null, parentComponent, "created");
-    }
-    setScopeId(el, vnode, vnode.scopeId, slotScopeIds, parentComponent);
-    if (props) {
-      for (const key in props) {
-        if (key !== "value" && !isReservedProp(key)) {
-          hostPatchProp(
-            el,
-            key,
-            null,
-            props[key],
-            namespace,
-            vnode.children,
-            parentComponent,
-            parentSuspense,
-            unmountChildren
-          );
-        }
-      }
-      if ("value" in props) {
-        hostPatchProp(el, "value", null, props.value, namespace);
-      }
-      if (vnodeHook = props.onVnodeBeforeMount) {
-        invokeVNodeHook(vnodeHook, parentComponent, vnode);
-      }
-    }
-    if (dirs) {
-      invokeDirectiveHook(vnode, null, parentComponent, "beforeMount");
-    }
-    const needCallTransitionHooks = needTransition(parentSuspense, transition);
-    if (needCallTransitionHooks) {
-      transition.beforeEnter(el);
-    }
-    hostInsert(el, container, anchor);
-    if ((vnodeHook = props && props.onVnodeMounted) || needCallTransitionHooks || dirs) {
-      queuePostRenderEffect(() => {
-        vnodeHook && invokeVNodeHook(vnodeHook, parentComponent, vnode);
-        needCallTransitionHooks && transition.enter(el);
-        dirs && invokeDirectiveHook(vnode, null, parentComponent, "mounted");
-      }, parentSuspense);
-    }
-  };
-  const setScopeId = (el, vnode, scopeId, slotScopeIds, parentComponent) => {
-    if (scopeId) {
-      hostSetScopeId(el, scopeId);
-    }
-    if (slotScopeIds) {
-      for (let i = 0; i < slotScopeIds.length; i++) {
-        hostSetScopeId(el, slotScopeIds[i]);
-      }
-    }
-    if (parentComponent) {
-      let subTree = parentComponent.subTree;
-      if (vnode === subTree) {
-        const parentVNode = parentComponent.vnode;
-        setScopeId(
-          el,
-          parentVNode,
-          parentVNode.scopeId,
-          parentVNode.slotScopeIds,
-          parentComponent.parent
-        );
-      }
-    }
-  };
-  const mountChildren = (children, container, anchor, parentComponent, parentSuspense, namespace, slotScopeIds, optimized, start = 0) => {
-    for (let i = start; i < children.length; i++) {
-      const child = children[i] = optimized ? cloneIfMounted(children[i]) : normalizeVNode(children[i]);
-      patch(
-        null,
-        child,
-        container,
-        anchor,
-        parentComponent,
-        parentSuspense,
-        namespace,
-        slotScopeIds,
-        optimized
-      );
-    }
-  };
-  const patchElement = (n1, n2, parentComponent, parentSuspense, namespace, slotScopeIds, optimized) => {
-    const el = n2.el = n1.el;
-    let { patchFlag, dynamicChildren, dirs } = n2;
-    patchFlag |= n1.patchFlag & 16;
-    const oldProps = n1.props || EMPTY_OBJ;
-    const newProps = n2.props || EMPTY_OBJ;
-    let vnodeHook;
-    parentComponent && toggleRecurse(parentComponent, false);
-    if (vnodeHook = newProps.onVnodeBeforeUpdate) {
-      invokeVNodeHook(vnodeHook, parentComponent, n2, n1);
-    }
-    if (dirs) {
-      invokeDirectiveHook(n2, n1, parentComponent, "beforeUpdate");
-    }
-    parentComponent && toggleRecurse(parentComponent, true);
-    if (dynamicChildren) {
-      patchBlockChildren(
-        n1.dynamicChildren,
-        dynamicChildren,
-        el,
-        parentComponent,
-        parentSuspense,
-        resolveChildrenNamespace(n2, namespace),
-        slotScopeIds
-      );
-    } else if (!optimized) {
-      patchChildren(
-        n1,
-        n2,
-        el,
-        null,
-        parentComponent,
-        parentSuspense,
-        resolveChildrenNamespace(n2, namespace),
-        slotScopeIds,
-        false
-      );
-    }
-    if (patchFlag > 0) {
-      if (patchFlag & 16) {
-        patchProps(
-          el,
-          n2,
-          oldProps,
-          newProps,
-          parentComponent,
-          parentSuspense,
-          namespace
-        );
-      } else {
-        if (patchFlag & 2) {
-          if (oldProps.class !== newProps.class) {
-            hostPatchProp(el, "class", null, newProps.class, namespace);
-          }
-        }
-        if (patchFlag & 4) {
-          hostPatchProp(el, "style", oldProps.style, newProps.style, namespace);
-        }
-        if (patchFlag & 8) {
-          const propsToUpdate = n2.dynamicProps;
-          for (let i = 0; i < propsToUpdate.length; i++) {
-            const key = propsToUpdate[i];
-            const prev = oldProps[key];
-            const next = newProps[key];
-            if (next !== prev || key === "value") {
-              hostPatchProp(
-                el,
-                key,
-                prev,
-                next,
-                namespace,
-                n1.children,
-                parentComponent,
-                parentSuspense,
-                unmountChildren
-              );
-            }
-          }
-        }
-      }
-      if (patchFlag & 1) {
-        if (n1.children !== n2.children) {
-          hostSetElementText(el, n2.children);
-        }
-      }
-    } else if (!optimized && dynamicChildren == null) {
-      patchProps(
-        el,
-        n2,
-        oldProps,
-        newProps,
-        parentComponent,
-        parentSuspense,
-        namespace
-      );
-    }
-    if ((vnodeHook = newProps.onVnodeUpdated) || dirs) {
-      queuePostRenderEffect(() => {
-        vnodeHook && invokeVNodeHook(vnodeHook, parentComponent, n2, n1);
-        dirs && invokeDirectiveHook(n2, n1, parentComponent, "updated");
-      }, parentSuspense);
-    }
-  };
-  const patchBlockChildren = (oldChildren, newChildren, fallbackContainer, parentComponent, parentSuspense, namespace, slotScopeIds) => {
-    for (let i = 0; i < newChildren.length; i++) {
-      const oldVNode = oldChildren[i];
-      const newVNode = newChildren[i];
-      const container = (
-        // oldVNode may be an errored async setup() component inside Suspense
-        // which will not have a mounted element
-        oldVNode.el && // - In the case of a Fragment, we need to provide the actual parent
-        // of the Fragment itself so it can move its children.
-        (oldVNode.type === Fragment || // - In the case of different nodes, there is going to be a replacement
-        // which also requires the correct parent container
-        !isSameVNodeType(oldVNode, newVNode) || // - In the case of a component, it could contain anything.
-        oldVNode.shapeFlag & (6 | 64)) ? hostParentNode(oldVNode.el) : (
-          // In other cases, the parent container is not actually used so we
-          // just pass the block element here to avoid a DOM parentNode call.
-          fallbackContainer
-        )
-      );
-      patch(
-        oldVNode,
-        newVNode,
-        container,
-        null,
-        parentComponent,
-        parentSuspense,
-        namespace,
-        slotScopeIds,
-        true
-      );
-    }
-  };
-  const patchProps = (el, vnode, oldProps, newProps, parentComponent, parentSuspense, namespace) => {
-    if (oldProps !== newProps) {
-      if (oldProps !== EMPTY_OBJ) {
-        for (const key in oldProps) {
-          if (!isReservedProp(key) && !(key in newProps)) {
-            hostPatchProp(
-              el,
-              key,
-              oldProps[key],
-              null,
-              namespace,
-              vnode.children,
-              parentComponent,
-              parentSuspense,
-              unmountChildren
-            );
-          }
-        }
-      }
-      for (const key in newProps) {
-        if (isReservedProp(key)) continue;
-        const next = newProps[key];
-        const prev = oldProps[key];
-        if (next !== prev && key !== "value") {
-          hostPatchProp(
-            el,
-            key,
-            prev,
-            next,
-            namespace,
-            vnode.children,
-            parentComponent,
-            parentSuspense,
-            unmountChildren
-          );
-        }
-      }
-      if ("value" in newProps) {
-        hostPatchProp(el, "value", oldProps.value, newProps.value, namespace);
-      }
-    }
-  };
-  const processFragment = (n1, n2, container, anchor, parentComponent, parentSuspense, namespace, slotScopeIds, optimized) => {
-    const fragmentStartAnchor = n2.el = n1 ? n1.el : hostCreateText("");
-    const fragmentEndAnchor = n2.anchor = n1 ? n1.anchor : hostCreateText("");
-    let { patchFlag, dynamicChildren, slotScopeIds: fragmentSlotScopeIds } = n2;
-    if (fragmentSlotScopeIds) {
-      slotScopeIds = slotScopeIds ? slotScopeIds.concat(fragmentSlotScopeIds) : fragmentSlotScopeIds;
-    }
-    if (n1 == null) {
-      hostInsert(fragmentStartAnchor, container, anchor);
-      hostInsert(fragmentEndAnchor, container, anchor);
-      mountChildren(
-        // #10007
-        // such fragment like `<></>` will be compiled into
-        // a fragment which doesn't have a children.
-        // In this case fallback to an empty array
-        n2.children || [],
-        container,
-        fragmentEndAnchor,
-        parentComponent,
-        parentSuspense,
-        namespace,
-        slotScopeIds,
-        optimized
-      );
-    } else {
-      if (patchFlag > 0 && patchFlag & 64 && dynamicChildren && // #2715 the previous fragment could've been a BAILed one as a result
-      // of renderSlot() with no valid children
-      n1.dynamicChildren) {
-        patchBlockChildren(
-          n1.dynamicChildren,
-          dynamicChildren,
-          container,
-          parentComponent,
-          parentSuspense,
-          namespace,
-          slotScopeIds
-        );
-        if (
-          // #2080 if the stable fragment has a key, it's a <template v-for> that may
-          //  get moved around. Make sure all root level vnodes inherit el.
-          // #2134 or if it's a component root, it may also get moved around
-          // as the component is being moved.
-          n2.key != null || parentComponent && n2 === parentComponent.subTree
-        ) {
-          traverseStaticChildren(
-            n1,
-            n2,
-            true
-            /* shallow */
-          );
-        }
-      } else {
-        patchChildren(
-          n1,
-          n2,
-          container,
-          fragmentEndAnchor,
-          parentComponent,
-          parentSuspense,
-          namespace,
-          slotScopeIds,
-          optimized
-        );
-      }
-    }
-  };
-  const processComponent = (n1, n2, container, anchor, parentComponent, parentSuspense, namespace, slotScopeIds, optimized) => {
-    n2.slotScopeIds = slotScopeIds;
-    if (n1 == null) {
-      if (n2.shapeFlag & 512) {
-        parentComponent.ctx.activate(
-          n2,
-          container,
-          anchor,
-          namespace,
-          optimized
-        );
-      } else {
-        mountComponent(
-          n2,
-          container,
-          anchor,
-          parentComponent,
-          parentSuspense,
-          namespace,
-          optimized
-        );
-      }
-    } else {
-      updateComponent(n1, n2, optimized);
-    }
-  };
-  const mountComponent = (initialVNode, container, anchor, parentComponent, parentSuspense, namespace, optimized) => {
-    const instance = initialVNode.component = createComponentInstance(
-      initialVNode,
-      parentComponent,
-      parentSuspense
-    );
-    if (isKeepAlive(initialVNode)) {
-      instance.ctx.renderer = internals;
-    }
-    {
-      setupComponent(instance);
-    }
-    if (instance.asyncDep) {
-      parentSuspense && parentSuspense.registerDep(instance, setupRenderEffect, optimized);
-      if (!initialVNode.el) {
-        const placeholder = instance.subTree = createVNode(Comment);
-        processCommentNode(null, placeholder, container, anchor);
-      }
-    } else {
-      setupRenderEffect(
-        instance,
-        initialVNode,
-        container,
-        anchor,
-        parentSuspense,
-        namespace,
-        optimized
-      );
-    }
-  };
-  const updateComponent = (n1, n2, optimized) => {
-    const instance = n2.component = n1.component;
-    if (shouldUpdateComponent(n1, n2, optimized)) {
-      if (instance.asyncDep && !instance.asyncResolved) {
-        updateComponentPreRender(instance, n2, optimized);
-        return;
-      } else {
-        instance.next = n2;
-        invalidateJob(instance.update);
-        instance.effect.dirty = true;
-        instance.update();
-      }
-    } else {
-      n2.el = n1.el;
-      instance.vnode = n2;
-    }
-  };
-  const setupRenderEffect = (instance, initialVNode, container, anchor, parentSuspense, namespace, optimized) => {
-    const componentUpdateFn = () => {
-      if (!instance.isMounted) {
-        let vnodeHook;
-        const { el, props } = initialVNode;
-        const { bm, m, parent } = instance;
-        const isAsyncWrapperVNode = isAsyncWrapper(initialVNode);
-        toggleRecurse(instance, false);
-        if (bm) {
-          invokeArrayFns(bm);
-        }
-        if (!isAsyncWrapperVNode && (vnodeHook = props && props.onVnodeBeforeMount)) {
-          invokeVNodeHook(vnodeHook, parent, initialVNode);
-        }
-        toggleRecurse(instance, true);
-        if (el && hydrateNode) {
-          const hydrateSubTree = () => {
-            instance.subTree = renderComponentRoot(instance);
-            hydrateNode(
-              el,
-              instance.subTree,
-              instance,
-              parentSuspense,
-              null
-            );
-          };
-          if (isAsyncWrapperVNode) {
-            initialVNode.type.__asyncLoader().then(
-              // note: we are moving the render call into an async callback,
-              // which means it won't track dependencies - but it's ok because
-              // a server-rendered async wrapper is already in resolved state
-              // and it will never need to change.
-              () => !instance.isUnmounted && hydrateSubTree()
-            );
-          } else {
-            hydrateSubTree();
-          }
-        } else {
-          const subTree = instance.subTree = renderComponentRoot(instance);
-          patch(
-            null,
-            subTree,
-            container,
-            anchor,
-            instance,
-            parentSuspense,
-            namespace
-          );
-          initialVNode.el = subTree.el;
-        }
-        if (m) {
-          queuePostRenderEffect(m, parentSuspense);
-        }
-        if (!isAsyncWrapperVNode && (vnodeHook = props && props.onVnodeMounted)) {
-          const scopedInitialVNode = initialVNode;
-          queuePostRenderEffect(
-            () => invokeVNodeHook(vnodeHook, parent, scopedInitialVNode),
-            parentSuspense
-          );
-        }
-        if (initialVNode.shapeFlag & 256 || parent && isAsyncWrapper(parent.vnode) && parent.vnode.shapeFlag & 256) {
-          instance.a && queuePostRenderEffect(instance.a, parentSuspense);
-        }
-        instance.isMounted = true;
-        initialVNode = container = anchor = null;
-      } else {
-        let { next, bu, u, parent, vnode } = instance;
-        {
-          const nonHydratedAsyncRoot = locateNonHydratedAsyncRoot(instance);
-          if (nonHydratedAsyncRoot) {
-            if (next) {
-              next.el = vnode.el;
-              updateComponentPreRender(instance, next, optimized);
-            }
-            nonHydratedAsyncRoot.asyncDep.then(() => {
-              if (!instance.isUnmounted) {
-                componentUpdateFn();
-              }
-            });
-            return;
-          }
-        }
-        let originNext = next;
-        let vnodeHook;
-        toggleRecurse(instance, false);
-        if (next) {
-          next.el = vnode.el;
-          updateComponentPreRender(instance, next, optimized);
-        } else {
-          next = vnode;
-        }
-        if (bu) {
-          invokeArrayFns(bu);
-        }
-        if (vnodeHook = next.props && next.props.onVnodeBeforeUpdate) {
-          invokeVNodeHook(vnodeHook, parent, next, vnode);
-        }
-        toggleRecurse(instance, true);
-        const nextTree = renderComponentRoot(instance);
-        const prevTree = instance.subTree;
-        instance.subTree = nextTree;
-        patch(
-          prevTree,
-          nextTree,
-          // parent may have changed if it's in a teleport
-          hostParentNode(prevTree.el),
-          // anchor may have changed if it's in a fragment
-          getNextHostNode(prevTree),
-          instance,
-          parentSuspense,
-          namespace
-        );
-        next.el = nextTree.el;
-        if (originNext === null) {
-          updateHOCHostEl(instance, nextTree.el);
-        }
-        if (u) {
-          queuePostRenderEffect(u, parentSuspense);
-        }
-        if (vnodeHook = next.props && next.props.onVnodeUpdated) {
-          queuePostRenderEffect(
-            () => invokeVNodeHook(vnodeHook, parent, next, vnode),
-            parentSuspense
-          );
-        }
-      }
-    };
-    const effect2 = instance.effect = new ReactiveEffect(
-      componentUpdateFn,
-      NOOP,
-      () => queueJob(update),
-      instance.scope
-      // track it in component's effect scope
-    );
-    const update = instance.update = () => {
-      if (effect2.dirty) {
-        effect2.run();
-      }
-    };
-    update.id = instance.uid;
-    toggleRecurse(instance, true);
-    update();
-  };
-  const updateComponentPreRender = (instance, nextVNode, optimized) => {
-    nextVNode.component = instance;
-    const prevProps = instance.vnode.props;
-    instance.vnode = nextVNode;
-    instance.next = null;
-    updateProps(instance, nextVNode.props, prevProps, optimized);
-    updateSlots(instance, nextVNode.children, optimized);
-    pauseTracking();
-    flushPreFlushCbs(instance);
-    resetTracking();
-  };
-  const patchChildren = (n1, n2, container, anchor, parentComponent, parentSuspense, namespace, slotScopeIds, optimized = false) => {
-    const c1 = n1 && n1.children;
-    const prevShapeFlag = n1 ? n1.shapeFlag : 0;
-    const c2 = n2.children;
-    const { patchFlag, shapeFlag } = n2;
-    if (patchFlag > 0) {
-      if (patchFlag & 128) {
-        patchKeyedChildren(
-          c1,
-          c2,
-          container,
-          anchor,
-          parentComponent,
-          parentSuspense,
-          namespace,
-          slotScopeIds,
-          optimized
-        );
-        return;
-      } else if (patchFlag & 256) {
-        patchUnkeyedChildren(
-          c1,
-          c2,
-          container,
-          anchor,
-          parentComponent,
-          parentSuspense,
-          namespace,
-          slotScopeIds,
-          optimized
-        );
-        return;
-      }
-    }
-    if (shapeFlag & 8) {
-      if (prevShapeFlag & 16) {
-        unmountChildren(c1, parentComponent, parentSuspense);
-      }
-      if (c2 !== c1) {
-        hostSetElementText(container, c2);
-      }
-    } else {
-      if (prevShapeFlag & 16) {
-        if (shapeFlag & 16) {
-          patchKeyedChildren(
-            c1,
-            c2,
-            container,
-            anchor,
-            parentComponent,
-            parentSuspense,
-            namespace,
-            slotScopeIds,
-            optimized
-          );
-        } else {
-          unmountChildren(c1, parentComponent, parentSuspense, true);
-        }
-      } else {
-        if (prevShapeFlag & 8) {
-          hostSetElementText(container, "");
-        }
-        if (shapeFlag & 16) {
-          mountChildren(
-            c2,
-            container,
-            anchor,
-            parentComponent,
-            parentSuspense,
-            namespace,
-            slotScopeIds,
-            optimized
-          );
-        }
-      }
-    }
-  };
-  const patchUnkeyedChildren = (c1, c2, container, anchor, parentComponent, parentSuspense, namespace, slotScopeIds, optimized) => {
-    c1 = c1 || EMPTY_ARR;
-    c2 = c2 || EMPTY_ARR;
-    const oldLength = c1.length;
-    const newLength = c2.length;
-    const commonLength = Math.min(oldLength, newLength);
-    let i;
-    for (i = 0; i < commonLength; i++) {
-      const nextChild = c2[i] = optimized ? cloneIfMounted(c2[i]) : normalizeVNode(c2[i]);
-      patch(
-        c1[i],
-        nextChild,
-        container,
-        null,
-        parentComponent,
-        parentSuspense,
-        namespace,
-        slotScopeIds,
-        optimized
-      );
-    }
-    if (oldLength > newLength) {
-      unmountChildren(
-        c1,
-        parentComponent,
-        parentSuspense,
-        true,
-        false,
-        commonLength
-      );
-    } else {
-      mountChildren(
-        c2,
-        container,
-        anchor,
-        parentComponent,
-        parentSuspense,
-        namespace,
-        slotScopeIds,
-        optimized,
-        commonLength
-      );
-    }
-  };
-  const patchKeyedChildren = (c1, c2, container, parentAnchor, parentComponent, parentSuspense, namespace, slotScopeIds, optimized) => {
-    let i = 0;
-    const l2 = c2.length;
-    let e1 = c1.length - 1;
-    let e2 = l2 - 1;
-    while (i <= e1 && i <= e2) {
-      const n1 = c1[i];
-      const n2 = c2[i] = optimized ? cloneIfMounted(c2[i]) : normalizeVNode(c2[i]);
-      if (isSameVNodeType(n1, n2)) {
-        patch(
-          n1,
-          n2,
-          container,
-          null,
-          parentComponent,
-          parentSuspense,
-          namespace,
-          slotScopeIds,
-          optimized
-        );
-      } else {
-        break;
-      }
-      i++;
-    }
-    while (i <= e1 && i <= e2) {
-      const n1 = c1[e1];
-      const n2 = c2[e2] = optimized ? cloneIfMounted(c2[e2]) : normalizeVNode(c2[e2]);
-      if (isSameVNodeType(n1, n2)) {
-        patch(
-          n1,
-          n2,
-          container,
-          null,
-          parentComponent,
-          parentSuspense,
-          namespace,
-          slotScopeIds,
-          optimized
-        );
-      } else {
-        break;
-      }
-      e1--;
-      e2--;
-    }
-    if (i > e1) {
-      if (i <= e2) {
-        const nextPos = e2 + 1;
-        const anchor = nextPos < l2 ? c2[nextPos].el : parentAnchor;
-        while (i <= e2) {
-          patch(
-            null,
-            c2[i] = optimized ? cloneIfMounted(c2[i]) : normalizeVNode(c2[i]),
-            container,
-            anchor,
-            parentComponent,
-            parentSuspense,
-            namespace,
-            slotScopeIds,
-            optimized
-          );
-          i++;
-        }
-      }
-    } else if (i > e2) {
-      while (i <= e1) {
-        unmount(c1[i], parentComponent, parentSuspense, true);
-        i++;
-      }
-    } else {
-      const s1 = i;
-      const s2 = i;
-      const keyToNewIndexMap = /* @__PURE__ */ new Map();
-      for (i = s2; i <= e2; i++) {
-        const nextChild = c2[i] = optimized ? cloneIfMounted(c2[i]) : normalizeVNode(c2[i]);
-        if (nextChild.key != null) {
-          keyToNewIndexMap.set(nextChild.key, i);
-        }
-      }
-      let j;
-      let patched = 0;
-      const toBePatched = e2 - s2 + 1;
-      let moved = false;
-      let maxNewIndexSoFar = 0;
-      const newIndexToOldIndexMap = new Array(toBePatched);
-      for (i = 0; i < toBePatched; i++) newIndexToOldIndexMap[i] = 0;
-      for (i = s1; i <= e1; i++) {
-        const prevChild = c1[i];
-        if (patched >= toBePatched) {
-          unmount(prevChild, parentComponent, parentSuspense, true);
-          continue;
-        }
-        let newIndex;
-        if (prevChild.key != null) {
-          newIndex = keyToNewIndexMap.get(prevChild.key);
-        } else {
-          for (j = s2; j <= e2; j++) {
-            if (newIndexToOldIndexMap[j - s2] === 0 && isSameVNodeType(prevChild, c2[j])) {
-              newIndex = j;
-              break;
-            }
-          }
-        }
-        if (newIndex === void 0) {
-          unmount(prevChild, parentComponent, parentSuspense, true);
-        } else {
-          newIndexToOldIndexMap[newIndex - s2] = i + 1;
-          if (newIndex >= maxNewIndexSoFar) {
-            maxNewIndexSoFar = newIndex;
-          } else {
-            moved = true;
-          }
-          patch(
-            prevChild,
-            c2[newIndex],
-            container,
-            null,
-            parentComponent,
-            parentSuspense,
-            namespace,
-            slotScopeIds,
-            optimized
-          );
-          patched++;
-        }
-      }
-      const increasingNewIndexSequence = moved ? getSequence(newIndexToOldIndexMap) : EMPTY_ARR;
-      j = increasingNewIndexSequence.length - 1;
-      for (i = toBePatched - 1; i >= 0; i--) {
-        const nextIndex = s2 + i;
-        const nextChild = c2[nextIndex];
-        const anchor = nextIndex + 1 < l2 ? c2[nextIndex + 1].el : parentAnchor;
-        if (newIndexToOldIndexMap[i] === 0) {
-          patch(
-            null,
-            nextChild,
-            container,
-            anchor,
-            parentComponent,
-            parentSuspense,
-            namespace,
-            slotScopeIds,
-            optimized
-          );
-        } else if (moved) {
-          if (j < 0 || i !== increasingNewIndexSequence[j]) {
-            move(nextChild, container, anchor, 2);
-          } else {
-            j--;
-          }
-        }
-      }
-    }
-  };
-  const move = (vnode, container, anchor, moveType, parentSuspense = null) => {
-    const { el, type, transition, children, shapeFlag } = vnode;
-    if (shapeFlag & 6) {
-      move(vnode.component.subTree, container, anchor, moveType);
-      return;
-    }
-    if (shapeFlag & 128) {
-      vnode.suspense.move(container, anchor, moveType);
-      return;
-    }
-    if (shapeFlag & 64) {
-      type.move(vnode, container, anchor, internals);
-      return;
-    }
-    if (type === Fragment) {
-      hostInsert(el, container, anchor);
-      for (let i = 0; i < children.length; i++) {
-        move(children[i], container, anchor, moveType);
-      }
-      hostInsert(vnode.anchor, container, anchor);
-      return;
-    }
-    if (type === Static) {
-      moveStaticNode(vnode, container, anchor);
-      return;
-    }
-    const needTransition2 = moveType !== 2 && shapeFlag & 1 && transition;
-    if (needTransition2) {
-      if (moveType === 0) {
-        transition.beforeEnter(el);
-        hostInsert(el, container, anchor);
-        queuePostRenderEffect(() => transition.enter(el), parentSuspense);
-      } else {
-        const { leave, delayLeave, afterLeave } = transition;
-        const remove22 = () => hostInsert(el, container, anchor);
-        const performLeave = () => {
-          leave(el, () => {
-            remove22();
-            afterLeave && afterLeave();
-          });
-        };
-        if (delayLeave) {
-          delayLeave(el, remove22, performLeave);
-        } else {
-          performLeave();
-        }
-      }
-    } else {
-      hostInsert(el, container, anchor);
-    }
-  };
-  const unmount = (vnode, parentComponent, parentSuspense, doRemove = false, optimized = false) => {
-    const {
-      type,
-      props,
-      ref: ref3,
-      children,
-      dynamicChildren,
-      shapeFlag,
-      patchFlag,
-      dirs,
-      memoIndex
-    } = vnode;
-    if (patchFlag === -2) {
-      optimized = false;
-    }
-    if (ref3 != null) {
-      setRef(ref3, null, parentSuspense, vnode, true);
-    }
-    if (memoIndex != null) {
-      parentComponent.renderCache[memoIndex] = void 0;
-    }
-    if (shapeFlag & 256) {
-      parentComponent.ctx.deactivate(vnode);
-      return;
-    }
-    const shouldInvokeDirs = shapeFlag & 1 && dirs;
-    const shouldInvokeVnodeHook = !isAsyncWrapper(vnode);
-    let vnodeHook;
-    if (shouldInvokeVnodeHook && (vnodeHook = props && props.onVnodeBeforeUnmount)) {
-      invokeVNodeHook(vnodeHook, parentComponent, vnode);
-    }
-    if (shapeFlag & 6) {
-      unmountComponent(vnode.component, parentSuspense, doRemove);
-    } else {
-      if (shapeFlag & 128) {
-        vnode.suspense.unmount(parentSuspense, doRemove);
-        return;
-      }
-      if (shouldInvokeDirs) {
-        invokeDirectiveHook(vnode, null, parentComponent, "beforeUnmount");
-      }
-      if (shapeFlag & 64) {
-        vnode.type.remove(
-          vnode,
-          parentComponent,
-          parentSuspense,
-          internals,
-          doRemove
-        );
-      } else if (dynamicChildren && // #1153: fast path should not be taken for non-stable (v-for) fragments
-      (type !== Fragment || patchFlag > 0 && patchFlag & 64)) {
-        unmountChildren(
-          dynamicChildren,
-          parentComponent,
-          parentSuspense,
-          false,
-          true
-        );
-      } else if (type === Fragment && patchFlag & (128 | 256) || !optimized && shapeFlag & 16) {
-        unmountChildren(children, parentComponent, parentSuspense);
-      }
-      if (doRemove) {
-        remove2(vnode);
-      }
-    }
-    if (shouldInvokeVnodeHook && (vnodeHook = props && props.onVnodeUnmounted) || shouldInvokeDirs) {
-      queuePostRenderEffect(() => {
-        vnodeHook && invokeVNodeHook(vnodeHook, parentComponent, vnode);
-        shouldInvokeDirs && invokeDirectiveHook(vnode, null, parentComponent, "unmounted");
-      }, parentSuspense);
-    }
-  };
-  const remove2 = (vnode) => {
-    const { type, el, anchor, transition } = vnode;
-    if (type === Fragment) {
-      {
-        removeFragment(el, anchor);
-      }
-      return;
-    }
-    if (type === Static) {
-      removeStaticNode(vnode);
-      return;
-    }
-    const performRemove = () => {
-      hostRemove(el);
-      if (transition && !transition.persisted && transition.afterLeave) {
-        transition.afterLeave();
-      }
-    };
-    if (vnode.shapeFlag & 1 && transition && !transition.persisted) {
-      const { leave, delayLeave } = transition;
-      const performLeave = () => leave(el, performRemove);
-      if (delayLeave) {
-        delayLeave(vnode.el, performRemove, performLeave);
-      } else {
-        performLeave();
-      }
-    } else {
-      performRemove();
-    }
-  };
-  const removeFragment = (cur, end) => {
-    let next;
-    while (cur !== end) {
-      next = hostNextSibling(cur);
-      hostRemove(cur);
-      cur = next;
-    }
-    hostRemove(end);
-  };
-  const unmountComponent = (instance, parentSuspense, doRemove) => {
-    const { bum, scope, update, subTree, um, m, a } = instance;
-    invalidateMount(m);
-    invalidateMount(a);
-    if (bum) {
-      invokeArrayFns(bum);
-    }
-    scope.stop();
-    if (update) {
-      update.active = false;
-      unmount(subTree, instance, parentSuspense, doRemove);
-    }
-    if (um) {
-      queuePostRenderEffect(um, parentSuspense);
-    }
-    queuePostRenderEffect(() => {
-      instance.isUnmounted = true;
-    }, parentSuspense);
-    if (parentSuspense && parentSuspense.pendingBranch && !parentSuspense.isUnmounted && instance.asyncDep && !instance.asyncResolved && instance.suspenseId === parentSuspense.pendingId) {
-      parentSuspense.deps--;
-      if (parentSuspense.deps === 0) {
-        parentSuspense.resolve();
-      }
-    }
-  };
-  const unmountChildren = (children, parentComponent, parentSuspense, doRemove = false, optimized = false, start = 0) => {
-    for (let i = start; i < children.length; i++) {
-      unmount(children[i], parentComponent, parentSuspense, doRemove, optimized);
-    }
-  };
-  const getNextHostNode = (vnode) => {
-    if (vnode.shapeFlag & 6) {
-      return getNextHostNode(vnode.component.subTree);
-    }
-    if (vnode.shapeFlag & 128) {
-      return vnode.suspense.next();
-    }
-    return hostNextSibling(vnode.anchor || vnode.el);
-  };
-  let isFlushing2 = false;
-  const render = (vnode, container, namespace) => {
-    if (vnode == null) {
-      if (container._vnode) {
-        unmount(container._vnode, null, null, true);
-      }
-    } else {
-      patch(
-        container._vnode || null,
-        vnode,
-        container,
-        null,
-        null,
-        null,
-        namespace
-      );
-    }
-    if (!isFlushing2) {
-      isFlushing2 = true;
-      flushPreFlushCbs();
-      flushPostFlushCbs();
-      isFlushing2 = false;
-    }
-    container._vnode = vnode;
-  };
-  const internals = {
-    p: patch,
-    um: unmount,
-    m: move,
-    r: remove2,
-    mt: mountComponent,
-    mc: mountChildren,
-    pc: patchChildren,
-    pbc: patchBlockChildren,
-    n: getNextHostNode,
-    o: options
-  };
-  let hydrate;
-  let hydrateNode;
-  if (createHydrationFns) {
-    [hydrate, hydrateNode] = createHydrationFns(
-      internals
-    );
-  }
-  return {
-    render,
-    hydrate,
-    createApp: createAppAPI(render, hydrate)
-  };
-}
-function resolveChildrenNamespace({ type, props }, currentNamespace) {
-  return currentNamespace === "svg" && type === "foreignObject" || currentNamespace === "mathml" && type === "annotation-xml" && props && props.encoding && props.encoding.includes("html") ? void 0 : currentNamespace;
-}
-function toggleRecurse({ effect: effect2, update }, allowed) {
-  effect2.allowRecurse = update.allowRecurse = allowed;
-}
-function needTransition(parentSuspense, transition) {
-  return (!parentSuspense || parentSuspense && !parentSuspense.pendingBranch) && transition && !transition.persisted;
-}
-function traverseStaticChildren(n1, n2, shallow = false) {
-  const ch1 = n1.children;
-  const ch2 = n2.children;
-  if (isArray(ch1) && isArray(ch2)) {
-    for (let i = 0; i < ch1.length; i++) {
-      const c1 = ch1[i];
-      let c2 = ch2[i];
-      if (c2.shapeFlag & 1 && !c2.dynamicChildren) {
-        if (c2.patchFlag <= 0 || c2.patchFlag === 32) {
-          c2 = ch2[i] = cloneIfMounted(ch2[i]);
-          c2.el = c1.el;
-        }
-        if (!shallow && c2.patchFlag !== -2)
-          traverseStaticChildren(c1, c2);
-      }
-      if (c2.type === Text) {
-        c2.el = c1.el;
-      }
-    }
-  }
-}
-function getSequence(arr) {
-  const p2 = arr.slice();
-  const result = [0];
-  let i, j, u, v, c;
-  const len = arr.length;
-  for (i = 0; i < len; i++) {
-    const arrI = arr[i];
-    if (arrI !== 0) {
-      j = result[result.length - 1];
-      if (arr[j] < arrI) {
-        p2[i] = j;
-        result.push(i);
-        continue;
-      }
-      u = 0;
-      v = result.length - 1;
-      while (u < v) {
-        c = u + v >> 1;
-        if (arr[result[c]] < arrI) {
-          u = c + 1;
-        } else {
-          v = c;
-        }
-      }
-      if (arrI < arr[result[u]]) {
-        if (u > 0) {
-          p2[i] = result[u - 1];
-        }
-        result[u] = i;
-      }
-    }
-  }
-  u = result.length;
-  v = result[u - 1];
-  while (u-- > 0) {
-    result[u] = v;
-    v = p2[v];
-  }
-  return result;
-}
-function locateNonHydratedAsyncRoot(instance) {
-  const subComponent = instance.subTree.component;
-  if (subComponent) {
-    if (subComponent.asyncDep && !subComponent.asyncResolved) {
-      return subComponent;
-    } else {
-      return locateNonHydratedAsyncRoot(subComponent);
-    }
-  }
-}
-function invalidateMount(hooks) {
-  if (hooks) {
-    for (let i = 0; i < hooks.length; i++) hooks[i].active = false;
-  }
-}
-const ssrContextKey = Symbol.for("v-scx");
-const useSSRContext = () => {
-  {
-    const ctx = inject(ssrContextKey);
-    return ctx;
-  }
-};
-const INITIAL_WATCHER_VALUE = {};
-function watch(source, cb, options) {
-  return doWatch(source, cb, options);
-}
-function doWatch(source, cb, {
-  immediate,
-  deep,
-  flush,
-  once,
-  onTrack,
-  onTrigger
-} = EMPTY_OBJ) {
-  if (cb && once) {
-    const _cb = cb;
-    cb = (...args) => {
-      _cb(...args);
-      unwatch();
-    };
-  }
-  const instance = currentInstance;
-  const reactiveGetter = (source2) => deep === true ? source2 : (
-    // for deep: false, only traverse root-level properties
-    traverse(source2, deep === false ? 1 : void 0)
-  );
-  let getter;
-  let forceTrigger = false;
-  let isMultiSource = false;
-  if (isRef(source)) {
-    getter = () => source.value;
-    forceTrigger = isShallow(source);
-  } else if (isReactive(source)) {
-    getter = () => reactiveGetter(source);
-    forceTrigger = true;
-  } else if (isArray(source)) {
-    isMultiSource = true;
-    forceTrigger = source.some((s) => isReactive(s) || isShallow(s));
-    getter = () => source.map((s) => {
-      if (isRef(s)) {
-        return s.value;
-      } else if (isReactive(s)) {
-        return reactiveGetter(s);
-      } else if (isFunction$1(s)) {
-        return callWithErrorHandling(s, instance, 2);
-      } else ;
-    });
-  } else if (isFunction$1(source)) {
-    if (cb) {
-      getter = () => callWithErrorHandling(source, instance, 2);
-    } else {
-      getter = () => {
-        if (cleanup) {
-          cleanup();
-        }
-        return callWithAsyncErrorHandling(
-          source,
-          instance,
-          3,
-          [onCleanup]
-        );
-      };
-    }
-  } else {
-    getter = NOOP;
-  }
-  if (cb && deep) {
-    const baseGetter = getter;
-    getter = () => traverse(baseGetter());
-  }
-  let cleanup;
-  let onCleanup = (fn) => {
-    cleanup = effect2.onStop = () => {
-      callWithErrorHandling(fn, instance, 4);
-      cleanup = effect2.onStop = void 0;
-    };
-  };
-  let ssrCleanup;
-  if (isInSSRComponentSetup) {
-    onCleanup = NOOP;
-    if (!cb) {
-      getter();
-    } else if (immediate) {
-      callWithAsyncErrorHandling(cb, instance, 3, [
-        getter(),
-        isMultiSource ? [] : void 0,
-        onCleanup
-      ]);
-    }
-    if (flush === "sync") {
-      const ctx = useSSRContext();
-      ssrCleanup = ctx.__watcherHandles || (ctx.__watcherHandles = []);
-    } else {
-      return NOOP;
-    }
-  }
-  let oldValue = isMultiSource ? new Array(source.length).fill(INITIAL_WATCHER_VALUE) : INITIAL_WATCHER_VALUE;
-  const job = () => {
-    if (!effect2.active || !effect2.dirty) {
-      return;
-    }
-    if (cb) {
-      const newValue = effect2.run();
-      if (deep || forceTrigger || (isMultiSource ? newValue.some((v, i) => hasChanged(v, oldValue[i])) : hasChanged(newValue, oldValue)) || false) {
-        if (cleanup) {
-          cleanup();
-        }
-        callWithAsyncErrorHandling(cb, instance, 3, [
-          newValue,
-          // pass undefined as the old value when it's changed for the first time
-          oldValue === INITIAL_WATCHER_VALUE ? void 0 : isMultiSource && oldValue[0] === INITIAL_WATCHER_VALUE ? [] : oldValue,
-          onCleanup
-        ]);
-        oldValue = newValue;
-      }
-    } else {
-      effect2.run();
-    }
-  };
-  job.allowRecurse = !!cb;
-  let scheduler;
-  if (flush === "sync") {
-    scheduler = job;
-  } else if (flush === "post") {
-    scheduler = () => queuePostRenderEffect(job, instance && instance.suspense);
-  } else {
-    job.pre = true;
-    if (instance) job.id = instance.uid;
-    scheduler = () => queueJob(job);
-  }
-  const effect2 = new ReactiveEffect(getter, NOOP, scheduler);
-  const scope = getCurrentScope();
-  const unwatch = () => {
-    effect2.stop();
-    if (scope) {
-      remove(scope.effects, effect2);
-    }
-  };
-  if (cb) {
-    if (immediate) {
-      job();
-    } else {
-      oldValue = effect2.run();
-    }
-  } else if (flush === "post") {
-    queuePostRenderEffect(
-      effect2.run.bind(effect2),
-      instance && instance.suspense
-    );
-  } else {
-    effect2.run();
-  }
-  if (ssrCleanup) ssrCleanup.push(unwatch);
-  return unwatch;
-}
-function instanceWatch(source, value, options) {
-  const publicThis = this.proxy;
-  const getter = isString$1(source) ? source.includes(".") ? createPathGetter(publicThis, source) : () => publicThis[source] : source.bind(publicThis, publicThis);
-  let cb;
-  if (isFunction$1(value)) {
-    cb = value;
-  } else {
-    cb = value.handler;
-    options = value;
-  }
-  const reset = setCurrentInstance(this);
-  const res = doWatch(getter, cb.bind(publicThis), options);
-  reset();
-  return res;
-}
-function createPathGetter(ctx, path) {
-  const segments = path.split(".");
-  return () => {
-    let cur = ctx;
-    for (let i = 0; i < segments.length && cur; i++) {
-      cur = cur[segments[i]];
-    }
-    return cur;
-  };
-}
-function traverse(value, depth = Infinity, seen) {
-  if (depth <= 0 || !isObject$1(value) || value["__v_skip"]) {
-    return value;
-  }
-  seen = seen || /* @__PURE__ */ new Set();
-  if (seen.has(value)) {
-    return value;
-  }
-  seen.add(value);
-  depth--;
-  if (isRef(value)) {
-    traverse(value.value, depth, seen);
-  } else if (isArray(value)) {
-    for (let i = 0; i < value.length; i++) {
-      traverse(value[i], depth, seen);
-    }
-  } else if (isSet(value) || isMap(value)) {
-    value.forEach((v) => {
-      traverse(v, depth, seen);
-    });
-  } else if (isPlainObject(value)) {
-    for (const key in value) {
-      traverse(value[key], depth, seen);
-    }
-    for (const key of Object.getOwnPropertySymbols(value)) {
-      if (Object.prototype.propertyIsEnumerable.call(value, key)) {
-        traverse(value[key], depth, seen);
-      }
-    }
-  }
-  return value;
-}
-const isKeepAlive = (vnode) => vnode.type.__isKeepAlive;
-function onActivated(hook, target) {
-  registerKeepAliveHook(hook, "a", target);
-}
-function onDeactivated(hook, target) {
-  registerKeepAliveHook(hook, "da", target);
-}
-function registerKeepAliveHook(hook, type, target = currentInstance) {
-  const wrappedHook = hook.__wdc || (hook.__wdc = () => {
-    let current = target;
-    while (current) {
-      if (current.isDeactivated) {
-        return;
-      }
-      current = current.parent;
-    }
-    return hook();
-  });
-  injectHook(type, wrappedHook, target);
-  if (target) {
-    let current = target.parent;
-    while (current && current.parent) {
-      if (isKeepAlive(current.parent.vnode)) {
-        injectToKeepAliveRoot(wrappedHook, type, target, current);
-      }
-      current = current.parent;
-    }
-  }
-}
-function injectToKeepAliveRoot(hook, type, target, keepAliveRoot) {
-  const injected = injectHook(
-    type,
-    hook,
-    keepAliveRoot,
-    true
-    /* prepend */
-  );
-  onUnmounted(() => {
-    remove(keepAliveRoot[type], injected);
-  }, target);
-}
-function setTransitionHooks(vnode, hooks) {
-  if (vnode.shapeFlag & 6 && vnode.component) {
-    setTransitionHooks(vnode.component.subTree, hooks);
-  } else if (vnode.shapeFlag & 128) {
-    vnode.ssContent.transition = hooks.clone(vnode.ssContent);
-    vnode.ssFallback.transition = hooks.clone(vnode.ssFallback);
-  } else {
-    vnode.transition = hooks;
-  }
-}
-const isTeleport = (type) => type.__isTeleport;
-const Fragment = Symbol.for("v-fgt");
-const Text = Symbol.for("v-txt");
-const Comment = Symbol.for("v-cmt");
-const Static = Symbol.for("v-stc");
-const blockStack = [];
-let currentBlock = null;
-function openBlock(disableTracking = false) {
-  blockStack.push(currentBlock = disableTracking ? null : []);
-}
-function closeBlock() {
-  blockStack.pop();
-  currentBlock = blockStack[blockStack.length - 1] || null;
-}
-let isBlockTreeEnabled = 1;
-function setBlockTracking(value) {
-  isBlockTreeEnabled += value;
-}
-function setupBlock(vnode) {
-  vnode.dynamicChildren = isBlockTreeEnabled > 0 ? currentBlock || EMPTY_ARR : null;
-  closeBlock();
-  if (isBlockTreeEnabled > 0 && currentBlock) {
-    currentBlock.push(vnode);
-  }
-  return vnode;
-}
-function createElementBlock(type, props, children, patchFlag, dynamicProps, shapeFlag) {
-  return setupBlock(
-    createBaseVNode(
-      type,
-      props,
-      children,
-      patchFlag,
-      dynamicProps,
-      shapeFlag,
-      true
-    )
-  );
-}
-function isVNode(value) {
-  return value ? value.__v_isVNode === true : false;
-}
-function isSameVNodeType(n1, n2) {
-  return n1.type === n2.type && n1.key === n2.key;
-}
-const normalizeKey = ({ key }) => key != null ? key : null;
-const normalizeRef = ({
-  ref: ref3,
-  ref_key,
-  ref_for
-}) => {
-  if (typeof ref3 === "number") {
-    ref3 = "" + ref3;
-  }
-  return ref3 != null ? isString$1(ref3) || isRef(ref3) || isFunction$1(ref3) ? { i: currentRenderingInstance, r: ref3, k: ref_key, f: !!ref_for } : ref3 : null;
-};
-function createBaseVNode(type, props = null, children = null, patchFlag = 0, dynamicProps = null, shapeFlag = type === Fragment ? 0 : 1, isBlockNode = false, needFullChildrenNormalization = false) {
-  const vnode = {
-    __v_isVNode: true,
-    __v_skip: true,
-    type,
-    props,
-    key: props && normalizeKey(props),
-    ref: props && normalizeRef(props),
-    scopeId: currentScopeId,
-    slotScopeIds: null,
-    children,
-    component: null,
-    suspense: null,
-    ssContent: null,
-    ssFallback: null,
-    dirs: null,
-    transition: null,
-    el: null,
-    anchor: null,
-    target: null,
-    targetAnchor: null,
-    staticCount: 0,
-    shapeFlag,
-    patchFlag,
-    dynamicProps,
-    dynamicChildren: null,
-    appContext: null,
-    ctx: currentRenderingInstance
-  };
-  if (needFullChildrenNormalization) {
-    normalizeChildren(vnode, children);
-    if (shapeFlag & 128) {
-      type.normalize(vnode);
-    }
-  } else if (children) {
-    vnode.shapeFlag |= isString$1(children) ? 8 : 16;
-  }
-  if (isBlockTreeEnabled > 0 && // avoid a block node from tracking itself
-  !isBlockNode && // has current parent block
-  currentBlock && // presence of a patch flag indicates this node needs patching on updates.
-  // component nodes also should always be patched, because even if the
-  // component doesn't need to update, it needs to persist the instance on to
-  // the next vnode so that it can be properly unmounted later.
-  (vnode.patchFlag > 0 || shapeFlag & 6) && // the EVENTS flag is only for hydration and if it is the only flag, the
-  // vnode should not be considered dynamic due to handler caching.
-  vnode.patchFlag !== 32) {
-    currentBlock.push(vnode);
-  }
-  return vnode;
-}
-const createVNode = _createVNode;
-function _createVNode(type, props = null, children = null, patchFlag = 0, dynamicProps = null, isBlockNode = false) {
-  if (!type || type === NULL_DYNAMIC_COMPONENT) {
-    type = Comment;
-  }
-  if (isVNode(type)) {
-    const cloned = cloneVNode(
-      type,
-      props,
-      true
-      /* mergeRef: true */
-    );
-    if (children) {
-      normalizeChildren(cloned, children);
-    }
-    if (isBlockTreeEnabled > 0 && !isBlockNode && currentBlock) {
-      if (cloned.shapeFlag & 6) {
-        currentBlock[currentBlock.indexOf(type)] = cloned;
-      } else {
-        currentBlock.push(cloned);
-      }
-    }
-    cloned.patchFlag = -2;
-    return cloned;
-  }
-  if (isClassComponent(type)) {
-    type = type.__vccOpts;
-  }
-  if (props) {
-    props = guardReactiveProps(props);
-    let { class: klass, style } = props;
-    if (klass && !isString$1(klass)) {
-      props.class = normalizeClass(klass);
-    }
-    if (isObject$1(style)) {
-      if (isProxy(style) && !isArray(style)) {
-        style = extend({}, style);
-      }
-      props.style = normalizeStyle(style);
-    }
-  }
-  const shapeFlag = isString$1(type) ? 1 : isSuspense(type) ? 128 : isTeleport(type) ? 64 : isObject$1(type) ? 4 : isFunction$1(type) ? 2 : 0;
-  return createBaseVNode(
-    type,
-    props,
-    children,
-    patchFlag,
-    dynamicProps,
-    shapeFlag,
-    isBlockNode,
-    true
-  );
-}
-function guardReactiveProps(props) {
-  if (!props) return null;
-  return isProxy(props) || isInternalObject(props) ? extend({}, props) : props;
-}
-function cloneVNode(vnode, extraProps, mergeRef = false, cloneTransition = false) {
-  const { props, ref: ref3, patchFlag, children, transition } = vnode;
-  const mergedProps = extraProps ? mergeProps(props || {}, extraProps) : props;
-  const cloned = {
-    __v_isVNode: true,
-    __v_skip: true,
-    type: vnode.type,
-    props: mergedProps,
-    key: mergedProps && normalizeKey(mergedProps),
-    ref: extraProps && extraProps.ref ? (
-      // #2078 in the case of <component :is="vnode" ref="extra"/>
-      // if the vnode itself already has a ref, cloneVNode will need to merge
-      // the refs so the single vnode can be set on multiple refs
-      mergeRef && ref3 ? isArray(ref3) ? ref3.concat(normalizeRef(extraProps)) : [ref3, normalizeRef(extraProps)] : normalizeRef(extraProps)
-    ) : ref3,
-    scopeId: vnode.scopeId,
-    slotScopeIds: vnode.slotScopeIds,
-    children,
-    target: vnode.target,
-    targetAnchor: vnode.targetAnchor,
-    staticCount: vnode.staticCount,
-    shapeFlag: vnode.shapeFlag,
-    // if the vnode is cloned with extra props, we can no longer assume its
-    // existing patch flag to be reliable and need to add the FULL_PROPS flag.
-    // note: preserve flag for fragments since they use the flag for children
-    // fast paths only.
-    patchFlag: extraProps && vnode.type !== Fragment ? patchFlag === -1 ? 16 : patchFlag | 16 : patchFlag,
-    dynamicProps: vnode.dynamicProps,
-    dynamicChildren: vnode.dynamicChildren,
-    appContext: vnode.appContext,
-    dirs: vnode.dirs,
-    transition,
-    // These should technically only be non-null on mounted VNodes. However,
-    // they *should* be copied for kept-alive vnodes. So we just always copy
-    // them since them being non-null during a mount doesn't affect the logic as
-    // they will simply be overwritten.
-    component: vnode.component,
-    suspense: vnode.suspense,
-    ssContent: vnode.ssContent && cloneVNode(vnode.ssContent),
-    ssFallback: vnode.ssFallback && cloneVNode(vnode.ssFallback),
-    el: vnode.el,
-    anchor: vnode.anchor,
-    ctx: vnode.ctx,
-    ce: vnode.ce
-  };
-  if (transition && cloneTransition) {
-    setTransitionHooks(
-      cloned,
-      transition.clone(cloned)
-    );
-  }
-  return cloned;
-}
-function createTextVNode(text = " ", flag = 0) {
-  return createVNode(Text, null, text, flag);
-}
-function normalizeVNode(child) {
-  if (child == null || typeof child === "boolean") {
-    return createVNode(Comment);
-  } else if (isArray(child)) {
-    return createVNode(
-      Fragment,
-      null,
-      // #3666, avoid reference pollution when reusing vnode
-      child.slice()
-    );
-  } else if (typeof child === "object") {
-    return cloneIfMounted(child);
-  } else {
-    return createVNode(Text, null, String(child));
-  }
-}
-function cloneIfMounted(child) {
-  return child.el === null && child.patchFlag !== -1 || child.memo ? child : cloneVNode(child);
-}
-function normalizeChildren(vnode, children) {
-  let type = 0;
-  const { shapeFlag } = vnode;
-  if (children == null) {
-    children = null;
-  } else if (isArray(children)) {
-    type = 16;
-  } else if (typeof children === "object") {
-    if (shapeFlag & (1 | 64)) {
-      const slot = children.default;
-      if (slot) {
-        slot._c && (slot._d = false);
-        normalizeChildren(vnode, slot());
-        slot._c && (slot._d = true);
-      }
-      return;
-    } else {
-      type = 32;
-      const slotFlag = children._;
-      if (!slotFlag && !isInternalObject(children)) {
-        children._ctx = currentRenderingInstance;
-      } else if (slotFlag === 3 && currentRenderingInstance) {
-        if (currentRenderingInstance.slots._ === 1) {
-          children._ = 1;
-        } else {
-          children._ = 2;
-          vnode.patchFlag |= 1024;
-        }
-      }
-    }
-  } else if (isFunction$1(children)) {
-    children = { default: children, _ctx: currentRenderingInstance };
-    type = 32;
-  } else {
-    children = String(children);
-    if (shapeFlag & 64) {
-      type = 16;
-      children = [createTextVNode(children)];
-    } else {
-      type = 8;
-    }
-  }
-  vnode.children = children;
-  vnode.shapeFlag |= type;
-}
-function mergeProps(...args) {
-  const ret = {};
-  for (let i = 0; i < args.length; i++) {
-    const toMerge = args[i];
-    for (const key in toMerge) {
-      if (key === "class") {
-        if (ret.class !== toMerge.class) {
-          ret.class = normalizeClass([ret.class, toMerge.class]);
-        }
-      } else if (key === "style") {
-        ret.style = normalizeStyle([ret.style, toMerge.style]);
-      } else if (isOn(key)) {
-        const existing = ret[key];
-        const incoming = toMerge[key];
-        if (incoming && existing !== incoming && !(isArray(existing) && existing.includes(incoming))) {
-          ret[key] = existing ? [].concat(existing, incoming) : incoming;
-        }
-      } else if (key !== "") {
-        ret[key] = toMerge[key];
-      }
-    }
-  }
-  return ret;
-}
-function invokeVNodeHook(hook, instance, vnode, prevVNode = null) {
-  callWithAsyncErrorHandling(hook, instance, 7, [
-    vnode,
-    prevVNode
-  ]);
-}
-const emptyAppContext = createAppContext();
-let uid = 0;
-function createComponentInstance(vnode, parent, suspense) {
-  const type = vnode.type;
-  const appContext = (parent ? parent.appContext : vnode.appContext) || emptyAppContext;
-  const instance = {
-    uid: uid++,
-    vnode,
-    type,
-    parent,
-    appContext,
-    root: null,
-    // to be immediately set
-    next: null,
-    subTree: null,
-    // will be set synchronously right after creation
-    effect: null,
-    update: null,
-    // will be set synchronously right after creation
-    scope: new EffectScope(
-      true
-      /* detached */
-    ),
-    render: null,
-    proxy: null,
-    exposed: null,
-    exposeProxy: null,
-    withProxy: null,
-    provides: parent ? parent.provides : Object.create(appContext.provides),
-    accessCache: null,
-    renderCache: [],
-    // local resolved assets
-    components: null,
-    directives: null,
-    // resolved props and emits options
-    propsOptions: normalizePropsOptions(type, appContext),
-    emitsOptions: normalizeEmitsOptions(type, appContext),
-    // emit
-    emit: null,
-    // to be set immediately
-    emitted: null,
-    // props default value
-    propsDefaults: EMPTY_OBJ,
-    // inheritAttrs
-    inheritAttrs: type.inheritAttrs,
-    // state
-    ctx: EMPTY_OBJ,
-    data: EMPTY_OBJ,
-    props: EMPTY_OBJ,
-    attrs: EMPTY_OBJ,
-    slots: EMPTY_OBJ,
-    refs: EMPTY_OBJ,
-    setupState: EMPTY_OBJ,
-    setupContext: null,
-    attrsProxy: null,
-    slotsProxy: null,
-    // suspense related
-    suspense,
-    suspenseId: suspense ? suspense.pendingId : 0,
-    asyncDep: null,
-    asyncResolved: false,
-    // lifecycle hooks
-    // not using enums here because it results in computed properties
-    isMounted: false,
-    isUnmounted: false,
-    isDeactivated: false,
-    bc: null,
-    c: null,
-    bm: null,
-    m: null,
-    bu: null,
-    u: null,
-    um: null,
-    bum: null,
-    da: null,
-    a: null,
-    rtg: null,
-    rtc: null,
-    ec: null,
-    sp: null
-  };
-  {
-    instance.ctx = { _: instance };
-  }
-  instance.root = parent ? parent.root : instance;
-  instance.emit = emit.bind(null, instance);
-  if (vnode.ce) {
-    vnode.ce(instance);
-  }
-  return instance;
-}
-let currentInstance = null;
-let internalSetCurrentInstance;
-let setInSSRSetupState;
-{
-  const g = getGlobalThis();
-  const registerGlobalSetter = (key, setter) => {
-    let setters;
-    if (!(setters = g[key])) setters = g[key] = [];
-    setters.push(setter);
-    return (v) => {
-      if (setters.length > 1) setters.forEach((set2) => set2(v));
-      else setters[0](v);
-    };
-  };
-  internalSetCurrentInstance = registerGlobalSetter(
-    `__VUE_INSTANCE_SETTERS__`,
-    (v) => currentInstance = v
-  );
-  setInSSRSetupState = registerGlobalSetter(
-    `__VUE_SSR_SETTERS__`,
-    (v) => isInSSRComponentSetup = v
-  );
-}
-const setCurrentInstance = (instance) => {
-  const prev = currentInstance;
-  internalSetCurrentInstance(instance);
-  instance.scope.on();
-  return () => {
-    instance.scope.off();
-    internalSetCurrentInstance(prev);
-  };
-};
-const unsetCurrentInstance = () => {
-  currentInstance && currentInstance.scope.off();
-  internalSetCurrentInstance(null);
-};
-function isStatefulComponent(instance) {
-  return instance.vnode.shapeFlag & 4;
-}
-let isInSSRComponentSetup = false;
-function setupComponent(instance, isSSR = false) {
-  isSSR && setInSSRSetupState(isSSR);
-  const { props, children } = instance.vnode;
-  const isStateful = isStatefulComponent(instance);
-  initProps(instance, props, isStateful, isSSR);
-  initSlots(instance, children);
-  const setupResult = isStateful ? setupStatefulComponent(instance, isSSR) : void 0;
-  isSSR && setInSSRSetupState(false);
-  return setupResult;
-}
-function setupStatefulComponent(instance, isSSR) {
-  const Component = instance.type;
-  instance.accessCache = /* @__PURE__ */ Object.create(null);
-  instance.proxy = new Proxy(instance.ctx, PublicInstanceProxyHandlers);
-  const { setup } = Component;
-  if (setup) {
-    const setupContext = instance.setupContext = setup.length > 1 ? createSetupContext(instance) : null;
-    const reset = setCurrentInstance(instance);
-    pauseTracking();
-    const setupResult = callWithErrorHandling(
-      setup,
-      instance,
-      0,
-      [
-        instance.props,
-        setupContext
-      ]
-    );
-    resetTracking();
-    reset();
-    if (isPromise(setupResult)) {
-      setupResult.then(unsetCurrentInstance, unsetCurrentInstance);
-      if (isSSR) {
-        return setupResult.then((resolvedResult) => {
-          handleSetupResult(instance, resolvedResult, isSSR);
-        }).catch((e) => {
-          handleError(e, instance, 0);
-        });
-      } else {
-        instance.asyncDep = setupResult;
-      }
-    } else {
-      handleSetupResult(instance, setupResult, isSSR);
-    }
-  } else {
-    finishComponentSetup(instance, isSSR);
-  }
-}
-function handleSetupResult(instance, setupResult, isSSR) {
-  if (isFunction$1(setupResult)) {
-    if (instance.type.__ssrInlineRender) {
-      instance.ssrRender = setupResult;
-    } else {
-      instance.render = setupResult;
-    }
-  } else if (isObject$1(setupResult)) {
-    instance.setupState = proxyRefs(setupResult);
-  } else ;
-  finishComponentSetup(instance, isSSR);
-}
-let compile;
-function finishComponentSetup(instance, isSSR, skipOptions) {
-  const Component = instance.type;
-  if (!instance.render) {
-    if (!isSSR && compile && !Component.render) {
-      const template = Component.template || resolveMergedOptions(instance).template;
-      if (template) {
-        const { isCustomElement, compilerOptions } = instance.appContext.config;
-        const { delimiters, compilerOptions: componentCompilerOptions } = Component;
-        const finalCompilerOptions = extend(
-          extend(
-            {
-              isCustomElement,
-              delimiters
-            },
-            compilerOptions
-          ),
-          componentCompilerOptions
-        );
-        Component.render = compile(template, finalCompilerOptions);
-      }
-    }
-    instance.render = Component.render || NOOP;
-  }
-  {
-    const reset = setCurrentInstance(instance);
-    pauseTracking();
-    try {
-      applyOptions(instance);
-    } finally {
-      resetTracking();
-      reset();
-    }
-  }
-}
-const attrsProxyHandlers = {
-  get(target, key) {
-    track(target, "get", "");
-    return target[key];
-  }
-};
-function createSetupContext(instance) {
-  const expose = (exposed) => {
-    instance.exposed = exposed || {};
-  };
-  {
-    return {
-      attrs: new Proxy(instance.attrs, attrsProxyHandlers),
-      slots: instance.slots,
-      emit: instance.emit,
-      expose
-    };
-  }
-}
-function getComponentPublicInstance(instance) {
-  if (instance.exposed) {
-    return instance.exposeProxy || (instance.exposeProxy = new Proxy(proxyRefs(markRaw(instance.exposed)), {
-      get(target, key) {
-        if (key in target) {
-          return target[key];
-        } else if (key in publicPropertiesMap) {
-          return publicPropertiesMap[key](instance);
-        }
-      },
-      has(target, key) {
-        return key in target || key in publicPropertiesMap;
-      }
-    }));
-  } else {
-    return instance.proxy;
-  }
-}
-const classifyRE = /(?:^|[-_])(\w)/g;
-const classify = (str) => str.replace(classifyRE, (c) => c.toUpperCase()).replace(/[-_]/g, "");
-function getComponentName(Component, includeInferred = true) {
-  return isFunction$1(Component) ? Component.displayName || Component.name : Component.name || includeInferred && Component.__name;
-}
-function formatComponentName(instance, Component, isRoot = false) {
-  let name = getComponentName(Component);
-  if (!name && Component.__file) {
-    const match = Component.__file.match(/([^/\\]+)\.\w+$/);
-    if (match) {
-      name = match[1];
-    }
-  }
-  if (!name && instance && instance.parent) {
-    const inferFromRegistry = (registry) => {
-      for (const key in registry) {
-        if (registry[key] === Component) {
-          return key;
-        }
-      }
-    };
-    name = inferFromRegistry(
-      instance.components || instance.parent.type.components
-    ) || inferFromRegistry(instance.appContext.components);
-  }
-  return name ? classify(name) : isRoot ? `App` : `Anonymous`;
-}
-function isClassComponent(value) {
-  return isFunction$1(value) && "__vccOpts" in value;
-}
-const computed = (getterOrOptions, debugOptions) => {
-  const c = computed$1(getterOrOptions, debugOptions, isInSSRComponentSetup);
-  return c;
-};
-const version = "3.4.31";
-/**
-* @vue/runtime-dom v3.4.31
-* (c) 2018-present Yuxi (Evan) You and Vue contributors
-* @license MIT
-**/
-const svgNS = "http://www.w3.org/2000/svg";
-const mathmlNS = "http://www.w3.org/1998/Math/MathML";
-const doc = typeof document !== "undefined" ? document : null;
-const templateContainer = doc && /* @__PURE__ */ doc.createElement("template");
-const nodeOps = {
-  insert: (child, parent, anchor) => {
-    parent.insertBefore(child, anchor || null);
-  },
-  remove: (child) => {
-    const parent = child.parentNode;
-    if (parent) {
-      parent.removeChild(child);
-    }
-  },
-  createElement: (tag, namespace, is, props) => {
-    const el = namespace === "svg" ? doc.createElementNS(svgNS, tag) : namespace === "mathml" ? doc.createElementNS(mathmlNS, tag) : is ? doc.createElement(tag, { is }) : doc.createElement(tag);
-    if (tag === "select" && props && props.multiple != null) {
-      el.setAttribute("multiple", props.multiple);
-    }
-    return el;
-  },
-  createText: (text) => doc.createTextNode(text),
-  createComment: (text) => doc.createComment(text),
-  setText: (node, text) => {
-    node.nodeValue = text;
-  },
-  setElementText: (el, text) => {
-    el.textContent = text;
-  },
-  parentNode: (node) => node.parentNode,
-  nextSibling: (node) => node.nextSibling,
-  querySelector: (selector) => doc.querySelector(selector),
-  setScopeId(el, id) {
-    el.setAttribute(id, "");
-  },
-  // __UNSAFE__
-  // Reason: innerHTML.
-  // Static content here can only come from compiled templates.
-  // As long as the user only uses trusted templates, this is safe.
-  insertStaticContent(content, parent, anchor, namespace, start, end) {
-    const before = anchor ? anchor.previousSibling : parent.lastChild;
-    if (start && (start === end || start.nextSibling)) {
-      while (true) {
-        parent.insertBefore(start.cloneNode(true), anchor);
-        if (start === end || !(start = start.nextSibling)) break;
-      }
-    } else {
-      templateContainer.innerHTML = namespace === "svg" ? `<svg>${content}</svg>` : namespace === "mathml" ? `<math>${content}</math>` : content;
-      const template = templateContainer.content;
-      if (namespace === "svg" || namespace === "mathml") {
-        const wrapper = template.firstChild;
-        while (wrapper.firstChild) {
-          template.appendChild(wrapper.firstChild);
-        }
-        template.removeChild(wrapper);
-      }
-      parent.insertBefore(template, anchor);
-    }
-    return [
-      // first
-      before ? before.nextSibling : parent.firstChild,
-      // last
-      anchor ? anchor.previousSibling : parent.lastChild
-    ];
-  }
-};
-const vtcKey = Symbol("_vtc");
-function patchClass(el, value, isSVG) {
-  const transitionClasses = el[vtcKey];
-  if (transitionClasses) {
-    value = (value ? [value, ...transitionClasses] : [...transitionClasses]).join(" ");
-  }
-  if (value == null) {
-    el.removeAttribute("class");
-  } else if (isSVG) {
-    el.setAttribute("class", value);
-  } else {
-    el.className = value;
-  }
-}
-const vShowOriginalDisplay = Symbol("_vod");
-const vShowHidden = Symbol("_vsh");
-const CSS_VAR_TEXT = Symbol("");
-const displayRE = /(^|;)\s*display\s*:/;
-function patchStyle(el, prev, next) {
-  const style = el.style;
-  const isCssString = isString$1(next);
-  let hasControlledDisplay = false;
-  if (next && !isCssString) {
-    if (prev) {
-      if (!isString$1(prev)) {
-        for (const key in prev) {
-          if (next[key] == null) {
-            setStyle(style, key, "");
-          }
-        }
-      } else {
-        for (const prevStyle of prev.split(";")) {
-          const key = prevStyle.slice(0, prevStyle.indexOf(":")).trim();
-          if (next[key] == null) {
-            setStyle(style, key, "");
-          }
-        }
-      }
-    }
-    for (const key in next) {
-      if (key === "display") {
-        hasControlledDisplay = true;
-      }
-      setStyle(style, key, next[key]);
-    }
-  } else {
-    if (isCssString) {
-      if (prev !== next) {
-        const cssVarText = style[CSS_VAR_TEXT];
-        if (cssVarText) {
-          next += ";" + cssVarText;
-        }
-        style.cssText = next;
-        hasControlledDisplay = displayRE.test(next);
-      }
-    } else if (prev) {
-      el.removeAttribute("style");
-    }
-  }
-  if (vShowOriginalDisplay in el) {
-    el[vShowOriginalDisplay] = hasControlledDisplay ? style.display : "";
-    if (el[vShowHidden]) {
-      style.display = "none";
-    }
-  }
-}
-const importantRE = /\s*!important$/;
-function setStyle(style, name, val) {
-  if (isArray(val)) {
-    val.forEach((v) => setStyle(style, name, v));
-  } else {
-    if (val == null) val = "";
-    if (name.startsWith("--")) {
-      style.setProperty(name, val);
-    } else {
-      const prefixed = autoPrefix(style, name);
-      if (importantRE.test(val)) {
-        style.setProperty(
-          hyphenate(prefixed),
-          val.replace(importantRE, ""),
-          "important"
-        );
-      } else {
-        style[prefixed] = val;
-      }
-    }
-  }
-}
-const prefixes = ["Webkit", "Moz", "ms"];
-const prefixCache = {};
-function autoPrefix(style, rawName) {
-  const cached = prefixCache[rawName];
-  if (cached) {
-    return cached;
-  }
-  let name = camelize(rawName);
-  if (name !== "filter" && name in style) {
-    return prefixCache[rawName] = name;
-  }
-  name = capitalize(name);
-  for (let i = 0; i < prefixes.length; i++) {
-    const prefixed = prefixes[i] + name;
-    if (prefixed in style) {
-      return prefixCache[rawName] = prefixed;
-    }
-  }
-  return rawName;
-}
-const xlinkNS = "http://www.w3.org/1999/xlink";
-function patchAttr(el, key, value, isSVG, instance, isBoolean2 = isSpecialBooleanAttr(key)) {
-  if (isSVG && key.startsWith("xlink:")) {
-    if (value == null) {
-      el.removeAttributeNS(xlinkNS, key.slice(6, key.length));
-    } else {
-      el.setAttributeNS(xlinkNS, key, value);
-    }
-  } else {
-    if (value == null || isBoolean2 && !includeBooleanAttr(value)) {
-      el.removeAttribute(key);
-    } else {
-      el.setAttribute(
-        key,
-        isBoolean2 ? "" : isSymbol(value) ? String(value) : value
-      );
-    }
-  }
-}
-function patchDOMProp(el, key, value, prevChildren, parentComponent, parentSuspense, unmountChildren) {
-  if (key === "innerHTML" || key === "textContent") {
-    if (prevChildren) {
-      unmountChildren(prevChildren, parentComponent, parentSuspense);
-    }
-    el[key] = value == null ? "" : value;
-    return;
-  }
-  const tag = el.tagName;
-  if (key === "value" && tag !== "PROGRESS" && // custom elements may use _value internally
-  !tag.includes("-")) {
-    const oldValue = tag === "OPTION" ? el.getAttribute("value") || "" : el.value;
-    const newValue = value == null ? "" : String(value);
-    if (oldValue !== newValue || !("_value" in el)) {
-      el.value = newValue;
-    }
-    if (value == null) {
-      el.removeAttribute(key);
-    }
-    el._value = value;
-    return;
-  }
-  let needRemove = false;
-  if (value === "" || value == null) {
-    const type = typeof el[key];
-    if (type === "boolean") {
-      value = includeBooleanAttr(value);
-    } else if (value == null && type === "string") {
-      value = "";
-      needRemove = true;
-    } else if (type === "number") {
-      value = 0;
-      needRemove = true;
-    }
-  }
-  try {
-    el[key] = value;
-  } catch (e) {
-  }
-  needRemove && el.removeAttribute(key);
-}
-function addEventListener(el, event, handler, options) {
-  el.addEventListener(event, handler, options);
-}
-function removeEventListener(el, event, handler, options) {
-  el.removeEventListener(event, handler, options);
-}
-const veiKey = Symbol("_vei");
-function patchEvent(el, rawName, prevValue, nextValue, instance = null) {
-  const invokers = el[veiKey] || (el[veiKey] = {});
-  const existingInvoker = invokers[rawName];
-  if (nextValue && existingInvoker) {
-    existingInvoker.value = nextValue;
-  } else {
-    const [name, options] = parseName(rawName);
-    if (nextValue) {
-      const invoker = invokers[rawName] = createInvoker(
-        nextValue,
-        instance
-      );
-      addEventListener(el, name, invoker, options);
-    } else if (existingInvoker) {
-      removeEventListener(el, name, existingInvoker, options);
-      invokers[rawName] = void 0;
-    }
-  }
-}
-const optionsModifierRE = /(?:Once|Passive|Capture)$/;
-function parseName(name) {
-  let options;
-  if (optionsModifierRE.test(name)) {
-    options = {};
-    let m;
-    while (m = name.match(optionsModifierRE)) {
-      name = name.slice(0, name.length - m[0].length);
-      options[m[0].toLowerCase()] = true;
-    }
-  }
-  const event = name[2] === ":" ? name.slice(3) : hyphenate(name.slice(2));
-  return [event, options];
-}
-let cachedNow = 0;
-const p = /* @__PURE__ */ Promise.resolve();
-const getNow = () => cachedNow || (p.then(() => cachedNow = 0), cachedNow = Date.now());
-function createInvoker(initialValue, instance) {
-  const invoker = (e) => {
-    if (!e._vts) {
-      e._vts = Date.now();
-    } else if (e._vts <= invoker.attached) {
-      return;
-    }
-    callWithAsyncErrorHandling(
-      patchStopImmediatePropagation(e, invoker.value),
-      instance,
-      5,
-      [e]
-    );
-  };
-  invoker.value = initialValue;
-  invoker.attached = getNow();
-  return invoker;
-}
-function patchStopImmediatePropagation(e, value) {
-  if (isArray(value)) {
-    const originalStop = e.stopImmediatePropagation;
-    e.stopImmediatePropagation = () => {
-      originalStop.call(e);
-      e._stopped = true;
-    };
-    return value.map(
-      (fn) => (e2) => !e2._stopped && fn && fn(e2)
-    );
-  } else {
-    return value;
-  }
-}
-const isNativeOn = (key) => key.charCodeAt(0) === 111 && key.charCodeAt(1) === 110 && // lowercase letter
-key.charCodeAt(2) > 96 && key.charCodeAt(2) < 123;
-const patchProp = (el, key, prevValue, nextValue, namespace, prevChildren, parentComponent, parentSuspense, unmountChildren) => {
-  const isSVG = namespace === "svg";
-  if (key === "class") {
-    patchClass(el, nextValue, isSVG);
-  } else if (key === "style") {
-    patchStyle(el, prevValue, nextValue);
-  } else if (isOn(key)) {
-    if (!isModelListener(key)) {
-      patchEvent(el, key, prevValue, nextValue, parentComponent);
-    }
-  } else if (key[0] === "." ? (key = key.slice(1), true) : key[0] === "^" ? (key = key.slice(1), false) : shouldSetAsProp(el, key, nextValue, isSVG)) {
-    patchDOMProp(
-      el,
-      key,
-      nextValue,
-      prevChildren,
-      parentComponent,
-      parentSuspense,
-      unmountChildren
-    );
-    if (!el.tagName.includes("-") && (key === "value" || key === "checked" || key === "selected")) {
-      patchAttr(el, key, nextValue, isSVG, parentComponent, key !== "value");
-    }
-  } else {
-    if (key === "true-value") {
-      el._trueValue = nextValue;
-    } else if (key === "false-value") {
-      el._falseValue = nextValue;
-    }
-    patchAttr(el, key, nextValue, isSVG);
-  }
-};
-function shouldSetAsProp(el, key, value, isSVG) {
-  if (isSVG) {
-    if (key === "innerHTML" || key === "textContent") {
-      return true;
-    }
-    if (key in el && isNativeOn(key) && isFunction$1(value)) {
-      return true;
-    }
-    return false;
-  }
-  if (key === "spellcheck" || key === "draggable" || key === "translate") {
-    return false;
-  }
-  if (key === "form") {
-    return false;
-  }
-  if (key === "list" && el.tagName === "INPUT") {
-    return false;
-  }
-  if (key === "type" && el.tagName === "TEXTAREA") {
-    return false;
-  }
-  if (key === "width" || key === "height") {
-    const tag = el.tagName;
-    if (tag === "IMG" || tag === "VIDEO" || tag === "CANVAS" || tag === "SOURCE") {
-      return false;
-    }
-  }
-  if (isNativeOn(key) && isString$1(value)) {
-    return false;
-  }
-  return key in el;
-}
-const rendererOptions = /* @__PURE__ */ extend({ patchProp }, nodeOps);
-let renderer;
-function ensureRenderer() {
-  return renderer || (renderer = createRenderer(rendererOptions));
-}
-const createApp = (...args) => {
-  const app = ensureRenderer().createApp(...args);
-  const { mount } = app;
-  app.mount = (containerOrSelector) => {
-    const container = normalizeContainer(containerOrSelector);
-    if (!container) return;
-    const component = app._component;
-    if (!isFunction$1(component) && !component.render && !component.template) {
-      component.template = container.innerHTML;
-    }
-    container.innerHTML = "";
-    const proxy = mount(container, false, resolveRootNamespace(container));
-    if (container instanceof Element) {
-      container.removeAttribute("v-cloak");
-      container.setAttribute("data-v-app", "");
-    }
-    return proxy;
-  };
-  return app;
-};
-function resolveRootNamespace(container) {
-  if (container instanceof SVGElement) {
-    return "svg";
-  }
-  if (typeof MathMLElement === "function" && container instanceof MathMLElement) {
-    return "mathml";
-  }
-}
-function normalizeContainer(container) {
-  if (isString$1(container)) {
-    const res = document.querySelector(container);
-    return res;
-  }
-  return container;
-}
 function isUndefined(obj) {
   return typeof obj === "undefined" || obj === void 0;
 }
@@ -6216,8 +579,8 @@ function parseOrderBy(args) {
   }
   throw new Error(`Invalid number of arguments at order by! expected 1-2, received ${args.length}`);
 }
-function parseOrderByItem(ref2, direction) {
-  const parsedRef = parseOrderByExpression(ref2);
+function parseOrderByItem(ref, direction) {
+  const parsedRef = parseOrderByExpression(ref);
   if (OrderByItemNode.is(parsedRef)) {
     if (direction) {
       throw new Error("Cannot specify direction twice!");
@@ -6233,12 +596,12 @@ function parseOrderByExpression(expr) {
   if (isDynamicReferenceBuilder(expr)) {
     return expr.toOperationNode();
   }
-  const [ref2, direction] = expr.split(" ");
+  const [ref, direction] = expr.split(" ");
   if (direction) {
     if (!isOrderByDirection(direction)) {
       throw new Error(`Invalid order by direction: ${direction}`);
     }
-    return OrderByItemNode.create(parseStringReference(ref2), parseOrderByDirectionExpression(direction));
+    return OrderByItemNode.create(parseStringReference(ref), parseOrderByDirectionExpression(direction));
   }
   return parseStringReference(expr);
 }
@@ -6324,8 +687,8 @@ function parseReferenceExpression(exp) {
   }
   return parseSimpleReferenceExpression(exp);
 }
-function parseJSONReference(ref2, op) {
-  const referenceNode = parseStringReference(ref2);
+function parseJSONReference(ref, op) {
+  const referenceNode = parseStringReference(ref);
   if (isJSONOperator(op)) {
     return JSONReferenceNode.create(referenceNode, JSONOperatorChainNode.create(OperatorNode.create(op)));
   }
@@ -6335,27 +698,27 @@ function parseJSONReference(ref2, op) {
   }
   throw new Error(`Invalid JSON operator: ${op}`);
 }
-function parseStringReference(ref2) {
+function parseStringReference(ref) {
   const COLUMN_SEPARATOR = ".";
-  if (!ref2.includes(COLUMN_SEPARATOR)) {
-    return ReferenceNode.create(ColumnNode.create(ref2));
+  if (!ref.includes(COLUMN_SEPARATOR)) {
+    return ReferenceNode.create(ColumnNode.create(ref));
   }
-  const parts = ref2.split(COLUMN_SEPARATOR).map(trim$2);
+  const parts = ref.split(COLUMN_SEPARATOR).map(trim$2);
   if (parts.length === 3) {
     return parseStringReferenceWithTableAndSchema(parts);
   }
   if (parts.length === 2) {
     return parseStringReferenceWithTable(parts);
   }
-  throw new Error(`invalid column reference ${ref2}`);
+  throw new Error(`invalid column reference ${ref}`);
 }
-function parseAliasedStringReference(ref2) {
+function parseAliasedStringReference(ref) {
   const ALIAS_SEPARATOR = " as ";
-  if (ref2.includes(ALIAS_SEPARATOR)) {
-    const [columnRef, alias] = ref2.split(ALIAS_SEPARATOR).map(trim$2);
+  if (ref.includes(ALIAS_SEPARATOR)) {
+    const [columnRef, alias] = ref.split(ALIAS_SEPARATOR).map(trim$2);
     return AliasNode.create(parseStringReference(columnRef), IdentifierNode.create(alias));
   } else {
-    return parseStringReference(ref2);
+    return parseStringReference(ref);
   }
 }
 function parseColumnName(column2) {
@@ -11225,10 +5588,10 @@ class MatchedThenableMergeQueryBuilder {
    *   update set metadata['has_pets'] = $1, "updated_at" = $2
    * ```
    */
-  thenUpdate(set2) {
+  thenUpdate(set) {
     return new WheneableMergeQueryBuilder({
       ...__privateGet(this, _props12),
-      queryNode: MergeQueryNode.cloneWithThen(__privateGet(this, _props12).queryNode, parseMergeThen(set2(new UpdateQueryBuilder({
+      queryNode: MergeQueryNode.cloneWithThen(__privateGet(this, _props12).queryNode, parseMergeThen(set(new UpdateQueryBuilder({
         queryId: __privateGet(this, _props12).queryId,
         executor: NOOP_QUERY_EXECUTOR,
         queryNode: UpdateQueryNode.createWithoutTable()
@@ -13264,10 +7627,10 @@ const _ColumnDefinitionBuilder = class _ColumnDefinitionBuilder {
    * col.references('person.id')
    * ```
    */
-  references(ref2) {
-    const references = parseStringReference(ref2);
+  references(ref) {
+    const references = parseStringReference(ref);
     if (!references.table || SelectAllNode.is(references.column)) {
-      throw new Error(`invalid call references('${ref2}'). The reference must have format table.column or schema.table.column`);
+      throw new Error(`invalid call references('${ref}'). The reference must have format table.column or schema.table.column`);
     }
     return new _ColumnDefinitionBuilder(ColumnDefinitionNode.cloneWith(__privateGet(this, _node6), {
       references: ReferencesNode.create(references.table, [
@@ -17882,7 +12245,7 @@ var BaseDialect = class {
 };
 var BaseDriver = class {
   constructor() {
-    __publicField(this, "connectionMutex", new ConnectionMutex$1());
+    __publicField(this, "connectionMutex", new ConnectionMutex());
     __publicField(this, "connection");
   }
   async acquireConnection() {
@@ -17902,7 +12265,7 @@ var BaseDriver = class {
     this.connectionMutex.unlock();
   }
 };
-var ConnectionMutex$1 = class ConnectionMutex {
+var ConnectionMutex = class {
   constructor() {
     __publicField(this, "promise");
     __publicField(this, "resolve");
@@ -17939,7 +12302,9 @@ function throttle(func, delay, maxCalls) {
   let callCount = 0;
   let lastArgs = null;
   function reset() {
-    timer && clearTimeout(timer);
+    if (timer) {
+      clearTimeout(timer);
+    }
     callCount = 0;
     lastArgs = null;
   }
@@ -17948,7 +12313,9 @@ function throttle(func, delay, maxCalls) {
       func(lastArgs);
       reset();
     } else {
-      timer && clearTimeout(timer);
+      if (timer) {
+        clearTimeout(timer);
+      }
       timer = setTimeout(() => {
         func(lastArgs);
         reset();
@@ -18032,7 +12399,9 @@ var SqlJsConnection = class extends BaseSqliteConnection {
     } finally {
       _stmt.free();
     }
-    this.trxCount === 0 && this.onWrite?.(this.db.export());
+    if (this.trxCount === 0) {
+      this.onWrite?.(this.db.export());
+    }
     return {
       insertId: BigInt(id),
       numAffectedRows: BigInt(this.db.getRowsModified())
@@ -18082,12 +12451,12 @@ function getAugmentedNamespace(n) {
   return a;
 }
 var sqlWasm = { exports: {} };
-const __viteBrowserExternal = {};
-const __viteBrowserExternal$1 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
+var __viteBrowserExternal = {};
+var __viteBrowserExternal$1 = /* @__PURE__ */ Object.freeze({
   __proto__: null,
   default: __viteBrowserExternal
-}, Symbol.toStringTag, { value: "Module" }));
-const require$$2 = /* @__PURE__ */ getAugmentedNamespace(__viteBrowserExternal$1);
+});
+var require$$2 = /* @__PURE__ */ getAugmentedNamespace(__viteBrowserExternal$1);
 (function(module, exports) {
   var initSqlJsPromise = void 0;
   var initSqlJs = function(moduleConfig) {
@@ -18109,41 +12478,42 @@ const require$$2 = /* @__PURE__ */ getAugmentedNamespace(__viteBrowserExternal$1
       });
       module = void 0;
       var f;
-      f || (f = typeof Module !== "undefined" ? Module : {});
+      f || (f = typeof Module != "undefined" ? Module : {});
+      var aa = "object" == typeof window, ba = "function" == typeof importScripts, ca = "object" == typeof process && "object" == typeof process.versions && "string" == typeof process.versions.node;
       f.onRuntimeInitialized = function() {
         function a(g, l) {
           switch (typeof l) {
             case "boolean":
-              mc(g, l ? 1 : 0);
+              fc(g, l ? 1 : 0);
               break;
             case "number":
-              nc(g, l);
+              gc(g, l);
               break;
             case "string":
-              oc(g, l, -1, -1);
+              hc(g, l, -1, -1);
               break;
             case "object":
-              if (null === l) lb(g);
+              if (null === l) ib(g);
               else if (null != l.length) {
-                var n = aa(l, ba);
-                pc(g, n, l.length, -1);
-                ca(n);
-              } else Aa(g, "Wrong API use : tried to return a value of an unknown type (" + l + ").", -1);
+                var n = da(l, ea);
+                ic(g, n, l.length, -1);
+                fa(n);
+              } else xa(g, "Wrong API use : tried to return a value of an unknown type (" + l + ").", -1);
               break;
             default:
-              lb(g);
+              ib(g);
           }
         }
         function b(g, l) {
           for (var n = [], t = 0; t < g; t += 1) {
-            var w = m(l + 4 * t, "i32"), z = qc(w);
-            if (1 === z || 2 === z) w = rc(w);
-            else if (3 === z) w = sc(w);
-            else if (4 === z) {
-              z = w;
-              w = tc(z);
-              z = uc(z);
-              for (var N = new Uint8Array(w), L = 0; L < w; L += 1) N[L] = p2[z + L];
+            var w = m(l + 4 * t, "i32"), A = jc(w);
+            if (1 === A || 2 === A) w = kc(w);
+            else if (3 === A) w = lc(w);
+            else if (4 === A) {
+              A = w;
+              w = mc(A);
+              A = nc(A);
+              for (var N = new Uint8Array(w), M = 0; M < w; M += 1) N[M] = p[A + M];
               w = N;
             } else w = null;
             n.push(w);
@@ -18151,72 +12521,72 @@ const require$$2 = /* @__PURE__ */ getAugmentedNamespace(__viteBrowserExternal$1
           return n;
         }
         function c(g, l) {
-          this.La = g;
+          this.Ka = g;
           this.db = l;
-          this.Ja = 1;
-          this.fb = [];
+          this.Ia = 1;
+          this.eb = [];
         }
         function d(g, l) {
           this.db = l;
-          l = da(g) + 1;
-          this.Ya = ea(l);
-          if (null === this.Ya) throw Error("Unable to allocate memory for the SQL string");
-          fa(g, q, this.Ya, l);
-          this.eb = this.Ya;
-          this.Ua = this.ib = null;
+          l = ha(g) + 1;
+          this.Xa = ia(l);
+          if (null === this.Xa) throw Error("Unable to allocate memory for the SQL string");
+          q(g, u, this.Xa, l);
+          this.cb = this.Xa;
+          this.Ta = this.hb = null;
         }
         function e(g) {
           this.filename = "dbfile_" + (4294967295 * Math.random() >>> 0);
           if (null != g) {
             var l = this.filename, n = "/", t = l;
-            n && (n = "string" == typeof n ? n : ha(n), t = l ? u(n + "/" + l) : n);
-            l = ia(true, true);
-            t = ja(t, (void 0 !== l ? l : 438) & 4095 | 32768, 0);
+            n && (n = "string" == typeof n ? n : ja(n), t = l ? x(n + "/" + l) : n);
+            l = ka(true, true);
+            t = la(t, (void 0 !== l ? l : 438) & 4095 | 32768, 0);
             if (g) {
               if ("string" == typeof g) {
                 n = Array(g.length);
-                for (var w = 0, z = g.length; w < z; ++w) n[w] = g.charCodeAt(w);
+                for (var w = 0, A = g.length; w < A; ++w) n[w] = g.charCodeAt(w);
                 g = n;
               }
-              ka(t, l | 146);
-              n = la(t, 577);
-              ma(n, g, 0, g.length, 0);
-              na(n);
-              ka(t, l);
+              ma(t, l | 146);
+              n = na(t, 577);
+              oa(n, g, 0, g.length, 0);
+              pa(n);
+              ma(t, l);
             }
           }
           this.handleError(r(this.filename, h));
           this.db = m(h, "i32");
-          ob(this.db);
-          this.Za = {};
-          this.Na = {};
+          lb(this.db);
+          this.Ya = {};
+          this.Ma = {};
         }
-        var h = x(4), k = f.cwrap, r = k("sqlite3_open", "number", ["string", "number"]), y = k("sqlite3_close_v2", "number", ["number"]), v = k("sqlite3_exec", "number", ["number", "string", "number", "number", "number"]), F = k(
+        var h = y(4), k = f.cwrap, r = k("sqlite3_open", "number", ["string", "number"]), z = k("sqlite3_close_v2", "number", ["number"]), v = k("sqlite3_exec", "number", ["number", "string", "number", "number", "number"]), E = k(
           "sqlite3_changes",
           "number",
           ["number"]
-        ), H = k("sqlite3_prepare_v2", "number", ["number", "string", "number", "number", "number"]), pb = k("sqlite3_sql", "string", ["number"]), vc = k("sqlite3_normalized_sql", "string", ["number"]), qb = k("sqlite3_prepare_v2", "number", ["number", "number", "number", "number", "number"]), wc = k("sqlite3_bind_text", "number", ["number", "number", "number", "number", "number"]), rb = k("sqlite3_bind_blob", "number", ["number", "number", "number", "number", "number"]), xc = k("sqlite3_bind_double", "number", ["number", "number", "number"]), yc = k("sqlite3_bind_int", "number", ["number", "number", "number"]), zc = k("sqlite3_bind_parameter_index", "number", ["number", "string"]), Ac = k("sqlite3_step", "number", ["number"]), Bc = k("sqlite3_errmsg", "string", ["number"]), Cc = k("sqlite3_column_count", "number", ["number"]), Dc = k("sqlite3_data_count", "number", ["number"]), Ec = k("sqlite3_column_double", "number", ["number", "number"]), sb = k("sqlite3_column_text", "string", ["number", "number"]), Fc = k("sqlite3_column_blob", "number", ["number", "number"]), Gc = k(
+        ), H = k("sqlite3_prepare_v2", "number", ["number", "string", "number", "number", "number"]), mb = k("sqlite3_sql", "string", ["number"]), oc = k("sqlite3_normalized_sql", "string", ["number"]), nb = k("sqlite3_prepare_v2", "number", ["number", "number", "number", "number", "number"]), pc = k("sqlite3_bind_text", "number", ["number", "number", "number", "number", "number"]), ob = k("sqlite3_bind_blob", "number", ["number", "number", "number", "number", "number"]), qc = k("sqlite3_bind_double", "number", ["number", "number", "number"]), rc = k("sqlite3_bind_int", "number", ["number", "number", "number"]), sc = k("sqlite3_bind_parameter_index", "number", ["number", "string"]), tc = k("sqlite3_step", "number", ["number"]), uc = k("sqlite3_errmsg", "string", ["number"]), vc = k("sqlite3_column_count", "number", ["number"]), wc = k("sqlite3_data_count", "number", ["number"]), xc = k("sqlite3_column_double", "number", ["number", "number"]), pb = k("sqlite3_column_text", "string", ["number", "number"]), yc = k("sqlite3_column_blob", "number", ["number", "number"]), zc = k(
           "sqlite3_column_bytes",
           "number",
           ["number", "number"]
-        ), Hc = k("sqlite3_column_type", "number", ["number", "number"]), Ic = k("sqlite3_column_name", "string", ["number", "number"]), Jc = k("sqlite3_reset", "number", ["number"]), Kc = k("sqlite3_clear_bindings", "number", ["number"]), Lc = k("sqlite3_finalize", "number", ["number"]), tb = k("sqlite3_create_function_v2", "number", "number string number number number number number number number".split(" ")), qc = k("sqlite3_value_type", "number", ["number"]), tc = k("sqlite3_value_bytes", "number", ["number"]), sc = k(
+        ), Ac = k("sqlite3_column_type", "number", ["number", "number"]), Bc = k("sqlite3_column_name", "string", ["number", "number"]), Cc = k("sqlite3_reset", "number", ["number"]), Dc = k("sqlite3_clear_bindings", "number", ["number"]), Ec = k("sqlite3_finalize", "number", ["number"]), qb = k("sqlite3_create_function_v2", "number", "number string number number number number number number number".split(" ")), jc = k("sqlite3_value_type", "number", ["number"]), mc = k("sqlite3_value_bytes", "number", ["number"]), lc = k(
           "sqlite3_value_text",
           "string",
           ["number"]
-        ), uc = k("sqlite3_value_blob", "number", ["number"]), rc = k("sqlite3_value_double", "number", ["number"]), nc = k("sqlite3_result_double", "", ["number", "number"]), lb = k("sqlite3_result_null", "", ["number"]), oc = k("sqlite3_result_text", "", ["number", "string", "number", "number"]), pc = k("sqlite3_result_blob", "", ["number", "number", "number", "number"]), mc = k("sqlite3_result_int", "", ["number", "number"]), Aa = k("sqlite3_result_error", "", ["number", "string", "number"]), ub = k(
+        ), nc = k("sqlite3_value_blob", "number", ["number"]), kc = k("sqlite3_value_double", "number", ["number"]), gc = k("sqlite3_result_double", "", ["number", "number"]), ib = k("sqlite3_result_null", "", ["number"]), hc = k("sqlite3_result_text", "", ["number", "string", "number", "number"]), ic = k("sqlite3_result_blob", "", ["number", "number", "number", "number"]), fc = k("sqlite3_result_int", "", ["number", "number"]), xa = k("sqlite3_result_error", "", ["number", "string", "number"]), rb = k(
           "sqlite3_aggregate_context",
           "number",
           ["number", "number"]
-        ), ob = k("RegisterExtensionFunctions", "number", ["number"]);
+        ), lb = k("RegisterExtensionFunctions", "number", ["number"]);
         c.prototype.bind = function(g) {
-          if (!this.La) throw "Statement closed";
+          if (!this.Ka) throw "Statement closed";
           this.reset();
-          return Array.isArray(g) ? this.wb(g) : null != g && "object" === typeof g ? this.xb(g) : true;
+          return Array.isArray(g) ? this.vb(g) : null != g && "object" === typeof g ? this.wb(g) : true;
         };
         c.prototype.step = function() {
-          if (!this.La) throw "Statement closed";
-          this.Ja = 1;
-          var g = Ac(this.La);
+          if (!this.Ka) throw "Statement closed";
+          this.Ia = 1;
+          var g = tc(this.Ka);
           switch (g) {
             case 100:
               return true;
@@ -18226,41 +12596,41 @@ const require$$2 = /* @__PURE__ */ getAugmentedNamespace(__viteBrowserExternal$1
               throw this.db.handleError(g);
           }
         };
-        c.prototype.rb = function(g) {
-          null == g && (g = this.Ja, this.Ja += 1);
-          return Ec(this.La, g);
+        c.prototype.qb = function(g) {
+          null == g && (g = this.Ia, this.Ia += 1);
+          return xc(this.Ka, g);
         };
-        c.prototype.Ab = function(g) {
-          null == g && (g = this.Ja, this.Ja += 1);
-          g = sb(this.La, g);
+        c.prototype.zb = function(g) {
+          null == g && (g = this.Ia, this.Ia += 1);
+          g = pb(this.Ka, g);
           if ("function" !== typeof BigInt) throw Error("BigInt is not supported");
           return BigInt(g);
         };
-        c.prototype.Bb = function(g) {
-          null == g && (g = this.Ja, this.Ja += 1);
-          return sb(this.La, g);
+        c.prototype.Ab = function(g) {
+          null == g && (g = this.Ia, this.Ia += 1);
+          return pb(this.Ka, g);
         };
         c.prototype.getBlob = function(g) {
-          null == g && (g = this.Ja, this.Ja += 1);
-          var l = Gc(this.La, g);
-          g = Fc(this.La, g);
-          for (var n = new Uint8Array(l), t = 0; t < l; t += 1) n[t] = p2[g + t];
+          null == g && (g = this.Ia, this.Ia += 1);
+          var l = zc(this.Ka, g);
+          g = yc(this.Ka, g);
+          for (var n = new Uint8Array(l), t = 0; t < l; t += 1) n[t] = p[g + t];
           return n;
         };
         c.prototype.get = function(g, l) {
           l = l || {};
           null != g && this.bind(g) && this.step();
           g = [];
-          for (var n = Dc(this.La), t = 0; t < n; t += 1) switch (Hc(this.La, t)) {
+          for (var n = wc(this.Ka), t = 0; t < n; t += 1) switch (Ac(this.Ka, t)) {
             case 1:
-              var w = l.useBigInt ? this.Ab(t) : this.rb(t);
+              var w = l.useBigInt ? this.zb(t) : this.qb(t);
               g.push(w);
               break;
             case 2:
-              g.push(this.rb(t));
+              g.push(this.qb(t));
               break;
             case 3:
-              g.push(this.Bb(t));
+              g.push(this.Ab(t));
               break;
             case 4:
               g.push(this.getBlob(t));
@@ -18271,7 +12641,7 @@ const require$$2 = /* @__PURE__ */ getAugmentedNamespace(__viteBrowserExternal$1
           return g;
         };
         c.prototype.getColumnNames = function() {
-          for (var g = [], l = Cc(this.La), n = 0; n < l; n += 1) g.push(Ic(this.La, n));
+          for (var g = [], l = vc(this.Ka), n = 0; n < l; n += 1) g.push(Bc(this.Ka, n));
           return g;
         };
         c.prototype.getAsObject = function(g, l) {
@@ -18281,117 +12651,117 @@ const require$$2 = /* @__PURE__ */ getAugmentedNamespace(__viteBrowserExternal$1
           return n;
         };
         c.prototype.getSQL = function() {
-          return pb(this.La);
+          return mb(this.Ka);
         };
         c.prototype.getNormalizedSQL = function() {
-          return vc(this.La);
+          return oc(this.Ka);
         };
         c.prototype.run = function(g) {
           null != g && this.bind(g);
           this.step();
           return this.reset();
         };
-        c.prototype.nb = function(g, l) {
-          null == l && (l = this.Ja, this.Ja += 1);
-          g = oa(g);
-          var n = aa(g, ba);
-          this.fb.push(n);
-          this.db.handleError(wc(this.La, l, n, g.length - 1, 0));
-        };
-        c.prototype.vb = function(g, l) {
-          null == l && (l = this.Ja, this.Ja += 1);
-          var n = aa(g, ba);
-          this.fb.push(n);
-          this.db.handleError(rb(this.La, l, n, g.length, 0));
-        };
         c.prototype.mb = function(g, l) {
-          null == l && (l = this.Ja, this.Ja += 1);
-          this.db.handleError((g === (g | 0) ? yc : xc)(this.La, l, g));
+          null == l && (l = this.Ia, this.Ia += 1);
+          g = qa(g);
+          var n = da(g, ea);
+          this.eb.push(n);
+          this.db.handleError(pc(this.Ka, l, n, g.length - 1, 0));
         };
-        c.prototype.yb = function(g) {
-          null == g && (g = this.Ja, this.Ja += 1);
-          rb(this.La, g, 0, 0, 0);
+        c.prototype.ub = function(g, l) {
+          null == l && (l = this.Ia, this.Ia += 1);
+          var n = da(g, ea);
+          this.eb.push(n);
+          this.db.handleError(ob(this.Ka, l, n, g.length, 0));
         };
-        c.prototype.ob = function(g, l) {
-          null == l && (l = this.Ja, this.Ja += 1);
+        c.prototype.lb = function(g, l) {
+          null == l && (l = this.Ia, this.Ia += 1);
+          this.db.handleError((g === (g | 0) ? rc : qc)(this.Ka, l, g));
+        };
+        c.prototype.xb = function(g) {
+          null == g && (g = this.Ia, this.Ia += 1);
+          ob(this.Ka, g, 0, 0, 0);
+        };
+        c.prototype.nb = function(g, l) {
+          null == l && (l = this.Ia, this.Ia += 1);
           switch (typeof g) {
             case "string":
-              this.nb(g, l);
-              return;
-            case "number":
               this.mb(g, l);
               return;
+            case "number":
+              this.lb(g, l);
+              return;
             case "bigint":
-              this.nb(g.toString(), l);
+              this.mb(g.toString(), l);
               return;
             case "boolean":
-              this.mb(g + 0, l);
+              this.lb(g + 0, l);
               return;
             case "object":
               if (null === g) {
-                this.yb(l);
+                this.xb(l);
                 return;
               }
               if (null != g.length) {
-                this.vb(g, l);
+                this.ub(g, l);
                 return;
               }
           }
           throw "Wrong API use : tried to bind a value of an unknown type (" + g + ").";
         };
-        c.prototype.xb = function(g) {
+        c.prototype.wb = function(g) {
           var l = this;
           Object.keys(g).forEach(function(n) {
-            var t = zc(l.La, n);
-            0 !== t && l.ob(g[n], t);
+            var t = sc(l.Ka, n);
+            0 !== t && l.nb(g[n], t);
           });
           return true;
         };
-        c.prototype.wb = function(g) {
-          for (var l = 0; l < g.length; l += 1) this.ob(g[l], l + 1);
+        c.prototype.vb = function(g) {
+          for (var l = 0; l < g.length; l += 1) this.nb(g[l], l + 1);
           return true;
         };
         c.prototype.reset = function() {
           this.freemem();
-          return 0 === Kc(this.La) && 0 === Jc(this.La);
+          return 0 === Dc(this.Ka) && 0 === Cc(this.Ka);
         };
         c.prototype.freemem = function() {
-          for (var g; void 0 !== (g = this.fb.pop()); ) ca(g);
+          for (var g; void 0 !== (g = this.eb.pop()); ) fa(g);
         };
         c.prototype.free = function() {
           this.freemem();
-          var g = 0 === Lc(this.La);
-          delete this.db.Za[this.La];
-          this.La = 0;
+          var g = 0 === Ec(this.Ka);
+          delete this.db.Ya[this.Ka];
+          this.Ka = 0;
           return g;
         };
         d.prototype.next = function() {
-          if (null === this.Ya) return { done: true };
-          null !== this.Ua && (this.Ua.free(), this.Ua = null);
-          if (!this.db.db) throw this.gb(), Error("Database closed");
-          var g = pa(), l = x(4);
-          qa(h);
-          qa(l);
+          if (null === this.Xa) return { done: true };
+          null !== this.Ta && (this.Ta.free(), this.Ta = null);
+          if (!this.db.db) throw this.fb(), Error("Database closed");
+          var g = ra(), l = y(4);
+          sa(h);
+          sa(l);
           try {
-            this.db.handleError(qb(this.db.db, this.eb, -1, h, l));
-            this.eb = m(l, "i32");
+            this.db.handleError(nb(this.db.db, this.cb, -1, h, l));
+            this.cb = m(l, "i32");
             var n = m(h, "i32");
-            if (0 === n) return this.gb(), { done: true };
-            this.Ua = new c(n, this.db);
-            this.db.Za[n] = this.Ua;
-            return { value: this.Ua, done: false };
+            if (0 === n) return this.fb(), { done: true };
+            this.Ta = new c(n, this.db);
+            this.db.Ya[n] = this.Ta;
+            return { value: this.Ta, done: false };
           } catch (t) {
-            throw this.ib = ra(this.eb), this.gb(), t;
+            throw this.hb = ta(this.cb), this.fb(), t;
           } finally {
-            sa(g);
+            ua(g);
           }
         };
-        d.prototype.gb = function() {
-          ca(this.Ya);
-          this.Ya = null;
+        d.prototype.fb = function() {
+          fa(this.Xa);
+          this.Xa = null;
         };
         d.prototype.getRemainingSQL = function() {
-          return null !== this.ib ? this.ib : ra(this.eb);
+          return null !== this.hb ? this.hb : ta(this.cb);
         };
         "function" === typeof Symbol && "symbol" === typeof Symbol.iterator && (d.prototype[Symbol.iterator] = function() {
           return this;
@@ -18410,24 +12780,24 @@ const require$$2 = /* @__PURE__ */ getAugmentedNamespace(__viteBrowserExternal$1
         };
         e.prototype.exec = function(g, l, n) {
           if (!this.db) throw "Database closed";
-          var t = pa(), w = null;
+          var t = ra(), w = null;
           try {
-            var z = ta(g), N = x(4);
-            for (g = []; 0 !== m(z, "i8"); ) {
-              qa(h);
-              qa(N);
-              this.handleError(qb(
+            var A = va(g), N = y(4);
+            for (g = []; 0 !== m(A, "i8"); ) {
+              sa(h);
+              sa(N);
+              this.handleError(nb(
                 this.db,
-                z,
+                A,
                 -1,
                 h,
                 N
               ));
-              var L = m(h, "i32");
-              z = m(N, "i32");
-              if (0 !== L) {
+              var M = m(h, "i32");
+              A = m(N, "i32");
+              if (0 !== M) {
                 var K = null;
-                w = new c(L, this);
+                w = new c(M, this);
                 for (null != l && w.bind(l); w.step(); ) null === K && (K = { columns: w.getColumnNames(), values: [] }, g.push(K)), K.values.push(w.get(null, n));
                 w.free();
               }
@@ -18436,7 +12806,7 @@ const require$$2 = /* @__PURE__ */ getAugmentedNamespace(__viteBrowserExternal$1
           } catch (O) {
             throw w && w.free(), O;
           } finally {
-            sa(t);
+            ua(t);
           }
         };
         e.prototype.each = function(g, l, n, t, w) {
@@ -18450,60 +12820,60 @@ const require$$2 = /* @__PURE__ */ getAugmentedNamespace(__viteBrowserExternal$1
           if ("function" === typeof t) return t();
         };
         e.prototype.prepare = function(g, l) {
-          qa(h);
+          sa(h);
           this.handleError(H(this.db, g, -1, h, 0));
           g = m(h, "i32");
           if (0 === g) throw "Nothing to prepare";
           var n = new c(g, this);
           null != l && n.bind(l);
-          return this.Za[g] = n;
+          return this.Ya[g] = n;
         };
         e.prototype.iterateStatements = function(g) {
           return new d(g, this);
         };
         e.prototype["export"] = function() {
-          Object.values(this.Za).forEach(function(l) {
+          Object.values(this.Ya).forEach(function(l) {
             l.free();
           });
-          Object.values(this.Na).forEach(ua);
-          this.Na = {};
-          this.handleError(y(this.db));
-          var g = va(this.filename);
+          Object.values(this.Ma).forEach(wa);
+          this.Ma = {};
+          this.handleError(z(this.db));
+          var g = ya(this.filename);
           this.handleError(r(this.filename, h));
           this.db = m(h, "i32");
-          ob(this.db);
+          lb(this.db);
           return g;
         };
         e.prototype.close = function() {
-          null !== this.db && (Object.values(this.Za).forEach(function(g) {
+          null !== this.db && (Object.values(this.Ya).forEach(function(g) {
             g.free();
-          }), Object.values(this.Na).forEach(ua), this.Na = {}, this.handleError(y(this.db)), wa("/" + this.filename), this.db = null);
+          }), Object.values(this.Ma).forEach(wa), this.Ma = {}, this.handleError(z(this.db)), za("/" + this.filename), this.db = null);
         };
         e.prototype.handleError = function(g) {
           if (0 === g) return null;
-          g = Bc(this.db);
+          g = uc(this.db);
           throw Error(g);
         };
         e.prototype.getRowsModified = function() {
-          return F(this.db);
+          return E(this.db);
         };
         e.prototype.create_function = function(g, l) {
-          Object.prototype.hasOwnProperty.call(this.Na, g) && (ua(this.Na[g]), delete this.Na[g]);
-          var n = xa(function(t, w, z) {
-            w = b(w, z);
+          Object.prototype.hasOwnProperty.call(this.Ma, g) && (wa(this.Ma[g]), delete this.Ma[g]);
+          var n = Aa(function(t, w, A) {
+            w = b(w, A);
             try {
               var N = l.apply(
                 null,
                 w
               );
-            } catch (L) {
-              Aa(t, L, -1);
+            } catch (M) {
+              xa(t, M, -1);
               return;
             }
             a(t, N);
           }, "viii");
-          this.Na[g] = n;
-          this.handleError(tb(this.db, g, l.length, 1, 0, n, 0, 0, 0));
+          this.Ma[g] = n;
+          this.handleError(qb(this.db, g, l.length, 1, 0, n, 0, 0, 0));
           return this;
         };
         e.prototype.create_aggregate = function(g, l) {
@@ -18513,217 +12883,190 @@ const require$$2 = /* @__PURE__ */ getAugmentedNamespace(__viteBrowserExternal$1
             return K;
           }, w = l.step;
           if (!w) throw "An aggregate function must have a step function in " + g;
-          var z = {};
-          Object.hasOwnProperty.call(this.Na, g) && (ua(this.Na[g]), delete this.Na[g]);
+          var A = {};
+          Object.hasOwnProperty.call(this.Ma, g) && (wa(this.Ma[g]), delete this.Ma[g]);
           l = g + "__finalize";
-          Object.hasOwnProperty.call(this.Na, l) && (ua(this.Na[l]), delete this.Na[l]);
-          var N = xa(function(K, O, Ua) {
-            var X = ub(K, 1);
-            Object.hasOwnProperty.call(z, X) || (z[X] = n());
-            O = b(O, Ua);
-            O = [z[X]].concat(O);
+          Object.hasOwnProperty.call(this.Ma, l) && (wa(this.Ma[l]), delete this.Ma[l]);
+          var N = Aa(function(K, O, Ra) {
+            var Y = rb(K, 1);
+            Object.hasOwnProperty.call(A, Y) || (A[Y] = n());
+            O = b(O, Ra);
+            O = [A[Y]].concat(O);
             try {
-              z[X] = w.apply(null, O);
-            } catch (Nc) {
-              delete z[X], Aa(K, Nc, -1);
+              A[Y] = w.apply(null, O);
+            } catch (Gc) {
+              delete A[Y], xa(K, Gc, -1);
             }
-          }, "viii"), L = xa(function(K) {
-            var O = ub(K, 1);
+          }, "viii"), M = Aa(function(K) {
+            var O = rb(K, 1);
             try {
-              var Ua = t(z[O]);
-            } catch (X) {
-              delete z[O];
-              Aa(K, X, -1);
+              var Ra = t(A[O]);
+            } catch (Y) {
+              delete A[O];
+              xa(K, Y, -1);
               return;
             }
-            a(K, Ua);
-            delete z[O];
+            a(K, Ra);
+            delete A[O];
           }, "vi");
-          this.Na[g] = N;
-          this.Na[l] = L;
-          this.handleError(tb(this.db, g, w.length - 1, 1, 0, 0, N, L, 0));
+          this.Ma[g] = N;
+          this.Ma[l] = M;
+          this.handleError(qb(this.db, g, w.length - 1, 1, 0, 0, N, M, 0));
           return this;
         };
         f.Database = e;
       };
-      var ya = Object.assign({}, f), za = "./this.program", Ba = "object" == typeof window, Ca = "function" == typeof importScripts, Da = "object" == typeof process && "object" == typeof process.versions && "string" == typeof process.versions.node, A = "", Ea, Fa, Ga;
-      if (Da) {
-        var fs = require$$2, Ha = require$$2;
-        A = Ca ? Ha.dirname(A) + "/" : __dirname + "/";
-        Ea = (a, b) => {
-          a = Ia(a) ? new URL(a) : Ha.normalize(a);
-          return fs.readFileSync(a, b ? void 0 : "utf8");
+      var Ba = Object.assign({}, f), Ca = "./this.program", B = "", Da, Ea;
+      if (ca) {
+        var fs = require$$2, Fa = require$$2;
+        B = __dirname + "/";
+        Ea = (a) => {
+          a = Ga(a) ? new URL(a) : Fa.normalize(a);
+          return fs.readFileSync(a);
         };
-        Ga = (a) => {
-          a = Ea(a, true);
-          a.buffer || (a = new Uint8Array(a));
-          return a;
-        };
-        Fa = (a, b, c, d = true) => {
-          a = Ia(a) ? new URL(a) : Ha.normalize(a);
-          fs.readFile(a, d ? void 0 : "utf8", (e, h) => {
-            e ? c(e) : b(d ? h.buffer : h);
+        Da = (a) => {
+          a = Ga(a) ? new URL(a) : Fa.normalize(a);
+          return new Promise((b, c) => {
+            fs.readFile(a, void 0, (d, e) => {
+              d ? c(d) : b(e.buffer);
+            });
           });
         };
-        !f.thisProgram && 1 < process.argv.length && (za = process.argv[1].replace(/\\/g, "/"));
+        !f.thisProgram && 1 < process.argv.length && (Ca = process.argv[1].replace(/\\/g, "/"));
         process.argv.slice(2);
         module.exports = f;
-        f.inspect = () => "[Emscripten Module object]";
-      } else if (Ba || Ca) Ca ? A = self.location.href : "undefined" != typeof document && document.currentScript && (A = document.currentScript.src), A = 0 !== A.indexOf("blob:") ? A.substr(0, A.replace(/[?#].*/, "").lastIndexOf("/") + 1) : "", Ea = (a) => {
-        var b = new XMLHttpRequest();
-        b.open("GET", a, false);
-        b.send(null);
-        return b.responseText;
-      }, Ca && (Ga = (a) => {
+      } else if (aa || ba) ba ? B = self.location.href : "undefined" != typeof document && document.currentScript && (B = document.currentScript.src), B = B.startsWith("blob:") ? "" : B.substr(0, B.replace(/[?#].*/, "").lastIndexOf("/") + 1), ba && (Ea = (a) => {
         var b = new XMLHttpRequest();
         b.open("GET", a, false);
         b.responseType = "arraybuffer";
         b.send(null);
         return new Uint8Array(b.response);
-      }), Fa = (a, b, c) => {
+      }), Da = (a) => Ga(a) ? new Promise((b, c) => {
         var d = new XMLHttpRequest();
-        d.open(
-          "GET",
-          a,
-          true
-        );
+        d.open("GET", a, true);
         d.responseType = "arraybuffer";
         d.onload = () => {
-          200 == d.status || 0 == d.status && d.response ? b(d.response) : c();
+          (200 == d.status || 0 == d.status && d.response) && c(d.response);
+          b(d.status);
         };
-        d.onerror = c;
+        d.onerror = b;
         d.send(null);
-      };
-      var Ja = f.print || console.log.bind(console), B = f.printErr || console.error.bind(console);
-      Object.assign(f, ya);
-      ya = null;
-      f.thisProgram && (za = f.thisProgram);
-      var Ka;
-      f.wasmBinary && (Ka = f.wasmBinary);
-      "object" != typeof WebAssembly && C("no native wasm support detected");
-      var La, Ma = false, p2, q, Na, D, E, Oa, Pa;
-      function Qa() {
-        var a = La.buffer;
-        f.HEAP8 = p2 = new Int8Array(a);
-        f.HEAP16 = Na = new Int16Array(a);
-        f.HEAPU8 = q = new Uint8Array(a);
+      }) : fetch(a, { credentials: "same-origin" }).then((b) => b.ok ? b.arrayBuffer() : Promise.reject(Error(b.status + " : " + b.url)));
+      var Ha = f.print || console.log.bind(console), C = f.printErr || console.error.bind(console);
+      Object.assign(f, Ba);
+      Ba = null;
+      f.thisProgram && (Ca = f.thisProgram);
+      var Ia;
+      f.wasmBinary && (Ia = f.wasmBinary);
+      var Ja, Ka = false, p, u, La, D, F, Ma, Na;
+      function Oa() {
+        var a = Ja.buffer;
+        f.HEAP8 = p = new Int8Array(a);
+        f.HEAP16 = La = new Int16Array(a);
+        f.HEAPU8 = u = new Uint8Array(a);
         f.HEAPU16 = new Uint16Array(a);
         f.HEAP32 = D = new Int32Array(a);
-        f.HEAPU32 = E = new Uint32Array(a);
-        f.HEAPF32 = Oa = new Float32Array(a);
-        f.HEAPF64 = Pa = new Float64Array(a);
+        f.HEAPU32 = F = new Uint32Array(a);
+        f.HEAPF32 = Ma = new Float32Array(a);
+        f.HEAPF64 = Na = new Float64Array(a);
       }
-      var Ra = [], Sa = [], Ta = [];
-      function Va() {
+      var Pa = [], Qa = [], Sa = [];
+      function Ta() {
         var a = f.preRun.shift();
-        Ra.unshift(a);
+        Pa.unshift(a);
       }
-      var G = 0, Xa = null;
-      function C(a) {
+      var Ua = 0, Wa = null;
+      function G(a) {
         f.onAbort?.(a);
         a = "Aborted(" + a + ")";
-        B(a);
-        Ma = true;
+        C(a);
+        Ka = true;
         throw new WebAssembly.RuntimeError(a + ". Build with -sASSERTIONS for more info.");
       }
-      var Ya = (a) => a.startsWith("data:application/octet-stream;base64,"), Ia = (a) => a.startsWith("file://"), Za;
-      Za = "sql-wasm.wasm";
-      if (!Ya(Za)) {
-        var $a = Za;
-        Za = f.locateFile ? f.locateFile($a, A) : A + $a;
-      }
-      function ab(a) {
-        if (a == Za && Ka) return new Uint8Array(Ka);
-        if (Ga) return Ga(a);
+      var Xa = (a) => a.startsWith("data:application/octet-stream;base64,"), Ga = (a) => a.startsWith("file://"), Ya;
+      function Za(a) {
+        if (a == Ya && Ia) return new Uint8Array(Ia);
+        if (Ea) return Ea(a);
         throw "both async and sync fetching of the wasm failed";
       }
-      function bb(a) {
-        if (!Ka && (Ba || Ca)) {
-          if ("function" == typeof fetch && !Ia(a)) return fetch(a, { credentials: "same-origin" }).then((b) => {
-            if (!b.ok) throw "failed to load wasm binary file at '" + a + "'";
-            return b.arrayBuffer();
-          }).catch(() => ab(a));
-          if (Fa) return new Promise((b, c) => {
-            Fa(a, (d) => b(new Uint8Array(d)), c);
-          });
-        }
-        return Promise.resolve().then(() => ab(a));
+      function $a(a) {
+        return Ia ? Promise.resolve().then(() => Za(a)) : Da(a).then((b) => new Uint8Array(b), () => Za(a));
       }
-      function cb(a, b, c) {
-        return bb(a).then((d) => WebAssembly.instantiate(d, b)).then((d) => d).then(c, (d) => {
-          B(`failed to asynchronously prepare wasm: ${d}`);
-          C(d);
+      function ab(a, b, c) {
+        return $a(a).then((d) => WebAssembly.instantiate(d, b)).then(c, (d) => {
+          C(`failed to asynchronously prepare wasm: ${d}`);
+          G(d);
         });
       }
-      function db(a, b) {
-        var c = Za;
-        Ka || "function" != typeof WebAssembly.instantiateStreaming || Ya(c) || Ia(c) || Da || "function" != typeof fetch ? cb(c, a, b) : fetch(c, { credentials: "same-origin" }).then((d) => WebAssembly.instantiateStreaming(d, a).then(b, function(e) {
-          B(`wasm streaming compile failed: ${e}`);
-          B("falling back to ArrayBuffer instantiation");
-          return cb(c, a, b);
+      function bb(a, b) {
+        var c = Ya;
+        Ia || "function" != typeof WebAssembly.instantiateStreaming || Xa(c) || Ga(c) || ca || "function" != typeof fetch ? ab(c, a, b) : fetch(c, { credentials: "same-origin" }).then((d) => WebAssembly.instantiateStreaming(d, a).then(b, function(e) {
+          C(`wasm streaming compile failed: ${e}`);
+          C("falling back to ArrayBuffer instantiation");
+          return ab(c, a, b);
         }));
       }
-      var I, J, eb = (a) => {
+      var I, J, cb = (a) => {
         for (; 0 < a.length; ) a.shift()(f);
       };
       function m(a, b = "i8") {
         b.endsWith("*") && (b = "*");
         switch (b) {
           case "i1":
-            return p2[a >> 0];
+            return p[a];
           case "i8":
-            return p2[a >> 0];
+            return p[a];
           case "i16":
-            return Na[a >> 1];
+            return La[a >> 1];
           case "i32":
             return D[a >> 2];
           case "i64":
-            C("to do getValue(i64) use WASM_BIGINT");
+            G("to do getValue(i64) use WASM_BIGINT");
           case "float":
-            return Oa[a >> 2];
+            return Ma[a >> 2];
           case "double":
-            return Pa[a >> 3];
+            return Na[a >> 3];
           case "*":
-            return E[a >> 2];
+            return F[a >> 2];
           default:
-            C(`invalid type for getValue: ${b}`);
+            G(`invalid type for getValue: ${b}`);
         }
       }
-      function qa(a) {
+      function sa(a) {
         var b = "i32";
         b.endsWith("*") && (b = "*");
         switch (b) {
           case "i1":
-            p2[a >> 0] = 0;
+            p[a] = 0;
             break;
           case "i8":
-            p2[a >> 0] = 0;
+            p[a] = 0;
             break;
           case "i16":
-            Na[a >> 1] = 0;
+            La[a >> 1] = 0;
             break;
           case "i32":
             D[a >> 2] = 0;
             break;
           case "i64":
-            C("to do setValue(i64) use WASM_BIGINT");
+            G("to do setValue(i64) use WASM_BIGINT");
           case "float":
-            Oa[a >> 2] = 0;
+            Ma[a >> 2] = 0;
             break;
           case "double":
-            Pa[a >> 3] = 0;
+            Na[a >> 3] = 0;
             break;
           case "*":
-            E[a >> 2] = 0;
+            F[a >> 2] = 0;
             break;
           default:
-            C(`invalid type for setValue: ${b}`);
+            G(`invalid type for setValue: ${b}`);
         }
       }
-      var fb = "undefined" != typeof TextDecoder ? new TextDecoder("utf8") : void 0, M = (a, b, c) => {
+      var db = "undefined" != typeof TextDecoder ? new TextDecoder() : void 0, L = (a, b, c) => {
         var d = b + c;
         for (c = b; a[c] && !(c >= d); ) ++c;
-        if (16 < c - b && a.buffer && fb) return fb.decode(a.subarray(b, c));
+        if (16 < c - b && a.buffer && db) return db.decode(a.subarray(b, c));
         for (d = ""; b < c; ) {
           var e = a[b++];
           if (e & 128) {
@@ -18737,60 +13080,58 @@ const require$$2 = /* @__PURE__ */ getAugmentedNamespace(__viteBrowserExternal$1
           } else d += String.fromCharCode(e);
         }
         return d;
-      }, ra = (a, b) => a ? M(q, a, b) : "", gb = (a, b) => {
+      }, ta = (a, b) => a ? L(u, a, b) : "", eb = (a, b) => {
         for (var c = 0, d = a.length - 1; 0 <= d; d--) {
           var e = a[d];
           "." === e ? a.splice(d, 1) : ".." === e ? (a.splice(d, 1), c++) : c && (a.splice(d, 1), c--);
         }
         if (b) for (; c; c--) a.unshift("..");
         return a;
-      }, u = (a) => {
+      }, x = (a) => {
         var b = "/" === a.charAt(0), c = "/" === a.substr(-1);
-        (a = gb(a.split("/").filter((d) => !!d), !b).join("/")) || b || (a = ".");
+        (a = eb(a.split("/").filter((d) => !!d), !b).join("/")) || b || (a = ".");
         a && c && (a += "/");
         return (b ? "/" : "") + a;
-      }, hb = (a) => {
+      }, fb = (a) => {
         var b = /^(\/?|)([\s\S]*?)((?:\.{1,2}|[^\/]+?|)(\.[^.\/]*|))(?:[\/]*)$/.exec(a).slice(1);
         a = b[0];
         b = b[1];
         if (!a && !b) return ".";
         b && (b = b.substr(0, b.length - 1));
         return a + b;
-      }, ib = (a) => {
+      }, gb = (a) => {
         if ("/" === a) return "/";
-        a = u(a);
+        a = x(a);
         a = a.replace(/\/$/, "");
         var b = a.lastIndexOf("/");
         return -1 === b ? a : a.substr(b + 1);
-      }, jb = () => {
+      }, hb = () => {
         if ("object" == typeof crypto && "function" == typeof crypto.getRandomValues) return (c) => crypto.getRandomValues(c);
-        if (Da) try {
+        if (ca) try {
           var a = require$$2;
           if (a.randomFillSync) return (c) => a.randomFillSync(c);
           var b = a.randomBytes;
           return (c) => (c.set(b(c.byteLength)), c);
         } catch (c) {
         }
-        C("initRandomDevice");
-      }, kb = (a) => (kb = jb())(a);
-      function mb() {
-        for (var a = "", b = false, c = arguments.length - 1; -1 <= c && !b; c--) {
-          b = 0 <= c ? arguments[c] : "/";
-          if ("string" != typeof b) throw new TypeError("Arguments to path.resolve must be strings");
-          if (!b) return "";
-          a = b + "/" + a;
-          b = "/" === b.charAt(0);
+        G("initRandomDevice");
+      }, jb = (a) => (jb = hb())(a), kb = (...a) => {
+        for (var b = "", c = false, d = a.length - 1; -1 <= d && !c; d--) {
+          c = 0 <= d ? a[d] : "/";
+          if ("string" != typeof c) throw new TypeError("Arguments to path.resolve must be strings");
+          if (!c) return "";
+          b = c + "/" + b;
+          c = "/" === c.charAt(0);
         }
-        a = gb(a.split("/").filter((d) => !!d), !b).join("/");
-        return (b ? "/" : "") + a || ".";
-      }
-      var nb = [], da = (a) => {
+        b = eb(b.split("/").filter((e) => !!e), !c).join("/");
+        return (c ? "/" : "") + b || ".";
+      }, sb = [], ha = (a) => {
         for (var b = 0, c = 0; c < a.length; ++c) {
           var d = a.charCodeAt(c);
           127 >= d ? b++ : 2047 >= d ? b += 2 : 55296 <= d && 57343 >= d ? (b += 4, ++c) : b += 3;
         }
         return b;
-      }, fa = (a, b, c, d) => {
+      }, q = (a, b, c, d) => {
         if (!(0 < d)) return 0;
         var e = c;
         d = c + d - 1;
@@ -18824,31 +13165,31 @@ const require$$2 = /* @__PURE__ */ getAugmentedNamespace(__viteBrowserExternal$1
         b[c] = 0;
         return c - e;
       };
-      function oa(a, b) {
-        var c = Array(da(a) + 1);
-        a = fa(a, c, 0, c.length);
+      function qa(a, b) {
+        var c = Array(ha(a) + 1);
+        a = q(a, c, 0, c.length);
         b && (c.length = a);
         return c;
       }
-      var vb = [];
-      function wb(a, b) {
-        vb[a] = { input: [], output: [], Xa: b };
-        xb(a, yb);
+      var tb = [];
+      function ub(a, b) {
+        tb[a] = { input: [], output: [], Wa: b };
+        vb(a, wb);
       }
-      var yb = { open(a) {
-        var b = vb[a.node.rdev];
+      var wb = { open(a) {
+        var b = tb[a.node.rdev];
         if (!b) throw new P(43);
         a.tty = b;
         a.seekable = false;
       }, close(a) {
-        a.tty.Xa.fsync(a.tty);
+        a.tty.Wa.fsync(a.tty);
       }, fsync(a) {
-        a.tty.Xa.fsync(a.tty);
+        a.tty.Wa.fsync(a.tty);
       }, read(a, b, c, d) {
-        if (!a.tty || !a.tty.Xa.sb) throw new P(60);
+        if (!a.tty || !a.tty.Wa.rb) throw new P(60);
         for (var e = 0, h = 0; h < d; h++) {
           try {
-            var k = a.tty.Xa.sb(a.tty);
+            var k = a.tty.Wa.rb(a.tty);
           } catch (r) {
             throw new P(29);
           }
@@ -18860,77 +13201,80 @@ const require$$2 = /* @__PURE__ */ getAugmentedNamespace(__viteBrowserExternal$1
         e && (a.node.timestamp = Date.now());
         return e;
       }, write(a, b, c, d) {
-        if (!a.tty || !a.tty.Xa.jb) throw new P(60);
+        if (!a.tty || !a.tty.Wa.ib) throw new P(60);
         try {
-          for (var e = 0; e < d; e++) a.tty.Xa.jb(a.tty, b[c + e]);
+          for (var e = 0; e < d; e++) a.tty.Wa.ib(a.tty, b[c + e]);
         } catch (h) {
           throw new P(29);
         }
         d && (a.node.timestamp = Date.now());
         return e;
-      } }, zb = { sb() {
+      } }, xb = { rb() {
         a: {
-          if (!nb.length) {
+          if (!sb.length) {
             var a = null;
-            if (Da) {
+            if (ca) {
               var b = Buffer.alloc(256), c = 0, d = process.stdin.fd;
               try {
-                c = fs.readSync(d, b);
+                c = fs.readSync(d, b, 0, 256);
               } catch (e) {
                 if (e.toString().includes("EOF")) c = 0;
                 else throw e;
               }
-              0 < c ? a = b.slice(0, c).toString("utf-8") : a = null;
-            } else "undefined" != typeof window && "function" == typeof window.prompt ? (a = window.prompt("Input: "), null !== a && (a += "\n")) : "function" == typeof readline && (a = readline(), null !== a && (a += "\n"));
+              0 < c && (a = b.slice(0, c).toString("utf-8"));
+            } else "undefined" != typeof window && "function" == typeof window.prompt && (a = window.prompt("Input: "), null !== a && (a += "\n"));
             if (!a) {
               a = null;
               break a;
             }
-            nb = oa(a, true);
+            sb = qa(a, true);
           }
-          a = nb.shift();
+          a = sb.shift();
         }
         return a;
-      }, jb(a, b) {
-        null === b || 10 === b ? (Ja(M(a.output, 0)), a.output = []) : 0 != b && a.output.push(b);
+      }, ib(a, b) {
+        null === b || 10 === b ? (Ha(L(
+          a.output,
+          0
+        )), a.output = []) : 0 != b && a.output.push(b);
       }, fsync(a) {
-        a.output && 0 < a.output.length && (Ja(M(a.output, 0)), a.output = []);
+        a.output && 0 < a.output.length && (Ha(L(a.output, 0)), a.output = []);
+      }, Lb() {
+        return { Gb: 25856, Ib: 5, Fb: 191, Hb: 35387, Eb: [3, 28, 127, 21, 4, 0, 1, 0, 17, 19, 26, 0, 18, 15, 23, 22, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0] };
       }, Mb() {
-        return { Ib: 25856, Kb: 5, Hb: 191, Jb: 35387, Gb: [3, 28, 127, 21, 4, 0, 1, 0, 17, 19, 26, 0, 18, 15, 23, 22, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0] };
-      }, Nb() {
         return 0;
-      }, Ob() {
+      }, Nb() {
         return [24, 80];
-      } }, Ab = { jb(a, b) {
-        null === b || 10 === b ? (B(M(a.output, 0)), a.output = []) : 0 != b && a.output.push(b);
+      } }, yb = { ib(a, b) {
+        null === b || 10 === b ? (C(L(a.output, 0)), a.output = []) : 0 != b && a.output.push(b);
       }, fsync(a) {
-        a.output && 0 < a.output.length && (B(M(a.output, 0)), a.output = []);
+        a.output && 0 < a.output.length && (C(L(a.output, 0)), a.output = []);
       } };
-      function Bb(a, b) {
-        var c = a.Ia ? a.Ia.length : 0;
-        c >= b || (b = Math.max(b, c * (1048576 > c ? 2 : 1.125) >>> 0), 0 != c && (b = Math.max(b, 256)), c = a.Ia, a.Ia = new Uint8Array(b), 0 < a.Ma && a.Ia.set(c.subarray(0, a.Ma), 0));
+      function zb(a, b) {
+        var c = a.Ha ? a.Ha.length : 0;
+        c >= b || (b = Math.max(b, c * (1048576 > c ? 2 : 1.125) >>> 0), 0 != c && (b = Math.max(b, 256)), c = a.Ha, a.Ha = new Uint8Array(b), 0 < a.La && a.Ha.set(c.subarray(0, a.La), 0));
       }
       var Q = {
-        Qa: null,
-        Ra() {
+        Pa: null,
+        Qa() {
           return Q.createNode(null, "/", 16895, 0);
         },
         createNode(a, b, c, d) {
           if (24576 === (c & 61440) || 4096 === (c & 61440)) throw new P(63);
-          Q.Qa || (Q.Qa = { dir: { node: { Pa: Q.Ga.Pa, Oa: Q.Ga.Oa, lookup: Q.Ga.lookup, ab: Q.Ga.ab, rename: Q.Ga.rename, unlink: Q.Ga.unlink, rmdir: Q.Ga.rmdir, readdir: Q.Ga.readdir, symlink: Q.Ga.symlink }, stream: { Ta: Q.Ha.Ta } }, file: { node: { Pa: Q.Ga.Pa, Oa: Q.Ga.Oa }, stream: { Ta: Q.Ha.Ta, read: Q.Ha.read, write: Q.Ha.write, lb: Q.Ha.lb, bb: Q.Ha.bb, cb: Q.Ha.cb } }, link: {
-            node: { Pa: Q.Ga.Pa, Oa: Q.Ga.Oa, readlink: Q.Ga.readlink },
+          Q.Pa || (Q.Pa = { dir: { node: { Oa: Q.Fa.Oa, Na: Q.Fa.Na, lookup: Q.Fa.lookup, $a: Q.Fa.$a, rename: Q.Fa.rename, unlink: Q.Fa.unlink, rmdir: Q.Fa.rmdir, readdir: Q.Fa.readdir, symlink: Q.Fa.symlink }, stream: { Sa: Q.Ga.Sa } }, file: { node: { Oa: Q.Fa.Oa, Na: Q.Fa.Na }, stream: { Sa: Q.Ga.Sa, read: Q.Ga.read, write: Q.Ga.write, kb: Q.Ga.kb, ab: Q.Ga.ab, bb: Q.Ga.bb } }, link: {
+            node: { Oa: Q.Fa.Oa, Na: Q.Fa.Na, readlink: Q.Fa.readlink },
             stream: {}
-          }, pb: { node: { Pa: Q.Ga.Pa, Oa: Q.Ga.Oa }, stream: Cb } });
-          c = Db(a, b, c, d);
-          R(c.mode) ? (c.Ga = Q.Qa.dir.node, c.Ha = Q.Qa.dir.stream, c.Ia = {}) : 32768 === (c.mode & 61440) ? (c.Ga = Q.Qa.file.node, c.Ha = Q.Qa.file.stream, c.Ma = 0, c.Ia = null) : 40960 === (c.mode & 61440) ? (c.Ga = Q.Qa.link.node, c.Ha = Q.Qa.link.stream) : 8192 === (c.mode & 61440) && (c.Ga = Q.Qa.pb.node, c.Ha = Q.Qa.pb.stream);
+          }, ob: { node: { Oa: Q.Fa.Oa, Na: Q.Fa.Na }, stream: Ab } });
+          c = Bb(a, b, c, d);
+          R(c.mode) ? (c.Fa = Q.Pa.dir.node, c.Ga = Q.Pa.dir.stream, c.Ha = {}) : 32768 === (c.mode & 61440) ? (c.Fa = Q.Pa.file.node, c.Ga = Q.Pa.file.stream, c.La = 0, c.Ha = null) : 40960 === (c.mode & 61440) ? (c.Fa = Q.Pa.link.node, c.Ga = Q.Pa.link.stream) : 8192 === (c.mode & 61440) && (c.Fa = Q.Pa.ob.node, c.Ga = Q.Pa.ob.stream);
           c.timestamp = Date.now();
-          a && (a.Ia[b] = c, a.timestamp = c.timestamp);
+          a && (a.Ha[b] = c, a.timestamp = c.timestamp);
           return c;
         },
-        Lb(a) {
-          return a.Ia ? a.Ia.subarray ? a.Ia.subarray(0, a.Ma) : new Uint8Array(a.Ia) : new Uint8Array(0);
+        Kb(a) {
+          return a.Ha ? a.Ha.subarray ? a.Ha.subarray(0, a.La) : new Uint8Array(a.Ha) : new Uint8Array(0);
         },
-        Ga: { Pa(a) {
+        Fa: { Oa(a) {
           var b = {};
           b.dev = 8192 === (a.mode & 61440) ? a.id : 1;
           b.ino = a.id;
@@ -18939,52 +13283,51 @@ const require$$2 = /* @__PURE__ */ getAugmentedNamespace(__viteBrowserExternal$1
           b.uid = 0;
           b.gid = 0;
           b.rdev = a.rdev;
-          R(a.mode) ? b.size = 4096 : 32768 === (a.mode & 61440) ? b.size = a.Ma : 40960 === (a.mode & 61440) ? b.size = a.link.length : b.size = 0;
+          R(a.mode) ? b.size = 4096 : 32768 === (a.mode & 61440) ? b.size = a.La : 40960 === (a.mode & 61440) ? b.size = a.link.length : b.size = 0;
           b.atime = new Date(a.timestamp);
           b.mtime = new Date(a.timestamp);
           b.ctime = new Date(a.timestamp);
-          b.zb = 4096;
-          b.blocks = Math.ceil(b.size / b.zb);
+          b.yb = 4096;
+          b.blocks = Math.ceil(b.size / b.yb);
           return b;
-        }, Oa(a, b) {
+        }, Na(a, b) {
           void 0 !== b.mode && (a.mode = b.mode);
           void 0 !== b.timestamp && (a.timestamp = b.timestamp);
-          if (void 0 !== b.size && (b = b.size, a.Ma != b)) if (0 == b) a.Ia = null, a.Ma = 0;
+          if (void 0 !== b.size && (b = b.size, a.La != b)) if (0 == b) a.Ha = null, a.La = 0;
           else {
-            var c = a.Ia;
-            a.Ia = new Uint8Array(b);
-            c && a.Ia.set(c.subarray(0, Math.min(b, a.Ma)));
-            a.Ma = b;
+            var c = a.Ha;
+            a.Ha = new Uint8Array(b);
+            c && a.Ha.set(c.subarray(0, Math.min(b, a.La)));
+            a.La = b;
           }
         }, lookup() {
-          throw Eb[44];
-        }, ab(a, b, c, d) {
+          throw Cb[44];
+        }, $a(a, b, c, d) {
           return Q.createNode(a, b, c, d);
         }, rename(a, b, c) {
           if (R(a.mode)) {
             try {
-              var d = Fb(b, c);
+              var d = Db(b, c);
             } catch (h) {
             }
-            if (d) for (var e in d.Ia) throw new P(55);
+            if (d) for (var e in d.Ha) throw new P(55);
           }
-          delete a.parent.Ia[a.name];
+          delete a.parent.Ha[a.name];
           a.parent.timestamp = Date.now();
           a.name = c;
-          b.Ia[c] = a;
+          b.Ha[c] = a;
           b.timestamp = a.parent.timestamp;
-          a.parent = b;
         }, unlink(a, b) {
-          delete a.Ia[b];
+          delete a.Ha[b];
           a.timestamp = Date.now();
         }, rmdir(a, b) {
-          var c = Fb(a, b), d;
-          for (d in c.Ia) throw new P(55);
-          delete a.Ia[b];
+          var c = Db(a, b), d;
+          for (d in c.Ha) throw new P(55);
+          delete a.Ha[b];
           a.timestamp = Date.now();
         }, readdir(a) {
           var b = [".", ".."], c;
-          for (c of Object.keys(a.Ia)) b.push(c);
+          for (c of Object.keys(a.Ha)) b.push(c);
           return b;
         }, symlink(a, b, c) {
           a = Q.createNode(a, b, 41471, 0);
@@ -18994,85 +13337,132 @@ const require$$2 = /* @__PURE__ */ getAugmentedNamespace(__viteBrowserExternal$1
           if (40960 !== (a.mode & 61440)) throw new P(28);
           return a.link;
         } },
-        Ha: {
+        Ga: {
           read(a, b, c, d, e) {
-            var h = a.node.Ia;
-            if (e >= a.node.Ma) return 0;
-            a = Math.min(a.node.Ma - e, d);
+            var h = a.node.Ha;
+            if (e >= a.node.La) return 0;
+            a = Math.min(a.node.La - e, d);
             if (8 < a && h.subarray) b.set(h.subarray(e, e + a), c);
             else for (d = 0; d < a; d++) b[c + d] = h[e + d];
             return a;
           },
           write(a, b, c, d, e, h) {
-            b.buffer === p2.buffer && (h = false);
+            b.buffer === p.buffer && (h = false);
             if (!d) return 0;
             a = a.node;
             a.timestamp = Date.now();
-            if (b.subarray && (!a.Ia || a.Ia.subarray)) {
-              if (h) return a.Ia = b.subarray(c, c + d), a.Ma = d;
-              if (0 === a.Ma && 0 === e) return a.Ia = b.slice(c, c + d), a.Ma = d;
-              if (e + d <= a.Ma) return a.Ia.set(b.subarray(c, c + d), e), d;
+            if (b.subarray && (!a.Ha || a.Ha.subarray)) {
+              if (h) return a.Ha = b.subarray(c, c + d), a.La = d;
+              if (0 === a.La && 0 === e) return a.Ha = b.slice(c, c + d), a.La = d;
+              if (e + d <= a.La) return a.Ha.set(b.subarray(c, c + d), e), d;
             }
-            Bb(a, e + d);
-            if (a.Ia.subarray && b.subarray) a.Ia.set(b.subarray(c, c + d), e);
-            else for (h = 0; h < d; h++) a.Ia[e + h] = b[c + h];
-            a.Ma = Math.max(a.Ma, e + d);
+            zb(a, e + d);
+            if (a.Ha.subarray && b.subarray) a.Ha.set(b.subarray(c, c + d), e);
+            else for (h = 0; h < d; h++) a.Ha[e + h] = b[c + h];
+            a.La = Math.max(a.La, e + d);
             return d;
           },
-          Ta(a, b, c) {
-            1 === c ? b += a.position : 2 === c && 32768 === (a.node.mode & 61440) && (b += a.node.Ma);
+          Sa(a, b, c) {
+            1 === c ? b += a.position : 2 === c && 32768 === (a.node.mode & 61440) && (b += a.node.La);
             if (0 > b) throw new P(28);
             return b;
           },
-          lb(a, b, c) {
-            Bb(a.node, b + c);
-            a.node.Ma = Math.max(a.node.Ma, b + c);
+          kb(a, b, c) {
+            zb(a.node, b + c);
+            a.node.La = Math.max(a.node.La, b + c);
           },
-          bb(a, b, c, d, e) {
+          ab(a, b, c, d, e) {
             if (32768 !== (a.node.mode & 61440)) throw new P(43);
-            a = a.node.Ia;
-            if (e & 2 || a.buffer !== p2.buffer) {
+            a = a.node.Ha;
+            if (e & 2 || a.buffer !== p.buffer) {
               if (0 < c || c + b < a.length) a.subarray ? a = a.subarray(c, c + b) : a = Array.prototype.slice.call(a, c, c + b);
               c = true;
               b = 65536 * Math.ceil(b / 65536);
-              (e = Gb(65536, b)) ? (q.fill(0, e, e + b), b = e) : b = 0;
+              (e = Eb(65536, b)) ? (u.fill(0, e, e + b), b = e) : b = 0;
               if (!b) throw new P(48);
-              p2.set(a, b);
+              p.set(a, b);
             } else c = false, b = a.byteOffset;
-            return { Db: b, ub: c };
+            return { Cb: b, tb: c };
           },
-          cb(a, b, c, d) {
-            Q.Ha.write(a, b, 0, d, c, false);
+          bb(a, b, c, d) {
+            Q.Ga.write(a, b, 0, d, c, false);
             return 0;
           }
         }
-      }, ia = (a, b) => {
+      }, ka = (a, b) => {
         var c = 0;
         a && (c |= 365);
         b && (c |= 146);
         return c;
-      }, Hb = null, Ib = {}, Jb = [], Kb = 1, S = null, Lb = true, P = null, Eb = {};
+      }, Fb = null, Gb = {}, Hb = [], Ib = 1, S = null, Jb = true, P = class {
+        constructor(a) {
+          this.name = "ErrnoError";
+          this.Ja = a;
+        }
+      }, Cb = {}, Kb = class {
+        constructor() {
+          this.Za = {};
+          this.node = null;
+        }
+        get flags() {
+          return this.Za.flags;
+        }
+        set flags(a) {
+          this.Za.flags = a;
+        }
+        get position() {
+          return this.Za.position;
+        }
+        set position(a) {
+          this.Za.position = a;
+        }
+      }, Lb = class {
+        constructor(a, b, c, d) {
+          a || (a = this);
+          this.parent = a;
+          this.Qa = a.Qa;
+          this.Ua = null;
+          this.id = Ib++;
+          this.name = b;
+          this.mode = c;
+          this.Fa = {};
+          this.Ga = {};
+          this.rdev = d;
+        }
+        get read() {
+          return 365 === (this.mode & 365);
+        }
+        set read(a) {
+          a ? this.mode |= 365 : this.mode &= -366;
+        }
+        get write() {
+          return 146 === (this.mode & 146);
+        }
+        set write(a) {
+          a ? this.mode |= 146 : this.mode &= -147;
+        }
+      };
       function T(a, b = {}) {
-        a = mb(a);
+        a = kb(a);
         if (!a) return { path: "", node: null };
-        b = Object.assign({ qb: true, kb: 0 }, b);
-        if (8 < b.kb) throw new P(32);
+        b = Object.assign({ pb: true, jb: 0 }, b);
+        if (8 < b.jb) throw new P(32);
         a = a.split("/").filter((k) => !!k);
-        for (var c = Hb, d = "/", e = 0; e < a.length; e++) {
+        for (var c = Fb, d = "/", e = 0; e < a.length; e++) {
           var h = e === a.length - 1;
           if (h && b.parent) break;
-          c = Fb(c, a[e]);
-          d = u(d + "/" + a[e]);
-          c.Va && (!h || h && b.qb) && (c = c.Va.root);
-          if (!h || b.Sa) {
-            for (h = 0; 40960 === (c.mode & 61440); ) if (c = Mb(d), d = mb(hb(d), c), c = T(d, { kb: b.kb + 1 }).node, 40 < h++) throw new P(32);
+          c = Db(c, a[e]);
+          d = x(d + "/" + a[e]);
+          c.Ua && (!h || h && b.pb) && (c = c.Ua.root);
+          if (!h || b.Ra) {
+            for (h = 0; 40960 === (c.mode & 61440); ) if (c = Mb(d), d = kb(fb(d), c), c = T(d, { jb: b.jb + 1 }).node, 40 < h++) throw new P(32);
           }
         }
         return { path: d, node: c };
       }
-      function ha(a) {
+      function ja(a) {
         for (var b; ; ) {
-          if (a === a.parent) return a = a.Ra.tb, b ? "/" !== a[a.length - 1] ? `${a}/${b}` : a + b : a;
+          if (a === a.parent) return a = a.Qa.sb, b ? "/" !== a[a.length - 1] ? `${a}/${b}` : a + b : a;
           b = b ? `${a.name}/${b}` : a.name;
           a = a.parent;
         }
@@ -19083,198 +13473,187 @@ const require$$2 = /* @__PURE__ */ getAugmentedNamespace(__viteBrowserExternal$1
       }
       function Ob(a) {
         var b = Nb(a.parent.id, a.name);
-        if (S[b] === a) S[b] = a.Wa;
+        if (S[b] === a) S[b] = a.Va;
         else for (b = S[b]; b; ) {
-          if (b.Wa === a) {
-            b.Wa = a.Wa;
+          if (b.Va === a) {
+            b.Va = a.Va;
             break;
           }
-          b = b.Wa;
+          b = b.Va;
         }
       }
-      function Fb(a, b) {
-        var c;
-        if (c = (c = Pb(a, "x")) ? c : a.Ga.lookup ? 0 : 2) throw new P(c, a);
-        for (c = S[Nb(a.id, b)]; c; c = c.Wa) {
+      function Db(a, b) {
+        var c = R(a.mode) ? (c = Pb(a, "x")) ? c : a.Fa.lookup ? 0 : 2 : 54;
+        if (c) throw new P(c);
+        for (c = S[Nb(a.id, b)]; c; c = c.Va) {
           var d = c.name;
           if (c.parent.id === a.id && d === b) return c;
         }
-        return a.Ga.lookup(a, b);
+        return a.Fa.lookup(a, b);
       }
-      function Db(a, b, c, d) {
-        a = new Qb(a, b, c, d);
+      function Bb(a, b, c, d) {
+        a = new Lb(a, b, c, d);
         b = Nb(a.parent.id, a.name);
-        a.Wa = S[b];
+        a.Va = S[b];
         return S[b] = a;
       }
       function R(a) {
         return 16384 === (a & 61440);
       }
-      function Rb(a) {
+      function Qb(a) {
         var b = ["r", "w", "rw"][a & 3];
         a & 512 && (b += "w");
         return b;
       }
       function Pb(a, b) {
-        if (Lb) return 0;
+        if (Jb) return 0;
         if (!b.includes("r") || a.mode & 292) {
           if (b.includes("w") && !(a.mode & 146) || b.includes("x") && !(a.mode & 73)) return 2;
         } else return 2;
         return 0;
       }
-      function Sb(a, b) {
+      function Rb(a, b) {
         try {
-          return Fb(a, b), 20;
+          return Db(a, b), 20;
         } catch (c) {
         }
         return Pb(a, "wx");
       }
-      function Tb(a, b, c) {
+      function Sb(a, b, c) {
         try {
-          var d = Fb(a, b);
+          var d = Db(a, b);
         } catch (e) {
-          return e.Ka;
+          return e.Ja;
         }
         if (a = Pb(a, "wx")) return a;
         if (c) {
           if (!R(d.mode)) return 54;
-          if (d === d.parent || "/" === ha(d)) return 10;
+          if (d === d.parent || "/" === ja(d)) return 10;
         } else if (R(d.mode)) return 31;
         return 0;
       }
-      function Ub() {
-        for (var a = 0; 4096 >= a; a++) if (!Jb[a]) return a;
-        throw new P(33);
-      }
       function U(a) {
-        a = Jb[a];
+        a = Hb[a];
         if (!a) throw new P(8);
         return a;
       }
-      function Vb(a, b = -1) {
-        Wb || (Wb = function() {
-          this.$a = {};
-        }, Wb.prototype = {}, Object.defineProperties(Wb.prototype, { object: { get() {
-          return this.node;
-        }, set(c) {
-          this.node = c;
-        } }, flags: { get() {
-          return this.$a.flags;
-        }, set(c) {
-          this.$a.flags = c;
-        } }, position: { get() {
-          return this.$a.position;
-        }, set(c) {
-          this.$a.position = c;
-        } } }));
-        a = Object.assign(new Wb(), a);
-        -1 == b && (b = Ub());
+      function Tb(a, b = -1) {
+        a = Object.assign(new Kb(), a);
+        if (-1 == b) a: {
+          for (b = 0; 4096 >= b; b++) if (!Hb[b]) break a;
+          throw new P(33);
+        }
         a.fd = b;
-        return Jb[b] = a;
+        return Hb[b] = a;
       }
-      var Cb = { open(a) {
-        a.Ha = Ib[a.node.rdev].Ha;
-        a.Ha.open?.(a);
-      }, Ta() {
+      function Ub(a, b = -1) {
+        a = Tb(a, b);
+        a.Ga?.Jb?.(a);
+        return a;
+      }
+      var Ab = { open(a) {
+        a.Ga = Gb[a.node.rdev].Ga;
+        a.Ga.open?.(a);
+      }, Sa() {
         throw new P(70);
       } };
-      function xb(a, b) {
-        Ib[a] = { Ha: b };
+      function vb(a, b) {
+        Gb[a] = { Ga: b };
       }
-      function Xb(a, b) {
-        var c = "/" === b, d = !b;
-        if (c && Hb) throw new P(10);
-        if (!c && !d) {
-          var e = T(b, { qb: false });
-          b = e.path;
-          e = e.node;
-          if (e.Va) throw new P(10);
-          if (!R(e.mode)) throw new P(54);
+      function Vb(a, b) {
+        var c = "/" === b;
+        if (c && Fb) throw new P(10);
+        if (!c && b) {
+          var d = T(b, { pb: false });
+          b = d.path;
+          d = d.node;
+          if (d.Ua) throw new P(10);
+          if (!R(d.mode)) throw new P(54);
         }
-        b = { type: a, Pb: {}, tb: b, Cb: [] };
-        a = a.Ra(b);
-        a.Ra = b;
+        b = { type: a, Ob: {}, sb: b, Bb: [] };
+        a = a.Qa(b);
+        a.Qa = b;
         b.root = a;
-        c ? Hb = a : e && (e.Va = b, e.Ra && e.Ra.Cb.push(b));
+        c ? Fb = a : d && (d.Ua = b, d.Qa && d.Qa.Bb.push(b));
       }
-      function ja(a, b, c) {
+      function la(a, b, c) {
         var d = T(a, { parent: true }).node;
-        a = ib(a);
+        a = gb(a);
         if (!a || "." === a || ".." === a) throw new P(28);
-        var e = Sb(d, a);
+        var e = Rb(d, a);
         if (e) throw new P(e);
-        if (!d.Ga.ab) throw new P(63);
-        return d.Ga.ab(d, a, b, c);
+        if (!d.Fa.$a) throw new P(63);
+        return d.Fa.$a(d, a, b, c);
       }
       function V(a, b) {
-        return ja(a, (void 0 !== b ? b : 511) & 1023 | 16384, 0);
+        return la(a, (void 0 !== b ? b : 511) & 1023 | 16384, 0);
       }
-      function Yb(a, b, c) {
+      function Wb(a, b, c) {
         "undefined" == typeof c && (c = b, b = 438);
-        ja(a, b | 8192, c);
+        la(a, b | 8192, c);
       }
-      function Zb(a, b) {
-        if (!mb(a)) throw new P(44);
+      function Xb(a, b) {
+        if (!kb(a)) throw new P(44);
         var c = T(b, { parent: true }).node;
         if (!c) throw new P(44);
-        b = ib(b);
-        var d = Sb(c, b);
+        b = gb(b);
+        var d = Rb(c, b);
         if (d) throw new P(d);
-        if (!c.Ga.symlink) throw new P(63);
-        c.Ga.symlink(c, b, a);
+        if (!c.Fa.symlink) throw new P(63);
+        c.Fa.symlink(c, b, a);
       }
-      function $b(a) {
+      function Yb(a) {
         var b = T(a, { parent: true }).node;
-        a = ib(a);
-        var c = Fb(b, a), d = Tb(b, a, true);
+        a = gb(a);
+        var c = Db(b, a), d = Sb(b, a, true);
         if (d) throw new P(d);
-        if (!b.Ga.rmdir) throw new P(63);
-        if (c.Va) throw new P(10);
-        b.Ga.rmdir(b, a);
+        if (!b.Fa.rmdir) throw new P(63);
+        if (c.Ua) throw new P(10);
+        b.Fa.rmdir(b, a);
         Ob(c);
       }
-      function wa(a) {
+      function za(a) {
         var b = T(a, { parent: true }).node;
         if (!b) throw new P(44);
-        a = ib(a);
-        var c = Fb(b, a), d = Tb(b, a, false);
+        a = gb(a);
+        var c = Db(b, a), d = Sb(b, a, false);
         if (d) throw new P(d);
-        if (!b.Ga.unlink) throw new P(63);
-        if (c.Va) throw new P(10);
-        b.Ga.unlink(b, a);
+        if (!b.Fa.unlink) throw new P(63);
+        if (c.Ua) throw new P(10);
+        b.Fa.unlink(b, a);
         Ob(c);
       }
       function Mb(a) {
         a = T(a).node;
         if (!a) throw new P(44);
-        if (!a.Ga.readlink) throw new P(28);
-        return mb(ha(a.parent), a.Ga.readlink(a));
+        if (!a.Fa.readlink) throw new P(28);
+        return kb(ja(a.parent), a.Fa.readlink(a));
+      }
+      function Zb(a, b) {
+        a = T(a, { Ra: !b }).node;
+        if (!a) throw new P(44);
+        if (!a.Fa.Oa) throw new P(63);
+        return a.Fa.Oa(a);
+      }
+      function $b(a) {
+        return Zb(a, true);
+      }
+      function ma(a, b) {
+        a = "string" == typeof a ? T(a, { Ra: true }).node : a;
+        if (!a.Fa.Na) throw new P(63);
+        a.Fa.Na(a, { mode: b & 4095 | a.mode & -4096, timestamp: Date.now() });
       }
       function ac(a, b) {
-        a = T(a, { Sa: !b }).node;
-        if (!a) throw new P(44);
-        if (!a.Ga.Pa) throw new P(63);
-        return a.Ga.Pa(a);
-      }
-      function bc(a) {
-        return ac(a, true);
-      }
-      function ka(a, b) {
-        a = "string" == typeof a ? T(a, { Sa: true }).node : a;
-        if (!a.Ga.Oa) throw new P(63);
-        a.Ga.Oa(a, { mode: b & 4095 | a.mode & -4096, timestamp: Date.now() });
-      }
-      function cc(a, b) {
         if (0 > b) throw new P(28);
-        a = "string" == typeof a ? T(a, { Sa: true }).node : a;
-        if (!a.Ga.Oa) throw new P(63);
+        a = "string" == typeof a ? T(a, { Ra: true }).node : a;
+        if (!a.Fa.Na) throw new P(63);
         if (R(a.mode)) throw new P(31);
         if (32768 !== (a.mode & 61440)) throw new P(28);
         var c = Pb(a, "w");
         if (c) throw new P(c);
-        a.Ga.Oa(a, { size: b, timestamp: Date.now() });
+        a.Fa.Na(a, { size: b, timestamp: Date.now() });
       }
-      function la(a, b, c) {
+      function na(a, b, c) {
         if ("" === a) throw new P(44);
         if ("string" == typeof b) {
           var d = { r: 0, "r+": 2, w: 577, "w+": 578, a: 1089, "a+": 1090 }[b];
@@ -19284,255 +13663,234 @@ const require$$2 = /* @__PURE__ */ getAugmentedNamespace(__viteBrowserExternal$1
         c = b & 64 ? ("undefined" == typeof c ? 438 : c) & 4095 | 32768 : 0;
         if ("object" == typeof a) var e = a;
         else {
-          a = u(a);
+          a = x(a);
           try {
-            e = T(a, { Sa: !(b & 131072) }).node;
+            e = T(a, { Ra: !(b & 131072) }).node;
           } catch (h) {
           }
         }
         d = false;
         if (b & 64) if (e) {
           if (b & 128) throw new P(20);
-        } else e = ja(a, c, 0), d = true;
+        } else e = la(a, c, 0), d = true;
         if (!e) throw new P(44);
         8192 === (e.mode & 61440) && (b &= -513);
         if (b & 65536 && !R(e.mode)) throw new P(54);
-        if (!d && (c = e ? 40960 === (e.mode & 61440) ? 32 : R(e.mode) && ("r" !== Rb(b) || b & 512) ? 31 : Pb(e, Rb(b)) : 44)) throw new P(c);
-        b & 512 && !d && cc(e, 0);
+        if (!d && (c = e ? 40960 === (e.mode & 61440) ? 32 : R(e.mode) && ("r" !== Qb(b) || b & 512) ? 31 : Pb(e, Qb(b)) : 44)) throw new P(c);
+        b & 512 && !d && ac(e, 0);
         b &= -131713;
-        e = Vb({ node: e, path: ha(e), flags: b, seekable: true, position: 0, Ha: e.Ha, Fb: [], error: false });
-        e.Ha.open && e.Ha.open(e);
-        !f.logReadFiles || b & 1 || (dc || (dc = {}), a in dc || (dc[a] = 1));
+        e = Tb({ node: e, path: ja(e), flags: b, seekable: true, position: 0, Ga: e.Ga, Db: [], error: false });
+        e.Ga.open && e.Ga.open(e);
+        !f.logReadFiles || b & 1 || (bc || (bc = {}), a in bc || (bc[a] = 1));
         return e;
       }
-      function na(a) {
+      function pa(a) {
         if (null === a.fd) throw new P(8);
-        a.hb && (a.hb = null);
+        a.gb && (a.gb = null);
         try {
-          a.Ha.close && a.Ha.close(a);
+          a.Ga.close && a.Ga.close(a);
         } catch (b) {
           throw b;
         } finally {
-          Jb[a.fd] = null;
+          Hb[a.fd] = null;
         }
         a.fd = null;
       }
-      function ec(a, b, c) {
+      function cc(a, b, c) {
         if (null === a.fd) throw new P(8);
-        if (!a.seekable || !a.Ha.Ta) throw new P(70);
+        if (!a.seekable || !a.Ga.Sa) throw new P(70);
         if (0 != c && 1 != c && 2 != c) throw new P(28);
-        a.position = a.Ha.Ta(a, b, c);
-        a.Fb = [];
+        a.position = a.Ga.Sa(a, b, c);
+        a.Db = [];
       }
-      function fc(a, b, c, d, e) {
+      function dc(a, b, c, d, e) {
         if (0 > d || 0 > e) throw new P(28);
         if (null === a.fd) throw new P(8);
         if (1 === (a.flags & 2097155)) throw new P(8);
         if (R(a.node.mode)) throw new P(31);
-        if (!a.Ha.read) throw new P(28);
+        if (!a.Ga.read) throw new P(28);
         var h = "undefined" != typeof e;
         if (!h) e = a.position;
         else if (!a.seekable) throw new P(70);
-        b = a.Ha.read(a, b, c, d, e);
+        b = a.Ga.read(a, b, c, d, e);
         h || (a.position += b);
         return b;
       }
-      function ma(a, b, c, d, e) {
+      function oa(a, b, c, d, e) {
         if (0 > d || 0 > e) throw new P(28);
         if (null === a.fd) throw new P(8);
         if (0 === (a.flags & 2097155)) throw new P(8);
         if (R(a.node.mode)) throw new P(31);
-        if (!a.Ha.write) throw new P(28);
-        a.seekable && a.flags & 1024 && ec(a, 0, 2);
+        if (!a.Ga.write) throw new P(28);
+        a.seekable && a.flags & 1024 && cc(a, 0, 2);
         var h = "undefined" != typeof e;
         if (!h) e = a.position;
         else if (!a.seekable) throw new P(70);
-        b = a.Ha.write(a, b, c, d, e, void 0);
+        b = a.Ga.write(a, b, c, d, e, void 0);
         h || (a.position += b);
         return b;
       }
-      function va(a) {
+      function ya(a) {
         var c;
-        var d = la(a, d || 0);
-        a = ac(a).size;
+        var d = na(a, d || 0);
+        a = Zb(a).size;
         var e = new Uint8Array(a);
-        fc(d, e, 0, a, 0);
+        dc(d, e, 0, a, 0);
         c = e;
-        na(d);
+        pa(d);
         return c;
       }
-      function gc() {
-        P || (P = function(a, b) {
-          this.name = "ErrnoError";
-          this.node = b;
-          this.Eb = function(c) {
-            this.Ka = c;
-          };
-          this.Eb(a);
-          this.message = "FS error";
-        }, P.prototype = Error(), P.prototype.constructor = P, [44].forEach((a) => {
-          Eb[a] = new P(a);
-          Eb[a].stack = "<generic error, no stack>";
-        }));
-      }
-      var hc;
-      function ic(a, b, c) {
-        a = u("/dev/" + a);
-        var d = ia(!!b, !!c);
-        jc || (jc = 64);
-        var e = jc++ << 8 | 0;
-        xb(e, { open(h) {
+      var ec;
+      function Fc(a, b, c) {
+        a = x("/dev/" + a);
+        var d = ka(!!b, !!c);
+        Hc || (Hc = 64);
+        var e = Hc++ << 8 | 0;
+        vb(e, { open(h) {
           h.seekable = false;
         }, close() {
           c?.buffer?.length && c(10);
-        }, read(h, k, r, y) {
-          for (var v = 0, F = 0; F < y; F++) {
+        }, read(h, k, r, z) {
+          for (var v = 0, E = 0; E < z; E++) {
             try {
               var H = b();
-            } catch (pb) {
+            } catch (mb) {
               throw new P(29);
             }
             if (void 0 === H && 0 === v) throw new P(6);
             if (null === H || void 0 === H) break;
             v++;
-            k[r + F] = H;
+            k[r + E] = H;
           }
           v && (h.node.timestamp = Date.now());
           return v;
-        }, write(h, k, r, y) {
-          for (var v = 0; v < y; v++) try {
+        }, write(h, k, r, z) {
+          for (var v = 0; v < z; v++) try {
             c(k[r + v]);
-          } catch (F) {
+          } catch (E) {
             throw new P(29);
           }
-          y && (h.node.timestamp = Date.now());
+          z && (h.node.timestamp = Date.now());
           return v;
         } });
-        Yb(a, d, e);
+        Wb(a, d, e);
       }
-      var jc, W = {}, Wb, dc;
-      function kc(a, b, c) {
+      var Hc, W = {}, bc;
+      function Ic(a, b, c) {
         if ("/" === b.charAt(0)) return b;
         a = -100 === a ? "/" : U(a).path;
         if (0 == b.length) {
           if (!c) throw new P(44);
           return a;
         }
-        return u(a + "/" + b);
+        return x(a + "/" + b);
       }
-      function lc(a, b, c) {
-        try {
-          var d = a(b);
-        } catch (h) {
-          if (h && h.node && u(b) !== u(ha(h.node))) return -54;
-          throw h;
-        }
-        D[c >> 2] = d.dev;
-        D[c + 4 >> 2] = d.mode;
-        E[c + 8 >> 2] = d.nlink;
-        D[c + 12 >> 2] = d.uid;
-        D[c + 16 >> 2] = d.gid;
-        D[c + 20 >> 2] = d.rdev;
-        J = [d.size >>> 0, (I = d.size, 1 <= +Math.abs(I) ? 0 < I ? +Math.floor(I / 4294967296) >>> 0 : ~~+Math.ceil((I - +(~~I >>> 0)) / 4294967296) >>> 0 : 0)];
+      function Jc(a, b, c) {
+        a = a(b);
+        D[c >> 2] = a.dev;
+        D[c + 4 >> 2] = a.mode;
+        F[c + 8 >> 2] = a.nlink;
+        D[c + 12 >> 2] = a.uid;
+        D[c + 16 >> 2] = a.gid;
+        D[c + 20 >> 2] = a.rdev;
+        J = [a.size >>> 0, (I = a.size, 1 <= +Math.abs(I) ? 0 < I ? +Math.floor(I / 4294967296) >>> 0 : ~~+Math.ceil((I - +(~~I >>> 0)) / 4294967296) >>> 0 : 0)];
         D[c + 24 >> 2] = J[0];
         D[c + 28 >> 2] = J[1];
         D[c + 32 >> 2] = 4096;
-        D[c + 36 >> 2] = d.blocks;
-        a = d.atime.getTime();
-        b = d.mtime.getTime();
-        var e = d.ctime.getTime();
-        J = [Math.floor(a / 1e3) >>> 0, (I = Math.floor(a / 1e3), 1 <= +Math.abs(I) ? 0 < I ? +Math.floor(I / 4294967296) >>> 0 : ~~+Math.ceil((I - +(~~I >>> 0)) / 4294967296) >>> 0 : 0)];
+        D[c + 36 >> 2] = a.blocks;
+        b = a.atime.getTime();
+        var d = a.mtime.getTime(), e = a.ctime.getTime();
+        J = [Math.floor(b / 1e3) >>> 0, (I = Math.floor(b / 1e3), 1 <= +Math.abs(I) ? 0 < I ? +Math.floor(I / 4294967296) >>> 0 : ~~+Math.ceil((I - +(~~I >>> 0)) / 4294967296) >>> 0 : 0)];
         D[c + 40 >> 2] = J[0];
         D[c + 44 >> 2] = J[1];
-        E[c + 48 >> 2] = a % 1e3 * 1e3;
-        J = [Math.floor(b / 1e3) >>> 0, (I = Math.floor(b / 1e3), 1 <= +Math.abs(I) ? 0 < I ? +Math.floor(I / 4294967296) >>> 0 : ~~+Math.ceil((I - +(~~I >>> 0)) / 4294967296) >>> 0 : 0)];
+        F[c + 48 >> 2] = b % 1e3 * 1e3;
+        J = [Math.floor(d / 1e3) >>> 0, (I = Math.floor(d / 1e3), 1 <= +Math.abs(I) ? 0 < I ? +Math.floor(I / 4294967296) >>> 0 : ~~+Math.ceil((I - +(~~I >>> 0)) / 4294967296) >>> 0 : 0)];
         D[c + 56 >> 2] = J[0];
         D[c + 60 >> 2] = J[1];
-        E[c + 64 >> 2] = b % 1e3 * 1e3;
+        F[c + 64 >> 2] = d % 1e3 * 1e3;
         J = [Math.floor(e / 1e3) >>> 0, (I = Math.floor(e / 1e3), 1 <= +Math.abs(I) ? 0 < I ? +Math.floor(I / 4294967296) >>> 0 : ~~+Math.ceil((I - +(~~I >>> 0)) / 4294967296) >>> 0 : 0)];
         D[c + 72 >> 2] = J[0];
         D[c + 76 >> 2] = J[1];
-        E[c + 80 >> 2] = e % 1e3 * 1e3;
-        J = [d.ino >>> 0, (I = d.ino, 1 <= +Math.abs(I) ? 0 < I ? +Math.floor(I / 4294967296) >>> 0 : ~~+Math.ceil((I - +(~~I >>> 0)) / 4294967296) >>> 0 : 0)];
+        F[c + 80 >> 2] = e % 1e3 * 1e3;
+        J = [a.ino >>> 0, (I = a.ino, 1 <= +Math.abs(I) ? 0 < I ? +Math.floor(I / 4294967296) >>> 0 : ~~+Math.ceil((I - +(~~I >>> 0)) / 4294967296) >>> 0 : 0)];
         D[c + 88 >> 2] = J[0];
         D[c + 92 >> 2] = J[1];
         return 0;
       }
-      var Mc = void 0;
-      function Oc() {
-        var a = D[+Mc >> 2];
-        Mc += 4;
+      var Kc = void 0;
+      function Lc() {
+        var a = D[+Kc >> 2];
+        Kc += 4;
         return a;
       }
-      var Pc = (a, b) => b + 2097152 >>> 0 < 4194305 - !!a ? (a >>> 0) + 4294967296 * b : NaN, Qc = [0, 31, 60, 91, 121, 152, 182, 213, 244, 274, 305, 335], Rc = [0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334], Sc = (a) => {
-        var b = da(a) + 1, c = ea(b);
-        c && fa(a, q, c, b);
-        return c;
-      }, Tc = {}, Vc = () => {
-        if (!Uc) {
-          var a = { USER: "web_user", LOGNAME: "web_user", PATH: "/", PWD: "/", HOME: "/home/web_user", LANG: ("object" == typeof navigator && navigator.languages && navigator.languages[0] || "C").replace("-", "_") + ".UTF-8", _: za || "./this.program" }, b;
-          for (b in Tc) void 0 === Tc[b] ? delete a[b] : a[b] = Tc[b];
+      var Mc = (a, b) => b + 2097152 >>> 0 < 4194305 - !!a ? (a >>> 0) + 4294967296 * b : NaN, Nc = [0, 31, 60, 91, 121, 152, 182, 213, 244, 274, 305, 335], Oc = [0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334], Pc = {}, Rc = () => {
+        if (!Qc) {
+          var a = { USER: "web_user", LOGNAME: "web_user", PATH: "/", PWD: "/", HOME: "/home/web_user", LANG: ("object" == typeof navigator && navigator.languages && navigator.languages[0] || "C").replace("-", "_") + ".UTF-8", _: Ca || "./this.program" }, b;
+          for (b in Pc) void 0 === Pc[b] ? delete a[b] : a[b] = Pc[b];
           var c = [];
           for (b in a) c.push(`${b}=${a[b]}`);
-          Uc = c;
+          Qc = c;
         }
-        return Uc;
-      }, Uc, ta = (a) => {
-        var b = da(a) + 1, c = x(b);
-        fa(a, q, c, b);
+        return Qc;
+      }, Qc, va = (a) => {
+        var b = ha(a) + 1, c = y(b);
+        q(a, u, c, b);
         return c;
-      }, Wc = (a, b, c, d) => {
+      }, Sc = (a, b, c, d) => {
         var e = { string: (v) => {
-          var F = 0;
-          null !== v && void 0 !== v && 0 !== v && (F = ta(v));
-          return F;
+          var E = 0;
+          null !== v && void 0 !== v && 0 !== v && (E = va(v));
+          return E;
         }, array: (v) => {
-          var F = x(v.length);
-          p2.set(v, F);
-          return F;
+          var E = y(v.length);
+          p.set(v, E);
+          return E;
         } };
         a = f["_" + a];
         var h = [], k = 0;
         if (d) for (var r = 0; r < d.length; r++) {
-          var y = e[c[r]];
-          y ? (0 === k && (k = pa()), h[r] = y(d[r])) : h[r] = d[r];
+          var z = e[c[r]];
+          z ? (0 === k && (k = ra()), h[r] = z(d[r])) : h[r] = d[r];
         }
-        c = a.apply(null, h);
+        c = a(...h);
         return c = function(v) {
-          0 !== k && sa(k);
-          return "string" === b ? v ? M(q, v) : "" : "boolean" === b ? !!v : v;
+          0 !== k && ua(k);
+          return "string" === b ? v ? L(u, v) : "" : "boolean" === b ? !!v : v;
         }(c);
-      }, ba = 0, aa = (a, b) => {
-        b = 1 == b ? x(a.length) : ea(a.length);
+      }, ea = 0, da = (a, b) => {
+        b = 1 == b ? y(a.length) : ia(a.length);
         a.subarray || a.slice || (a = new Uint8Array(a));
-        q.set(a, b);
+        u.set(
+          a,
+          b
+        );
         return b;
-      }, Xc, Yc = [], Y, ua = (a) => {
-        Xc.delete(Y.get(a));
-        Y.set(a, null);
-        Yc.push(a);
-      }, xa = (a, b) => {
-        if (!Xc) {
-          Xc = /* @__PURE__ */ new WeakMap();
-          var c = Y.length;
-          if (Xc) for (var d = 0; d < 0 + c; d++) {
-            var e = Y.get(d);
-            e && Xc.set(e, d);
+      }, Tc, Uc = [], X, wa = (a) => {
+        Tc.delete(X.get(a));
+        X.set(a, null);
+        Uc.push(a);
+      }, Aa = (a, b) => {
+        if (!Tc) {
+          Tc = /* @__PURE__ */ new WeakMap();
+          var c = X.length;
+          if (Tc) for (var d = 0; d < 0 + c; d++) {
+            var e = X.get(d);
+            e && Tc.set(e, d);
           }
         }
-        if (c = Xc.get(a) || 0) return c;
-        if (Yc.length) c = Yc.pop();
+        if (c = Tc.get(a) || 0) return c;
+        if (Uc.length) c = Uc.pop();
         else {
           try {
-            Y.grow(1);
+            X.grow(1);
           } catch (r) {
             if (!(r instanceof RangeError)) throw r;
             throw "Unable to grow wasm table. Set ALLOW_TABLE_GROWTH.";
           }
-          c = Y.length - 1;
+          c = X.length - 1;
         }
         try {
-          Y.set(c, a);
+          X.set(c, a);
         } catch (r) {
           if (!(r instanceof TypeError)) throw r;
           if ("function" == typeof WebAssembly.Function) {
@@ -19553,57 +13911,56 @@ const require$$2 = /* @__PURE__ */ getAugmentedNamespace(__viteBrowserExternal$1
             b = [0, 97, 115, 109, 1, 0, 0, 0, 1];
             e = d.length;
             128 > e ? b.push(e) : b.push(e % 128 | 128, e >> 7);
-            b.push.apply(b, d);
-            b.push(2, 7, 1, 1, 101, 1, 102, 0, 0, 7, 5, 1, 1, 102, 0, 0);
+            b.push(...d);
+            b.push(
+              2,
+              7,
+              1,
+              1,
+              101,
+              1,
+              102,
+              0,
+              0,
+              7,
+              5,
+              1,
+              1,
+              102,
+              0,
+              0
+            );
             b = new WebAssembly.Module(new Uint8Array(b));
             b = new WebAssembly.Instance(b, { e: { f: a } }).exports.f;
           }
-          Y.set(c, b);
+          X.set(c, b);
         }
-        Xc.set(a, c);
+        Tc.set(a, c);
         return c;
       };
-      function Qb(a, b, c, d) {
-        a || (a = this);
-        this.parent = a;
-        this.Ra = a.Ra;
-        this.Va = null;
-        this.id = Kb++;
-        this.name = b;
-        this.mode = c;
-        this.Ga = {};
-        this.Ha = {};
-        this.rdev = d;
-      }
-      Object.defineProperties(Qb.prototype, { read: { get: function() {
-        return 365 === (this.mode & 365);
-      }, set: function(a) {
-        a ? this.mode |= 365 : this.mode &= -366;
-      } }, write: { get: function() {
-        return 146 === (this.mode & 146);
-      }, set: function(a) {
-        a ? this.mode |= 146 : this.mode &= -147;
-      } } });
-      gc();
+      [44].forEach((a) => {
+        Cb[a] = new P(a);
+        Cb[a].stack = "<generic error, no stack>";
+      });
       S = Array(4096);
-      Xb(Q, "/");
+      Vb(Q, "/");
       V("/tmp");
       V("/home");
       V("/home/web_user");
       (function() {
         V("/dev");
-        xb(259, { read: () => 0, write: (d, e, h, k) => k });
-        Yb("/dev/null", 259);
-        wb(1280, zb);
-        wb(1536, Ab);
-        Yb("/dev/tty", 1280);
-        Yb("/dev/tty1", 1536);
+        vb(259, { read: () => 0, write: (d, e, h, k) => k });
+        Wb("/dev/null", 259);
+        ub(1280, xb);
+        ub(1536, yb);
+        Wb("/dev/tty", 1280);
+        Wb("/dev/tty1", 1536);
         var a = new Uint8Array(1024), b = 0, c = () => {
-          0 === b && (b = kb(a).byteLength);
+          0 === b && (b = jb(a).byteLength);
           return a[--b];
         };
-        ic("random", c);
-        ic("urandom", c);
+        Fc("random", c);
+        Fc("urandom", c);
         V("/dev/shm");
         V("/dev/shm/tmp");
       })();
@@ -19611,34 +13968,34 @@ const require$$2 = /* @__PURE__ */ getAugmentedNamespace(__viteBrowserExternal$1
         V("/proc");
         var a = V("/proc/self");
         V("/proc/self/fd");
-        Xb({ Ra() {
-          var b = Db(a, "fd", 16895, 73);
-          b.Ga = { lookup(c, d) {
+        Vb({ Qa() {
+          var b = Bb(a, "fd", 16895, 73);
+          b.Fa = { lookup(c, d) {
             var e = U(+d);
-            c = { parent: null, Ra: { tb: "fake" }, Ga: { readlink: () => e.path } };
+            c = { parent: null, Qa: { sb: "fake" }, Fa: { readlink: () => e.path } };
             return c.parent = c;
           } };
           return b;
         } }, "/proc/self/fd");
       })();
-      var $c = {
+      var Vc = {
         a: (a, b, c, d) => {
-          C(`Assertion failed: ${a ? M(q, a) : ""}, at: ` + [b ? b ? M(q, b) : "" : "unknown filename", c, d ? d ? M(q, d) : "" : "unknown function"]);
+          G(`Assertion failed: ${a ? L(u, a) : ""}, at: ` + [b ? b ? L(u, b) : "" : "unknown filename", c, d ? d ? L(u, d) : "" : "unknown function"]);
         },
         h: function(a, b) {
           try {
-            return a = a ? M(q, a) : "", ka(a, b), 0;
+            return a = a ? L(u, a) : "", ma(a, b), 0;
           } catch (c) {
             if ("undefined" == typeof W || "ErrnoError" !== c.name) throw c;
-            return -c.Ka;
+            return -c.Ja;
           }
         },
         H: function(a, b, c) {
           try {
-            b = b ? M(q, b) : "";
-            b = kc(a, b);
+            b = b ? L(u, b) : "";
+            b = Ic(a, b);
             if (c & -8) return -28;
-            var d = T(b, { Sa: true }).node;
+            var d = T(b, { Ra: true }).node;
             if (!d) return -44;
             a = "";
             c & 4 && (a += "r");
@@ -19647,203 +14004,194 @@ const require$$2 = /* @__PURE__ */ getAugmentedNamespace(__viteBrowserExternal$1
             return a && Pb(d, a) ? -2 : 0;
           } catch (e) {
             if ("undefined" == typeof W || "ErrnoError" !== e.name) throw e;
-            return -e.Ka;
+            return -e.Ja;
           }
         },
         i: function(a, b) {
           try {
             var c = U(a);
-            ka(c.node, b);
+            ma(c.node, b);
             return 0;
           } catch (d) {
             if ("undefined" == typeof W || "ErrnoError" !== d.name) throw d;
-            return -d.Ka;
+            return -d.Ja;
           }
         },
         g: function(a) {
           try {
             var b = U(a).node;
-            var c = "string" == typeof b ? T(b, { Sa: true }).node : b;
-            if (!c.Ga.Oa) throw new P(63);
-            c.Ga.Oa(c, { timestamp: Date.now() });
+            var c = "string" == typeof b ? T(b, { Ra: true }).node : b;
+            if (!c.Fa.Na) throw new P(63);
+            c.Fa.Na(c, { timestamp: Date.now() });
             return 0;
           } catch (d) {
             if ("undefined" == typeof W || "ErrnoError" !== d.name) throw d;
-            return -d.Ka;
+            return -d.Ja;
           }
         },
         b: function(a, b, c) {
-          Mc = c;
+          Kc = c;
           try {
             var d = U(a);
             switch (b) {
               case 0:
-                var e = Oc();
-                if (0 > e) return -28;
-                for (; Jb[e]; ) e++;
-                return Vb(d, e).fd;
+                var e = Lc();
+                if (0 > e) break;
+                for (; Hb[e]; ) e++;
+                return Ub(d, e).fd;
               case 1:
               case 2:
                 return 0;
               case 3:
                 return d.flags;
               case 4:
-                return e = Oc(), d.flags |= e, 0;
-              case 5:
-                return e = Oc(), Na[e + 0 >> 1] = 2, 0;
-              case 6:
-              case 7:
+                return e = Lc(), d.flags |= e, 0;
+              case 12:
+                return e = Lc(), La[e + 0 >> 1] = 2, 0;
+              case 13:
+              case 14:
                 return 0;
-              case 16:
-              case 8:
-                return -28;
-              case 9:
-                return D[Zc() >> 2] = 28, -1;
-              default:
-                return -28;
             }
+            return -28;
           } catch (h) {
             if ("undefined" == typeof W || "ErrnoError" !== h.name) throw h;
-            return -h.Ka;
+            return -h.Ja;
           }
         },
         f: function(a, b) {
           try {
             var c = U(a);
-            return lc(ac, c.path, b);
+            return Jc(Zb, c.path, b);
           } catch (d) {
             if ("undefined" == typeof W || "ErrnoError" !== d.name) throw d;
-            return -d.Ka;
+            return -d.Ja;
           }
         },
         n: function(a, b, c) {
-          b = Pc(b, c);
+          b = Mc(b, c);
           try {
             if (isNaN(b)) return 61;
             var d = U(a);
             if (0 === (d.flags & 2097155)) throw new P(28);
-            cc(d.node, b);
+            ac(d.node, b);
             return 0;
           } catch (e) {
             if ("undefined" == typeof W || "ErrnoError" !== e.name) throw e;
-            return -e.Ka;
+            return -e.Ja;
           }
         },
         C: function(a, b) {
           try {
             if (0 === b) return -28;
-            var c = da("/") + 1;
+            var c = ha("/") + 1;
             if (b < c) return -68;
-            fa("/", q, a, b);
+            q("/", u, a, b);
             return c;
           } catch (d) {
             if ("undefined" == typeof W || "ErrnoError" !== d.name) throw d;
-            return -d.Ka;
+            return -d.Ja;
           }
         },
         F: function(a, b) {
           try {
-            return a = a ? M(q, a) : "", lc(bc, a, b);
+            return a = a ? L(u, a) : "", Jc($b, a, b);
           } catch (c) {
             if ("undefined" == typeof W || "ErrnoError" !== c.name) throw c;
-            return -c.Ka;
+            return -c.Ja;
           }
         },
         z: function(a, b, c) {
           try {
-            return b = b ? M(q, b) : "", b = kc(a, b), b = u(b), "/" === b[b.length - 1] && (b = b.substr(
-              0,
-              b.length - 1
-            )), V(b, c), 0;
+            return b = b ? L(u, b) : "", b = Ic(a, b), b = x(b), "/" === b[b.length - 1] && (b = b.substr(0, b.length - 1)), V(b, c), 0;
           } catch (d) {
             if ("undefined" == typeof W || "ErrnoError" !== d.name) throw d;
-            return -d.Ka;
+            return -d.Ja;
           }
         },
         E: function(a, b, c, d) {
           try {
-            b = b ? M(q, b) : "";
+            b = b ? L(u, b) : "";
             var e = d & 256;
-            b = kc(a, b, d & 4096);
-            return lc(e ? bc : ac, b, c);
+            b = Ic(a, b, d & 4096);
+            return Jc(e ? $b : Zb, b, c);
           } catch (h) {
             if ("undefined" == typeof W || "ErrnoError" !== h.name) throw h;
-            return -h.Ka;
+            return -h.Ja;
           }
         },
-        y: function(a, b, c, d) {
-          Mc = d;
+        x: function(a, b, c, d) {
+          Kc = d;
           try {
-            b = b ? M(q, b) : "";
-            b = kc(a, b);
-            var e = d ? Oc() : 0;
-            return la(b, c, e).fd;
+            b = b ? L(u, b) : "";
+            b = Ic(a, b);
+            var e = d ? Lc() : 0;
+            return na(b, c, e).fd;
           } catch (h) {
             if ("undefined" == typeof W || "ErrnoError" !== h.name) throw h;
-            return -h.Ka;
+            return -h.Ja;
           }
         },
-        w: function(a, b, c, d) {
+        v: function(a, b, c, d) {
           try {
-            b = b ? M(q, b) : "";
-            b = kc(a, b);
+            b = b ? L(u, b) : "";
+            b = Ic(a, b);
             if (0 >= d) return -28;
-            var e = Mb(b), h = Math.min(d, da(e)), k = p2[c + h];
-            fa(e, q, c, d + 1);
-            p2[c + h] = k;
+            var e = Mb(b), h = Math.min(d, ha(e)), k = p[c + h];
+            q(e, u, c, d + 1);
+            p[c + h] = k;
             return h;
           } catch (r) {
             if ("undefined" == typeof W || "ErrnoError" !== r.name) throw r;
-            return -r.Ka;
+            return -r.Ja;
           }
         },
-        v: function(a) {
+        u: function(a) {
           try {
-            return a = a ? M(q, a) : "", $b(a), 0;
+            return a = a ? L(u, a) : "", Yb(a), 0;
           } catch (b) {
             if ("undefined" == typeof W || "ErrnoError" !== b.name) throw b;
-            return -b.Ka;
+            return -b.Ja;
           }
         },
         G: function(a, b) {
           try {
-            return a = a ? M(q, a) : "", lc(ac, a, b);
+            return a = a ? L(u, a) : "", Jc(Zb, a, b);
           } catch (c) {
             if ("undefined" == typeof W || "ErrnoError" !== c.name) throw c;
-            return -c.Ka;
+            return -c.Ja;
           }
         },
         r: function(a, b, c) {
           try {
-            return b = b ? M(q, b) : "", b = kc(a, b), 0 === c ? wa(b) : 512 === c ? $b(b) : C("Invalid flags passed to unlinkat"), 0;
+            return b = b ? L(u, b) : "", b = Ic(a, b), 0 === c ? za(b) : 512 === c ? Yb(b) : G("Invalid flags passed to unlinkat"), 0;
           } catch (d) {
             if ("undefined" == typeof W || "ErrnoError" !== d.name) throw d;
-            return -d.Ka;
+            return -d.Ja;
           }
         },
         q: function(a, b, c) {
           try {
-            b = b ? M(q, b) : "";
-            b = kc(a, b, true);
+            b = b ? L(u, b) : "";
+            b = Ic(a, b, true);
             if (c) {
-              var d = E[c >> 2] + 4294967296 * D[c + 4 >> 2], e = D[c + 8 >> 2];
+              var d = F[c >> 2] + 4294967296 * D[c + 4 >> 2], e = D[c + 8 >> 2];
               h = 1e3 * d + e / 1e6;
               c += 16;
-              d = E[c >> 2] + 4294967296 * D[c + 4 >> 2];
+              d = F[c >> 2] + 4294967296 * D[c + 4 >> 2];
               e = D[c + 8 >> 2];
               k = 1e3 * d + e / 1e6;
             } else var h = Date.now(), k = h;
             a = h;
-            var r = T(b, { Sa: true }).node;
-            r.Ga.Oa(r, { timestamp: Math.max(a, k) });
+            var r = T(b, { Ra: true }).node;
+            r.Fa.Na(r, { timestamp: Math.max(a, k) });
             return 0;
-          } catch (y) {
-            if ("undefined" == typeof W || "ErrnoError" !== y.name) throw y;
-            return -y.Ka;
+          } catch (z) {
+            if ("undefined" == typeof W || "ErrnoError" !== z.name) throw z;
+            return -z.Ja;
           }
         },
         l: function(a, b, c) {
-          a = new Date(1e3 * Pc(a, b));
+          a = new Date(1e3 * Mc(a, b));
           D[c >> 2] = a.getSeconds();
           D[c + 4 >> 2] = a.getMinutes();
           D[c + 8 >> 2] = a.getHours();
@@ -19852,67 +14200,64 @@ const require$$2 = /* @__PURE__ */ getAugmentedNamespace(__viteBrowserExternal$1
           D[c + 20 >> 2] = a.getFullYear() - 1900;
           D[c + 24 >> 2] = a.getDay();
           b = a.getFullYear();
-          D[c + 28 >> 2] = (0 !== b % 4 || 0 === b % 100 && 0 !== b % 400 ? Rc : Qc)[a.getMonth()] + a.getDate() - 1 | 0;
+          D[c + 28 >> 2] = (0 !== b % 4 || 0 === b % 100 && 0 !== b % 400 ? Oc : Nc)[a.getMonth()] + a.getDate() - 1 | 0;
           D[c + 36 >> 2] = -(60 * a.getTimezoneOffset());
           b = new Date(a.getFullYear(), 6, 1).getTimezoneOffset();
           var d = new Date(a.getFullYear(), 0, 1).getTimezoneOffset();
           D[c + 32 >> 2] = (b != d && a.getTimezoneOffset() == Math.min(d, b)) | 0;
         },
         j: function(a, b, c, d, e, h, k, r) {
-          e = Pc(e, h);
+          e = Mc(e, h);
           try {
             if (isNaN(e)) return 61;
-            var y = U(d);
-            if (0 !== (b & 2) && 0 === (c & 2) && 2 !== (y.flags & 2097155)) throw new P(2);
-            if (1 === (y.flags & 2097155)) throw new P(2);
-            if (!y.Ha.bb) throw new P(43);
-            var v = y.Ha.bb(y, a, e, b, c);
-            var F = v.Db;
-            D[k >> 2] = v.ub;
-            E[r >> 2] = F;
+            var z = U(d);
+            if (0 !== (b & 2) && 0 === (c & 2) && 2 !== (z.flags & 2097155)) throw new P(2);
+            if (1 === (z.flags & 2097155)) throw new P(2);
+            if (!z.Ga.ab) throw new P(43);
+            var v = z.Ga.ab(z, a, e, b, c);
+            var E = v.Cb;
+            D[k >> 2] = v.tb;
+            F[r >> 2] = E;
             return 0;
           } catch (H) {
             if ("undefined" == typeof W || "ErrnoError" !== H.name) throw H;
-            return -H.Ka;
+            return -H.Ja;
           }
         },
         k: function(a, b, c, d, e, h, k) {
-          h = Pc(h, k);
+          h = Mc(h, k);
           try {
-            if (isNaN(h)) return 61;
             var r = U(e);
             if (c & 2) {
               if (32768 !== (r.node.mode & 61440)) throw new P(43);
               if (!(d & 2)) {
-                var y = q.slice(a, a + b);
-                r.Ha.cb && r.Ha.cb(r, y, h, b, d);
+                var z = u.slice(a, a + b);
+                r.Ga.bb && r.Ga.bb(r, z, h, b, d);
               }
             }
           } catch (v) {
             if ("undefined" == typeof W || "ErrnoError" !== v.name) throw v;
-            return -v.Ka;
+            return -v.Ja;
           }
         },
-        s: (a, b, c) => {
-          function d(y) {
-            return (y = y.toTimeString().match(/\(([A-Za-z ]+)\)$/)) ? y[1] : "GMT";
-          }
-          var e = (/* @__PURE__ */ new Date()).getFullYear(), h = new Date(e, 0, 1), k = new Date(e, 6, 1);
-          e = h.getTimezoneOffset();
-          var r = k.getTimezoneOffset();
-          E[a >> 2] = 60 * Math.max(e, r);
-          D[b >> 2] = Number(e != r);
-          a = d(h);
-          b = d(k);
-          a = Sc(a);
-          b = Sc(b);
-          r < e ? (E[c >> 2] = a, E[c + 4 >> 2] = b) : (E[c >> 2] = b, E[c + 4 >> 2] = a);
+        y: (a, b, c, d) => {
+          var e = (/* @__PURE__ */ new Date()).getFullYear(), h = new Date(e, 0, 1).getTimezoneOffset();
+          e = new Date(e, 6, 1).getTimezoneOffset();
+          F[a >> 2] = 60 * Math.max(h, e);
+          D[b >> 2] = Number(h != e);
+          b = (k) => {
+            var r = Math.abs(k);
+            return `UTC${0 <= k ? "-" : "+"}${String(Math.floor(r / 60)).padStart(2, "0")}${String(r % 60).padStart(2, "0")}`;
+          };
+          a = b(h);
+          b = b(e);
+          e < h ? (q(a, u, c, 17), q(b, u, d, 17)) : (q(a, u, d, 17), q(b, u, c, 17));
         },
         d: () => Date.now(),
-        t: () => 2147483648,
+        s: () => 2147483648,
         c: () => performance.now(),
         o: (a) => {
-          var b = q.length;
+          var b = u.length;
           a >>>= 0;
           if (2147483648 < a) return false;
           for (var c = 1; 4 >= c; c *= 2) {
@@ -19921,10 +14266,10 @@ const require$$2 = /* @__PURE__ */ getAugmentedNamespace(__viteBrowserExternal$1
             var e = Math;
             d = Math.max(a, d);
             a: {
-              e = (e.min.call(e, 2147483648, d + (65536 - d % 65536) % 65536) - La.buffer.byteLength + 65535) / 65536;
+              e = (e.min.call(e, 2147483648, d + (65536 - d % 65536) % 65536) - Ja.buffer.byteLength + 65535) / 65536;
               try {
-                La.grow(e);
-                Qa();
+                Ja.grow(e);
+                Oa();
                 var h = 1;
                 break a;
               } catch (k) {
@@ -19937,38 +14282,38 @@ const require$$2 = /* @__PURE__ */ getAugmentedNamespace(__viteBrowserExternal$1
         },
         A: (a, b) => {
           var c = 0;
-          Vc().forEach((d, e) => {
+          Rc().forEach((d, e) => {
             var h = b + c;
-            e = E[a + 4 * e >> 2] = h;
-            for (h = 0; h < d.length; ++h) p2[e++ >> 0] = d.charCodeAt(h);
-            p2[e >> 0] = 0;
+            e = F[a + 4 * e >> 2] = h;
+            for (h = 0; h < d.length; ++h) p[e++] = d.charCodeAt(h);
+            p[e] = 0;
             c += d.length + 1;
           });
           return 0;
         },
         B: (a, b) => {
-          var c = Vc();
-          E[a >> 2] = c.length;
+          var c = Rc();
+          F[a >> 2] = c.length;
           var d = 0;
           c.forEach((e) => d += e.length + 1);
-          E[b >> 2] = d;
+          F[b >> 2] = d;
           return 0;
         },
         e: function(a) {
           try {
             var b = U(a);
-            na(b);
+            pa(b);
             return 0;
           } catch (c) {
             if ("undefined" == typeof W || "ErrnoError" !== c.name) throw c;
-            return c.Ka;
+            return c.Ja;
           }
         },
         p: function(a, b) {
           try {
             var c = U(a);
-            p2[b >> 0] = c.tty ? 2 : R(c.mode) ? 3 : 40960 === (c.mode & 61440) ? 7 : 4;
-            Na[b + 2 >> 1] = 0;
+            p[b] = c.tty ? 2 : R(c.mode) ? 3 : 40960 === (c.mode & 61440) ? 7 : 4;
+            La[b + 2 >> 1] = 0;
             J = [0, (I = 0, 1 <= +Math.abs(I) ? 0 < I ? +Math.floor(I / 4294967296) >>> 0 : ~~+Math.ceil((I - +(~~I >>> 0)) / 4294967296) >>> 0 : 0)];
             D[b + 8 >> 2] = J[0];
             D[b + 12 >> 2] = J[1];
@@ -19978,113 +14323,116 @@ const require$$2 = /* @__PURE__ */ getAugmentedNamespace(__viteBrowserExternal$1
             return 0;
           } catch (d) {
             if ("undefined" == typeof W || "ErrnoError" !== d.name) throw d;
-            return d.Ka;
+            return d.Ja;
           }
         },
-        x: function(a, b, c, d) {
+        w: function(a, b, c, d) {
           try {
             a: {
               var e = U(a);
               a = b;
               for (var h, k = b = 0; k < c; k++) {
-                var r = E[a >> 2], y = E[a + 4 >> 2];
+                var r = F[a >> 2], z = F[a + 4 >> 2];
                 a += 8;
-                var v = fc(e, p2, r, y, h);
+                var v = dc(e, p, r, z, h);
                 if (0 > v) {
-                  var F = -1;
+                  var E = -1;
                   break a;
                 }
                 b += v;
-                if (v < y) break;
-                "undefined" !== typeof h && (h += v);
+                if (v < z) break;
+                "undefined" != typeof h && (h += v);
               }
-              F = b;
+              E = b;
             }
-            E[d >> 2] = F;
+            F[d >> 2] = E;
             return 0;
           } catch (H) {
             if ("undefined" == typeof W || "ErrnoError" !== H.name) throw H;
-            return H.Ka;
+            return H.Ja;
           }
         },
         m: function(a, b, c, d, e) {
-          b = Pc(b, c);
+          b = Mc(b, c);
           try {
             if (isNaN(b)) return 61;
             var h = U(a);
-            ec(h, b, d);
+            cc(h, b, d);
             J = [h.position >>> 0, (I = h.position, 1 <= +Math.abs(I) ? 0 < I ? +Math.floor(I / 4294967296) >>> 0 : ~~+Math.ceil((I - +(~~I >>> 0)) / 4294967296) >>> 0 : 0)];
             D[e >> 2] = J[0];
             D[e + 4 >> 2] = J[1];
-            h.hb && 0 === b && 0 === d && (h.hb = null);
+            h.gb && 0 === b && 0 === d && (h.gb = null);
             return 0;
           } catch (k) {
             if ("undefined" == typeof W || "ErrnoError" !== k.name) throw k;
-            return k.Ka;
+            return k.Ja;
           }
         },
         D: function(a) {
           try {
             var b = U(a);
-            return b.Ha?.fsync ? b.Ha.fsync(b) : 0;
+            return b.Ga?.fsync ? b.Ga.fsync(b) : 0;
           } catch (c) {
             if ("undefined" == typeof W || "ErrnoError" !== c.name) throw c;
-            return c.Ka;
+            return c.Ja;
           }
         },
-        u: function(a, b, c, d) {
+        t: function(a, b, c, d) {
           try {
             a: {
               var e = U(a);
               a = b;
               for (var h, k = b = 0; k < c; k++) {
-                var r = E[a >> 2], y = E[a + 4 >> 2];
+                var r = F[a >> 2], z = F[a + 4 >> 2];
                 a += 8;
-                var v = ma(e, p2, r, y, h);
+                var v = oa(e, p, r, z, h);
                 if (0 > v) {
-                  var F = -1;
+                  var E = -1;
                   break a;
                 }
                 b += v;
-                "undefined" !== typeof h && (h += v);
+                "undefined" != typeof h && (h += v);
               }
-              F = b;
+              E = b;
             }
-            E[d >> 2] = F;
+            F[d >> 2] = E;
             return 0;
           } catch (H) {
             if ("undefined" == typeof W || "ErrnoError" !== H.name) throw H;
-            return H.Ka;
+            return H.Ja;
           }
         }
       }, Z = function() {
         function a(c) {
           Z = c.exports;
-          La = Z.I;
-          Qa();
-          Y = Z.Aa;
-          Sa.unshift(Z.J);
-          G--;
-          f.monitorRunDependencies?.(G);
-          0 == G && (Xa && (c = Xa, Xa = null, c()));
+          Ja = Z.I;
+          Oa();
+          X = Z.K;
+          Qa.unshift(Z.J);
+          Ua--;
+          f.monitorRunDependencies?.(Ua);
+          0 == Ua && (Wa && (c = Wa, Wa = null, c()));
           return Z;
         }
-        var b = { a: $c };
-        G++;
-        f.monitorRunDependencies?.(G);
+        var b = { a: Vc };
+        Ua++;
+        f.monitorRunDependencies?.(Ua);
         if (f.instantiateWasm) try {
           return f.instantiateWasm(b, a);
         } catch (c) {
-          return B(`Module.instantiateWasm callback failed with error: ${c}`), false;
+          return C(`Module.instantiateWasm callback failed with error: ${c}`), false;
         }
-        db(b, function(c) {
+        Ya || (Ya = Xa("sql-wasm.wasm") ? "sql-wasm.wasm" : f.locateFile ? f.locateFile(
+          "sql-wasm.wasm",
+          B
+        ) : B + "sql-wasm.wasm");
+        bb(b, function(c) {
           a(c.instance);
         });
         return {};
       }();
-      f._sqlite3_free = (a) => (f._sqlite3_free = Z.K)(a);
-      f._sqlite3_value_text = (a) => (f._sqlite3_value_text = Z.L)(a);
-      var Zc = () => (Zc = Z.M)();
+      f._sqlite3_free = (a) => (f._sqlite3_free = Z.L)(a);
+      f._sqlite3_value_text = (a) => (f._sqlite3_value_text = Z.M)(a);
       f._sqlite3_prepare_v2 = (a, b, c, d, e) => (f._sqlite3_prepare_v2 = Z.N)(a, b, c, d, e);
       f._sqlite3_step = (a) => (f._sqlite3_step = Z.O)(a);
       f._sqlite3_reset = (a) => (f._sqlite3_reset = Z.P)(a);
@@ -20122,49 +14470,47 @@ const require$$2 = /* @__PURE__ */ getAugmentedNamespace(__viteBrowserExternal$1
       f._sqlite3_normalized_sql = (a) => (f._sqlite3_normalized_sql = Z.ta)(a);
       f._sqlite3_changes = (a) => (f._sqlite3_changes = Z.ua)(a);
       f._sqlite3_close_v2 = (a) => (f._sqlite3_close_v2 = Z.va)(a);
-      f._sqlite3_create_function_v2 = (a, b, c, d, e, h, k, r, y) => (f._sqlite3_create_function_v2 = Z.wa)(a, b, c, d, e, h, k, r, y);
+      f._sqlite3_create_function_v2 = (a, b, c, d, e, h, k, r, z) => (f._sqlite3_create_function_v2 = Z.wa)(a, b, c, d, e, h, k, r, z);
       f._sqlite3_open = (a, b) => (f._sqlite3_open = Z.xa)(a, b);
-      var ea = f._malloc = (a) => (ea = f._malloc = Z.ya)(a), ca = f._free = (a) => (ca = f._free = Z.za)(a);
-      f._RegisterExtensionFunctions = (a) => (f._RegisterExtensionFunctions = Z.Ba)(a);
-      var Gb = (a, b) => (Gb = Z.Ca)(a, b), pa = () => (pa = Z.Da)(), sa = (a) => (sa = Z.Ea)(a), x = (a) => (x = Z.Fa)(a);
-      f.stackAlloc = x;
-      f.stackSave = pa;
-      f.stackRestore = sa;
+      var ia = f._malloc = (a) => (ia = f._malloc = Z.ya)(a), fa = f._free = (a) => (fa = f._free = Z.za)(a);
+      f._RegisterExtensionFunctions = (a) => (f._RegisterExtensionFunctions = Z.Aa)(a);
+      var Eb = (a, b) => (Eb = Z.Ba)(a, b), ua = (a) => (ua = Z.Ca)(a), y = (a) => (y = Z.Da)(a), ra = () => (ra = Z.Ea)();
+      f.stackSave = () => ra();
+      f.stackRestore = (a) => ua(a);
+      f.stackAlloc = (a) => y(a);
       f.cwrap = (a, b, c, d) => {
         var e = !c || c.every((h) => "number" === h || "boolean" === h);
-        return "string" !== b && e && !d ? f["_" + a] : function() {
-          return Wc(a, b, c, arguments);
-        };
+        return "string" !== b && e && !d ? f["_" + a] : (...h) => Sc(a, b, c, h);
       };
-      f.addFunction = xa;
-      f.removeFunction = ua;
-      f.UTF8ToString = ra;
-      f.ALLOC_NORMAL = ba;
-      f.allocate = aa;
-      f.allocateUTF8OnStack = ta;
-      var ad;
-      Xa = function bd() {
-        ad || cd();
-        ad || (Xa = bd);
+      f.addFunction = Aa;
+      f.removeFunction = wa;
+      f.UTF8ToString = ta;
+      f.ALLOC_NORMAL = ea;
+      f.allocate = da;
+      f.allocateUTF8OnStack = va;
+      var Wc;
+      Wa = function Xc() {
+        Wc || Yc();
+        Wc || (Wa = Xc);
       };
-      function cd() {
+      function Yc() {
         function a() {
-          if (!ad && (ad = true, f.calledRun = true, !Ma)) {
-            f.noFSInit || hc || (hc = true, gc(), f.stdin = f.stdin, f.stdout = f.stdout, f.stderr = f.stderr, f.stdin ? ic("stdin", f.stdin) : Zb("/dev/tty", "/dev/stdin"), f.stdout ? ic("stdout", null, f.stdout) : Zb("/dev/tty", "/dev/stdout"), f.stderr ? ic("stderr", null, f.stderr) : Zb("/dev/tty1", "/dev/stderr"), la("/dev/stdin", 0), la("/dev/stdout", 1), la("/dev/stderr", 1));
-            Lb = false;
-            eb(Sa);
-            if (f.onRuntimeInitialized) f.onRuntimeInitialized();
+          if (!Wc && (Wc = true, f.calledRun = true, !Ka)) {
+            f.noFSInit || ec || (ec = true, f.stdin = f.stdin, f.stdout = f.stdout, f.stderr = f.stderr, f.stdin ? Fc("stdin", f.stdin) : Xb("/dev/tty", "/dev/stdin"), f.stdout ? Fc("stdout", null, f.stdout) : Xb("/dev/tty", "/dev/stdout"), f.stderr ? Fc("stderr", null, f.stderr) : Xb("/dev/tty1", "/dev/stderr"), na("/dev/stdin", 0), na("/dev/stdout", 1), na("/dev/stderr", 1));
+            Jb = false;
+            cb(Qa);
+            f.onRuntimeInitialized?.();
             if (f.postRun) for ("function" == typeof f.postRun && (f.postRun = [f.postRun]); f.postRun.length; ) {
               var b = f.postRun.shift();
-              Ta.unshift(b);
+              Sa.unshift(b);
             }
-            eb(Ta);
+            cb(Sa);
           }
         }
-        if (!(0 < G)) {
-          if (f.preRun) for ("function" == typeof f.preRun && (f.preRun = [f.preRun]); f.preRun.length; ) Va();
-          eb(Ra);
-          0 < G || (f.setStatus ? (f.setStatus("Running..."), setTimeout(function() {
+        if (!(0 < Ua)) {
+          if (f.preRun) for ("function" == typeof f.preRun && (f.preRun = [f.preRun]); f.preRun.length; ) Ta();
+          cb(Pa);
+          0 < Ua || (f.setStatus ? (f.setStatus("Running..."), setTimeout(function() {
             setTimeout(function() {
               f.setStatus("");
             }, 1);
@@ -20173,7 +14519,7 @@ const require$$2 = /* @__PURE__ */ getAugmentedNamespace(__viteBrowserExternal$1
         }
       }
       if (f.preInit) for ("function" == typeof f.preInit && (f.preInit = [f.preInit]); 0 < f.preInit.length; ) f.preInit.pop()();
-      cd();
+      Yc();
       return Module;
     });
     return initSqlJsPromise;
@@ -20184,8 +14530,8 @@ const require$$2 = /* @__PURE__ */ getAugmentedNamespace(__viteBrowserExternal$1
   }
 })(sqlWasm);
 var sqlWasmExports = sqlWasm.exports;
-const InitSqlJS = /* @__PURE__ */ getDefaultExportFromCjs(sqlWasmExports);
-const WasmUrl = "" + new URL("sql-wasm-oXWfLHrV.wasm", import.meta.url).href;
+var InitSqlJS = /* @__PURE__ */ getDefaultExportFromCjs(sqlWasmExports);
+var WasmUrl = "" + new URL("sql-wasm-Bku9E_kW.wasm", import.meta.url).href;
 const DB_NAME = "sqlitevfs";
 const LOADED_FILES = /* @__PURE__ */ new Map();
 const MIN_GROW_BYTES = 2048;
@@ -20232,8 +14578,8 @@ class _Buffer {
     this._size = Math.max(this._size, offset + buffer.length);
     return buffer.length;
   }
-  truncate(size2) {
-    this._size = size2;
+  truncate(size) {
+    this._size = size;
   }
   toUint8Array() {
     return this._data.subarray(0, this._size);
@@ -20273,15 +14619,6 @@ async function syncFile(fileName, data) {
     request.onerror = () => reject(request.error);
   });
 }
-async function deleteFile(fileName) {
-  const db = await database;
-  await new Promise((resolve, reject) => {
-    const store = db.transaction("files", "readwrite").objectStore("files");
-    const request = store.delete(fileName);
-    request.onsuccess = () => resolve(true);
-    request.onerror = () => reject(request.error);
-  });
-}
 async function writeFile(fileName, data) {
   await syncFile(fileName, data);
   if (LOADED_FILES.has(fileName)) {
@@ -20297,10 +14634,10 @@ async function checkIntegrity(db) {
   }
   return rows[0].integrity_check === "ok";
 }
-async function getOrSetDBVersion(db, version2) {
-  if (version2) {
-    await db.executeQuery(CompiledQuery.raw("PRAGMA user_version = " + version2));
-    return version2;
+async function getOrSetDBVersion(db, version) {
+  if (version) {
+    await db.executeQuery(CompiledQuery.raw("PRAGMA user_version = " + version));
+    return version;
   }
   const { rows } = await db.executeQuery(CompiledQuery.raw("PRAGMA user_version"));
   if (!rows.length) {
@@ -21021,6 +15358,13 @@ async function testDB(dialect2) {
       });
     });
   }
+  try {
+    for await (const v of db.selectFrom("test").selectAll().stream(2)) {
+      console.log("Stream Query", v);
+    }
+  } catch (error) {
+    console.error(error);
+  }
   return db.selectFrom("test").selectAll().execute().then(async (data) => {
     await db.destroy();
     console.log(data);
@@ -21033,410 +15377,18 @@ const dialect = new SqlJsDialect({
       // locateFile: file => `https://sql.js.org/dist/${file}`,
       locateFile: () => WasmUrl
     });
-    return new SQL.Database(await loadFile("sqljs"));
+    return new SQL.Database(await loadFile("sqljsWorker"));
   },
   onWrite: {
     func(data) {
-      console.log(`[sqljs] write to indexeddb, length: ${data.length}`);
-      writeFile("sqljs", data);
-    },
-    isThrottle: true
+      console.log(`[sqljs worker] write to indexeddb, length: ${data.length}`);
+      writeFile("sqljsWorker", data);
+    }
   }
 });
-function useDB() {
-  const result = ref();
-  function run() {
-    testDB(dialect).then((data) => {
-      result.value = data;
-    });
-  }
-  return { result, run };
-}
-function WorkerWrapper$1(options) {
-  return new Worker(
-    "" + new URL("sqljsWorker-BxFsRNc0.js", import.meta.url).href,
-    {
-      type: "module",
-      name: options?.name
-    }
-  );
-}
-function WorkerWrapper(options) {
-  return new Worker(
-    "" + new URL("officialWasmWorker-Y2DtjT8W.js", import.meta.url).href,
-    {
-      type: "module",
-      name: options?.name
-    }
-  );
-}
-var mitt = (map = /* @__PURE__ */ new Map()) => ({
-  on(event, handler) {
-    map.get(event)?.push(handler) || map.set(event, [handler]);
-  },
-  off(event, handler) {
-    let handlers;
-    event ? handler ? (handlers = map.get(event)) && handlers.splice(handlers.indexOf(handler) >>> 0, 1) : map.set(event, []) : map.clear();
-  },
-  emit(event, ...data) {
-    map.get(event)?.slice().map((handler) => handler(...data));
-  },
-  once(event, handler) {
-    let fn = (...args) => {
-      handler(...args);
-      this.off(event, fn);
-    };
-    this.on(event, fn);
-  }
-});
-Object.getPrototypeOf(async function() {
-}).constructor;
-Object.getPrototypeOf(async function() {
-}).constructor;
-function isIdbSupported() {
-  return "locks" in navigator;
-}
-async function isOpfsSupported() {
-  const inner = async () => {
-    const root = await navigator?.storage.getDirectory?.();
-    if (!root) {
-      return false;
-    }
-    try {
-      const handle = await root.getFileHandle("_CHECK", { create: true });
-      const access = await handle.createSyncAccessHandle();
-      access.close();
-      return true;
-    } catch {
-      return false;
-    } finally {
-      await root.removeEntry("_CHECK");
-    }
-  };
-  if ("importScripts" in globalThis) {
-    return inner();
-  }
-  try {
-    if (typeof Worker === "undefined") {
-      return false;
-    }
-    const url = URL.createObjectURL(
-      new Blob(
-        [`(${inner})().then(postMessage)`],
-        { type: "text/javascript" }
-      )
-    );
-    const worker = new Worker(url);
-    const result = await new Promise((resolve, reject) => {
-      worker.onmessage = ({ data }) => {
-        resolve(data);
-      };
-      worker.onerror = (err) => {
-        err.preventDefault();
-        reject(false);
-      };
-    });
-    worker.terminate();
-    URL.revokeObjectURL(url);
-    return result;
-  } catch {
-    return false;
-  }
-}
-function isModuleWorkerSupport() {
-  let supports = false;
-  try {
-    new Worker("data:,", {
-      // @ts-expect-error check assign
-      get type() {
-        supports = true;
-      }
-    }).terminate();
-  } finally {
-    return supports;
-  }
-}
-function parseWorkerOrURL(obj, is) {
-  return typeof obj === "function" ? obj(is) : obj;
-}
-function defaultWorker(support) {
-  return support ? new Worker(new URL(
-    /* @vite-ignore */
-    "" + new URL("worker-Y4YB_dIi.js", import.meta.url).href,
-    import.meta.url
-  ), { type: "module" }) : new Worker(new URL(
-    /* @vite-ignore */
-    "" + new URL("worker-DaEwRbnW.js", import.meta.url).href,
-    import.meta.url
-  ));
-}
-function defaultWasmURL(useAsyncWasm) {
-  return useAsyncWasm ? new URL("" + new URL("wa-sqlite-async-LdLMjfXW.wasm", import.meta.url).href, import.meta.url).href : new URL("" + new URL("wa-sqlite-DLmqw8IQ.wasm", import.meta.url).href, import.meta.url).href;
-}
-var WaSqliteWorkerDriver = class {
-  constructor(config) {
-    __publicField(this, "config");
-    __publicField(this, "worker");
-    __publicField(this, "connection");
-    __publicField(this, "connectionMutex", new ConnectionMutex2());
-    __publicField(this, "mitt");
-    this.config = config;
-  }
-  async init() {
-    try {
-      !await navigator.storage.persisted() && await navigator.storage.persist();
-    } catch {
-    }
-    const useOPFS = this.config.preferOPFS ?? true ? await isOpfsSupported() : false;
-    this.mitt = mitt();
-    this.worker = parseWorkerOrURL(this.config.worker || defaultWorker, useOPFS || isModuleWorkerSupport());
-    this.worker.onmessage = ({ data: [type, ...msg] }) => {
-      this.mitt?.emit(type, ...msg);
-    };
-    this.worker.postMessage([
-      0,
-      this.config.fileName,
-      // if use OPFS, wasm should use sync version
-      parseWorkerOrURL(this.config.url || defaultWasmURL, !useOPFS),
-      useOPFS
-    ]);
-    await new Promise((resolve, reject) => {
-      this.mitt?.once(0, (_, err) => {
-        err ? reject(err) : resolve();
-      });
-    });
-    this.connection = new WaSqliteWorkerConnection(this.worker, this.mitt);
-    await this.config.onCreateConnection?.(this.connection);
-  }
-  async acquireConnection() {
-    await this.connectionMutex.lock();
-    return this.connection;
-  }
-  async beginTransaction(connection) {
-    await connection.executeQuery(CompiledQuery.raw("begin"));
-  }
-  async commitTransaction(connection) {
-    await connection.executeQuery(CompiledQuery.raw("commit"));
-  }
-  async rollbackTransaction(connection) {
-    await connection.executeQuery(CompiledQuery.raw("rollback"));
-  }
-  async releaseConnection() {
-    this.connectionMutex.unlock();
-  }
-  async destroy() {
-    if (!this.worker) {
-      return;
-    }
-    this.worker.postMessage([2]);
-    return new Promise((resolve, reject) => {
-      this.mitt?.once(2, (_, err) => {
-        if (err) {
-          reject(err);
-        } else {
-          this.worker?.terminate();
-          this.mitt?.off();
-          this.mitt = void 0;
-          resolve();
-        }
-      });
-    });
-  }
-};
-var ConnectionMutex2 = class {
-  constructor() {
-    __publicField(this, "promise");
-    __publicField(this, "resolve");
-  }
-  async lock() {
-    while (this.promise) {
-      await this.promise;
-    }
-    this.promise = new Promise((resolve) => {
-      this.resolve = resolve;
-    });
-  }
-  unlock() {
-    const resolve = this.resolve;
-    this.promise = void 0;
-    this.resolve = void 0;
-    resolve?.();
-  }
-};
-var WaSqliteWorkerConnection = class {
-  constructor(worker, mitt2) {
-    __publicField(this, "worker");
-    __publicField(this, "mitt");
-    this.worker = worker;
-    this.mitt = mitt2;
-  }
-  streamQuery() {
-    throw new Error("wa-sqlite worker driver doesn't support streaming");
-  }
-  async executeQuery(compiledQuery) {
-    const { parameters, sql: sql2, query } = compiledQuery;
-    const isSelect = SelectQueryNode.is(query);
-    this.worker.postMessage([1, isSelect, sql2, parameters]);
-    return new Promise((resolve, reject) => {
-      !this.mitt && reject(new Error("kysely instance has been destroyed"));
-      this.mitt.once(1, (data, err) => {
-        !err && data ? resolve(data) : reject(err);
-      });
-    });
-  }
-};
-var WaSqliteWorkerDialect = class {
-  /**
-   * dialect for [`wa-sqlite`](https://github.com/rhashimoto/wa-sqlite),
-   * execute sql in `Web Worker`,
-   * store data in [OPFS](https://developer.mozilla.org/en-US/docs/Web/API/File_System_API/Origin_private_file_system) or IndexedDB
-   *
-   * @example
-   * import { WaSqliteWorkerDialect } from 'kysely-wasqlite-worker'
-   *
-   * const dialect = new WaSqliteWorkerDialect({
-   *   fileName: 'test',
-   * })
-   */
-  constructor(config) {
-    __publicField(this, "config");
-    this.config = config;
-  }
-  createDriver() {
-    return new WaSqliteWorkerDriver(this.config);
-  }
-  createQueryCompiler() {
-    return new SqliteQueryCompiler();
-  }
-  createAdapter() {
-    return new SqliteAdapter();
-  }
-  createIntrospector(db) {
-    return new SqliteIntrospector(db);
-  }
-};
-const wasmURL = "" + new URL("wa-sqlite-DLmqw8IQ.wasm", import.meta.url).href;
-async function useWaSqliteWorker() {
-  console.log(wasmURL);
-  const dialect2 = new WaSqliteWorkerDialect({
-    fileName: "wa-sqlite-worker-test"
-    // test classic worker
-    // worker: () => new Worker(
-    //   new URL('kysely-wasqlite-worker/worker-classic', import.meta.url),
-    // ),
-    // test custom wasm URL
-    // url: () => wasmURL,
+onmessage = () => {
+  console.log("start sqljs worker test");
+  testDB(dialect).then((data) => {
+    data?.forEach((e) => console.log("[sqljs Worker]", e));
   });
-  console.log("start wa-sqlite-worker test");
-  testDB(dialect2).then(async (data) => {
-    data?.forEach((e) => console.log("[wa-sqlite-worker]", e));
-    const supportModuleWorker = isModuleWorkerSupport();
-    const supportIDB = isIdbSupported();
-    const supportOPFS = await isOpfsSupported();
-    console.log("support module worker:", supportModuleWorker);
-    console.log("support IDBBatchAtomicVFS:", supportIDB);
-    console.log("support AccessHandlePoolVFS:", supportOPFS);
-  });
-}
-const _hoisted_1 = /* @__PURE__ */ createBaseVNode("h1", null, [
-  /* @__PURE__ */ createTextVNode(" test "),
-  /* @__PURE__ */ createBaseVNode("a", {
-    href: "https://github.com/kysely-org/kysely",
-    target: "_blank"
-  }, "Kysely"),
-  /* @__PURE__ */ createTextVNode(" WASM dialect ")
-], -1);
-const _hoisted_2 = /* @__PURE__ */ createBaseVNode("br", null, null, -1);
-const _hoisted_3 = /* @__PURE__ */ createBaseVNode("h3", null, "see worker result in console", -1);
-const _hoisted_4 = /* @__PURE__ */ createBaseVNode("h3", null, [
-  /* @__PURE__ */ createTextVNode(" you can explore "),
-  /* @__PURE__ */ createBaseVNode("a", {
-    href: "https://developer.mozilla.org/en-US/docs/Web/API/File_System_Access_API#origin_private_file_system",
-    target: "_blank"
-  }, " OPFS "),
-  /* @__PURE__ */ createTextVNode(" file using "),
-  /* @__PURE__ */ createBaseVNode("a", {
-    href: "https://chrome.google.com/webstore/detail/opfs-explorer/acndjpgkpaclldomagafnognkcgjignd",
-    target: "_blank"
-  }, " opfs-explorer ")
-], -1);
-const _hoisted_5 = /* @__PURE__ */ createBaseVNode("br", null, null, -1);
-const _hoisted_6 = { class: "buttons" };
-const _hoisted_7 = /* @__PURE__ */ createBaseVNode("br", null, null, -1);
-const _hoisted_8 = /* @__PURE__ */ createBaseVNode("div", null, " result run in main thread: ", -1);
-const _sfc_main = /* @__PURE__ */ defineComponent({
-  __name: "App",
-  setup(__props) {
-    const sqljsWorker = new WorkerWrapper$1();
-    const { result, run } = useDB();
-    const officialWorker = new WorkerWrapper();
-    function testSqljsMain() {
-      run();
-    }
-    function testSqljsWorker() {
-      sqljsWorker.postMessage("");
-    }
-    function testOfficialWasm() {
-      officialWorker.postMessage("");
-    }
-    function testWaSqliteWorker() {
-      useWaSqliteWorker();
-    }
-    async function deleteDatabase() {
-      try {
-        const dbs = await window.indexedDB.databases();
-        dbs.forEach((db) => window.indexedDB.deleteDatabase(db.name));
-      } catch {
-      }
-    }
-    async function clear2() {
-      console.clear();
-      await deleteFile("sqljs");
-      await deleteFile("sqljsWorker");
-      await deleteDatabase();
-      const root = await navigator.storage?.getDirectory();
-      try {
-        await root.removeEntry("test.db");
-      } catch {
-      }
-      try {
-        await root.removeEntry("test.db-journal");
-      } catch {
-      }
-      try {
-        await root.removeEntry("wa-sqlite-worker-test", { recursive: true });
-      } catch {
-      }
-    }
-    return (_ctx, _cache) => {
-      return openBlock(), createElementBlock(Fragment, null, [
-        _hoisted_1,
-        _hoisted_2,
-        _hoisted_3,
-        _hoisted_4,
-        _hoisted_5,
-        createBaseVNode("div", _hoisted_6, [
-          createBaseVNode("button", {
-            onClick: _cache[0] || (_cache[0] = ($event) => testSqljsMain())
-          }, " test sqljs in main thread "),
-          createBaseVNode("button", {
-            onClick: _cache[1] || (_cache[1] = ($event) => testSqljsWorker())
-          }, " test sqljs in Worker "),
-          createBaseVNode("button", {
-            onClick: _cache[2] || (_cache[2] = ($event) => testOfficialWasm())
-          }, " test officialWasm in Worker "),
-          createBaseVNode("button", {
-            onClick: _cache[3] || (_cache[3] = ($event) => testWaSqliteWorker())
-          }, " test wa-sqlite in Worker (Better Compability) "),
-          createBaseVNode("button", {
-            onClick: _cache[4] || (_cache[4] = ($event) => clear2())
-          }, " clear ")
-        ]),
-        _hoisted_7,
-        _hoisted_8,
-        createBaseVNode("pre", null, "" + toDisplayString(unref(result)) + "\n  ", 1)
-      ], 64);
-    };
-  }
-});
-createApp(_sfc_main).mount("#root");
+};

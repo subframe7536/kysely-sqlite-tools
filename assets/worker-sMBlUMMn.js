@@ -20,7 +20,7 @@ var __export = (target, all) => {
 };
 var Module, wa_sqlite_default;
 var init_chunk_XYF4QS23 = __esm({
-  "../../node_modules/.pnpm/@subframe7536+sqlite-wasm@0.3.0/node_modules/@subframe7536/sqlite-wasm/dist/chunk-XYF4QS23.mjs"() {
+  "../../node_modules/.pnpm/@subframe7536+sqlite-wasm@0.3.1/node_modules/@subframe7536/sqlite-wasm/dist/chunk-XYF4QS23.mjs"() {
     Module = (() => {
       var _scriptDir = self.location.href;
       return function(moduleArg = {}) {
@@ -572,26 +572,26 @@ var init_chunk_XYF4QS23 = __esm({
         }, register(dev, ops) {
           TTY.ttys[dev] = { input: [], output: [], ops };
           FS.registerDevice(dev, TTY.stream_ops);
-        }, stream_ops: { open(stream) {
-          var tty = TTY.ttys[stream.node.rdev];
+        }, stream_ops: { open(stream2) {
+          var tty = TTY.ttys[stream2.node.rdev];
           if (!tty) {
             throw new FS.ErrnoError(43);
           }
-          stream.tty = tty;
-          stream.seekable = false;
-        }, close(stream) {
-          stream.tty.ops.fsync(stream.tty);
-        }, fsync(stream) {
-          stream.tty.ops.fsync(stream.tty);
-        }, read(stream, buffer, offset, length, pos) {
-          if (!stream.tty || !stream.tty.ops.get_char) {
+          stream2.tty = tty;
+          stream2.seekable = false;
+        }, close(stream2) {
+          stream2.tty.ops.fsync(stream2.tty);
+        }, fsync(stream2) {
+          stream2.tty.ops.fsync(stream2.tty);
+        }, read(stream2, buffer, offset, length, pos) {
+          if (!stream2.tty || !stream2.tty.ops.get_char) {
             throw new FS.ErrnoError(60);
           }
           var bytesRead = 0;
           for (var i = 0; i < length; i++) {
             var result;
             try {
-              result = stream.tty.ops.get_char(stream.tty);
+              result = stream2.tty.ops.get_char(stream2.tty);
             } catch (e) {
               throw new FS.ErrnoError(29);
             }
@@ -603,22 +603,22 @@ var init_chunk_XYF4QS23 = __esm({
             buffer[offset + i] = result;
           }
           if (bytesRead) {
-            stream.node.timestamp = Date.now();
+            stream2.node.timestamp = Date.now();
           }
           return bytesRead;
-        }, write(stream, buffer, offset, length, pos) {
-          if (!stream.tty || !stream.tty.ops.put_char) {
+        }, write(stream2, buffer, offset, length, pos) {
+          if (!stream2.tty || !stream2.tty.ops.put_char) {
             throw new FS.ErrnoError(60);
           }
           try {
             for (var i = 0; i < length; i++) {
-              stream.tty.ops.put_char(stream.tty, buffer[offset + i]);
+              stream2.tty.ops.put_char(stream2.tty, buffer[offset + i]);
             }
           } catch (e) {
             throw new FS.ErrnoError(29);
           }
           if (length) {
-            stream.node.timestamp = Date.now();
+            stream2.node.timestamp = Date.now();
           }
           return i;
         } }, default_tty_ops: { get_char(tty) {
@@ -808,22 +808,22 @@ var init_chunk_XYF4QS23 = __esm({
             throw new FS.ErrnoError(28);
           }
           return node.link;
-        } }, stream_ops: { read(stream, buffer, offset, length, position) {
-          var contents = stream.node.contents;
-          if (position >= stream.node.usedBytes) return 0;
-          var size = Math.min(stream.node.usedBytes - position, length);
+        } }, stream_ops: { read(stream2, buffer, offset, length, position) {
+          var contents = stream2.node.contents;
+          if (position >= stream2.node.usedBytes) return 0;
+          var size = Math.min(stream2.node.usedBytes - position, length);
           if (size > 8 && contents.subarray) {
             buffer.set(contents.subarray(position, position + size), offset);
           } else {
             for (var i = 0; i < size; i++) buffer[offset + i] = contents[position + i];
           }
           return size;
-        }, write(stream, buffer, offset, length, position, canOwn) {
+        }, write(stream2, buffer, offset, length, position, canOwn) {
           if (buffer.buffer === HEAP8.buffer) {
             canOwn = false;
           }
           if (!length) return 0;
-          var node = stream.node;
+          var node = stream2.node;
           node.timestamp = Date.now();
           if (buffer.subarray && (!node.contents || node.contents.subarray)) {
             if (canOwn) {
@@ -849,29 +849,29 @@ var init_chunk_XYF4QS23 = __esm({
           }
           node.usedBytes = Math.max(node.usedBytes, position + length);
           return length;
-        }, llseek(stream, offset, whence) {
+        }, llseek(stream2, offset, whence) {
           var position = offset;
           if (whence === 1) {
-            position += stream.position;
+            position += stream2.position;
           } else if (whence === 2) {
-            if (FS.isFile(stream.node.mode)) {
-              position += stream.node.usedBytes;
+            if (FS.isFile(stream2.node.mode)) {
+              position += stream2.node.usedBytes;
             }
           }
           if (position < 0) {
             throw new FS.ErrnoError(28);
           }
           return position;
-        }, allocate(stream, offset, length) {
-          MEMFS.expandFileStorage(stream.node, offset + length);
-          stream.node.usedBytes = Math.max(stream.node.usedBytes, offset + length);
-        }, mmap(stream, length, position, prot, flags) {
-          if (!FS.isFile(stream.node.mode)) {
+        }, allocate(stream2, offset, length) {
+          MEMFS.expandFileStorage(stream2.node, offset + length);
+          stream2.node.usedBytes = Math.max(stream2.node.usedBytes, offset + length);
+        }, mmap(stream2, length, position, prot, flags) {
+          if (!FS.isFile(stream2.node.mode)) {
             throw new FS.ErrnoError(43);
           }
           var ptr;
           var allocated;
-          var contents = stream.node.contents;
+          var contents = stream2.node.contents;
           if (!(flags & 2) && contents.buffer === HEAP8.buffer) {
             allocated = false;
             ptr = contents.byteOffset;
@@ -891,12 +891,12 @@ var init_chunk_XYF4QS23 = __esm({
             HEAP8.set(contents, ptr);
           }
           return { ptr, allocated };
-        }, msync(stream, buffer, offset, length, mmapFlags) {
-          MEMFS.stream_ops.write(stream, buffer, 0, length, offset, false);
+        }, msync(stream2, buffer, offset, length, mmapFlags) {
+          MEMFS.stream_ops.write(stream2, buffer, 0, length, offset, false);
           return 0;
         } } };
         var asyncLoad = (url, onload, onerror, noRunDep) => {
-          var dep = !noRunDep ? getUniqueRunDependency(`al ${url}`) : "";
+          var dep = getUniqueRunDependency(`al ${url}`);
           readAsync(url, (arrayBuffer) => {
             assert(arrayBuffer, `Loading data file "${url}" failed (no arrayBuffer).`);
             onload(new Uint8Array(arrayBuffer));
@@ -1147,12 +1147,12 @@ var init_chunk_XYF4QS23 = __esm({
           }
           throw new FS.ErrnoError(33);
         }, getStreamChecked(fd) {
-          var stream = FS.getStream(fd);
-          if (!stream) {
+          var stream2 = FS.getStream(fd);
+          if (!stream2) {
             throw new FS.ErrnoError(8);
           }
-          return stream;
-        }, getStream: (fd) => FS.streams[fd], createStream(stream, fd = -1) {
+          return stream2;
+        }, getStream: (fd) => FS.streams[fd], createStream(stream2, fd = -1) {
           if (!FS.FSStream) {
             FS.FSStream = function() {
               this.shared = {};
@@ -1178,20 +1178,20 @@ var init_chunk_XYF4QS23 = __esm({
               this.shared.position = val;
             } } });
           }
-          stream = Object.assign(new FS.FSStream(), stream);
+          stream2 = Object.assign(new FS.FSStream(), stream2);
           if (fd == -1) {
             fd = FS.nextfd();
           }
-          stream.fd = fd;
-          FS.streams[fd] = stream;
-          return stream;
+          stream2.fd = fd;
+          FS.streams[fd] = stream2;
+          return stream2;
         }, closeStream(fd) {
           FS.streams[fd] = null;
-        }, chrdev_stream_ops: { open(stream) {
-          var device = FS.getDevice(stream.node.rdev);
-          stream.stream_ops = device.stream_ops;
-          if (stream.stream_ops.open) {
-            stream.stream_ops.open(stream);
+        }, chrdev_stream_ops: { open(stream2) {
+          var device = FS.getDevice(stream2.node.rdev);
+          stream2.stream_ops = device.stream_ops;
+          if (stream2.stream_ops.open) {
+            stream2.stream_ops.open(stream2);
           }
         }, llseek() {
           throw new FS.ErrnoError(70);
@@ -1495,8 +1495,8 @@ var init_chunk_XYF4QS23 = __esm({
         }, lchmod(path, mode) {
           FS.chmod(path, mode, true);
         }, fchmod(fd, mode) {
-          var stream = FS.getStreamChecked(fd);
-          FS.chmod(stream.node, mode);
+          var stream2 = FS.getStreamChecked(fd);
+          FS.chmod(stream2.node, mode);
         }, chown(path, uid, gid, dontFollow) {
           var node;
           if (typeof path == "string") {
@@ -1512,8 +1512,8 @@ var init_chunk_XYF4QS23 = __esm({
         }, lchown(path, uid, gid) {
           FS.chown(path, uid, gid, true);
         }, fchown(fd, uid, gid) {
-          var stream = FS.getStreamChecked(fd);
-          FS.chown(stream.node, uid, gid);
+          var stream2 = FS.getStreamChecked(fd);
+          FS.chown(stream2.node, uid, gid);
         }, truncate(path, len) {
           if (len < 0) {
             throw new FS.ErrnoError(28);
@@ -1540,11 +1540,11 @@ var init_chunk_XYF4QS23 = __esm({
           }
           node.node_ops.setattr(node, { size: len, timestamp: Date.now() });
         }, ftruncate(fd, len) {
-          var stream = FS.getStreamChecked(fd);
-          if ((stream.flags & 2097155) === 0) {
+          var stream2 = FS.getStreamChecked(fd);
+          if ((stream2.flags & 2097155) === 0) {
             throw new FS.ErrnoError(28);
           }
-          FS.truncate(stream.node, len);
+          FS.truncate(stream2.node, len);
         }, utime(path, atime, mtime) {
           var lookup = FS.lookupPath(path, { follow: true });
           var node = lookup.node;
@@ -1601,9 +1601,9 @@ var init_chunk_XYF4QS23 = __esm({
             FS.truncate(node, 0);
           }
           flags &= ~(128 | 512 | 131072);
-          var stream = FS.createStream({ node, path: FS.getPath(node), flags, seekable: true, position: 0, stream_ops: node.stream_ops, ungotten: [], error: false });
-          if (stream.stream_ops.open) {
-            stream.stream_ops.open(stream);
+          var stream2 = FS.createStream({ node, path: FS.getPath(node), flags, seekable: true, position: 0, stream_ops: node.stream_ops, ungotten: [], error: false });
+          if (stream2.stream_ops.open) {
+            stream2.stream_ops.open(stream2);
           }
           if (Module22["logReadFiles"] && !(flags & 1)) {
             if (!FS.readFiles) FS.readFiles = {};
@@ -1611,128 +1611,128 @@ var init_chunk_XYF4QS23 = __esm({
               FS.readFiles[path] = 1;
             }
           }
-          return stream;
-        }, close(stream) {
-          if (FS.isClosed(stream)) {
+          return stream2;
+        }, close(stream2) {
+          if (FS.isClosed(stream2)) {
             throw new FS.ErrnoError(8);
           }
-          if (stream.getdents) stream.getdents = null;
+          if (stream2.getdents) stream2.getdents = null;
           try {
-            if (stream.stream_ops.close) {
-              stream.stream_ops.close(stream);
+            if (stream2.stream_ops.close) {
+              stream2.stream_ops.close(stream2);
             }
           } catch (e) {
             throw e;
           } finally {
-            FS.closeStream(stream.fd);
+            FS.closeStream(stream2.fd);
           }
-          stream.fd = null;
-        }, isClosed(stream) {
-          return stream.fd === null;
-        }, llseek(stream, offset, whence) {
-          if (FS.isClosed(stream)) {
+          stream2.fd = null;
+        }, isClosed(stream2) {
+          return stream2.fd === null;
+        }, llseek(stream2, offset, whence) {
+          if (FS.isClosed(stream2)) {
             throw new FS.ErrnoError(8);
           }
-          if (!stream.seekable || !stream.stream_ops.llseek) {
+          if (!stream2.seekable || !stream2.stream_ops.llseek) {
             throw new FS.ErrnoError(70);
           }
           if (whence != 0 && whence != 1 && whence != 2) {
             throw new FS.ErrnoError(28);
           }
-          stream.position = stream.stream_ops.llseek(stream, offset, whence);
-          stream.ungotten = [];
-          return stream.position;
-        }, read(stream, buffer, offset, length, position) {
+          stream2.position = stream2.stream_ops.llseek(stream2, offset, whence);
+          stream2.ungotten = [];
+          return stream2.position;
+        }, read(stream2, buffer, offset, length, position) {
           if (length < 0 || position < 0) {
             throw new FS.ErrnoError(28);
           }
-          if (FS.isClosed(stream)) {
+          if (FS.isClosed(stream2)) {
             throw new FS.ErrnoError(8);
           }
-          if ((stream.flags & 2097155) === 1) {
+          if ((stream2.flags & 2097155) === 1) {
             throw new FS.ErrnoError(8);
           }
-          if (FS.isDir(stream.node.mode)) {
+          if (FS.isDir(stream2.node.mode)) {
             throw new FS.ErrnoError(31);
           }
-          if (!stream.stream_ops.read) {
+          if (!stream2.stream_ops.read) {
             throw new FS.ErrnoError(28);
           }
           var seeking = typeof position != "undefined";
           if (!seeking) {
-            position = stream.position;
-          } else if (!stream.seekable) {
+            position = stream2.position;
+          } else if (!stream2.seekable) {
             throw new FS.ErrnoError(70);
           }
-          var bytesRead = stream.stream_ops.read(stream, buffer, offset, length, position);
-          if (!seeking) stream.position += bytesRead;
+          var bytesRead = stream2.stream_ops.read(stream2, buffer, offset, length, position);
+          if (!seeking) stream2.position += bytesRead;
           return bytesRead;
-        }, write(stream, buffer, offset, length, position, canOwn) {
+        }, write(stream2, buffer, offset, length, position, canOwn) {
           if (length < 0 || position < 0) {
             throw new FS.ErrnoError(28);
           }
-          if (FS.isClosed(stream)) {
+          if (FS.isClosed(stream2)) {
             throw new FS.ErrnoError(8);
           }
-          if ((stream.flags & 2097155) === 0) {
+          if ((stream2.flags & 2097155) === 0) {
             throw new FS.ErrnoError(8);
           }
-          if (FS.isDir(stream.node.mode)) {
+          if (FS.isDir(stream2.node.mode)) {
             throw new FS.ErrnoError(31);
           }
-          if (!stream.stream_ops.write) {
+          if (!stream2.stream_ops.write) {
             throw new FS.ErrnoError(28);
           }
-          if (stream.seekable && stream.flags & 1024) {
-            FS.llseek(stream, 0, 2);
+          if (stream2.seekable && stream2.flags & 1024) {
+            FS.llseek(stream2, 0, 2);
           }
           var seeking = typeof position != "undefined";
           if (!seeking) {
-            position = stream.position;
-          } else if (!stream.seekable) {
+            position = stream2.position;
+          } else if (!stream2.seekable) {
             throw new FS.ErrnoError(70);
           }
-          var bytesWritten = stream.stream_ops.write(stream, buffer, offset, length, position, canOwn);
-          if (!seeking) stream.position += bytesWritten;
+          var bytesWritten = stream2.stream_ops.write(stream2, buffer, offset, length, position, canOwn);
+          if (!seeking) stream2.position += bytesWritten;
           return bytesWritten;
-        }, allocate(stream, offset, length) {
-          if (FS.isClosed(stream)) {
+        }, allocate(stream2, offset, length) {
+          if (FS.isClosed(stream2)) {
             throw new FS.ErrnoError(8);
           }
           if (offset < 0 || length <= 0) {
             throw new FS.ErrnoError(28);
           }
-          if ((stream.flags & 2097155) === 0) {
+          if ((stream2.flags & 2097155) === 0) {
             throw new FS.ErrnoError(8);
           }
-          if (!FS.isFile(stream.node.mode) && !FS.isDir(stream.node.mode)) {
+          if (!FS.isFile(stream2.node.mode) && !FS.isDir(stream2.node.mode)) {
             throw new FS.ErrnoError(43);
           }
-          if (!stream.stream_ops.allocate) {
+          if (!stream2.stream_ops.allocate) {
             throw new FS.ErrnoError(138);
           }
-          stream.stream_ops.allocate(stream, offset, length);
-        }, mmap(stream, length, position, prot, flags) {
-          if ((prot & 2) !== 0 && (flags & 2) === 0 && (stream.flags & 2097155) !== 2) {
+          stream2.stream_ops.allocate(stream2, offset, length);
+        }, mmap(stream2, length, position, prot, flags) {
+          if ((prot & 2) !== 0 && (flags & 2) === 0 && (stream2.flags & 2097155) !== 2) {
             throw new FS.ErrnoError(2);
           }
-          if ((stream.flags & 2097155) === 1) {
+          if ((stream2.flags & 2097155) === 1) {
             throw new FS.ErrnoError(2);
           }
-          if (!stream.stream_ops.mmap) {
+          if (!stream2.stream_ops.mmap) {
             throw new FS.ErrnoError(43);
           }
-          return stream.stream_ops.mmap(stream, length, position, prot, flags);
-        }, msync(stream, buffer, offset, length, mmapFlags) {
-          if (!stream.stream_ops.msync) {
+          return stream2.stream_ops.mmap(stream2, length, position, prot, flags);
+        }, msync(stream2, buffer, offset, length, mmapFlags) {
+          if (!stream2.stream_ops.msync) {
             return 0;
           }
-          return stream.stream_ops.msync(stream, buffer, offset, length, mmapFlags);
-        }, munmap: (stream) => 0, ioctl(stream, cmd, arg) {
-          if (!stream.stream_ops.ioctl) {
+          return stream2.stream_ops.msync(stream2, buffer, offset, length, mmapFlags);
+        }, munmap: (stream2) => 0, ioctl(stream2, cmd, arg) {
+          if (!stream2.stream_ops.ioctl) {
             throw new FS.ErrnoError(59);
           }
-          return stream.stream_ops.ioctl(stream, cmd, arg);
+          return stream2.stream_ops.ioctl(stream2, cmd, arg);
         }, readFile(path, opts = {}) {
           opts.flags = opts.flags || 0;
           opts.encoding = opts.encoding || "binary";
@@ -1740,31 +1740,31 @@ var init_chunk_XYF4QS23 = __esm({
             throw new Error(`Invalid encoding type "${opts.encoding}"`);
           }
           var ret;
-          var stream = FS.open(path, opts.flags);
+          var stream2 = FS.open(path, opts.flags);
           var stat = FS.stat(path);
           var length = stat.size;
           var buf = new Uint8Array(length);
-          FS.read(stream, buf, 0, length, 0);
+          FS.read(stream2, buf, 0, length, 0);
           if (opts.encoding === "utf8") {
             ret = UTF8ArrayToString(buf, 0);
           } else if (opts.encoding === "binary") {
             ret = buf;
           }
-          FS.close(stream);
+          FS.close(stream2);
           return ret;
         }, writeFile(path, data, opts = {}) {
           opts.flags = opts.flags || 577;
-          var stream = FS.open(path, opts.flags, opts.mode);
+          var stream2 = FS.open(path, opts.flags, opts.mode);
           if (typeof data == "string") {
             var buf = new Uint8Array(lengthBytesUTF8(data) + 1);
             var actualNumBytes = stringToUTF8Array(data, buf, 0, buf.length);
-            FS.write(stream, buf, 0, actualNumBytes, void 0, opts.canOwn);
+            FS.write(stream2, buf, 0, actualNumBytes, void 0, opts.canOwn);
           } else if (ArrayBuffer.isView(data)) {
-            FS.write(stream, data, 0, data.byteLength, void 0, opts.canOwn);
+            FS.write(stream2, data, 0, data.byteLength, void 0, opts.canOwn);
           } else {
             throw new Error("Unsupported data type");
           }
-          FS.close(stream);
+          FS.close(stream2);
         }, cwd: () => FS.currentPath, chdir(path) {
           var lookup = FS.lookupPath(path, { follow: true });
           if (lookup.node === null) {
@@ -1784,7 +1784,7 @@ var init_chunk_XYF4QS23 = __esm({
           FS.mkdir("/home/web_user");
         }, createDefaultDevices() {
           FS.mkdir("/dev");
-          FS.registerDevice(FS.makedev(1, 3), { read: () => 0, write: (stream, buffer, offset, length, pos) => length });
+          FS.registerDevice(FS.makedev(1, 3), { read: () => 0, write: (stream2, buffer, offset, length, pos) => length });
           FS.mkdev("/dev/null", FS.makedev(1, 3));
           TTY.register(FS.makedev(5, 0), TTY.default_tty_ops);
           TTY.register(FS.makedev(6, 0), TTY.default_tty1_ops);
@@ -1809,8 +1809,8 @@ var init_chunk_XYF4QS23 = __esm({
             var node = FS.createNode(proc_self, "fd", 16384 | 511, 73);
             node.node_ops = { lookup(parent, name) {
               var fd = +name;
-              var stream = FS.getStreamChecked(fd);
-              var ret = { parent: null, mount: { mountpoint: "fake" }, node_ops: { readlink: () => stream.path } };
+              var stream2 = FS.getStreamChecked(fd);
+              var ret = { parent: null, mount: { mountpoint: "fake" }, node_ops: { readlink: () => stream2.path } };
               ret.parent = ret;
               return ret;
             } };
@@ -1870,11 +1870,11 @@ var init_chunk_XYF4QS23 = __esm({
         }, quit() {
           FS.init.initialized = false;
           for (var i = 0; i < FS.streams.length; i++) {
-            var stream = FS.streams[i];
-            if (!stream) {
+            var stream2 = FS.streams[i];
+            if (!stream2) {
               continue;
             }
-            FS.close(stream);
+            FS.close(stream2);
           }
         }, findObject(path, dontResolveLastLink) {
           var ret = FS.analyzePath(path, dontResolveLastLink);
@@ -1938,9 +1938,9 @@ var init_chunk_XYF4QS23 = __esm({
               data = arr;
             }
             FS.chmod(node, mode | 146);
-            var stream = FS.open(node, 577);
-            FS.write(stream, data, 0, data.length, 0, canOwn);
-            FS.close(stream);
+            var stream2 = FS.open(node, 577);
+            FS.write(stream2, data, 0, data.length, 0, canOwn);
+            FS.close(stream2);
             FS.chmod(node, mode);
           }
           return node;
@@ -1949,13 +1949,13 @@ var init_chunk_XYF4QS23 = __esm({
           var mode = FS_getMode(!!input, !!output);
           if (!FS.createDevice.major) FS.createDevice.major = 64;
           var dev = FS.makedev(FS.createDevice.major++, 0);
-          FS.registerDevice(dev, { open(stream) {
-            stream.seekable = false;
-          }, close(stream) {
+          FS.registerDevice(dev, { open(stream2) {
+            stream2.seekable = false;
+          }, close(stream2) {
             if (output && output.buffer && output.buffer.length) {
               output(10);
             }
-          }, read(stream, buffer, offset, length, pos) {
+          }, read(stream2, buffer, offset, length, pos) {
             var bytesRead = 0;
             for (var i = 0; i < length; i++) {
               var result;
@@ -1972,10 +1972,10 @@ var init_chunk_XYF4QS23 = __esm({
               buffer[offset + i] = result;
             }
             if (bytesRead) {
-              stream.node.timestamp = Date.now();
+              stream2.node.timestamp = Date.now();
             }
             return bytesRead;
-          }, write(stream, buffer, offset, length, pos) {
+          }, write(stream2, buffer, offset, length, pos) {
             for (var i = 0; i < length; i++) {
               try {
                 output(buffer[offset + i]);
@@ -1984,7 +1984,7 @@ var init_chunk_XYF4QS23 = __esm({
               }
             }
             if (length) {
-              stream.node.timestamp = Date.now();
+              stream2.node.timestamp = Date.now();
             }
             return i;
           } });
@@ -2105,8 +2105,8 @@ var init_chunk_XYF4QS23 = __esm({
               return fn.apply(null, arguments);
             };
           });
-          function writeChunks(stream, buffer, offset, length, position) {
-            var contents = stream.node.contents;
+          function writeChunks(stream2, buffer, offset, length, position) {
+            var contents = stream2.node.contents;
             if (position >= contents.length) return 0;
             var size = Math.min(contents.length - position, length);
             if (contents.slice) {
@@ -2120,17 +2120,17 @@ var init_chunk_XYF4QS23 = __esm({
             }
             return size;
           }
-          stream_ops.read = (stream, buffer, offset, length, position) => {
+          stream_ops.read = (stream2, buffer, offset, length, position) => {
             FS.forceLoadFile(node);
-            return writeChunks(stream, buffer, offset, length, position);
+            return writeChunks(stream2, buffer, offset, length, position);
           };
-          stream_ops.mmap = (stream, length, position, prot, flags) => {
+          stream_ops.mmap = (stream2, length, position, prot, flags) => {
             FS.forceLoadFile(node);
             var ptr = mmapAlloc(length);
             if (!ptr) {
               throw new FS.ErrnoError(48);
             }
-            writeChunks(stream, HEAP8, ptr, length, position);
+            writeChunks(stream2, HEAP8, ptr, length, position);
             return { ptr, allocated: true };
           };
           node.stream_ops = stream_ops;
@@ -2183,15 +2183,15 @@ var init_chunk_XYF4QS23 = __esm({
           HEAPU32[buf + 80 >> 2] = ctime % 1e3 * 1e3;
           tempI64 = [stat.ino >>> 0, (tempDouble = stat.ino, +Math.abs(tempDouble) >= 1 ? tempDouble > 0 ? +Math.floor(tempDouble / 4294967296) >>> 0 : ~~+Math.ceil((tempDouble - +(~~tempDouble >>> 0)) / 4294967296) >>> 0 : 0)], HEAP32[buf + 88 >> 2] = tempI64[0], HEAP32[buf + 92 >> 2] = tempI64[1];
           return 0;
-        }, doMsync(addr, stream, len, flags, offset) {
-          if (!FS.isFile(stream.node.mode)) {
+        }, doMsync(addr, stream2, len, flags, offset) {
+          if (!FS.isFile(stream2.node.mode)) {
             throw new FS.ErrnoError(43);
           }
           if (flags & 2) {
             return 0;
           }
           var buffer = HEAPU8.slice(addr, addr + len);
-          FS.msync(stream, buffer, offset, len, flags);
+          FS.msync(stream2, buffer, offset, len, flags);
         }, varargs: void 0, get() {
           var ret = HEAP32[+SYSCALLS.varargs >> 2];
           SYSCALLS.varargs += 4;
@@ -2202,8 +2202,8 @@ var init_chunk_XYF4QS23 = __esm({
           var ret = UTF8ToString(ptr);
           return ret;
         }, getStreamFromFD(fd) {
-          var stream = FS.getStreamChecked(fd);
-          return stream;
+          var stream2 = FS.getStreamChecked(fd);
+          return stream2;
         } };
         function ___syscall_chmod(path, mode) {
           try {
@@ -2265,7 +2265,7 @@ var init_chunk_XYF4QS23 = __esm({
         function ___syscall_fcntl64(fd, cmd, varargs) {
           SYSCALLS.varargs = varargs;
           try {
-            var stream = SYSCALLS.getStreamFromFD(fd);
+            var stream2 = SYSCALLS.getStreamFromFD(fd);
             switch (cmd) {
               case 0: {
                 var arg = SYSCALLS.get();
@@ -2276,17 +2276,17 @@ var init_chunk_XYF4QS23 = __esm({
                   arg++;
                 }
                 var newStream;
-                newStream = FS.createStream(stream, arg);
+                newStream = FS.createStream(stream2, arg);
                 return newStream.fd;
               }
               case 1:
               case 2:
                 return 0;
               case 3:
-                return stream.flags;
+                return stream2.flags;
               case 4: {
                 var arg = SYSCALLS.get();
-                stream.flags |= arg;
+                stream2.flags |= arg;
                 return 0;
               }
               case 5: {
@@ -2315,8 +2315,8 @@ var init_chunk_XYF4QS23 = __esm({
         }
         function ___syscall_fstat64(fd, buf) {
           try {
-            var stream = SYSCALLS.getStreamFromFD(fd);
-            return SYSCALLS.doStat(FS.stat, stream.path, buf);
+            var stream2 = SYSCALLS.getStreamFromFD(fd);
+            return SYSCALLS.doStat(FS.stat, stream2.path, buf);
           } catch (e) {
             if (typeof FS == "undefined" || !(e.name === "ErrnoError")) throw e;
             return -e.errno;
@@ -2503,8 +2503,8 @@ var init_chunk_XYF4QS23 = __esm({
           var offset = convertI32PairToI53Checked(offset_low, offset_high);
           try {
             if (isNaN(offset)) return 61;
-            var stream = SYSCALLS.getStreamFromFD(fd);
-            var res = FS.mmap(stream, len, offset, prot, flags);
+            var stream2 = SYSCALLS.getStreamFromFD(fd);
+            var res = FS.mmap(stream2, len, offset, prot, flags);
             var ptr = res.ptr;
             HEAP32[allocated >> 2] = res.allocated;
             HEAPU32[addr >> 2] = ptr;
@@ -2518,11 +2518,11 @@ var init_chunk_XYF4QS23 = __esm({
           var offset = convertI32PairToI53Checked(offset_low, offset_high);
           try {
             if (isNaN(offset)) return 61;
-            var stream = SYSCALLS.getStreamFromFD(fd);
+            var stream2 = SYSCALLS.getStreamFromFD(fd);
             if (prot & 2) {
-              SYSCALLS.doMsync(addr, stream, len, flags, offset);
+              SYSCALLS.doMsync(addr, stream2, len, flags, offset);
             }
-            FS.munmap(stream);
+            FS.munmap(stream2);
           } catch (e) {
             if (typeof FS == "undefined" || !(e.name === "ErrnoError")) throw e;
             return -e.errno;
@@ -2636,8 +2636,8 @@ var init_chunk_XYF4QS23 = __esm({
         };
         function _fd_close(fd) {
           try {
-            var stream = SYSCALLS.getStreamFromFD(fd);
-            FS.close(stream);
+            var stream2 = SYSCALLS.getStreamFromFD(fd);
+            FS.close(stream2);
             return 0;
           } catch (e) {
             if (typeof FS == "undefined" || !(e.name === "ErrnoError")) throw e;
@@ -2650,8 +2650,8 @@ var init_chunk_XYF4QS23 = __esm({
             var rightsInheriting = 0;
             var flags = 0;
             {
-              var stream = SYSCALLS.getStreamFromFD(fd);
-              var type = stream.tty ? 2 : FS.isDir(stream.mode) ? 3 : FS.isLink(stream.mode) ? 7 : 4;
+              var stream2 = SYSCALLS.getStreamFromFD(fd);
+              var type = stream2.tty ? 2 : FS.isDir(stream2.mode) ? 3 : FS.isLink(stream2.mode) ? 7 : 4;
             }
             HEAP8[pbuf >> 0] = type;
             HEAP16[pbuf + 2 >> 1] = flags;
@@ -2663,26 +2663,23 @@ var init_chunk_XYF4QS23 = __esm({
             return e.errno;
           }
         }
-        var doReadv = (stream, iov, iovcnt, offset) => {
+        var doReadv = (stream2, iov, iovcnt, offset) => {
           var ret = 0;
           for (var i = 0; i < iovcnt; i++) {
             var ptr = HEAPU32[iov >> 2];
             var len = HEAPU32[iov + 4 >> 2];
             iov += 8;
-            var curr = FS.read(stream, HEAP8, ptr, len, offset);
+            var curr = FS.read(stream2, HEAP8, ptr, len, offset);
             if (curr < 0) return -1;
             ret += curr;
             if (curr < len) break;
-            if (typeof offset !== "undefined") {
-              offset += curr;
-            }
           }
           return ret;
         };
         function _fd_read(fd, iov, iovcnt, pnum) {
           try {
-            var stream = SYSCALLS.getStreamFromFD(fd);
-            var num = doReadv(stream, iov, iovcnt);
+            var stream2 = SYSCALLS.getStreamFromFD(fd);
+            var num = doReadv(stream2, iov, iovcnt);
             HEAPU32[pnum >> 2] = num;
             return 0;
           } catch (e) {
@@ -2694,10 +2691,10 @@ var init_chunk_XYF4QS23 = __esm({
           var offset = convertI32PairToI53Checked(offset_low, offset_high);
           try {
             if (isNaN(offset)) return 61;
-            var stream = SYSCALLS.getStreamFromFD(fd);
-            FS.llseek(stream, offset, whence);
-            tempI64 = [stream.position >>> 0, (tempDouble = stream.position, +Math.abs(tempDouble) >= 1 ? tempDouble > 0 ? +Math.floor(tempDouble / 4294967296) >>> 0 : ~~+Math.ceil((tempDouble - +(~~tempDouble >>> 0)) / 4294967296) >>> 0 : 0)], HEAP32[newOffset >> 2] = tempI64[0], HEAP32[newOffset + 4 >> 2] = tempI64[1];
-            if (stream.getdents && offset === 0 && whence === 0) stream.getdents = null;
+            var stream2 = SYSCALLS.getStreamFromFD(fd);
+            FS.llseek(stream2, offset, whence);
+            tempI64 = [stream2.position >>> 0, (tempDouble = stream2.position, +Math.abs(tempDouble) >= 1 ? tempDouble > 0 ? +Math.floor(tempDouble / 4294967296) >>> 0 : ~~+Math.ceil((tempDouble - +(~~tempDouble >>> 0)) / 4294967296) >>> 0 : 0)], HEAP32[newOffset >> 2] = tempI64[0], HEAP32[newOffset + 4 >> 2] = tempI64[1];
+            if (stream2.getdents && offset === 0 && whence === 0) stream2.getdents = null;
             return 0;
           } catch (e) {
             if (typeof FS == "undefined" || !(e.name === "ErrnoError")) throw e;
@@ -2706,9 +2703,9 @@ var init_chunk_XYF4QS23 = __esm({
         }
         function _fd_sync(fd) {
           try {
-            var stream = SYSCALLS.getStreamFromFD(fd);
-            if (stream.stream_ops && stream.stream_ops.fsync) {
-              return stream.stream_ops.fsync(stream);
+            var stream2 = SYSCALLS.getStreamFromFD(fd);
+            if (stream2.stream_ops && stream2.stream_ops.fsync) {
+              return stream2.stream_ops.fsync(stream2);
             }
             return 0;
           } catch (e) {
@@ -2716,25 +2713,22 @@ var init_chunk_XYF4QS23 = __esm({
             return e.errno;
           }
         }
-        var doWritev = (stream, iov, iovcnt, offset) => {
+        var doWritev = (stream2, iov, iovcnt, offset) => {
           var ret = 0;
           for (var i = 0; i < iovcnt; i++) {
             var ptr = HEAPU32[iov >> 2];
             var len = HEAPU32[iov + 4 >> 2];
             iov += 8;
-            var curr = FS.write(stream, HEAP8, ptr, len, offset);
+            var curr = FS.write(stream2, HEAP8, ptr, len, offset);
             if (curr < 0) return -1;
             ret += curr;
-            if (typeof offset !== "undefined") {
-              offset += curr;
-            }
           }
           return ret;
         };
         function _fd_write(fd, iov, iovcnt, pnum) {
           try {
-            var stream = SYSCALLS.getStreamFromFD(fd);
-            var num = doWritev(stream, iov, iovcnt);
+            var stream2 = SYSCALLS.getStreamFromFD(fd);
+            var num = doWritev(stream2, iov, iovcnt);
             HEAPU32[pnum >> 2] = num;
             return 0;
           } catch (e) {
@@ -3609,7 +3603,7 @@ function delegalize(lo32, hi32) {
 }
 var SQLITE_OK, SQLITE_ERROR, SQLITE_BUSY, SQLITE_IOERR, SQLITE_NOTFOUND, SQLITE_CANTOPEN, SQLITE_MISUSE, SQLITE_RANGE, SQLITE_NOTICE, SQLITE_ROW, SQLITE_DONE, SQLITE_IOERR_ACCESS, SQLITE_IOERR_CHECKRESERVEDLOCK, SQLITE_IOERR_CLOSE, SQLITE_IOERR_DELETE, SQLITE_IOERR_FSTAT, SQLITE_IOERR_FSYNC, SQLITE_IOERR_LOCK, SQLITE_IOERR_READ, SQLITE_IOERR_SHORT_READ, SQLITE_IOERR_TRUNCATE, SQLITE_IOERR_UNLOCK, SQLITE_IOERR_WRITE, SQLITE_OPEN_READONLY, SQLITE_OPEN_READWRITE, SQLITE_OPEN_CREATE, SQLITE_OPEN_DELETEONCLOSE, SQLITE_OPEN_URI, SQLITE_OPEN_MAIN_DB, SQLITE_OPEN_TEMP_DB, SQLITE_LOCK_NONE, SQLITE_LOCK_SHARED, SQLITE_LOCK_RESERVED, SQLITE_LOCK_EXCLUSIVE, SQLITE_IOCAP_UNDELETABLE_WHEN_OPEN, SQLITE_IOCAP_BATCH_ATOMIC, SQLITE_FCNTL_PRAGMA, SQLITE_FCNTL_SYNC, SQLITE_FCNTL_BEGIN_ATOMIC_WRITE, SQLITE_FCNTL_COMMIT_ATOMIC_WRITE, SQLITE_FCNTL_ROLLBACK_ATOMIC_WRITE, SQLITE_INTEGER, SQLITE_FLOAT, SQLITE_TEXT, SQLITE_BLOB, SQLITE_NULL, DEFAULT_SECTOR_SIZE, Base, AsyncFunction, FacadeVFS;
 var init_chunk_QFCKR22C = __esm({
-  "../../node_modules/.pnpm/@subframe7536+sqlite-wasm@0.3.0/node_modules/@subframe7536/sqlite-wasm/dist/chunk-QFCKR22C.mjs"() {
+  "../../node_modules/.pnpm/@subframe7536+sqlite-wasm@0.3.1/node_modules/@subframe7536/sqlite-wasm/dist/chunk-QFCKR22C.mjs"() {
     var _FacadeVFS_instances, makeTypedDataView_fn, makeDataArray_fn, decodeFilename_fn, _a;
     SQLITE_OK = 0;
     SQLITE_ERROR = 1;
@@ -4316,7 +4310,7 @@ async function useOpfsStorage(path, options = {}) {
 }
 var DEFAULT_TEMPORARY_FILES, LOCK_NOTIFY_INTERVAL, DB_RELATED_FILE_SUFFIXES, finalizationRegistry, File, PersistentFile, OPFSCoopSyncVFS;
 var init_opfs = __esm({
-  "../../node_modules/.pnpm/@subframe7536+sqlite-wasm@0.3.0/node_modules/@subframe7536/sqlite-wasm/dist/opfs.mjs"() {
+  "../../node_modules/.pnpm/@subframe7536+sqlite-wasm@0.3.1/node_modules/@subframe7536/sqlite-wasm/dist/opfs.mjs"() {
     var __OPFSCoopSyncVFS_instances, initialize_fn, createPersistentFile_fn, requestAccessHandle_fn, releaseAccessHandle_fn, acquireLock_fn, _a;
     init_chunk_XYF4QS23();
     init_chunk_QFCKR22C();
@@ -4847,7 +4841,7 @@ async function useIdbStorage(fileName, options = {}) {
 }
 var Module2, wa_sqlite_async_default, SHARED, POLL_SHARED, POLL_EXCLUSIVE, POLICIES, WebLocksMixin, File2, IDBBatchAtomicVFS, IDBContext;
 var init_idb = __esm({
-  "../../node_modules/.pnpm/@subframe7536+sqlite-wasm@0.3.0/node_modules/@subframe7536/sqlite-wasm/dist/idb.mjs"() {
+  "../../node_modules/.pnpm/@subframe7536+sqlite-wasm@0.3.1/node_modules/@subframe7536/sqlite-wasm/dist/idb.mjs"() {
     var _isReady, _idb, __IDBBatchAtomicVFS_instances, initialize_fn, _a, _database, _chain, _txComplete, _request, _txPending, __IDBContext_instances, q_fn, _b;
     init_chunk_QFCKR22C();
     Module2 = (() => {
@@ -5402,26 +5396,26 @@ var init_idb = __esm({
         }, register(dev, ops) {
           TTY.ttys[dev] = { input: [], output: [], ops };
           FS.registerDevice(dev, TTY.stream_ops);
-        }, stream_ops: { open(stream) {
-          var tty = TTY.ttys[stream.node.rdev];
+        }, stream_ops: { open(stream2) {
+          var tty = TTY.ttys[stream2.node.rdev];
           if (!tty) {
             throw new FS.ErrnoError(43);
           }
-          stream.tty = tty;
-          stream.seekable = false;
-        }, close(stream) {
-          stream.tty.ops.fsync(stream.tty);
-        }, fsync(stream) {
-          stream.tty.ops.fsync(stream.tty);
-        }, read(stream, buffer, offset, length, pos) {
-          if (!stream.tty || !stream.tty.ops.get_char) {
+          stream2.tty = tty;
+          stream2.seekable = false;
+        }, close(stream2) {
+          stream2.tty.ops.fsync(stream2.tty);
+        }, fsync(stream2) {
+          stream2.tty.ops.fsync(stream2.tty);
+        }, read(stream2, buffer, offset, length, pos) {
+          if (!stream2.tty || !stream2.tty.ops.get_char) {
             throw new FS.ErrnoError(60);
           }
           var bytesRead = 0;
           for (var i = 0; i < length; i++) {
             var result;
             try {
-              result = stream.tty.ops.get_char(stream.tty);
+              result = stream2.tty.ops.get_char(stream2.tty);
             } catch (e) {
               throw new FS.ErrnoError(29);
             }
@@ -5433,22 +5427,22 @@ var init_idb = __esm({
             buffer[offset + i] = result;
           }
           if (bytesRead) {
-            stream.node.timestamp = Date.now();
+            stream2.node.timestamp = Date.now();
           }
           return bytesRead;
-        }, write(stream, buffer, offset, length, pos) {
-          if (!stream.tty || !stream.tty.ops.put_char) {
+        }, write(stream2, buffer, offset, length, pos) {
+          if (!stream2.tty || !stream2.tty.ops.put_char) {
             throw new FS.ErrnoError(60);
           }
           try {
             for (var i = 0; i < length; i++) {
-              stream.tty.ops.put_char(stream.tty, buffer[offset + i]);
+              stream2.tty.ops.put_char(stream2.tty, buffer[offset + i]);
             }
           } catch (e) {
             throw new FS.ErrnoError(29);
           }
           if (length) {
-            stream.node.timestamp = Date.now();
+            stream2.node.timestamp = Date.now();
           }
           return i;
         } }, default_tty_ops: { get_char(tty) {
@@ -5638,22 +5632,22 @@ var init_idb = __esm({
             throw new FS.ErrnoError(28);
           }
           return node.link;
-        } }, stream_ops: { read(stream, buffer, offset, length, position) {
-          var contents = stream.node.contents;
-          if (position >= stream.node.usedBytes) return 0;
-          var size = Math.min(stream.node.usedBytes - position, length);
+        } }, stream_ops: { read(stream2, buffer, offset, length, position) {
+          var contents = stream2.node.contents;
+          if (position >= stream2.node.usedBytes) return 0;
+          var size = Math.min(stream2.node.usedBytes - position, length);
           if (size > 8 && contents.subarray) {
             buffer.set(contents.subarray(position, position + size), offset);
           } else {
             for (var i = 0; i < size; i++) buffer[offset + i] = contents[position + i];
           }
           return size;
-        }, write(stream, buffer, offset, length, position, canOwn) {
+        }, write(stream2, buffer, offset, length, position, canOwn) {
           if (buffer.buffer === HEAP8.buffer) {
             canOwn = false;
           }
           if (!length) return 0;
-          var node = stream.node;
+          var node = stream2.node;
           node.timestamp = Date.now();
           if (buffer.subarray && (!node.contents || node.contents.subarray)) {
             if (canOwn) {
@@ -5679,29 +5673,29 @@ var init_idb = __esm({
           }
           node.usedBytes = Math.max(node.usedBytes, position + length);
           return length;
-        }, llseek(stream, offset, whence) {
+        }, llseek(stream2, offset, whence) {
           var position = offset;
           if (whence === 1) {
-            position += stream.position;
+            position += stream2.position;
           } else if (whence === 2) {
-            if (FS.isFile(stream.node.mode)) {
-              position += stream.node.usedBytes;
+            if (FS.isFile(stream2.node.mode)) {
+              position += stream2.node.usedBytes;
             }
           }
           if (position < 0) {
             throw new FS.ErrnoError(28);
           }
           return position;
-        }, allocate(stream, offset, length) {
-          MEMFS.expandFileStorage(stream.node, offset + length);
-          stream.node.usedBytes = Math.max(stream.node.usedBytes, offset + length);
-        }, mmap(stream, length, position, prot, flags) {
-          if (!FS.isFile(stream.node.mode)) {
+        }, allocate(stream2, offset, length) {
+          MEMFS.expandFileStorage(stream2.node, offset + length);
+          stream2.node.usedBytes = Math.max(stream2.node.usedBytes, offset + length);
+        }, mmap(stream2, length, position, prot, flags) {
+          if (!FS.isFile(stream2.node.mode)) {
             throw new FS.ErrnoError(43);
           }
           var ptr;
           var allocated;
-          var contents = stream.node.contents;
+          var contents = stream2.node.contents;
           if (!(flags & 2) && contents.buffer === HEAP8.buffer) {
             allocated = false;
             ptr = contents.byteOffset;
@@ -5721,12 +5715,12 @@ var init_idb = __esm({
             HEAP8.set(contents, ptr);
           }
           return { ptr, allocated };
-        }, msync(stream, buffer, offset, length, mmapFlags) {
-          MEMFS.stream_ops.write(stream, buffer, 0, length, offset, false);
+        }, msync(stream2, buffer, offset, length, mmapFlags) {
+          MEMFS.stream_ops.write(stream2, buffer, 0, length, offset, false);
           return 0;
         } } };
         var asyncLoad = (url, onload, onerror, noRunDep) => {
-          var dep = !noRunDep ? getUniqueRunDependency(`al ${url}`) : "";
+          var dep = getUniqueRunDependency(`al ${url}`);
           readAsync(url, (arrayBuffer) => {
             assert(arrayBuffer, `Loading data file "${url}" failed (no arrayBuffer).`);
             onload(new Uint8Array(arrayBuffer));
@@ -5977,12 +5971,12 @@ var init_idb = __esm({
           }
           throw new FS.ErrnoError(33);
         }, getStreamChecked(fd) {
-          var stream = FS.getStream(fd);
-          if (!stream) {
+          var stream2 = FS.getStream(fd);
+          if (!stream2) {
             throw new FS.ErrnoError(8);
           }
-          return stream;
-        }, getStream: (fd) => FS.streams[fd], createStream(stream, fd = -1) {
+          return stream2;
+        }, getStream: (fd) => FS.streams[fd], createStream(stream2, fd = -1) {
           if (!FS.FSStream) {
             FS.FSStream = function() {
               this.shared = {};
@@ -6008,20 +6002,20 @@ var init_idb = __esm({
               this.shared.position = val;
             } } });
           }
-          stream = Object.assign(new FS.FSStream(), stream);
+          stream2 = Object.assign(new FS.FSStream(), stream2);
           if (fd == -1) {
             fd = FS.nextfd();
           }
-          stream.fd = fd;
-          FS.streams[fd] = stream;
-          return stream;
+          stream2.fd = fd;
+          FS.streams[fd] = stream2;
+          return stream2;
         }, closeStream(fd) {
           FS.streams[fd] = null;
-        }, chrdev_stream_ops: { open(stream) {
-          var device = FS.getDevice(stream.node.rdev);
-          stream.stream_ops = device.stream_ops;
-          if (stream.stream_ops.open) {
-            stream.stream_ops.open(stream);
+        }, chrdev_stream_ops: { open(stream2) {
+          var device = FS.getDevice(stream2.node.rdev);
+          stream2.stream_ops = device.stream_ops;
+          if (stream2.stream_ops.open) {
+            stream2.stream_ops.open(stream2);
           }
         }, llseek() {
           throw new FS.ErrnoError(70);
@@ -6325,8 +6319,8 @@ var init_idb = __esm({
         }, lchmod(path, mode) {
           FS.chmod(path, mode, true);
         }, fchmod(fd, mode) {
-          var stream = FS.getStreamChecked(fd);
-          FS.chmod(stream.node, mode);
+          var stream2 = FS.getStreamChecked(fd);
+          FS.chmod(stream2.node, mode);
         }, chown(path, uid, gid, dontFollow) {
           var node;
           if (typeof path == "string") {
@@ -6342,8 +6336,8 @@ var init_idb = __esm({
         }, lchown(path, uid, gid) {
           FS.chown(path, uid, gid, true);
         }, fchown(fd, uid, gid) {
-          var stream = FS.getStreamChecked(fd);
-          FS.chown(stream.node, uid, gid);
+          var stream2 = FS.getStreamChecked(fd);
+          FS.chown(stream2.node, uid, gid);
         }, truncate(path, len) {
           if (len < 0) {
             throw new FS.ErrnoError(28);
@@ -6370,11 +6364,11 @@ var init_idb = __esm({
           }
           node.node_ops.setattr(node, { size: len, timestamp: Date.now() });
         }, ftruncate(fd, len) {
-          var stream = FS.getStreamChecked(fd);
-          if ((stream.flags & 2097155) === 0) {
+          var stream2 = FS.getStreamChecked(fd);
+          if ((stream2.flags & 2097155) === 0) {
             throw new FS.ErrnoError(28);
           }
-          FS.truncate(stream.node, len);
+          FS.truncate(stream2.node, len);
         }, utime(path, atime, mtime) {
           var lookup = FS.lookupPath(path, { follow: true });
           var node = lookup.node;
@@ -6431,9 +6425,9 @@ var init_idb = __esm({
             FS.truncate(node, 0);
           }
           flags &= ~(128 | 512 | 131072);
-          var stream = FS.createStream({ node, path: FS.getPath(node), flags, seekable: true, position: 0, stream_ops: node.stream_ops, ungotten: [], error: false });
-          if (stream.stream_ops.open) {
-            stream.stream_ops.open(stream);
+          var stream2 = FS.createStream({ node, path: FS.getPath(node), flags, seekable: true, position: 0, stream_ops: node.stream_ops, ungotten: [], error: false });
+          if (stream2.stream_ops.open) {
+            stream2.stream_ops.open(stream2);
           }
           if (Module22["logReadFiles"] && !(flags & 1)) {
             if (!FS.readFiles) FS.readFiles = {};
@@ -6441,128 +6435,128 @@ var init_idb = __esm({
               FS.readFiles[path] = 1;
             }
           }
-          return stream;
-        }, close(stream) {
-          if (FS.isClosed(stream)) {
+          return stream2;
+        }, close(stream2) {
+          if (FS.isClosed(stream2)) {
             throw new FS.ErrnoError(8);
           }
-          if (stream.getdents) stream.getdents = null;
+          if (stream2.getdents) stream2.getdents = null;
           try {
-            if (stream.stream_ops.close) {
-              stream.stream_ops.close(stream);
+            if (stream2.stream_ops.close) {
+              stream2.stream_ops.close(stream2);
             }
           } catch (e) {
             throw e;
           } finally {
-            FS.closeStream(stream.fd);
+            FS.closeStream(stream2.fd);
           }
-          stream.fd = null;
-        }, isClosed(stream) {
-          return stream.fd === null;
-        }, llseek(stream, offset, whence) {
-          if (FS.isClosed(stream)) {
+          stream2.fd = null;
+        }, isClosed(stream2) {
+          return stream2.fd === null;
+        }, llseek(stream2, offset, whence) {
+          if (FS.isClosed(stream2)) {
             throw new FS.ErrnoError(8);
           }
-          if (!stream.seekable || !stream.stream_ops.llseek) {
+          if (!stream2.seekable || !stream2.stream_ops.llseek) {
             throw new FS.ErrnoError(70);
           }
           if (whence != 0 && whence != 1 && whence != 2) {
             throw new FS.ErrnoError(28);
           }
-          stream.position = stream.stream_ops.llseek(stream, offset, whence);
-          stream.ungotten = [];
-          return stream.position;
-        }, read(stream, buffer, offset, length, position) {
+          stream2.position = stream2.stream_ops.llseek(stream2, offset, whence);
+          stream2.ungotten = [];
+          return stream2.position;
+        }, read(stream2, buffer, offset, length, position) {
           if (length < 0 || position < 0) {
             throw new FS.ErrnoError(28);
           }
-          if (FS.isClosed(stream)) {
+          if (FS.isClosed(stream2)) {
             throw new FS.ErrnoError(8);
           }
-          if ((stream.flags & 2097155) === 1) {
+          if ((stream2.flags & 2097155) === 1) {
             throw new FS.ErrnoError(8);
           }
-          if (FS.isDir(stream.node.mode)) {
+          if (FS.isDir(stream2.node.mode)) {
             throw new FS.ErrnoError(31);
           }
-          if (!stream.stream_ops.read) {
+          if (!stream2.stream_ops.read) {
             throw new FS.ErrnoError(28);
           }
           var seeking = typeof position != "undefined";
           if (!seeking) {
-            position = stream.position;
-          } else if (!stream.seekable) {
+            position = stream2.position;
+          } else if (!stream2.seekable) {
             throw new FS.ErrnoError(70);
           }
-          var bytesRead = stream.stream_ops.read(stream, buffer, offset, length, position);
-          if (!seeking) stream.position += bytesRead;
+          var bytesRead = stream2.stream_ops.read(stream2, buffer, offset, length, position);
+          if (!seeking) stream2.position += bytesRead;
           return bytesRead;
-        }, write(stream, buffer, offset, length, position, canOwn) {
+        }, write(stream2, buffer, offset, length, position, canOwn) {
           if (length < 0 || position < 0) {
             throw new FS.ErrnoError(28);
           }
-          if (FS.isClosed(stream)) {
+          if (FS.isClosed(stream2)) {
             throw new FS.ErrnoError(8);
           }
-          if ((stream.flags & 2097155) === 0) {
+          if ((stream2.flags & 2097155) === 0) {
             throw new FS.ErrnoError(8);
           }
-          if (FS.isDir(stream.node.mode)) {
+          if (FS.isDir(stream2.node.mode)) {
             throw new FS.ErrnoError(31);
           }
-          if (!stream.stream_ops.write) {
+          if (!stream2.stream_ops.write) {
             throw new FS.ErrnoError(28);
           }
-          if (stream.seekable && stream.flags & 1024) {
-            FS.llseek(stream, 0, 2);
+          if (stream2.seekable && stream2.flags & 1024) {
+            FS.llseek(stream2, 0, 2);
           }
           var seeking = typeof position != "undefined";
           if (!seeking) {
-            position = stream.position;
-          } else if (!stream.seekable) {
+            position = stream2.position;
+          } else if (!stream2.seekable) {
             throw new FS.ErrnoError(70);
           }
-          var bytesWritten = stream.stream_ops.write(stream, buffer, offset, length, position, canOwn);
-          if (!seeking) stream.position += bytesWritten;
+          var bytesWritten = stream2.stream_ops.write(stream2, buffer, offset, length, position, canOwn);
+          if (!seeking) stream2.position += bytesWritten;
           return bytesWritten;
-        }, allocate(stream, offset, length) {
-          if (FS.isClosed(stream)) {
+        }, allocate(stream2, offset, length) {
+          if (FS.isClosed(stream2)) {
             throw new FS.ErrnoError(8);
           }
           if (offset < 0 || length <= 0) {
             throw new FS.ErrnoError(28);
           }
-          if ((stream.flags & 2097155) === 0) {
+          if ((stream2.flags & 2097155) === 0) {
             throw new FS.ErrnoError(8);
           }
-          if (!FS.isFile(stream.node.mode) && !FS.isDir(stream.node.mode)) {
+          if (!FS.isFile(stream2.node.mode) && !FS.isDir(stream2.node.mode)) {
             throw new FS.ErrnoError(43);
           }
-          if (!stream.stream_ops.allocate) {
+          if (!stream2.stream_ops.allocate) {
             throw new FS.ErrnoError(138);
           }
-          stream.stream_ops.allocate(stream, offset, length);
-        }, mmap(stream, length, position, prot, flags) {
-          if ((prot & 2) !== 0 && (flags & 2) === 0 && (stream.flags & 2097155) !== 2) {
+          stream2.stream_ops.allocate(stream2, offset, length);
+        }, mmap(stream2, length, position, prot, flags) {
+          if ((prot & 2) !== 0 && (flags & 2) === 0 && (stream2.flags & 2097155) !== 2) {
             throw new FS.ErrnoError(2);
           }
-          if ((stream.flags & 2097155) === 1) {
+          if ((stream2.flags & 2097155) === 1) {
             throw new FS.ErrnoError(2);
           }
-          if (!stream.stream_ops.mmap) {
+          if (!stream2.stream_ops.mmap) {
             throw new FS.ErrnoError(43);
           }
-          return stream.stream_ops.mmap(stream, length, position, prot, flags);
-        }, msync(stream, buffer, offset, length, mmapFlags) {
-          if (!stream.stream_ops.msync) {
+          return stream2.stream_ops.mmap(stream2, length, position, prot, flags);
+        }, msync(stream2, buffer, offset, length, mmapFlags) {
+          if (!stream2.stream_ops.msync) {
             return 0;
           }
-          return stream.stream_ops.msync(stream, buffer, offset, length, mmapFlags);
-        }, munmap: (stream) => 0, ioctl(stream, cmd, arg) {
-          if (!stream.stream_ops.ioctl) {
+          return stream2.stream_ops.msync(stream2, buffer, offset, length, mmapFlags);
+        }, munmap: (stream2) => 0, ioctl(stream2, cmd, arg) {
+          if (!stream2.stream_ops.ioctl) {
             throw new FS.ErrnoError(59);
           }
-          return stream.stream_ops.ioctl(stream, cmd, arg);
+          return stream2.stream_ops.ioctl(stream2, cmd, arg);
         }, readFile(path, opts = {}) {
           opts.flags = opts.flags || 0;
           opts.encoding = opts.encoding || "binary";
@@ -6570,31 +6564,31 @@ var init_idb = __esm({
             throw new Error(`Invalid encoding type "${opts.encoding}"`);
           }
           var ret;
-          var stream = FS.open(path, opts.flags);
+          var stream2 = FS.open(path, opts.flags);
           var stat = FS.stat(path);
           var length = stat.size;
           var buf = new Uint8Array(length);
-          FS.read(stream, buf, 0, length, 0);
+          FS.read(stream2, buf, 0, length, 0);
           if (opts.encoding === "utf8") {
             ret = UTF8ArrayToString(buf, 0);
           } else if (opts.encoding === "binary") {
             ret = buf;
           }
-          FS.close(stream);
+          FS.close(stream2);
           return ret;
         }, writeFile(path, data, opts = {}) {
           opts.flags = opts.flags || 577;
-          var stream = FS.open(path, opts.flags, opts.mode);
+          var stream2 = FS.open(path, opts.flags, opts.mode);
           if (typeof data == "string") {
             var buf = new Uint8Array(lengthBytesUTF8(data) + 1);
             var actualNumBytes = stringToUTF8Array(data, buf, 0, buf.length);
-            FS.write(stream, buf, 0, actualNumBytes, void 0, opts.canOwn);
+            FS.write(stream2, buf, 0, actualNumBytes, void 0, opts.canOwn);
           } else if (ArrayBuffer.isView(data)) {
-            FS.write(stream, data, 0, data.byteLength, void 0, opts.canOwn);
+            FS.write(stream2, data, 0, data.byteLength, void 0, opts.canOwn);
           } else {
             throw new Error("Unsupported data type");
           }
-          FS.close(stream);
+          FS.close(stream2);
         }, cwd: () => FS.currentPath, chdir(path) {
           var lookup = FS.lookupPath(path, { follow: true });
           if (lookup.node === null) {
@@ -6614,7 +6608,7 @@ var init_idb = __esm({
           FS.mkdir("/home/web_user");
         }, createDefaultDevices() {
           FS.mkdir("/dev");
-          FS.registerDevice(FS.makedev(1, 3), { read: () => 0, write: (stream, buffer, offset, length, pos) => length });
+          FS.registerDevice(FS.makedev(1, 3), { read: () => 0, write: (stream2, buffer, offset, length, pos) => length });
           FS.mkdev("/dev/null", FS.makedev(1, 3));
           TTY.register(FS.makedev(5, 0), TTY.default_tty_ops);
           TTY.register(FS.makedev(6, 0), TTY.default_tty1_ops);
@@ -6639,8 +6633,8 @@ var init_idb = __esm({
             var node = FS.createNode(proc_self, "fd", 16384 | 511, 73);
             node.node_ops = { lookup(parent, name) {
               var fd = +name;
-              var stream = FS.getStreamChecked(fd);
-              var ret = { parent: null, mount: { mountpoint: "fake" }, node_ops: { readlink: () => stream.path } };
+              var stream2 = FS.getStreamChecked(fd);
+              var ret = { parent: null, mount: { mountpoint: "fake" }, node_ops: { readlink: () => stream2.path } };
               ret.parent = ret;
               return ret;
             } };
@@ -6700,11 +6694,11 @@ var init_idb = __esm({
         }, quit() {
           FS.init.initialized = false;
           for (var i = 0; i < FS.streams.length; i++) {
-            var stream = FS.streams[i];
-            if (!stream) {
+            var stream2 = FS.streams[i];
+            if (!stream2) {
               continue;
             }
-            FS.close(stream);
+            FS.close(stream2);
           }
         }, findObject(path, dontResolveLastLink) {
           var ret = FS.analyzePath(path, dontResolveLastLink);
@@ -6768,9 +6762,9 @@ var init_idb = __esm({
               data = arr;
             }
             FS.chmod(node, mode | 146);
-            var stream = FS.open(node, 577);
-            FS.write(stream, data, 0, data.length, 0, canOwn);
-            FS.close(stream);
+            var stream2 = FS.open(node, 577);
+            FS.write(stream2, data, 0, data.length, 0, canOwn);
+            FS.close(stream2);
             FS.chmod(node, mode);
           }
           return node;
@@ -6779,13 +6773,13 @@ var init_idb = __esm({
           var mode = FS_getMode(!!input, !!output);
           if (!FS.createDevice.major) FS.createDevice.major = 64;
           var dev = FS.makedev(FS.createDevice.major++, 0);
-          FS.registerDevice(dev, { open(stream) {
-            stream.seekable = false;
-          }, close(stream) {
+          FS.registerDevice(dev, { open(stream2) {
+            stream2.seekable = false;
+          }, close(stream2) {
             if (output && output.buffer && output.buffer.length) {
               output(10);
             }
-          }, read(stream, buffer, offset, length, pos) {
+          }, read(stream2, buffer, offset, length, pos) {
             var bytesRead = 0;
             for (var i = 0; i < length; i++) {
               var result;
@@ -6802,10 +6796,10 @@ var init_idb = __esm({
               buffer[offset + i] = result;
             }
             if (bytesRead) {
-              stream.node.timestamp = Date.now();
+              stream2.node.timestamp = Date.now();
             }
             return bytesRead;
-          }, write(stream, buffer, offset, length, pos) {
+          }, write(stream2, buffer, offset, length, pos) {
             for (var i = 0; i < length; i++) {
               try {
                 output(buffer[offset + i]);
@@ -6814,7 +6808,7 @@ var init_idb = __esm({
               }
             }
             if (length) {
-              stream.node.timestamp = Date.now();
+              stream2.node.timestamp = Date.now();
             }
             return i;
           } });
@@ -6935,8 +6929,8 @@ var init_idb = __esm({
               return fn.apply(null, arguments);
             };
           });
-          function writeChunks(stream, buffer, offset, length, position) {
-            var contents = stream.node.contents;
+          function writeChunks(stream2, buffer, offset, length, position) {
+            var contents = stream2.node.contents;
             if (position >= contents.length) return 0;
             var size = Math.min(contents.length - position, length);
             if (contents.slice) {
@@ -6950,17 +6944,17 @@ var init_idb = __esm({
             }
             return size;
           }
-          stream_ops.read = (stream, buffer, offset, length, position) => {
+          stream_ops.read = (stream2, buffer, offset, length, position) => {
             FS.forceLoadFile(node);
-            return writeChunks(stream, buffer, offset, length, position);
+            return writeChunks(stream2, buffer, offset, length, position);
           };
-          stream_ops.mmap = (stream, length, position, prot, flags) => {
+          stream_ops.mmap = (stream2, length, position, prot, flags) => {
             FS.forceLoadFile(node);
             var ptr = mmapAlloc(length);
             if (!ptr) {
               throw new FS.ErrnoError(48);
             }
-            writeChunks(stream, HEAP8, ptr, length, position);
+            writeChunks(stream2, HEAP8, ptr, length, position);
             return { ptr, allocated: true };
           };
           node.stream_ops = stream_ops;
@@ -7013,15 +7007,15 @@ var init_idb = __esm({
           HEAPU32[buf + 80 >> 2] = ctime % 1e3 * 1e3;
           tempI64 = [stat.ino >>> 0, (tempDouble = stat.ino, +Math.abs(tempDouble) >= 1 ? tempDouble > 0 ? +Math.floor(tempDouble / 4294967296) >>> 0 : ~~+Math.ceil((tempDouble - +(~~tempDouble >>> 0)) / 4294967296) >>> 0 : 0)], HEAP32[buf + 88 >> 2] = tempI64[0], HEAP32[buf + 92 >> 2] = tempI64[1];
           return 0;
-        }, doMsync(addr, stream, len, flags, offset) {
-          if (!FS.isFile(stream.node.mode)) {
+        }, doMsync(addr, stream2, len, flags, offset) {
+          if (!FS.isFile(stream2.node.mode)) {
             throw new FS.ErrnoError(43);
           }
           if (flags & 2) {
             return 0;
           }
           var buffer = HEAPU8.slice(addr, addr + len);
-          FS.msync(stream, buffer, offset, len, flags);
+          FS.msync(stream2, buffer, offset, len, flags);
         }, varargs: void 0, get() {
           var ret = HEAP32[+SYSCALLS.varargs >> 2];
           SYSCALLS.varargs += 4;
@@ -7032,8 +7026,8 @@ var init_idb = __esm({
           var ret = UTF8ToString(ptr);
           return ret;
         }, getStreamFromFD(fd) {
-          var stream = FS.getStreamChecked(fd);
-          return stream;
+          var stream2 = FS.getStreamChecked(fd);
+          return stream2;
         } };
         function ___syscall_chmod(path, mode) {
           try {
@@ -7095,7 +7089,7 @@ var init_idb = __esm({
         function ___syscall_fcntl64(fd, cmd, varargs) {
           SYSCALLS.varargs = varargs;
           try {
-            var stream = SYSCALLS.getStreamFromFD(fd);
+            var stream2 = SYSCALLS.getStreamFromFD(fd);
             switch (cmd) {
               case 0: {
                 var arg = SYSCALLS.get();
@@ -7106,17 +7100,17 @@ var init_idb = __esm({
                   arg++;
                 }
                 var newStream;
-                newStream = FS.createStream(stream, arg);
+                newStream = FS.createStream(stream2, arg);
                 return newStream.fd;
               }
               case 1:
               case 2:
                 return 0;
               case 3:
-                return stream.flags;
+                return stream2.flags;
               case 4: {
                 var arg = SYSCALLS.get();
-                stream.flags |= arg;
+                stream2.flags |= arg;
                 return 0;
               }
               case 5: {
@@ -7145,8 +7139,8 @@ var init_idb = __esm({
         }
         function ___syscall_fstat64(fd, buf) {
           try {
-            var stream = SYSCALLS.getStreamFromFD(fd);
-            return SYSCALLS.doStat(FS.stat, stream.path, buf);
+            var stream2 = SYSCALLS.getStreamFromFD(fd);
+            return SYSCALLS.doStat(FS.stat, stream2.path, buf);
           } catch (e) {
             if (typeof FS == "undefined" || !(e.name === "ErrnoError")) throw e;
             return -e.errno;
@@ -7333,8 +7327,8 @@ var init_idb = __esm({
           var offset = convertI32PairToI53Checked(offset_low, offset_high);
           try {
             if (isNaN(offset)) return 61;
-            var stream = SYSCALLS.getStreamFromFD(fd);
-            var res = FS.mmap(stream, len, offset, prot, flags);
+            var stream2 = SYSCALLS.getStreamFromFD(fd);
+            var res = FS.mmap(stream2, len, offset, prot, flags);
             var ptr = res.ptr;
             HEAP32[allocated >> 2] = res.allocated;
             HEAPU32[addr >> 2] = ptr;
@@ -7348,11 +7342,11 @@ var init_idb = __esm({
           var offset = convertI32PairToI53Checked(offset_low, offset_high);
           try {
             if (isNaN(offset)) return 61;
-            var stream = SYSCALLS.getStreamFromFD(fd);
+            var stream2 = SYSCALLS.getStreamFromFD(fd);
             if (prot & 2) {
-              SYSCALLS.doMsync(addr, stream, len, flags, offset);
+              SYSCALLS.doMsync(addr, stream2, len, flags, offset);
             }
-            FS.munmap(stream);
+            FS.munmap(stream2);
           } catch (e) {
             if (typeof FS == "undefined" || !(e.name === "ErrnoError")) throw e;
             return -e.errno;
@@ -7466,8 +7460,8 @@ var init_idb = __esm({
         };
         function _fd_close(fd) {
           try {
-            var stream = SYSCALLS.getStreamFromFD(fd);
-            FS.close(stream);
+            var stream2 = SYSCALLS.getStreamFromFD(fd);
+            FS.close(stream2);
             return 0;
           } catch (e) {
             if (typeof FS == "undefined" || !(e.name === "ErrnoError")) throw e;
@@ -7480,8 +7474,8 @@ var init_idb = __esm({
             var rightsInheriting = 0;
             var flags = 0;
             {
-              var stream = SYSCALLS.getStreamFromFD(fd);
-              var type = stream.tty ? 2 : FS.isDir(stream.mode) ? 3 : FS.isLink(stream.mode) ? 7 : 4;
+              var stream2 = SYSCALLS.getStreamFromFD(fd);
+              var type = stream2.tty ? 2 : FS.isDir(stream2.mode) ? 3 : FS.isLink(stream2.mode) ? 7 : 4;
             }
             HEAP8[pbuf >> 0] = type;
             HEAP16[pbuf + 2 >> 1] = flags;
@@ -7493,26 +7487,23 @@ var init_idb = __esm({
             return e.errno;
           }
         }
-        var doReadv = (stream, iov, iovcnt, offset) => {
+        var doReadv = (stream2, iov, iovcnt, offset) => {
           var ret = 0;
           for (var i = 0; i < iovcnt; i++) {
             var ptr = HEAPU32[iov >> 2];
             var len = HEAPU32[iov + 4 >> 2];
             iov += 8;
-            var curr = FS.read(stream, HEAP8, ptr, len, offset);
+            var curr = FS.read(stream2, HEAP8, ptr, len, offset);
             if (curr < 0) return -1;
             ret += curr;
             if (curr < len) break;
-            if (typeof offset !== "undefined") {
-              offset += curr;
-            }
           }
           return ret;
         };
         function _fd_read(fd, iov, iovcnt, pnum) {
           try {
-            var stream = SYSCALLS.getStreamFromFD(fd);
-            var num = doReadv(stream, iov, iovcnt);
+            var stream2 = SYSCALLS.getStreamFromFD(fd);
+            var num = doReadv(stream2, iov, iovcnt);
             HEAPU32[pnum >> 2] = num;
             return 0;
           } catch (e) {
@@ -7524,10 +7515,10 @@ var init_idb = __esm({
           var offset = convertI32PairToI53Checked(offset_low, offset_high);
           try {
             if (isNaN(offset)) return 61;
-            var stream = SYSCALLS.getStreamFromFD(fd);
-            FS.llseek(stream, offset, whence);
-            tempI64 = [stream.position >>> 0, (tempDouble = stream.position, +Math.abs(tempDouble) >= 1 ? tempDouble > 0 ? +Math.floor(tempDouble / 4294967296) >>> 0 : ~~+Math.ceil((tempDouble - +(~~tempDouble >>> 0)) / 4294967296) >>> 0 : 0)], HEAP32[newOffset >> 2] = tempI64[0], HEAP32[newOffset + 4 >> 2] = tempI64[1];
-            if (stream.getdents && offset === 0 && whence === 0) stream.getdents = null;
+            var stream2 = SYSCALLS.getStreamFromFD(fd);
+            FS.llseek(stream2, offset, whence);
+            tempI64 = [stream2.position >>> 0, (tempDouble = stream2.position, +Math.abs(tempDouble) >= 1 ? tempDouble > 0 ? +Math.floor(tempDouble / 4294967296) >>> 0 : ~~+Math.ceil((tempDouble - +(~~tempDouble >>> 0)) / 4294967296) >>> 0 : 0)], HEAP32[newOffset >> 2] = tempI64[0], HEAP32[newOffset + 4 >> 2] = tempI64[1];
+            if (stream2.getdents && offset === 0 && whence === 0) stream2.getdents = null;
             return 0;
           } catch (e) {
             if (typeof FS == "undefined" || !(e.name === "ErrnoError")) throw e;
@@ -7536,9 +7527,9 @@ var init_idb = __esm({
         }
         var _fd_sync = function(fd) {
           try {
-            var stream = SYSCALLS.getStreamFromFD(fd);
+            var stream2 = SYSCALLS.getStreamFromFD(fd);
             return Asyncify2.handleSleep((wakeUp) => {
-              var mount = stream.node.mount;
+              var mount = stream2.node.mount;
               if (!mount.type.syncfs) {
                 wakeUp(0);
                 return;
@@ -7557,25 +7548,22 @@ var init_idb = __esm({
           }
         };
         _fd_sync.isAsync = true;
-        var doWritev = (stream, iov, iovcnt, offset) => {
+        var doWritev = (stream2, iov, iovcnt, offset) => {
           var ret = 0;
           for (var i = 0; i < iovcnt; i++) {
             var ptr = HEAPU32[iov >> 2];
             var len = HEAPU32[iov + 4 >> 2];
             iov += 8;
-            var curr = FS.write(stream, HEAP8, ptr, len, offset);
+            var curr = FS.write(stream2, HEAP8, ptr, len, offset);
             if (curr < 0) return -1;
             ret += curr;
-            if (typeof offset !== "undefined") {
-              offset += curr;
-            }
           }
           return ret;
         };
         function _fd_write(fd, iov, iovcnt, pnum) {
           try {
-            var stream = SYSCALLS.getStreamFromFD(fd);
-            var num = doWritev(stream, iov, iovcnt);
+            var stream2 = SYSCALLS.getStreamFromFD(fd);
+            var num = doWritev(stream2, iov, iovcnt);
             HEAPU32[pnum >> 2] = num;
             return 0;
           } catch (e) {
@@ -10336,36 +10324,46 @@ async function initSQLite(options) {
     path,
     readonly ? SQLITE_OPEN_READONLY : void 0
   );
-  return {
-    path,
-    vfs,
-    db: db2,
-    sqlite,
-    async close() {
-      await sqlite.close(db2);
-    },
-    changes() {
-      return sqlite.changes(db2);
-    },
-    async lastInsertRowId() {
-      return await new Promise((resolve) => sqlite.exec(
-        db2,
-        "SELECT last_insert_rowid()",
-        ([id]) => resolve(id)
-      ));
-    },
-    async run(sql, parameters) {
-      const results = [];
-      for await (const stmt of sqlite.statements(db2, sql)) {
-        parameters?.length && sqlite.bind_collection(stmt, parameters);
-        const cols = sqlite.column_names(stmt);
-        while (await sqlite.step(stmt) === SQLITE_ROW) {
-          const row = sqlite.row(stmt);
-          results.push(Object.fromEntries(cols.map((key, i) => [key, row[i]])));
-        }
+  const close = async () => {
+    await sqlite.close(db2);
+  };
+  const changes = () => {
+    return sqlite.changes(db2);
+  };
+  const lastInsertRowId = async () => {
+    return await new Promise((resolve) => sqlite.exec(
+      db2,
+      "SELECT last_insert_rowid()",
+      ([id]) => resolve(id)
+    ));
+  };
+  const stream2 = async (onData, sql, parameters) => {
+    for await (const stmt of sqlite.statements(db2, sql)) {
+      if (parameters?.length) {
+        sqlite.bind_collection(stmt, parameters);
       }
-      return results;
+      const cols = sqlite.column_names(stmt);
+      while (await sqlite.step(stmt) === SQLITE_ROW) {
+        const row = sqlite.row(stmt);
+        onData(Object.fromEntries(cols.map((key, i) => [key, row[i]])));
+      }
     }
+  };
+  const run = async (sql, parameters) => {
+    const results = [];
+    await stream2((data) => results.push(data), sql, parameters);
+    return results;
+  };
+  return {
+    changes,
+    close,
+    db: db2,
+    lastInsertRowId,
+    path,
+    run,
+    sqlite,
+    stream: stream2,
+    vfs
   };
 }
 var db;
@@ -10385,22 +10383,25 @@ async function exec(isSelect, sql, parameters) {
     numAffectedRows: BigInt(db.changes())
   };
 }
-onmessage = async ({ data }) => {
-  const ret = [
-    data[0],
-    null,
-    null
-  ];
+async function stream(onData, sql, parameters) {
+  await db.stream(onData, sql, parameters);
+}
+onmessage = async ({ data: [msg, data1, data2, data3] }) => {
+  const ret = [msg, null, null];
   try {
-    switch (data[0]) {
+    switch (msg) {
       case 0:
-        await init(data[1], data[2], data[3]);
+        await init(data1, data2, data3);
         break;
       case 1:
-        ret[1] = await exec(data[1], data[2], data[3]);
+        ret[1] = await exec(data1, data2, data3);
         break;
       case 2:
         await db.close();
+        break;
+      case 3:
+        await stream((val) => postMessage([3, [val], null]), data1, data2);
+        ret[0] = 4;
         break;
     }
   } catch (error) {

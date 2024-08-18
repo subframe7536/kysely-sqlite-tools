@@ -1417,42 +1417,52 @@ async function initSQLite(options) {
     path,
     readonly ? SQLITE_OPEN_READONLY : void 0
   );
-  return {
-    path,
-    vfs,
-    db: db2,
-    sqlite,
-    async close() {
-      await sqlite.close(db2);
-    },
-    changes() {
-      return sqlite.changes(db2);
-    },
-    async lastInsertRowId() {
-      return await new Promise((resolve) => sqlite.exec(
-        db2,
-        "SELECT last_insert_rowid()",
-        ([id]) => resolve(id)
-      ));
-    },
-    async run(sql, parameters) {
-      const results = [];
-      for await (const stmt of sqlite.statements(db2, sql)) {
-        parameters?.length && sqlite.bind_collection(stmt, parameters);
-        const cols = sqlite.column_names(stmt);
-        while (await sqlite.step(stmt) === SQLITE_ROW) {
-          const row = sqlite.row(stmt);
-          results.push(Object.fromEntries(cols.map((key, i) => [key, row[i]])));
-        }
+  const close = async () => {
+    await sqlite.close(db2);
+  };
+  const changes = () => {
+    return sqlite.changes(db2);
+  };
+  const lastInsertRowId = async () => {
+    return await new Promise((resolve) => sqlite.exec(
+      db2,
+      "SELECT last_insert_rowid()",
+      ([id]) => resolve(id)
+    ));
+  };
+  const stream2 = async (onData, sql, parameters) => {
+    for await (const stmt of sqlite.statements(db2, sql)) {
+      if (parameters?.length) {
+        sqlite.bind_collection(stmt, parameters);
       }
-      return results;
+      const cols = sqlite.column_names(stmt);
+      while (await sqlite.step(stmt) === SQLITE_ROW) {
+        const row = sqlite.row(stmt);
+        onData(Object.fromEntries(cols.map((key, i) => [key, row[i]])));
+      }
     }
+  };
+  const run = async (sql, parameters) => {
+    const results = [];
+    await stream2((data) => results.push(data), sql, parameters);
+    return results;
+  };
+  return {
+    changes,
+    close,
+    db: db2,
+    lastInsertRowId,
+    path,
+    run,
+    sqlite,
+    stream: stream2,
+    vfs
   };
 }
 var db;
 async function init(fileName, url, useOPFS) {
   db = await initSQLite(
-    (useOPFS ? (await import("./opfs-RJVGJI7I-DQSJph3l.js")).useOpfsStorage : (await import("./idb-SLWNVG45-Crn0j6gp.js")).useIdbStorage)(
+    (useOPFS ? (await import("./opfs-YH55NWE6-CMihDN80.js")).useOpfsStorage : (await import("./idb-5ZBB5JIT-CMapOeq6.js")).useIdbStorage)(
       fileName,
       { url }
     )
@@ -1466,22 +1476,25 @@ async function exec(isSelect, sql, parameters) {
     numAffectedRows: BigInt(db.changes())
   };
 }
-onmessage = async ({ data }) => {
-  const ret = [
-    data[0],
-    null,
-    null
-  ];
+async function stream(onData, sql, parameters) {
+  await db.stream(onData, sql, parameters);
+}
+onmessage = async ({ data: [msg, data1, data2, data3] }) => {
+  const ret = [msg, null, null];
   try {
-    switch (data[0]) {
+    switch (msg) {
       case 0:
-        await init(data[1], data[2], data[3]);
+        await init(data1, data2, data3);
         break;
       case 1:
-        ret[1] = await exec(data[1], data[2], data[3]);
+        ret[1] = await exec(data1, data2, data3);
         break;
       case 2:
         await db.close();
+        break;
+      case 3:
+        await stream((val) => postMessage([3, [val], null]), data1, data2);
+        ret[0] = 4;
         break;
     }
   } catch (error) {
