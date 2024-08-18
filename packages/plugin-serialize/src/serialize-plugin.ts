@@ -11,27 +11,72 @@ import { SerializeParametersTransformer } from './serialize-transformer'
 import type { Deserializer, Serializer } from './serializer'
 import { defaultDeserializer, defaultSerializer } from './serializer'
 
-export interface SerializePluginOptions {
+export interface BaseSerializePluginOptions {
   /**
    * serialize params
    */
-  serializer?: Serializer
+  serializer: Serializer
   /**
    * deserialize params
    */
-  deserializer?: Deserializer
+  deserializer: Deserializer
   /**
    * node kind to skip transform
    */
-  skipNodeKind?: Array<RootOperationNode['kind']>
+  skipNodeKind: Array<RootOperationNode['kind']>
 }
 
-export class SerializePlugin implements KyselyPlugin {
+export class BaseSerializePlugin implements KyselyPlugin {
   private transformer: SerializeParametersTransformer
   private deserializer: Deserializer
   private skipNodeSet?: Set<RootOperationNode['kind']>
   private ctx?: WeakSet<QueryId>
 
+  /**
+   * Base class for {@link SerializePlugin}, without default options
+   */
+  public constructor({ deserializer, serializer, skipNodeKind }: BaseSerializePluginOptions) {
+    this.transformer = new SerializeParametersTransformer(serializer)
+    this.deserializer = deserializer
+    if (skipNodeKind.length) {
+      this.skipNodeSet = new Set(skipNodeKind)
+      this.ctx = new WeakSet()
+    }
+  }
+
+  public transformQuery({ node, queryId }: PluginTransformQueryArgs): RootOperationNode {
+    if (this.skipNodeSet?.has(node.kind)) {
+      this.ctx?.add(queryId)
+      return node
+    }
+    return this.transformer.transformNode(node)
+  }
+
+  public async transformResult(
+    { result, queryId }: PluginTransformResultArgs,
+  ): Promise<QueryResult<UnknownRow>> {
+    return this.ctx?.has(queryId)
+      ? result
+      : { ...result, rows: this.parseRows(result.rows) }
+  }
+
+  private parseRows(rows: UnknownRow[]): UnknownRow[] {
+    const result: UnknownRow[] = []
+    for (const row of rows) {
+      const parsedRow: UnknownRow = {}
+      for (const [key, value] of Object.entries(row)) {
+        parsedRow[key] = this.deserializer(value)
+      }
+      result.push(parsedRow)
+    }
+    return result
+  }
+}
+
+interface SerializePluginOptions extends Partial<BaseSerializePluginOptions> {
+}
+
+export class SerializePlugin extends BaseSerializePlugin {
   /**
    * _**THIS PLUGIN SHOULD BE PLACED AT THE END OF PLUGINS ARRAY !!!**_
    *
@@ -94,50 +139,14 @@ export class SerializePlugin implements KyselyPlugin {
    * ```
    */
   public constructor(options: SerializePluginOptions = {}) {
-    const {
-      deserializer = defaultDeserializer,
-      serializer = defaultSerializer,
-      skipNodeKind = [],
-    } = options
-
-    this.transformer = new SerializeParametersTransformer(serializer)
-    this.deserializer = deserializer
-    if (skipNodeKind.length) {
-      this.skipNodeSet = new Set(skipNodeKind)
-      this.ctx = new WeakSet()
-    }
-  }
-
-  public transformQuery({ node, queryId }: PluginTransformQueryArgs): RootOperationNode {
-    if (this.skipNodeSet?.has(node.kind)) {
-      this.ctx?.add(queryId)
-      return node
-    }
-    return this.transformer.transformNode(node)
-  }
-
-  public async transformResult(
-    { result, queryId }: PluginTransformResultArgs,
-  ): Promise<QueryResult<UnknownRow>> {
-    return this.ctx?.has(queryId)
-      ? result
-      : { ...result, rows: this.parseRows(result.rows) }
-  }
-
-  private parseRows(rows: UnknownRow[]): UnknownRow[] {
-    const result: UnknownRow[] = []
-    for (const row of rows) {
-      const parsedRow: UnknownRow = {}
-      for (const [key, value] of Object.entries(row)) {
-        parsedRow[key] = this.deserializer(value)
-      }
-      result.push(parsedRow)
-    }
-    return result
+    options.deserializer ??= defaultDeserializer
+    options.serializer ??= defaultSerializer
+    options.skipNodeKind ??= []
+    super(options as BaseSerializePluginOptions)
   }
 }
 
 /**
- * @deprecated prefer to use {@link SerializePlugin}
+ * @deprecated use {@link SerializePlugin} instead
  */
 export const SqliteSerializePlugin = SerializePlugin

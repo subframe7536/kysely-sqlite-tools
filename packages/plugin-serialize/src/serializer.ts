@@ -31,8 +31,8 @@ export const defaultDeserializer: Deserializer = (parameter) => {
     } else if (dateRegex.test(parameter)) {
       return new Date(parameter)
     } else if (
-      (parameter[0] === '{' && parameter[parameter.length - 1] === '}')
-      || (parameter[0] === '[' && parameter[parameter.length - 1] === ']')
+      (parameter.startsWith('{') && parameter.endsWith('}'))
+      || (parameter.startsWith('[') && parameter.endsWith(']'))
     ) {
       try {
         return JSON.parse(parameter)
