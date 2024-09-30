@@ -1,9 +1,9 @@
 import type { DatabaseIntrospector, Dialect, DialectAdapter, Driver, Kysely, QueryCompiler } from 'kysely'
+import type { WaSqliteWorkerDialectConfig } from './type'
 import { SqliteAdapter, SqliteIntrospector, SqliteQueryCompiler } from 'kysely'
 import { WaSqliteWorkerDriver } from './driver'
-import type { WaSqliteWorkerDialectConfig } from './type'
 
-export { isIdbSupported, isOpfsSupported, isModuleWorkerSupport } from '@subframe7536/sqlite-wasm'
+export { isIdbSupported, isModuleWorkerSupport, isOpfsSupported } from '@subframe7536/sqlite-wasm'
 
 export class WaSqliteWorkerDialect implements Dialect {
   private config: WaSqliteWorkerDialectConfig

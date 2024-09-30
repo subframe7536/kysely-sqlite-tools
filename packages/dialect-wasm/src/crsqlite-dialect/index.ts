@@ -1,8 +1,8 @@
 import type { DatabaseConnection, Driver } from 'kysely'
 import type { Promisable } from '../types'
+import type { CrSqliteDB } from './type'
 import { BaseDialect } from '../baseDialect'
 import { CrSqliteDriver } from './driver'
-import type { CrSqliteDB } from './type'
 
 export interface CrSqliteDialectConfig {
   database: CrSqliteDB | (() => Promisable<CrSqliteDB>)

@@ -1,8 +1,8 @@
 import type { DatabaseConnection, Driver } from 'kysely'
 import type { Promisable } from '../types'
+import type { OfficialWasmDB } from './type'
 import { BaseDialect } from '../baseDialect'
 import { OfficialWasmDriver } from './driver'
-import type { OfficialWasmDB } from './type'
 
 export type { OfficialWasmDB } from './type'
 export interface OfficialWasmDialectConfig {

@@ -1,7 +1,7 @@
-import type { InfoReturn, QueryReturn } from '../baseDriver'
-import { BaseDriver, BaseSqliteConnection } from '../baseDriver'
-import type { CrSqliteDB } from './type'
 import type { CrSqliteDialectConfig } from '.'
+import type { InfoReturn, QueryReturn } from '../baseDriver'
+import type { CrSqliteDB } from './type'
+import { BaseDriver, BaseSqliteConnection } from '../baseDriver'
 
 export class CrSqliteDriver extends BaseDriver {
   private config: CrSqliteDialectConfig

@@ -1,7 +1,7 @@
 import type { DatabaseIntrospector, Dialect, DialectAdapter, Driver, Kysely, QueryCompiler } from 'kysely'
+import type { BunWorkerDialectConfig } from './type'
 import { SqliteAdapter, SqliteIntrospector, SqliteQueryCompiler } from 'kysely'
 import { BunWorkerDriver } from './driver'
-import type { BunWorkerDialectConfig } from './type'
 
 export class BunWorkerDialect implements Dialect {
   private config?: BunWorkerDialectConfig

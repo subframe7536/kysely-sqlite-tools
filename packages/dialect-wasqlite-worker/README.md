@@ -63,13 +63,13 @@ export interface WaSqliteWorkerDialectConfig {
 
 ```ts
 import {
-  WaSqliteWorkerDialect,
   generateDialectOptions,
   isIdbSupported,
   isModuleWorkerSupport,
   isOpfsSupported,
   useDefaultWasmURL,
-  useDefaultWorker
+  useDefaultWorker,
+  WaSqliteWorkerDialect
 } from 'kysely-wasqlite-worker'
 
 const dialect = new WaSqliteWorkerDialect({

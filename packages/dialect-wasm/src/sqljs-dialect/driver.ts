@@ -1,8 +1,8 @@
-import type { AnyFunction } from '../types'
-import type { InfoReturn, QueryReturn } from '../baseDriver'
-import { BaseDriver, BaseSqliteConnection } from '../baseDriver'
-import type { SqlJSDB } from './type'
 import type { SqlJsDialectConfig } from '.'
+import type { InfoReturn, QueryReturn } from '../baseDriver'
+import type { AnyFunction } from '../types'
+import type { SqlJSDB } from './type'
+import { BaseDriver, BaseSqliteConnection } from '../baseDriver'
 
 /**
  * Throttles a function call to a maximum number of calls per delay period.

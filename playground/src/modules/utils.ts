@@ -1,6 +1,6 @@
 import type { Dialect } from 'kysely'
-import { SqliteBuilder } from 'kysely-sqlite-builder'
 import type { InferDatabase } from 'kysely-sqlite-builder/schema'
+import { SqliteBuilder } from 'kysely-sqlite-builder'
 import { column, defineTable, useSchema } from 'kysely-sqlite-builder/schema'
 
 const tables = {
@@ -25,6 +25,7 @@ export async function testDB(dialect: Dialect) {
     throw result.error
   }
   console.log(await db.execute(`PRAGMA table_info('test')`))
+  // console.log(await db.execute(`select fts5(?1)`))
 
   for (let i = 0; i < 10; i++) {
     await db.transaction(async () => {

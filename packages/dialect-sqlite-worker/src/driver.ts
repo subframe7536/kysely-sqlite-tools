@@ -1,9 +1,9 @@
-import { Worker } from 'node:worker_threads'
-import { join } from 'node:path'
-import { EventEmitter } from 'node:events'
 import type { DatabaseConnection, Driver, QueryResult } from 'kysely'
-import { CompiledQuery, SelectQueryNode } from 'kysely'
 import type { MainMsg, SqliteWorkerDialectConfig, WorkerMsg } from './type'
+import { EventEmitter } from 'node:events'
+import { join } from 'node:path'
+import { Worker } from 'node:worker_threads'
+import { CompiledQuery, SelectQueryNode } from 'kysely'
 
 export class SqliteWorkerDriver implements Driver {
   private connectionMutex = new ConnectionMutex()

@@ -1,7 +1,7 @@
-import type { InfoReturn, QueryReturn } from '../baseDriver'
-import { BaseDriver, BaseSqliteConnection } from '../baseDriver'
-import type { OfficialWasmDB } from './type'
 import type { OfficialWasmDialectConfig } from '.'
+import type { InfoReturn, QueryReturn } from '../baseDriver'
+import type { OfficialWasmDB } from './type'
+import { BaseDriver, BaseSqliteConnection } from '../baseDriver'
 
 export class OfficialWasmDriver extends BaseDriver {
   private config: OfficialWasmDialectConfig

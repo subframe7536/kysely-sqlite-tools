@@ -1,7 +1,7 @@
 import type { SQLiteDB } from '@subframe7536/sqlite-wasm'
-import { initSQLite } from '@subframe7536/sqlite-wasm'
 import type { QueryResult } from 'kysely'
 import type { MainMsg, WorkerMsg } from './type'
+import { initSQLite } from '@subframe7536/sqlite-wasm'
 
 let db: SQLiteDB
 

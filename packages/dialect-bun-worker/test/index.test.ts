@@ -1,5 +1,5 @@
-import { describe, expect, test } from 'bun:test'
 import type { Generated } from 'kysely'
+import { describe, expect, test } from 'bun:test'
 import { Kysely } from 'kysely'
 import { BunWorkerDialect } from '../src'
 

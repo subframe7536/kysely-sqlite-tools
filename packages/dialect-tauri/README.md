@@ -11,9 +11,9 @@ pnpm add kysely kysely-dialect-tauri @tauri-apps/plugin-sql
 ## Usage
 
 ```ts
-import { Kysely } from 'kysely'
-import Database from '@tauri-apps/plugin-sql'
 import { appDataDir } from '@tauri-apps/api/path'
+import Database from '@tauri-apps/plugin-sql'
+import { Kysely } from 'kysely'
 
 const kysely = new Kysely<DB>({
   dialect: new TauriSqlDialect({

@@ -1,6 +1,6 @@
-import Database from 'bun:sqlite'
 import type { QueryResult } from 'kysely'
 import type { MainMsg, WorkerMsg } from './type'
+import Database from 'bun:sqlite'
 
 let db: Database
 let fn: 'query' | 'prepare'

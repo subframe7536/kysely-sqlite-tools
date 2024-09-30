@@ -1,7 +1,7 @@
-import type { InfoReturn, QueryReturn } from '../baseDriver'
-import { BaseDriver, BaseSqliteConnection } from '../baseDriver'
-import type { NodeWasmDatabase } from './type'
 import type { NodeWasmDialectConfig } from '.'
+import type { InfoReturn, QueryReturn } from '../baseDriver'
+import type { NodeWasmDatabase } from './type'
+import { BaseDriver, BaseSqliteConnection } from '../baseDriver'
 
 export class NodeWasmDriver extends BaseDriver {
   private config: NodeWasmDialectConfig

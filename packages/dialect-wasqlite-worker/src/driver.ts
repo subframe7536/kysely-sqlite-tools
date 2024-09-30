@@ -1,9 +1,9 @@
 import type { DatabaseConnection, Driver, QueryResult } from 'kysely'
-import { CompiledQuery, SelectQueryNode } from 'kysely'
 import type { Emitter } from 'zen-mitt'
-import { mitt } from 'zen-mitt'
-import { isModuleWorkerSupport, isOpfsSupported } from '@subframe7536/sqlite-wasm'
 import type { EventWithError, MainMsg, WaSqliteWorkerDialectConfig, WorkerMsg } from './type'
+import { isModuleWorkerSupport, isOpfsSupported } from '@subframe7536/sqlite-wasm'
+import { CompiledQuery, SelectQueryNode } from 'kysely'
+import { mitt } from 'zen-mitt'
 import { defaultWasmURL, defaultWorker, parseWorkerOrURL } from './utils'
 
 export class WaSqliteWorkerDriver implements Driver {

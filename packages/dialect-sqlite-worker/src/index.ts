@@ -1,7 +1,7 @@
 import type { DatabaseIntrospector, Dialect, DialectAdapter, Driver, Kysely, QueryCompiler } from 'kysely'
+import type { SqliteWorkerDialectConfig } from './type'
 import { SqliteAdapter, SqliteIntrospector, SqliteQueryCompiler } from 'kysely'
 import { SqliteWorkerDriver } from './driver'
-import type { SqliteWorkerDialectConfig } from './type'
 
 export class SqliteWorkerDialect implements Dialect {
   private config: SqliteWorkerDialectConfig

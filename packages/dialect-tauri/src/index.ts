@@ -1,7 +1,7 @@
 import type { DatabaseIntrospector, DialectAdapter, Driver, Kysely, QueryCompiler } from 'kysely'
+import type { TauriSqliteDialectConfig } from './type'
 import { SqliteAdapter, SqliteIntrospector, SqliteQueryCompiler } from 'kysely'
 import { TauriSqlDriver } from './driver'
-import type { TauriSqliteDialectConfig } from './type'
 
 /**
  * https://github.com/tauri-apps/plugins-workspace/tree/dev/plugins/sql

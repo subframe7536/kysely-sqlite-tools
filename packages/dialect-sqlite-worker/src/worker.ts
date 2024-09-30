@@ -1,6 +1,6 @@
+import type { MainMsg, WorkerMsg } from './type'
 import { parentPort, workerData } from 'node:worker_threads'
 import Database from 'better-sqlite3'
-import type { MainMsg, WorkerMsg } from './type'
 
 if (!parentPort) {
   throw new Error('Must be run in a worker thread')

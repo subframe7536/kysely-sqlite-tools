@@ -1,8 +1,8 @@
 import type { DatabaseConnection, Driver } from 'kysely'
 import type { Promisable } from '../types'
+import type { SqlJSDB } from './type'
 import { BaseDialect } from '../baseDialect'
 import { SqlJsDriver } from './driver'
-import type { SqlJSDB } from './type'
 
 export interface SqlJsDialectConfig {
   database: SqlJSDB | (() => Promisable<SqlJSDB>)

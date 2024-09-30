@@ -1,7 +1,7 @@
-import { describe, expect, it } from 'vitest'
-import Database from 'better-sqlite3'
 import type { Generated, KyselyPlugin } from 'kysely'
+import Database from 'better-sqlite3'
 import { Kysely, SqliteDialect } from 'kysely'
+import { describe, expect, it } from 'vitest'
 import { SerializePlugin } from '../packages/plugin-serialize/src'
 
 interface DB {

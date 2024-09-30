@@ -1,7 +1,7 @@
-import type { InfoReturn, QueryReturn } from '../baseDriver'
-import { BaseDriver, BaseSqliteConnection } from '../baseDriver'
-import type { Sqlite, WaSqliteDatabase } from './type'
 import type { WaSqliteDialectConfig } from '.'
+import type { InfoReturn, QueryReturn } from '../baseDriver'
+import type { Sqlite, WaSqliteDatabase } from './type'
+import { BaseDriver, BaseSqliteConnection } from '../baseDriver'
 
 export class WaSqliteDriver extends BaseDriver {
   private config: WaSqliteDialectConfig

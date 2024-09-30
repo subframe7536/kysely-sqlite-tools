@@ -1,8 +1,8 @@
-import { afterAll, describe, expect, it } from 'vitest'
 import type { Dialect, Generated } from 'kysely'
-import InitSqlJs from 'sql.js'
 import { Kysely } from 'kysely'
 import { Database } from 'node-sqlite3-wasm'
+import InitSqlJs from 'sql.js'
+import { afterAll, describe, expect, it } from 'vitest'
 import { NodeWasmDialect, SqlJsDialect } from '../packages/dialect-wasm/src'
 
 interface DB {

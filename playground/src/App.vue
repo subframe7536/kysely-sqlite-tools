@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import { useDB } from './modules/mainThread'
-import SqljsWorker from './modules/sqljsWorker?worker'
-import OfficialWorker from './modules/officialWasmWorker?worker'
-import { useWaSqliteWorker } from './modules/wasqliteWorker'
 import { deleteFile } from './modules/indexeddb'
+import { useDB } from './modules/mainThread'
+import OfficialWorker from './modules/officialWasmWorker?worker'
+import SqljsWorker from './modules/sqljsWorker?worker'
+import { useWaSqliteWorker } from './modules/wasqliteWorker'
 
 const sqljsWorker = new SqljsWorker()
 const { result, run } = useDB()

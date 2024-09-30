@@ -1,6 +1,6 @@
-import { afterAll, describe, expect, it } from 'vitest'
 import type { Dialect, Generated } from 'kysely'
 import { Kysely } from 'kysely'
+import { afterAll, describe, expect, it } from 'vitest'
 import { SqliteWorkerDialect } from '../packages/dialect-sqlite-worker'
 
 interface DB {

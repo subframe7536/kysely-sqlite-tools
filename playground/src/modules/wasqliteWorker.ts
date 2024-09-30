@@ -1,8 +1,8 @@
 import {
-  WaSqliteWorkerDialect,
   isIdbSupported,
   isModuleWorkerSupport,
   isOpfsSupported,
+  WaSqliteWorkerDialect,
 } from 'kysely-wasqlite-worker'
 
 import wasmURL from 'kysely-wasqlite-worker/wasm-sync?url'

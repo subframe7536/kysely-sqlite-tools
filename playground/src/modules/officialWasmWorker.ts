@@ -1,5 +1,5 @@
-import { OfficialWasmDialect } from 'kysely-wasm'
 import sqlite3InitModule from '@sqlite.org/sqlite-wasm'
+import { OfficialWasmDialect } from 'kysely-wasm'
 import { testDB } from './utils'
 
 const dialect = new OfficialWasmDialect({

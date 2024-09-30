@@ -1,8 +1,8 @@
 import type { DatabaseConnection, Driver } from 'kysely'
 import type { Promisable } from '../types'
+import type { WaSqliteDatabase } from './type'
 import { BaseDialect } from '../baseDialect'
 import { WaSqliteDriver } from './driver'
-import type { WaSqliteDatabase } from './type'
 
 /**
  * @deprecated please use 'kysely-wasqlite-dialect'

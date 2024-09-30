@@ -7,8 +7,8 @@ import type {
   UnknownRow,
 } from 'kysely'
 import type { QueryId } from 'kysely/dist/esm/util/query-id'
-import { SerializeParametersTransformer } from './serialize-transformer'
 import type { Deserializer, Serializer } from './serializer'
+import { SerializeParametersTransformer } from './serialize-transformer'
 import { defaultDeserializer, defaultSerializer } from './serializer'
 
 export interface BaseSerializePluginOptions {
