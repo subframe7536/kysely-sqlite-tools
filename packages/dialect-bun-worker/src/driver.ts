@@ -4,14 +4,13 @@ import { EventEmitter } from 'node:events'
 import { CompiledQuery, SelectQueryNode } from 'kysely'
 
 export class BunWorkerDriver implements Driver {
-  private config?: BunWorkerDialectConfig
   private worker?: Worker
   private connection?: DatabaseConnection
   private connectionMutex = new ConnectionMutex()
   private mitt?: EventEmitter<EventWithError>
-  constructor(config?: BunWorkerDialectConfig) {
-    this.config = config
-  }
+  constructor(
+    private config?: BunWorkerDialectConfig,
+  ) { }
 
   async init(): Promise<void> {
     this.worker = this.config?.worker ?? new Worker(

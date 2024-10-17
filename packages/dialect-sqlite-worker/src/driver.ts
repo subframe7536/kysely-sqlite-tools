@@ -8,13 +8,12 @@ import { CompiledQuery, SelectQueryNode } from 'kysely'
 export class SqliteWorkerDriver implements Driver {
   private connectionMutex = new ConnectionMutex()
   private connection?: SqliteWorkerConnection
-  private config: SqliteWorkerDialectConfig
   private worker?: Worker
   private emit?: EventEmitter
 
-  constructor(config: SqliteWorkerDialectConfig) {
-    this.config = config
-  }
+  constructor(
+    private config: SqliteWorkerDialectConfig,
+  ) { }
 
   async init(): Promise<void> {
     const { dbOption, source, onCreateConnection } = this.config

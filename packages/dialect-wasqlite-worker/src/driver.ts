@@ -7,14 +7,13 @@ import { mitt } from 'zen-mitt'
 import { defaultWasmURL, defaultWorker, parseWorkerOrURL } from './utils'
 
 export class WaSqliteWorkerDriver implements Driver {
-  private config: WaSqliteWorkerDialectConfig
   private worker?: Worker
   private connection?: DatabaseConnection
   private connectionMutex = new ConnectionMutex()
   private mitt?: Emitter<EventWithError>
-  constructor(config: WaSqliteWorkerDialectConfig) {
-    this.config = config
-  }
+  constructor(
+    private config: WaSqliteWorkerDialectConfig,
+  ) { }
 
   async init(): Promise<void> {
     // try to persist storage, https://web.dev/articles/persistent-storage#request_persistent_storage

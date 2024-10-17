@@ -1,7 +1,7 @@
 {
   "name": "kysely-dialect-tauri",
   "version": "0.6.3",
-  "description": "kysely Tauri dialect, using @tauri-apps/plugin-sql",
+  "description": "Kysely Tauri dialect, using @tauri-apps/plugin-sql",
   "author": {
     "name": "subframe7536",
     "email": "1667077010@qq.com"

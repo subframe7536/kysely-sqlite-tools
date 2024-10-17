@@ -2,14 +2,13 @@ import type { DatabaseConnection, QueryResult } from 'kysely'
 import type { TauriSqlDB, TauriSqliteDialectConfig } from './type'
 import { CompiledQuery, SelectQueryNode } from 'kysely'
 
-export class TauriSqlDriver {
-  private config: TauriSqliteDialectConfig
+export class TauriSqliteDriver {
   private db?: TauriSqlDB
   private connectionMutex = new ConnectionMutex()
   private connection?: DatabaseConnection
-  constructor(config: TauriSqliteDialectConfig) {
-    this.config = config
-  }
+  constructor(
+    private config: TauriSqliteDialectConfig,
+  ) { }
 
   async init(): Promise<void> {
     this.db = typeof this.config.database === 'function'

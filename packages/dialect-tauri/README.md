@@ -1,6 +1,8 @@
 # kysely-dialect-tauri
 
-[kysely](https://github.com/kysely-org/kysely) dialect for [`Tauri`](https://tauri.app/) with SQLite, using [official sql plugin](https://github.com/tauri-apps/plugins-workspace/tree/dev/plugins/sql)
+[kysely](https://github.com/kysely-org/kysely) dialect for [`Tauri`](https://tauri.app/), using [official sql plugin](https://github.com/tauri-apps/plugins-workspace/tree/dev/plugins/sql)
+
+Currently only supports SQLite
 
 ## Install
 
@@ -16,7 +18,7 @@ import Database from '@tauri-apps/plugin-sql'
 import { Kysely } from 'kysely'
 
 const kysely = new Kysely<DB>({
-  dialect: new TauriSqlDialect({
+  dialect: new TauriSqliteDialect({
     database: prefix => Database.load(`${prefix}${await appDataDir()}test.db`)
   }),
 })
