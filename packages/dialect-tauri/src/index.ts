@@ -7,13 +7,12 @@ import { TauriSqliteDriver } from './driver'
  * https://github.com/tauri-apps/plugins-workspace/tree/dev/plugins/sql
  */
 export class TauriSqliteDialect {
-  private config: TauriSqliteDialectConfig
   /**
    * SQLite dialect for Tauri, using [official sql plugin](https://github.com/tauri-apps/plugins-workspace/tree/dev/plugins/sql)
    */
-  constructor(config: TauriSqliteDialectConfig) {
-    this.config = config
-  }
+  constructor(
+    private config: TauriSqliteDialectConfig,
+  ) { }
 
   createDriver(): Driver {
     return new TauriSqliteDriver(this.config)

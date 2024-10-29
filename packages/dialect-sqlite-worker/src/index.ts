@@ -4,14 +4,12 @@ import { SqliteAdapter, SqliteIntrospector, SqliteQueryCompiler } from 'kysely'
 import { SqliteWorkerDriver } from './driver'
 
 export class SqliteWorkerDialect implements Dialect {
-  private config: SqliteWorkerDialectConfig
-
   /**
    * dialect for better-sqlite, execute sql in `node:worker_threads`
    */
-  constructor(config: SqliteWorkerDialectConfig) {
-    this.config = config
-  }
+  constructor(
+    private config: SqliteWorkerDialectConfig,
+  ) { }
 
   createDriver(): Driver {
     return new SqliteWorkerDriver(this.config)

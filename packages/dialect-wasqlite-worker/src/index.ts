@@ -6,8 +6,6 @@ import { WaSqliteWorkerDriver } from './driver'
 export { isIdbSupported, isModuleWorkerSupport, isOpfsSupported } from '@subframe7536/sqlite-wasm'
 
 export class WaSqliteWorkerDialect implements Dialect {
-  private config: WaSqliteWorkerDialectConfig
-
   /**
    * dialect for [`wa-sqlite`](https://github.com/rhashimoto/wa-sqlite),
    * execute sql in `Web Worker`,
@@ -20,9 +18,9 @@ export class WaSqliteWorkerDialect implements Dialect {
    *   fileName: 'test',
    * })
    */
-  constructor(config: WaSqliteWorkerDialectConfig) {
-    this.config = config
-  }
+  constructor(
+    private config: WaSqliteWorkerDialectConfig,
+  ) { }
 
   createDriver(): Driver {
     return new WaSqliteWorkerDriver(this.config)

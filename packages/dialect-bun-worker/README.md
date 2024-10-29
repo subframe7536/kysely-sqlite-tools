@@ -2,6 +2,8 @@
 
 [kysely](https://github.com/kysely-org/kysely) dialect for `bun:sqlite`, run sql in worker
 
+From `v0.7.0`, this dialect requires `Bun@^1.1.14`
+
 ## Install
 
 ```shell
