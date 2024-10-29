@@ -67,9 +67,9 @@ type InitMsg = [
 ]
 
 type CloseMsg = [2]
-export type MainMsg = InitMsg | RunMsg | CloseMsg | StreamMsg
+export type MainToWorkerMsg = InitMsg | RunMsg | CloseMsg | StreamMsg
 
-export type WorkerMsg = {
+export type WorkerToMainMsg = {
   [K in keyof Events]: [
     type: K,
     data: Events[K],

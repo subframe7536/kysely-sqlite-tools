@@ -3,7 +3,15 @@ import type { WaSqliteWorkerDialectConfig } from './type'
 import { SqliteAdapter, SqliteIntrospector, SqliteQueryCompiler } from 'kysely'
 import { WaSqliteWorkerDriver } from './driver'
 
-export { isIdbSupported, isModuleWorkerSupport, isOpfsSupported } from '@subframe7536/sqlite-wasm'
+export { createOnMessageCallback } from './worker/utils'
+
+export {
+  customFunction,
+  isIdbSupported,
+  isModuleWorkerSupport,
+  isOpfsSupported,
+  type SQLiteDB,
+} from '@subframe7536/sqlite-wasm'
 
 export class WaSqliteWorkerDialect implements Dialect {
   /**

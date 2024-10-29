@@ -10,6 +10,38 @@ No need to set response header like [official wasm](../dialect-wasm/README.md#of
 pnpm add kysely kysely-wasqlite-worker
 ```
 
+## Usage
+
+```ts
+import {
+  generateDialectOptions,
+  isIdbSupported,
+  isModuleWorkerSupport,
+  isOpfsSupported,
+  useDefaultWasmURL,
+  useDefaultWorker,
+  WaSqliteWorkerDialect
+} from 'kysely-wasqlite-worker'
+
+const dialect = new WaSqliteWorkerDialect({
+  fileName: 'test',
+})
+```
+
+### Custom Worker
+
+in `worker.ts`
+
+```ts
+import { createOnMessageCallback, customFunction } from 'kysely-wasqlite-worker'
+
+onmessage = createOnMessageCallback(
+  async (sqliteDB: SQLiteDB) => {
+    customFunction(sqliteDB.sqlite, sqliteDB.db, 'customFunction', (a, b) => a + b)
+  }
+)
+```
+
 ## Config
 
 ```ts
@@ -57,24 +89,6 @@ export interface WaSqliteWorkerDialectConfig {
   url: string | ((useAsyncWasm: boolean) => string)
   onCreateConnection?: (connection: DatabaseConnection) => Promisable<void>
 }
-```
-
-## Usage
-
-```ts
-import {
-  generateDialectOptions,
-  isIdbSupported,
-  isModuleWorkerSupport,
-  isOpfsSupported,
-  useDefaultWasmURL,
-  useDefaultWorker,
-  WaSqliteWorkerDialect
-} from 'kysely-wasqlite-worker'
-
-const dialect = new WaSqliteWorkerDialect({
-  fileName: 'test',
-})
 ```
 
 see more in [playground](../../playground/src/modules/wasqliteWorker.ts)
