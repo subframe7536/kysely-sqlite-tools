@@ -1,5 +1,5 @@
 import type { DatabaseConnection, Driver, QueryResult } from 'kysely'
-import type { BunWorkerDialectConfig, EventWithError, MainMsg, WorkerMsg } from './type'
+import type { BunWorkerDialectConfig, EventWithError, MainToWorkerMsg, WorkerToMainMsg } from './type'
 import { EventEmitter } from 'node:events'
 import { CompiledQuery, SelectQueryNode } from 'kysely'
 
@@ -18,14 +18,14 @@ export class BunWorkerDriver implements Driver {
       { type: 'module' },
     )
     this.mitt = new EventEmitter()
-    this.worker.onmessage = ({ data: [type, data, err] }: MessageEvent<WorkerMsg>) => {
+    this.worker.onmessage = ({ data: [type, data, err] }: MessageEvent<WorkerToMainMsg>) => {
       this.mitt?.emit(type, data, err)
     }
     this.worker.postMessage([
       0, // init
       this.config?.url,
       this.config?.cacheStatment,
-    ] satisfies MainMsg)
+    ] satisfies MainToWorkerMsg)
     await new Promise<void>((resolve, reject) => {
       this.mitt?.once(0/* init */, (_, err) => err ? reject(err) : resolve())
     })
@@ -61,7 +61,7 @@ export class BunWorkerDriver implements Driver {
     if (!this.worker) {
       return
     }
-    this.worker.postMessage([2] satisfies MainMsg)
+    this.worker.postMessage([2] satisfies MainToWorkerMsg)
     return new Promise<void>((resolve, reject) => {
       this.mitt?.once(2/* close */, (_, err) => {
         if (err) {
@@ -107,14 +107,54 @@ class BunWorkerConnection implements DatabaseConnection {
     private mitt?: EventEmitter<EventWithError>,
   ) { }
 
-  streamQuery<R>(): AsyncIterableIterator<QueryResult<R>> {
-    throw new Error('Bun:sqlite-worker driver doesn\'t support streaming')
+  async *streamQuery<R>(compiledQuery: CompiledQuery): AsyncIterableIterator<QueryResult<R>> {
+    const { parameters, sql, query } = compiledQuery
+    if (!SelectQueryNode.is(query)) {
+      throw new Error('WaSqlite dialect only supported SELECT queries')
+    }
+    this.worker.postMessage([3, sql, parameters] satisfies MainToWorkerMsg)
+    let resolver: ((value: IteratorResult<{ rows: QueryResult<R>[] }>) => void) | null = null
+    let rejecter: ((reason: any) => void) | null = null
+
+    this.mitt!.on(3, (data, err) => {
+      if (err && rejecter) {
+        rejecter(err)
+      }
+      if (resolver) {
+        resolver({ value: { rows: data! }, done: false })
+        resolver = null
+      }
+    })
+
+    this.mitt!.on(4, (_, err) => {
+      if (err && rejecter) {
+        rejecter(err)
+      }
+      if (resolver) {
+        resolver({ value: undefined, done: true })
+      }
+    })
+
+    return {
+      [Symbol.asyncIterator]() {
+        return this
+      },
+      async next() {
+        return new Promise<IteratorResult<any>>((resolve, reject) => {
+          resolver = resolve
+          rejecter = reject
+        })
+      },
+      async return() {
+        return { value: undefined, done: true }
+      },
+    }
   }
 
   async executeQuery<R>(compiledQuery: CompiledQuery<unknown>): Promise<QueryResult<R>> {
     const { parameters, sql, query } = compiledQuery
     const isSelect = SelectQueryNode.is(query)
-    this.worker.postMessage([1/* run */, isSelect, sql, parameters] satisfies MainMsg)
+    this.worker.postMessage([1/* run */, isSelect, sql, parameters] satisfies MainToWorkerMsg)
     return new Promise((resolve, reject) => {
       if (!this.mitt) {
         reject(new Error('kysely instance has been destroyed'))

@@ -10,6 +10,30 @@ From `v0.7.0`, this dialect requires `Bun@^1.1.14`
 bun install kysely kysely-bun-worker
 ```
 
+## Usage
+
+```ts
+import { BunWorkerDialect } from 'kysely-bun-worker'
+
+const dialect = new SqliteWorkerDialect({
+  url: ':memory:',
+})
+```
+
+### Custom Worker
+
+in `worker.ts`
+
+```ts
+import { createOnMessageCallback } from 'kysely-bun-worker'
+
+onmessage = createOnMessageCallback(
+  async (db) => {
+    db.loadExtension(/* ... */)
+  }
+)
+```
+
 ## Config
 
 ```ts

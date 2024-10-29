@@ -36,9 +36,15 @@ type InitMsg = [
   cache?: boolean,
 ]
 
-export type MainMsg = InitMsg | RunMsg | CloseMsg
+type StreamMsg = [
+  type: 3,
+  sql: string,
+  parameters?: readonly unknown[],
+]
 
-export type WorkerMsg = {
+export type MainToWorkerMsg = InitMsg | RunMsg | CloseMsg | StreamMsg
+
+export type WorkerToMainMsg = {
   [K in keyof Events]: [ type: K, data: Events[K], err: unknown ]
 }[keyof Events]
 
@@ -46,6 +52,8 @@ type Events = {
   0: null
   1: QueryResult<any> | null
   2: null
+  3: QueryResult<any>[] | null
+  4: null
 }
 
 export type EventWithError = {

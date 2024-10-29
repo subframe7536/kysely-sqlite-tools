@@ -3,6 +3,8 @@ import type { BunWorkerDialectConfig } from './type'
 import { SqliteAdapter, SqliteIntrospector, SqliteQueryCompiler } from 'kysely'
 import { BunWorkerDriver } from './driver'
 
+export { createOnMessageCallback } from './worker/utils'
+
 export class BunWorkerDialect implements Dialect {
   /**
    * dialect for `bun:sqlite`, run sql in worker
