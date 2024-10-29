@@ -11,16 +11,14 @@ function run(isSelect: boolean, sql: string, parameters: readonly unknown[]): Qu
   if (isSelect || rows.length) {
     return { rows }
   }
+  const { changes, lastInsertRowid } = db.query('SELECT 1').run()
   return {
     rows,
-    // @ts-expect-error get insert id
-    insertId: db.query('SELECT last_insert_rowid() as i').get().i,
-    // @ts-expect-error get changes
-    numAffectedRows: db.query('SELECT changes() as c').get().c,
+    insertId: BigInt(changes),
+    numAffectedRows: BigInt(lastInsertRowid),
   }
 }
 
-// @ts-expect-error bun worker
 onmessage = ({ data }: MessageEvent<MainMsg>) => {
   const ret: WorkerMsg = [
     data[0],

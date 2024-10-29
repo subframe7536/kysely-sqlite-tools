@@ -35,9 +35,10 @@
     "build": "tsup"
   },
   "peerDependencies": {
+    "bun-types": ">=1.1.14",
     "kysely": ">=0.26"
   },
   "devDependencies": {
-    "bun-types": "latest"
+    "bun-types": "^1.1.33"
   }
 }
