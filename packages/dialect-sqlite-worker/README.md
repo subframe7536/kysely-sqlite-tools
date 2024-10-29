@@ -10,6 +10,30 @@ the type is also availiable for [`better-sqlite3-multiple-ciphers`](https://gith
 pnpm add kysely kysely-sqlite-worker better-sqlite3
 ```
 
+## Usage
+
+```ts
+import { SqliteWorkerDialect } from 'kysely-sqlite-worker'
+
+const dialect = new SqliteWorkerDialect({
+  source: ':memory:',
+})
+```
+
+### Custom Worker
+
+in `worker.ts`
+
+```ts
+import { createOnMessageCallback } from 'kysely-sqlite-worker'
+
+createOnMessageCallback(
+  async (db) => {
+    db.loadExtension(/* ... */)
+  }
+)
+```
+
 ## Config
 
 ```ts

@@ -3,6 +3,8 @@ import type { SqliteWorkerDialectConfig } from './type'
 import { SqliteAdapter, SqliteIntrospector, SqliteQueryCompiler } from 'kysely'
 import { SqliteWorkerDriver } from './driver'
 
+export { createOnMessageCallback } from './worker/util'
+
 export class SqliteWorkerDialect implements Dialect {
   /**
    * dialect for better-sqlite, execute sql in `node:worker_threads`
