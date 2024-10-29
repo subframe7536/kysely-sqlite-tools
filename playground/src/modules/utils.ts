@@ -10,7 +10,8 @@ const tables = {
       name: column.string(),
       blobtest: column.blob(),
     },
-    timeTrigger: { create: true, update: true },
+    createAt: true,
+    updateAt: true,
   }),
 }
 export type DB = InferDatabase<typeof tables>

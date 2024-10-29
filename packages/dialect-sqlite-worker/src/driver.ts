@@ -102,7 +102,7 @@ export class SqliteWorkerConnection implements DatabaseConnection {
   async *streamQuery<R>(compiledQuery: CompiledQuery): AsyncIterableIterator<QueryResult<R>> {
     const { parameters, sql, query } = compiledQuery
     if (!SelectQueryNode.is(query)) {
-      throw new Error('WaSqlite dialect only supported SELECT queries')
+      throw new Error('Sqlite worker dialect only supported SELECT queries')
     }
     this.worker.postMessage(['2', sql, parameters] satisfies MainMsg)
     let resolver: ((value: IteratorResult<{ rows: QueryResult<R>[] }>) => void) | null = null

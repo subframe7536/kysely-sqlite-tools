@@ -23,7 +23,7 @@ async function exec(isSelect: boolean, sql: string, parameters?: readonly unknow
     ? { rows }
     : {
         rows,
-        insertId: BigInt(await db.lastInsertRowId()),
+        insertId: BigInt(db.lastInsertRowId()),
         numAffectedRows: BigInt(db.changes()),
       }
 }
