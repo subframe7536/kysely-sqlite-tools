@@ -1,9 +1,10 @@
+import type Database from '@tauri-apps/plugin-sql'
 import type { DatabaseConnection, QueryResult } from 'kysely'
-import type { TauriSqlDB, TauriSqliteDialectConfig } from './type'
+import type { TauriSqliteDialectConfig } from './type'
 import { CompiledQuery, SelectQueryNode } from 'kysely'
 
 export class TauriSqliteDriver {
-  private db?: TauriSqlDB
+  private db?: Database
   private connectionMutex = new ConnectionMutex()
   private connection?: DatabaseConnection
   constructor(
@@ -70,7 +71,7 @@ class ConnectionMutex {
   }
 }
 class TauriSqlConnection implements DatabaseConnection {
-  readonly db: TauriSqlDB
+  readonly db: Database
   constructor(db: any) {
     this.db = db
   }
@@ -80,7 +81,7 @@ class TauriSqlConnection implements DatabaseConnection {
   }
 
   async executeQuery<R>({ parameters, query, sql }: CompiledQuery<unknown>): Promise<QueryResult<R>> {
-    const rows = await this.db.select<any[]>(sql, parameters)
+    const rows = await this.db.select<any[]>(sql, parameters as any[])
     if (SelectQueryNode.is(query) || rows.length) {
       return { rows }
     }
