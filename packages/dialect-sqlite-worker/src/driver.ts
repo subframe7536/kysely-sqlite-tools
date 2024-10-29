@@ -96,7 +96,7 @@ class ConnectionMutex {
 export class SqliteWorkerConnection implements DatabaseConnection {
   constructor(
     private worker: Worker,
-    private emit?: EventEmitter,
+    private mitt?: EventEmitter,
   ) { }
 
   async *streamQuery<R>(compiledQuery: CompiledQuery): AsyncIterableIterator<QueryResult<R>> {
@@ -105,41 +105,41 @@ export class SqliteWorkerConnection implements DatabaseConnection {
       throw new Error('Sqlite worker dialect only supported SELECT queries')
     }
     this.worker.postMessage(['2', sql, parameters] satisfies MainMsg)
-    let resolver: ((value: IteratorResult<{ rows: QueryResult<R>[] }>) => void) | null = null
-    let rejecter: ((reason: any) => void) | null = null
+    let done = false
+    let resolveFn: (value: IteratorResult<QueryResult<R>>) => void
+    let rejectFn: (reason?: any) => void
 
-    this.emit!.on('2', (data, err) => {
-      if (err && rejecter) {
-        rejecter(err)
+    const dataListener = (data: QueryResult<any>[] | null, err: unknown): void => {
+      if (err) {
+        rejectFn(err)
+      } else {
+        resolveFn({ value: { rows: data as any }, done: false })
       }
-      if (resolver) {
-        resolver({ value: { rows: data! }, done: false })
-        resolver = null
-      }
-    })
+    }
+    this.mitt!.on('2'/* data */, dataListener)
 
-    this.emit!.on('3', (_, err) => {
-      if (err && rejecter) {
-        rejecter(err)
+    const endListener = (_: null, err: unknown): void => {
+      if (err) {
+        rejectFn(err)
+      } else {
+        resolveFn({ value: undefined, done: true })
       }
-      if (resolver) {
-        resolver({ value: undefined, done: true })
-      }
-    })
+    }
+    this.mitt!.on('3'/* end */, endListener)
 
-    return {
-      [Symbol.asyncIterator]() {
-        return this
-      },
-      async next() {
-        return new Promise<IteratorResult<any>>((resolve, reject) => {
-          resolver = resolve
-          rejecter = reject
-        })
-      },
-      async return() {
-        return { value: undefined, done: true }
-      },
+    while (!done) {
+      const result = await new Promise<IteratorResult<QueryResult<R>>>((res, rej) => {
+        resolveFn = res
+        rejectFn = rej
+      })
+
+      if (result.done) {
+        done = true
+        this.mitt?.off('2'/* data */, dataListener)
+        this.mitt?.off('3'/* end */, endListener)
+      } else {
+        yield result.value
+      }
     }
   }
 
@@ -147,10 +147,10 @@ export class SqliteWorkerConnection implements DatabaseConnection {
     const { parameters, sql } = compiledQuery
     this.worker.postMessage(['0', sql, parameters] satisfies MainMsg)
     return new Promise((resolve, reject) => {
-      if (!this.emit) {
+      if (!this.mitt) {
         reject(new Error('kysely instance has been destroyed'))
       }
-      this.emit!.once('0', (data: QueryResult<any>, err) => (data && !err) ? resolve(data) : reject(err))
+      this.mitt!.once('0', (data: QueryResult<any>, err) => (data && !err) ? resolve(data) : reject(err))
     })
   }
 }

@@ -110,44 +110,44 @@ class BunWorkerConnection implements DatabaseConnection {
   async *streamQuery<R>(compiledQuery: CompiledQuery): AsyncIterableIterator<QueryResult<R>> {
     const { parameters, sql, query } = compiledQuery
     if (!SelectQueryNode.is(query)) {
-      throw new Error('WaSqlite dialect only supported SELECT queries')
+      throw new Error('bun:sqlite worker dialect only supported `SELECT` queries')
     }
     this.worker.postMessage([3, sql, parameters] satisfies MainToWorkerMsg)
-    let resolver: ((value: IteratorResult<{ rows: QueryResult<R>[] }>) => void) | null = null
-    let rejecter: ((reason: any) => void) | null = null
+    let done = false
+    let resolveFn: (value: IteratorResult<QueryResult<R>>) => void
+    let rejectFn: (reason?: any) => void
 
-    this.mitt!.on(3, (data, err) => {
-      if (err && rejecter) {
-        rejecter(err)
+    const dataListener = (data: QueryResult<any>[] | null, err: unknown): void => {
+      if (err) {
+        rejectFn(err)
+      } else {
+        resolveFn({ value: { rows: data as any }, done: false })
       }
-      if (resolver) {
-        resolver({ value: { rows: data! }, done: false })
-        resolver = null
-      }
-    })
+    }
+    this.mitt!.on(3/* data */, dataListener)
 
-    this.mitt!.on(4, (_, err) => {
-      if (err && rejecter) {
-        rejecter(err)
+    const endListener = (_: null, err: unknown): void => {
+      if (err) {
+        rejectFn(err)
+      } else {
+        resolveFn({ value: undefined, done: true })
       }
-      if (resolver) {
-        resolver({ value: undefined, done: true })
-      }
-    })
+    }
+    this.mitt!.on(4/* end */, endListener)
 
-    return {
-      [Symbol.asyncIterator]() {
-        return this
-      },
-      async next() {
-        return new Promise<IteratorResult<any>>((resolve, reject) => {
-          resolver = resolve
-          rejecter = reject
-        })
-      },
-      async return() {
-        return { value: undefined, done: true }
-      },
+    while (!done) {
+      const result = await new Promise<IteratorResult<QueryResult<R>>>((res, rej) => {
+        resolveFn = res
+        rejectFn = rej
+      })
+
+      if (result.done) {
+        done = true
+        this.mitt?.off(3/* data */, dataListener)
+        this.mitt?.off(4/* end */, endListener)
+      } else {
+        yield result.value
+      }
     }
   }
 

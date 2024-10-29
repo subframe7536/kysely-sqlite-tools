@@ -1,10 +1,10 @@
 import { defineConfig } from 'tsup'
 
 export default defineConfig({
-  entry: [
-    'src/index.ts',
-    'src/worker.ts',
-  ],
+  entry: {
+    index: 'src/index.ts',
+    worker: 'src/worker/index.ts',
+  },
   clean: true,
   format: ['cjs', 'esm'],
   shims: true,
