@@ -15,7 +15,7 @@ bun install kysely kysely-bun-worker
 ```ts
 import { BunWorkerDialect } from 'kysely-bun-worker'
 
-const dialect = new SqliteWorkerDialect({
+const dialect = new BunWorkerDialect({
   url: ':memory:',
 })
 ```

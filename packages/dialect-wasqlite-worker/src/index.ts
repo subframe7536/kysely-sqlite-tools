@@ -3,6 +3,7 @@ import type { WaSqliteWorkerDialectConfig } from './type'
 import { SqliteAdapter, SqliteIntrospector, SqliteQueryCompiler } from 'kysely'
 import { WaSqliteWorkerDriver } from './driver'
 
+export type { Promisable, WaSqliteWorkerDialectConfig } from './type'
 export { createOnMessageCallback } from './worker/utils'
 
 export {

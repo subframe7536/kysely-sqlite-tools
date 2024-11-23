@@ -3,6 +3,7 @@ import type { TauriSqliteDialectConfig } from './type'
 import { SqliteAdapter, SqliteIntrospector, SqliteQueryCompiler } from 'kysely'
 import { TauriSqliteDriver } from './driver'
 
+export type { TauriSqliteDialectConfig } from './type'
 /**
  * https://github.com/tauri-apps/plugins-workspace/tree/dev/plugins/sql
  */

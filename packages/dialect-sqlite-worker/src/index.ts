@@ -3,6 +3,7 @@ import type { SqliteWorkerDialectConfig } from './type'
 import { SqliteAdapter, SqliteIntrospector, SqliteQueryCompiler } from 'kysely'
 import { SqliteWorkerDriver } from './driver'
 
+export type { Promisable, SqliteWorkerDialectConfig } from './type'
 export { createOnMessageCallback } from './worker/util'
 
 export class SqliteWorkerDialect implements Dialect {

@@ -3,6 +3,7 @@ import type { BunWorkerDialectConfig } from './type'
 import { SqliteAdapter, SqliteIntrospector, SqliteQueryCompiler } from 'kysely'
 import { BunWorkerDriver } from './driver'
 
+export type { BunWorkerDialectConfig, Promisable } from './type'
 export { createOnMessageCallback } from './worker/utils'
 
 export class BunWorkerDialect implements Dialect {
