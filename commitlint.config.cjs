@@ -16,6 +16,7 @@ module.exports = {
       'dialect-wasm',
       'dialect-bun-worker',
       'dialect-sqlite-worker',
+      'dialect-common-sqlite',
       'dialect-wasqlite-worker',
       // 'builder',
       'workspace',

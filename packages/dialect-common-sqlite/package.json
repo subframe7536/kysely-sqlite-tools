@@ -1,0 +1,52 @@
+{
+  "name": "kysely-dialect-common-sqlite",
+  "version": "0.7.0",
+  "description": "Common kysely dialect for SQLite, run in main thread or worker",
+  "author": {
+    "name": "subframe7536",
+    "email": "1667077010@qq.com"
+  },
+  "license": "MIT",
+  "homepage": "https://github.com/subframe7536/kysely-sqlite-tools/tree/master/packages/dialect-sqlite-worker",
+  "repository": "https://github.com/subframe7536/kysely-sqlite-tools/tree/master/packages/dialect-sqlite-worker",
+  "bugs": "https://github.com/subframe7536/kysely-sqlite-tools/issues",
+  "keywords": [
+    "kysely",
+    "dialect",
+    "sql",
+    "worker",
+    "sqlite3"
+  ],
+  "exports": {
+    ".": {
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.js"
+    },
+    "./worker": {
+      "import": "./dist/worker.mjs",
+      "require": "./dist/worker.js"
+    }
+  },
+  "main": "./dist/index.js",
+  "module": "./dist/index.mjs",
+  "typesVersions": {
+    "*": {
+      "./worker": [
+        "./dist/index.d.ts"
+      ]
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "dev": "tsup --watch",
+    "build": "tsup"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "peerDependencies": {
+    "kysely": ">=0.26"
+  }
+}
