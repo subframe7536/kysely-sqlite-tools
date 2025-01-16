@@ -2,7 +2,7 @@ import type { DatabaseConnection } from 'kysely'
 
 export type Promisable<T> = T | Promise<T>
 
-export interface CommonSqliteDB {
+export interface CommonSqliteExecutor {
   close: () => Promisable<any>
   all: (
     sql: string,
@@ -24,5 +24,5 @@ export interface BaseSqliteDialectConfig {
   onCreateConnection?: (connection: DatabaseConnection) => Promisable<void>
 }
 export interface CommonSqliteDialectConfig extends BaseSqliteDialectConfig {
-  create: () => Promisable<CommonSqliteDB>
+  create: () => Promisable<CommonSqliteExecutor>
 }

@@ -11,7 +11,6 @@ import {
   initEvent,
   type MainToWorkerMsg,
   runEvent,
-  type WorkerToMainMsg,
 } from './type'
 
 export class CommonSqliteWorkerDriver implements Driver {
@@ -22,7 +21,8 @@ export class CommonSqliteWorkerDriver implements Driver {
   ) { }
 
   async init(): Promise<void> {
-    this.config.worker.onmessage = ({ data: [type, ...msg] }: MessageEvent<WorkerToMainMsg>) => {
+    this.config.worker.onmessage = (data: any) => {
+      const [type, ...msg] = this.config.handle(data)
       this.config.mitt.emit(type, ...msg)
     }
     this.config.worker.postMessage([initEvent] satisfies MainToWorkerMsg)

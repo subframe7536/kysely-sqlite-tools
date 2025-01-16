@@ -1,12 +1,12 @@
 import type { DatabaseConnection, Driver, QueryResult } from 'kysely'
-import type { CommonSqliteDB, CommonSqliteDialectConfig } from './type'
+import type { CommonSqliteDialectConfig, CommonSqliteExecutor } from './type'
 import { CompiledQuery, SelectQueryNode } from 'kysely'
 import { ConnectionMutex } from './mutex'
 
 export class CommonSqliteDriver implements Driver {
   readonly connectionMutex = new ConnectionMutex()
   conn?: DatabaseConnection
-  db?: CommonSqliteDB
+  db?: CommonSqliteExecutor
   constructor(
     private config: CommonSqliteDialectConfig,
   ) {}
@@ -47,7 +47,7 @@ export class CommonSqliteDriver implements Driver {
 
 export class CommonSqliteConnection implements DatabaseConnection {
   constructor(
-    private db: CommonSqliteDB,
+    private db: CommonSqliteExecutor,
   ) {}
 
   async *streamQuery<R>(

@@ -1,11 +1,19 @@
-import type { CommonSqliteDB, Promisable } from '../type'
-import type { MainToWorkerMsg, WorkerToMainMsg } from './type'
+import type { CommonSqliteExecutor, Promisable } from '../type'
+import {
+  closeEvent,
+  dataEvent,
+  endEvent,
+  initEvent,
+  type MainToWorkerMsg,
+  runEvent,
+  type WorkerToMainMsg,
+} from './type'
 
 export function createOnMessageCallback(
-  init: () => Promisable<CommonSqliteDB>,
-  postMessage: (data: any) => void = globalThis.postMessage,
+  init: () => Promisable<CommonSqliteExecutor>,
+  post: (data: any) => void = globalThis.postMessage,
 ): (data: MainToWorkerMsg) => Promise<void> {
-  let db: CommonSqliteDB
+  let db: CommonSqliteExecutor
   return async ([
     msg,
     data1,
@@ -16,32 +24,32 @@ export function createOnMessageCallback(
     const ret: WorkerToMainMsg = [msg, null, null]
     try {
       switch (msg) {
-        case '0':
+        case initEvent:
           db = await init()
           break
-        case '1':
+        case runEvent:
           ret[1] = data1
             ? { rows: await db.all(data2, data3) }
             : { rows: [], ...await db.run(data2, data3) }
           break
-        case '2':
+        case closeEvent:
           await db.close()
           break
-        case '3': {
+        case dataEvent: {
           if (!db.iterater) {
             throw new Error('streamQuery() is not supported.')
           }
           const it = db.iterater(data1, data2, data3, data4)
           for await (const rows of it) {
-            postMessage([msg, rows as any, null] satisfies WorkerToMainMsg)
+            post([msg, rows as any, null] satisfies WorkerToMainMsg)
           }
-          ret[0] = '4'
+          ret[0] = endEvent
           break
         }
       }
     } catch (error) {
       ret[2] = error
     }
-    postMessage(ret)
+    post(ret)
   }
 }

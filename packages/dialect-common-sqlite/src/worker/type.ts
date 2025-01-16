@@ -61,6 +61,10 @@ export interface CommonEventEmitter {
 }
 
 export interface CommonSqliteWorkerDialectConfig extends BaseSqliteDialectConfig {
-  worker: CommonWorker
   mitt: CommonEventEmitter
+  worker: CommonWorker
+  /**
+   * Convert data in worker `onmessage` callback to {@link WorkerToMainMsg}
+   */
+  handle: (msg: any) => WorkerToMainMsg
 }
