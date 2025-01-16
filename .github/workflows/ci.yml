@@ -10,13 +10,13 @@ on:
       - '**/*.md'
       - '.github/**/*'
 
-  pull_request:
-    branches:
-      - master
-    paths-ignore:
-      - LICENSE
-      - '**/*.gitignore'
-      - '**/*.md'
+  # pull_request:
+  #   branches:
+  #     - master
+  #   paths-ignore:
+  #     - LICENSE
+  #     - '**/*.gitignore'
+  #     - '**/*.md'
   workflow_dispatch:
 
 jobs:
