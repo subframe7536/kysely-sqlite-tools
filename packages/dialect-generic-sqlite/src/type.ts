@@ -2,7 +2,7 @@ import type { DatabaseConnection } from 'kysely'
 
 export type Promisable<T> = T | Promise<T>
 
-export interface CommonSqliteExecutor {
+export interface IGenericSqliteExecutor {
   close: () => Promisable<any>
   all: (
     sql: string,
@@ -12,17 +12,18 @@ export interface CommonSqliteExecutor {
     sql: string,
     parameters?: any[] | readonly any[]
   ) => Promisable<{ changes: number | bigint, lastInsertRowid: number | bigint }>
-  iterater?: (
+  iterator?: (
     isSelect: boolean,
     sql: string,
     parameters?: any[] | readonly any[],
-    chunkSize?: number,
-  ) => Iterable<any[]> | AsyncIterable<any[]>
+  ) => IterableIterator<any[]> | AsyncIterableIterator<any[]>
 }
 
-export interface BaseSqliteDialectConfig {
-  onCreateConnection?: (connection: DatabaseConnection) => Promisable<void>
+export type OnCreateConnection = (connection: DatabaseConnection) => Promisable<void>
+
+export interface IBaseSqliteDialectConfig {
+  onCreateConnection?: OnCreateConnection
 }
-export interface CommonSqliteDialectConfig extends BaseSqliteDialectConfig {
-  create: () => Promisable<CommonSqliteExecutor>
+export interface IGenericSqliteDialectConfig extends IBaseSqliteDialectConfig {
+  create: () => Promisable<IGenericSqliteExecutor>
 }

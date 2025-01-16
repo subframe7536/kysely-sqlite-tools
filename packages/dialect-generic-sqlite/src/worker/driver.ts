@@ -3,35 +3,42 @@ import { CompiledQuery, SelectQueryNode } from 'kysely'
 import { ConnectionMutex } from '../mutex'
 import {
   closeEvent,
-  type CommonEventEmitter,
-  type CommonSqliteWorkerDialectConfig,
-  type CommonWorker,
   dataEvent,
   endEvent,
+  type IGenericEventEmitter,
+  type IGenericSqliteWorkerDialectConfig,
+  type IGenericWorker,
   initEvent,
   type MainToWorkerMsg,
   runEvent,
 } from './type'
 
-export class CommonSqliteWorkerDriver implements Driver {
+export class GenericSqliteWorkerDriver<T extends IGenericWorker> implements Driver {
   private connection?: DatabaseConnection
   private connectionMutex = new ConnectionMutex()
+  private worker?: T
+  private mitt?: IGenericEventEmitter
   constructor(
-    private config: CommonSqliteWorkerDialectConfig,
+    private config?: IGenericSqliteWorkerDialectConfig<T>,
   ) { }
 
   async init(): Promise<void> {
-    this.config.worker.onmessage = (data: any) => {
-      const [type, ...msg] = this.config.handle(data)
-      this.config.mitt.emit(type, ...msg)
-    }
-    this.config.worker.postMessage([initEvent] satisfies MainToWorkerMsg)
+    this.mitt = this.config!.mitt
+    this.worker = await this.config!.worker()
+
+    this.config!.handle(
+      this.worker,
+      ([type, ...msg]) => this.mitt!.emit(type, ...msg),
+    )
+    this.worker!.postMessage([initEvent] satisfies MainToWorkerMsg)
     await new Promise<void>((resolve, reject) => {
-      this.config.mitt.once(initEvent, (_, err) => err ? reject(err) : resolve())
+      this.mitt!.once(initEvent, (_, err) => err ? reject(err) : resolve())
     })
 
-    this.connection = new CommonSqliteWorkerConnection(this.config.worker, this.config.mitt)
-    await this.config.onCreateConnection?.(this.connection)
+    this.connection = new GenericSqliteWorkerConnection(this.worker!, this.mitt!)
+    await this.config!.onCreateConnection?.(this.connection)
+
+    this.config = undefined
   }
 
   async acquireConnection(): Promise<DatabaseConnection> {
@@ -58,18 +65,18 @@ export class CommonSqliteWorkerDriver implements Driver {
   }
 
   async destroy(): Promise<void> {
-    if (!this.config.worker) {
+    if (!this.worker) {
       return
     }
-    this.config.worker.postMessage([closeEvent] satisfies MainToWorkerMsg)
+    this.worker.postMessage([closeEvent] satisfies MainToWorkerMsg)
     return new Promise<void>((resolve, reject) => {
-      this.config.mitt?.once(closeEvent, (_, err) => {
+      this.mitt?.once(closeEvent, (_, err) => {
         if (err) {
           reject(err)
         } else {
-          this.config.worker?.terminate()
-          this.config.mitt?.off()
-          this.config.mitt = undefined as any
+          this.worker?.terminate()
+          this.mitt?.off()
+          this.mitt = this.worker = undefined
           resolve()
         }
       })
@@ -77,23 +84,31 @@ export class CommonSqliteWorkerDriver implements Driver {
   }
 }
 
-class CommonSqliteWorkerConnection implements DatabaseConnection {
+class GenericSqliteWorkerConnection implements DatabaseConnection {
   constructor(
-    readonly worker: CommonWorker,
-    readonly mitt: CommonEventEmitter,
+    readonly worker: IGenericWorker,
+    readonly mitt: IGenericEventEmitter,
   ) { }
 
-  async *streamQuery<R>({ parameters, sql, query }: CompiledQuery): AsyncIterableIterator<QueryResult<R>> {
-    this.worker.postMessage([dataEvent, SelectQueryNode.is(query), sql, parameters] satisfies MainToWorkerMsg)
+  async *streamQuery<R>(
+    { parameters, sql, query }: CompiledQuery,
+  ): AsyncIterableIterator<QueryResult<R>> {
+    this.worker.postMessage([
+      dataEvent,
+      SelectQueryNode.is(query),
+      sql,
+      parameters,
+    ] satisfies MainToWorkerMsg)
+    type ResolveData = [data: QueryResult<R> | undefined, done: boolean]
     let done = false
-    let resolveFn: (value: IteratorResult<QueryResult<R>>) => void
+    let resolveFn: (value: ResolveData) => void
     let rejectFn: (reason?: any) => void
 
     this.mitt!.on(dataEvent, (data, err): void => {
       if (err) {
         rejectFn(err)
       } else {
-        resolveFn({ value: { rows: data as any }, done: false })
+        resolveFn([{ rows: [data] }, false])
       }
     })
 
@@ -101,22 +116,23 @@ class CommonSqliteWorkerConnection implements DatabaseConnection {
       if (err) {
         rejectFn(err)
       } else {
-        resolveFn({ value: undefined, done: true })
+        resolveFn([undefined, true])
       }
     })
 
     while (!done) {
-      const result = await new Promise<IteratorResult<QueryResult<R>>>((res, rej) => {
+      const [data, isDone] = await new Promise<ResolveData>((res, rej) => {
         resolveFn = res
         rejectFn = rej
       })
 
-      if (result.done) {
+      if (isDone) {
         done = true
         this.mitt?.off(dataEvent)
         this.mitt?.off(endEvent)
       } else {
-        yield result.value
+        console.log(data)
+        yield data!
       }
     }
   }

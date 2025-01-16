@@ -1,19 +1,19 @@
 import type { DatabaseConnection, Driver, QueryResult } from 'kysely'
-import type { CommonSqliteDialectConfig, CommonSqliteExecutor } from './type'
+import type { IGenericSqliteDialectConfig, IGenericSqliteExecutor } from './type'
 import { CompiledQuery, SelectQueryNode } from 'kysely'
 import { ConnectionMutex } from './mutex'
 
-export class CommonSqliteDriver implements Driver {
+export class GenericSqliteDriver implements Driver {
   readonly connectionMutex = new ConnectionMutex()
   conn?: DatabaseConnection
-  db?: CommonSqliteExecutor
+  db?: IGenericSqliteExecutor
   constructor(
-    private config: CommonSqliteDialectConfig,
+    private config: IGenericSqliteDialectConfig,
   ) {}
 
   async init(): Promise<void> {
     this.db = await this.config.create()
-    this.conn = new CommonSqliteConnection(this.db)
+    this.conn = new GenericSqliteConnection(this.db)
     await this.config.onCreateConnection?.(this.conn)
   }
 
@@ -45,21 +45,20 @@ export class CommonSqliteDriver implements Driver {
   }
 }
 
-export class CommonSqliteConnection implements DatabaseConnection {
+export class GenericSqliteConnection implements DatabaseConnection {
   constructor(
-    private db: CommonSqliteExecutor,
+    private db: IGenericSqliteExecutor,
   ) {}
 
   async *streamQuery<R>(
     { parameters, query, sql }: CompiledQuery,
-    chunkSize?: number,
   ): AsyncIterableIterator<QueryResult<R>> {
-    if (!this.db.iterater) {
+    if (!this.db.iterator) {
       throw new Error('streamQuery() is not supported.')
     }
-    const it = this.db.iterater(SelectQueryNode.is(query), sql, parameters, chunkSize)
-    for await (const rows of it) {
-      yield { rows }
+    const it = this.db.iterator(SelectQueryNode.is(query), sql, parameters)
+    for await (const row of it) {
+      yield { rows: [row as any] }
     }
   }
 

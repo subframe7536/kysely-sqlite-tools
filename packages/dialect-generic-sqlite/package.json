@@ -25,6 +25,14 @@
     "./worker": {
       "import": "./dist/worker.mjs",
       "require": "./dist/worker.js"
+    },
+    "./node-helper": {
+      "import": "./dist/node-helper.mjs",
+      "require": "./dist/node-helper.js"
+    },
+    "./web-helper": {
+      "import": "./dist/web-helper.mjs",
+      "require": "./dist/web-helper.js"
     }
   },
   "main": "./dist/index.js",
@@ -32,7 +40,13 @@
   "typesVersions": {
     "*": {
       "./worker": [
-        "./dist/index.d.ts"
+        "./dist/worker.d.ts"
+      ],
+      "./node-helper": [
+        "./dist/node-helper.d.ts"
+      ],
+      "./web-helper": [
+        "./dist/web-helper.d.ts"
       ]
     }
   },

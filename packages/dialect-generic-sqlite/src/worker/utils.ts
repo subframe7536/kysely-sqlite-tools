@@ -1,4 +1,4 @@
-import type { CommonSqliteExecutor, Promisable } from '../type'
+import type { IGenericSqliteExecutor, Promisable } from '../type'
 import {
   closeEvent,
   dataEvent,
@@ -9,17 +9,16 @@ import {
   type WorkerToMainMsg,
 } from './type'
 
-export function createOnMessageCallback(
-  init: () => Promisable<CommonSqliteExecutor>,
-  post: (data: any) => void = globalThis.postMessage,
+export function createGenericOnMessageCallback(
+  init: () => Promisable<IGenericSqliteExecutor>,
+  post: (data: any) => void,
 ): (data: MainToWorkerMsg) => Promise<void> {
-  let db: CommonSqliteExecutor
+  let db: IGenericSqliteExecutor
   return async ([
     msg,
     data1,
     data2,
     data3,
-    data4,
   ]: MainToWorkerMsg) => {
     const ret: WorkerToMainMsg = [msg, null, null]
     try {
@@ -36,12 +35,12 @@ export function createOnMessageCallback(
           await db.close()
           break
         case dataEvent: {
-          if (!db.iterater) {
+          if (!db.iterator) {
             throw new Error('streamQuery() is not supported.')
           }
-          const it = db.iterater(data1, data2, data3, data4)
-          for await (const rows of it) {
-            post([msg, rows as any, null] satisfies WorkerToMainMsg)
+          const it = db.iterator(data1, data2, data3)
+          for await (const row of it) {
+            post([msg, row as any, null] satisfies WorkerToMainMsg)
           }
           ret[0] = endEvent
           break

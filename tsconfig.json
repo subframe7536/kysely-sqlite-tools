@@ -1,9 +1,10 @@
 {
   "extends": "@subframe7536/type-utils/tsconfig.json",
   "compilerOptions": {
-    "moduleResolution": "Node",
+    "moduleResolution": "bundler",
     "types": [
-      "vite/client"
+      "vite/client",
+      "node"
     ]
   },
   "exclude": [

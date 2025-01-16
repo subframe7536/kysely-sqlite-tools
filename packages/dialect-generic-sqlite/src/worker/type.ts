@@ -1,5 +1,5 @@
 import type { QueryResult } from 'kysely'
-import type { BaseSqliteDialectConfig } from '../type'
+import type { IBaseSqliteDialectConfig, Promisable } from '../type'
 
 export const initEvent = '0'
 export const runEvent = '1'
@@ -25,7 +25,6 @@ type StreamMsg = [
   isSelect: boolean,
   sql: string,
   parameters?: readonly unknown[],
-  chunkSize?: number,
 ]
 
 type CloseMsg = [type: typeof closeEvent]
@@ -44,27 +43,23 @@ type Events = {
   4: null
 }
 
-/**
- * For Node.js, use https://github.com/developit/web-worker
- */
-export interface CommonWorker {
-  onmessage: (ev: any) => void
+export interface IGenericWorker {
   postMessage: (message: any) => void
   terminate: () => void
 }
 
-export interface CommonEventEmitter {
+export interface IGenericEventEmitter {
   emit: (eventName: string, ...args: any[]) => void
   on: (eventName: string, callback: (...value: any[]) => void) => void
   once: (eventName: string, callback: (...value: any[]) => void) => void
   off: (eventName?: string) => void
 }
 
-export interface CommonSqliteWorkerDialectConfig extends BaseSqliteDialectConfig {
-  mitt: CommonEventEmitter
-  worker: CommonWorker
+export interface IGenericSqliteWorkerDialectConfig<T extends IGenericWorker> extends IBaseSqliteDialectConfig {
+  mitt: IGenericEventEmitter
+  worker: () => Promisable<T>
   /**
    * Convert data in worker `onmessage` callback to {@link WorkerToMainMsg}
    */
-  handle: (msg: any) => WorkerToMainMsg
+  handle: (worker: T, cb: (msg: WorkerToMainMsg) => any) => void
 }

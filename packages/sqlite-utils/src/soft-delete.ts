@@ -1,4 +1,5 @@
 import type { DeleteQueryBuilder, DeleteResult, JoinType, Kysely, WhereInterface } from 'kysely'
+// @ts-expect-error fxxk tsconfig
 import type { ExtractTableAlias, From, FromTables, TableReference } from 'kysely/dist/cjs/parser/table-parser'
 
 type CamelCase<S extends string> = S extends `${infer First}${infer Rest}`

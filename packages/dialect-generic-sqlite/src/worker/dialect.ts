@@ -1,4 +1,4 @@
-import type { CommonSqliteWorkerDialectConfig } from './type'
+import type { IGenericSqliteWorkerDialectConfig, IGenericWorker } from './type'
 import {
   type DatabaseIntrospector,
   type Dialect,
@@ -10,15 +10,15 @@ import {
   SqliteIntrospector,
   SqliteQueryCompiler,
 } from 'kysely'
-import { CommonSqliteWorkerDriver } from './driver'
+import { GenericSqliteWorkerDriver } from './driver'
 
-export class CommonSqliteDialect implements Dialect {
+export class GenericSqliteWorkerDialect<T extends IGenericWorker> implements Dialect {
   constructor(
-    private config: CommonSqliteWorkerDialectConfig,
+    private config: IGenericSqliteWorkerDialectConfig<T>,
   ) {}
 
   createDriver(): Driver {
-    return new CommonSqliteWorkerDriver(this.config)
+    return new GenericSqliteWorkerDriver<T>(this.config)
   }
 
   createQueryCompiler(): QueryCompiler {
