@@ -1,7 +1,7 @@
 {
-  "name": "kysely-dialect-common-sqlite",
+  "name": "kysely-generic-sqlite",
   "version": "0.7.0",
-  "description": "Common kysely dialect for SQLite, run in main thread or worker",
+  "description": "Generic kysely dialect for SQLite, support run in main thread or worker",
   "author": {
     "name": "subframe7536",
     "email": "1667077010@qq.com"
