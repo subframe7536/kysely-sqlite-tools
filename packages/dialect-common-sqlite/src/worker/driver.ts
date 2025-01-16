@@ -123,8 +123,12 @@ class CommonSqliteWorkerConnection implements DatabaseConnection {
 
   async executeQuery<R>(compiledQuery: CompiledQuery<unknown>): Promise<QueryResult<R>> {
     const { parameters, sql, query } = compiledQuery
-    const isSelect = SelectQueryNode.is(query)
-    this.worker.postMessage([runEvent, isSelect, sql, parameters] satisfies MainToWorkerMsg)
+    this.worker.postMessage([
+      runEvent,
+      SelectQueryNode.is(query),
+      sql,
+      parameters,
+    ] satisfies MainToWorkerMsg)
     return new Promise((resolve, reject) => {
       if (!this.mitt) {
         reject(new Error('kysely instance has been destroyed'))
