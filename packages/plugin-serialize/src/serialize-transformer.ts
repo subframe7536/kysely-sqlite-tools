@@ -34,9 +34,9 @@ export class SerializeParametersTransformer extends OperationNodeTransformer {
     return value === serializedValue
       ? super.transformColumnUpdate(node)
       : super.transformColumnUpdate({
-        ...node,
-        value: { ...item, value: serializedValue } as ValueNode,
-      })
+          ...node,
+          value: { ...item, value: serializedValue } as ValueNode,
+        })
   }
 
   protected override transformValue(node: ValueNode): ValueNode {

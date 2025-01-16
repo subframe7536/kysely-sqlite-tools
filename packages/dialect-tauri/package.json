@@ -39,7 +39,7 @@
     "kysely": ">=0.26"
   },
   "devDependencies": {
-    "@tauri-apps/plugin-sql": "^2.0.0"
+    "@tauri-apps/plugin-sql": "^2.2.0"
   },
   "publishConfig": {
     "access": "public"

@@ -50,6 +50,6 @@
     "kysely": ">=0.26"
   },
   "devDependencies": {
-    "bun-types": "^1.1.33"
+    "bun-types": "^1.1.43"
   }
 }

@@ -88,7 +88,7 @@ class TauriSqlConnection implements DatabaseConnection {
     const { lastInsertId, rowsAffected } = await this.db.execute('select 1')
     return {
       rows,
-      insertId: BigInt(lastInsertId),
+      insertId: BigInt(lastInsertId!),
       numAffectedRows: BigInt(rowsAffected),
     }
   }
