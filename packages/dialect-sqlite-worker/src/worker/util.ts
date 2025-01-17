@@ -19,15 +19,17 @@ export function createOnMessageCallback(onInit?: (db: typeof Database) => void):
   createNodeOnMessageCallback<{}>(() => {
     const db = new Database(src, option)
     onInit?.(db as any)
+    const getStmt = (sql: string) => db.prepare(sql)
+
     return {
-      all: (sql, parameters) => db.prepare(sql).all(parameters),
-      run: (sql, parameters) => db.prepare(sql).run(parameters),
+      all: (sql, parameters) => getStmt(sql).all(parameters),
+      run: (sql, parameters) => getStmt(sql).run(parameters),
       close: () => db.close(),
       iterator: (isSelect, sql, parameters) => {
         if (!isSelect) {
           throw new Error('Only support select in stream()')
         }
-        return db.prepare(sql).iterate(parameters) as any
+        return getStmt(sql).iterate(parameters) as any
       },
     }
   })

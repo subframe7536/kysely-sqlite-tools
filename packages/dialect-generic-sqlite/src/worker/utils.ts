@@ -1,18 +1,14 @@
-import type { IGenericSqliteExecutor, Promisable } from '../type'
+import type { IGenericSqliteExecutor } from '../type'
 import {
   closeEvent,
   dataEvent,
   endEvent,
   initEvent,
+  type InitFn,
   type MainToWorkerMsg,
   runEvent,
   type WorkerToMainMsg,
 } from './type'
-
-export type InitFn<T extends Record<string, unknown>> = (
-  url: string,
-  data: T
-) => Promisable<IGenericSqliteExecutor>
 
 export function createGenericOnMessageCallback<T extends Record<string, unknown>>(
   init: InitFn<T>,

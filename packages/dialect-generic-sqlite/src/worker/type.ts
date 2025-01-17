@@ -1,5 +1,5 @@
 import type { QueryResult } from 'kysely'
-import type { IBaseSqliteDialectConfig, Promisable } from '../type'
+import type { IBaseSqliteDialectConfig, IGenericSqliteExecutor, Promisable } from '../type'
 
 export const initEvent = '0'
 export const runEvent = '1'
@@ -70,3 +70,7 @@ export interface IGenericSqliteWorkerDialectConfig<
    */
   handle: IHandleMessage<W>
 }
+export type InitFn<T extends Record<string, unknown>> = (
+  fileName: string,
+  data: T
+) => Promisable<IGenericSqliteExecutor>

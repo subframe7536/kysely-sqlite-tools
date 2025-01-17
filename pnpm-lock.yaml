@@ -89,6 +89,9 @@ importers:
       kysely:
         specifier: '>=0.26'
         version: 0.27.5
+      kysely-generic-sqlite:
+        specifier: workspace:*
+        version: link:../dialect-generic-sqlite
     devDependencies:
       bun-types:
         specifier: ^1.1.43

@@ -13,7 +13,7 @@
   "scripts": {
     "preinstall": "npx only-allow pnpm",
     "dev": "pnpm -r -F \"./packages/dialect*\" dev",
-    "build": "pnpm -r -F \"./packages/dialect*\" build",
+    "build": "pnpm -r -F \"./packages/*\" build",
     "release": "pnpm i && bumpp package.json packages/dialect*/package.json packages/plugin*/package.json",
     "serve": "cd playground && pnpm run dev",
     "publish": "pnpm -r -F \"./packages/dialect*\" publish --no-git-checks",

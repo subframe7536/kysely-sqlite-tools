@@ -1,5 +1,6 @@
 {
   "name": "kysely-generic-sqlite",
+  "type": "module",
   "version": "0.7.0",
   "description": "Generic kysely dialect for SQLite, support run in main thread or worker",
   "author": {
@@ -19,24 +20,25 @@
   ],
   "exports": {
     ".": {
-      "import": "./dist/index.mjs",
-      "require": "./dist/index.js"
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
     },
     "./worker": {
-      "import": "./dist/worker.mjs",
-      "require": "./dist/worker.js"
+      "import": "./dist/worker.js",
+      "require": "./dist/worker.cjs"
     },
     "./node-helper": {
-      "import": "./dist/node-helper.mjs",
-      "require": "./dist/node-helper.js"
+      "import": "./dist/node-helper.js",
+      "require": "./dist/node-helper.cjs"
     },
     "./web-helper": {
-      "import": "./dist/web-helper.mjs",
-      "require": "./dist/web-helper.js"
+      "import": "./dist/web-helper.js",
+      "require": "./dist/web-helper.cjs"
     }
   },
-  "main": "./dist/index.js",
-  "module": "./dist/index.mjs",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "typesVersions": {
     "*": {
       "./worker": [
