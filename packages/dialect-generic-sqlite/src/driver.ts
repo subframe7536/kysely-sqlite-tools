@@ -3,18 +3,11 @@ import type { IGenericSqliteDialectConfig, IGenericSqliteExecutor } from './type
 import { CompiledQuery, SelectQueryNode } from 'kysely'
 import { ConnectionMutex } from './mutex'
 
-export class GenericSqliteDriver implements Driver {
-  readonly connectionMutex = new ConnectionMutex()
-  conn?: DatabaseConnection
-  db?: IGenericSqliteExecutor
-  constructor(
-    config: IGenericSqliteDialectConfig,
-  ) {
-    this.init = async () => {
-      this.db = await config.create()
-      this.conn = new GenericSqliteConnection(this.db)
-      await config.onCreateConnection?.(this.conn)
-    }
+export abstract class BaseSqliteDriver implements Driver {
+  private mutex = new ConnectionMutex()
+  public conn?: DatabaseConnection
+  constructor(init: () => Promise<void>) {
+    this.init = init
   }
 
   init: () => Promise<void>
@@ -22,7 +15,7 @@ export class GenericSqliteDriver implements Driver {
   async acquireConnection(): Promise<DatabaseConnection> {
     // SQLite only has one single connection. We use a mutex here to wait
     // until the single connection has been released.
-    await this.connectionMutex.lock()
+    await this.mutex.lock()
     return this.conn!
   }
 
@@ -39,7 +32,20 @@ export class GenericSqliteDriver implements Driver {
   }
 
   async releaseConnection(): Promise<void> {
-    this.connectionMutex.unlock()
+    this.mutex.unlock()
+  }
+
+  abstract destroy(): Promise<void>
+}
+
+export class GenericSqliteDriver extends BaseSqliteDriver {
+  db?: IGenericSqliteExecutor
+  constructor(config: IGenericSqliteDialectConfig) {
+    super(async () => {
+      this.db = await config.create()
+      this.conn = new GenericSqliteConnection(this.db)
+      await config.onCreateConnection?.(this.conn)
+    })
   }
 
   async destroy(): Promise<void> {
@@ -50,7 +56,7 @@ export class GenericSqliteDriver implements Driver {
 export class GenericSqliteConnection implements DatabaseConnection {
   constructor(
     private db: IGenericSqliteExecutor,
-  ) {}
+  ) { }
 
   async *streamQuery<R>(
     { parameters, query, sql }: CompiledQuery,

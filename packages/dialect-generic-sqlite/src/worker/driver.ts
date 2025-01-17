@@ -1,7 +1,7 @@
-import type { DatabaseConnection, Driver, QueryResult } from 'kysely'
+import type { CompiledQuery, DatabaseConnection, QueryResult } from 'kysely'
 import type { Promisable } from '../type'
-import { CompiledQuery, SelectQueryNode } from 'kysely'
-import { ConnectionMutex } from '../mutex'
+import { SelectQueryNode } from 'kysely'
+import { BaseSqliteDriver } from '../driver'
 import {
   closeEvent,
   type CloseMsg,
@@ -24,15 +24,11 @@ async function access<T>(data: T | (() => Promisable<T>)): Promise<T> {
 export class GenericSqliteWorkerDriver<
   T extends IGenericWorker,
   R extends Record<string, unknown>,
-> implements Driver {
-  private connection?: DatabaseConnection
-  private connectionMutex = new ConnectionMutex()
+> extends BaseSqliteDriver {
   private worker?: T
   private mitt?: IGenericEventEmitter
-  constructor(
-    config: () => Promisable<IGenericSqliteWorkerDialectConfig<T, R>>,
-  ) {
-    this.init = async () => {
+  constructor(config: () => Promisable<IGenericSqliteWorkerDialectConfig<T, R>>) {
+    super(async () => {
       const { fileName, handle, mitt, worker, data, onCreateConnection } = await config()
       this.mitt = mitt
       this.worker = await access(worker)
@@ -42,7 +38,7 @@ export class GenericSqliteWorkerDriver<
         ([type, ...msg]) => this.mitt!.emit(type, ...msg),
       )
 
-      this.worker!.postMessage([
+      this.worker.postMessage([
         initEvent,
         fileName,
         await access(data) || {} as any,
@@ -52,34 +48,9 @@ export class GenericSqliteWorkerDriver<
         this.mitt!.once(initEvent, (_, err) => err ? reject(err) : resolve())
       })
 
-      this.connection = new GenericSqliteWorkerConnection(this.worker!, this.mitt!)
-      onCreateConnection?.(this.connection)
-    }
-  }
-
-  init: () => Promise<void>
-
-  async acquireConnection(): Promise<DatabaseConnection> {
-    // SQLite only has one single connection. We use a mutex here to wait
-    // until the single connection has been released.
-    await this.connectionMutex.lock()
-    return this.connection!
-  }
-
-  async beginTransaction(connection: DatabaseConnection): Promise<void> {
-    await connection.executeQuery(CompiledQuery.raw('begin'))
-  }
-
-  async commitTransaction(connection: DatabaseConnection): Promise<void> {
-    await connection.executeQuery(CompiledQuery.raw('commit'))
-  }
-
-  async rollbackTransaction(connection: DatabaseConnection): Promise<void> {
-    await connection.executeQuery(CompiledQuery.raw('rollback'))
-  }
-
-  async releaseConnection(): Promise<void> {
-    this.connectionMutex.unlock()
+      this.conn = new GenericSqliteWorkerConnection(this.worker, this.mitt)
+      onCreateConnection?.(this.conn)
+    })
   }
 
   async destroy(): Promise<void> {

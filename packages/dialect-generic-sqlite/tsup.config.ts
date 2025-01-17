@@ -9,7 +9,7 @@ export default defineConfig([
       'web-helper': 'src/worker/web-helper.ts',
     },
     format: ['cjs', 'esm'],
-    shims: true,
+    clean: true,
     dts: true,
     treeshake: true,
   },

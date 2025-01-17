@@ -12,11 +12,9 @@ import {
 } from 'kysely'
 import { GenericSqliteDriver } from './driver'
 
-export class GenericSqliteDialect implements Dialect {
-  constructor(
-    config: IGenericSqliteDialectConfig,
-  ) {
-    this.createDriver = () => new GenericSqliteDriver(config)
+export class BaseSqliteDialect implements Dialect {
+  constructor(create: () => Driver) {
+    this.createDriver = create
   }
 
   createDriver: () => Driver
@@ -31,5 +29,11 @@ export class GenericSqliteDialect implements Dialect {
 
   createIntrospector(db: Kysely<any>): DatabaseIntrospector {
     return new SqliteIntrospector(db)
+  }
+}
+
+export class GenericSqliteDialect extends BaseSqliteDialect {
+  constructor(config: IGenericSqliteDialectConfig) {
+    super(() => new GenericSqliteDriver(config))
   }
 }
