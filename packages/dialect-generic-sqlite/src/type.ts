@@ -16,7 +16,7 @@ export interface IGenericSqliteExecutor {
     isSelect: boolean,
     sql: string,
     parameters?: any[] | readonly any[],
-  ) => IterableIterator<any[]> | AsyncIterableIterator<any[]>
+  ) => IterableIterator<unknown> | AsyncIterableIterator<unknown>
 }
 
 export type OnCreateConnection = (connection: DatabaseConnection) => Promisable<void>

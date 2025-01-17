@@ -7,10 +7,10 @@ export const closeEvent = '2'
 export const dataEvent = '3'
 export const endEvent = '4'
 
-type InitMsg = [
+export type InitMsg<T extends Record<string, unknown>> = [
   type: typeof initEvent,
-  url?: string,
-  cache?: boolean,
+  url: string,
+  data: T,
 ]
 
 export type RunMsg = [
@@ -20,16 +20,16 @@ export type RunMsg = [
   parameters?: readonly unknown[],
 ]
 
-type StreamMsg = [
+export type StreamMsg = [
   type: typeof dataEvent,
   isSelect: boolean,
   sql: string,
   parameters?: readonly unknown[],
 ]
 
-type CloseMsg = [type: typeof closeEvent]
+export type CloseMsg = [type: typeof closeEvent]
 
-export type MainToWorkerMsg = InitMsg | RunMsg | CloseMsg | StreamMsg
+export type MainToWorkerMsg<T extends Record<string, unknown>> = InitMsg<T> | RunMsg | CloseMsg | StreamMsg
 
 export type WorkerToMainMsg = {
   [K in keyof Events]: [type: `${K}`, data: Events[K], err: unknown]
@@ -55,11 +55,18 @@ export interface IGenericEventEmitter {
   off: (eventName?: string) => void
 }
 
-export interface IGenericSqliteWorkerDialectConfig<T extends IGenericWorker> extends IBaseSqliteDialectConfig {
+export type IHandleMessage<T extends IGenericWorker> = (worker: T, cb: (msg: WorkerToMainMsg) => any) => void
+
+export interface IGenericSqliteWorkerDialectConfig<
+  W extends IGenericWorker,
+  T extends Record<string, unknown>,
+> extends IBaseSqliteDialectConfig {
+  fileName: string
+  data?: T | (() => Promisable<T>)
+  worker: W | (() => Promisable<W>)
   mitt: IGenericEventEmitter
-  worker: () => Promisable<T>
   /**
    * Convert data in worker `onmessage` callback to {@link WorkerToMainMsg}
    */
-  handle: (worker: T, cb: (msg: WorkerToMainMsg) => any) => void
+  handle: IHandleMessage<W>
 }

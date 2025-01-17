@@ -16,7 +16,7 @@ import { createNodeOnMessageCallback } from 'kysely-generic-sqlite/node-helper'
  */
 export function createOnMessageCallback(onInit?: (db: typeof Database) => void): void {
   const { src, option } = workerData
-  createNodeOnMessageCallback(() => {
+  createNodeOnMessageCallback<{}>(() => {
     const db = new Database(src, option)
     onInit?.(db as any)
     return {

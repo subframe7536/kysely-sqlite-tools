@@ -133,13 +133,16 @@ importers:
       kysely:
         specifier: '>=0.26'
         version: 0.27.5
+      kysely-generic-sqlite:
+        specifier: workspace:*
+        version: link:../dialect-generic-sqlite
       zen-mitt:
         specifier: ^3.0.0
         version: 3.0.0
     devDependencies:
       '@subframe7536/sqlite-wasm':
-        specifier: ^0.4.1
-        version: 0.4.1
+        specifier: ^0.5.0
+        version: 0.5.0
 
   packages/plugin-serialize:
     dependencies:
@@ -864,9 +867,6 @@ packages:
         optional: true
       vue-eslint-parser:
         optional: true
-
-  '@subframe7536/sqlite-wasm@0.4.1':
-    resolution: {integrity: sha512-7hwPr0g7nRhbK7vpkRV378Jp8u95+r8KO6J8HISeew/vlUXmbeNIIx6nFPm5zfjAmi4vAEhDODJcMAZ+DYMKSQ==}
 
   '@subframe7536/sqlite-wasm@0.5.0':
     resolution: {integrity: sha512-Jfvo9dHP2jjWJckysF+nnk1YzSRR6jUSy5wYQxtxw9PMiJ0iAPgL434RW1x+lgCmzBYIgDFDqZeCPoaOgz3ZaA==}
@@ -3624,10 +3624,6 @@ snapshots:
       - supports-color
       - typescript
       - vitest
-
-  '@subframe7536/sqlite-wasm@0.4.1':
-    dependencies:
-      '@subframe7536/type-utils': 0.1.6
 
   '@subframe7536/sqlite-wasm@0.5.0': {}
 

@@ -1,21 +1,26 @@
-import type { IGenericSqliteExecutor, OnCreateConnection, Promisable } from '../type'
-import type { IGenericEventEmitter, IGenericSqliteWorkerDialectConfig } from './type'
-import { createGenericOnMessageCallback } from './utils'
+import type { Promisable } from '../type'
+import type { IGenericSqliteWorkerDialectConfig } from './type'
+import { createGenericOnMessageCallback, type InitFn } from './utils'
 
-export function createWebOnMessageCallback(init: () => Promisable<IGenericSqliteExecutor>) {
-  const cb = createGenericOnMessageCallback(init, value => globalThis.postMessage(value))
+export function createWebOnMessageCallback<T extends Record<string, unknown>>(
+  init: InitFn<T>,
+): void {
+  const cb = createGenericOnMessageCallback<T>(init, value => globalThis.postMessage(value))
   globalThis.onmessage = ({ data }) => cb(data)
 }
 
-export function createWebWorkerConfig(
-  workerOrFn: Worker | (() => Promisable<Worker>),
-  mitt: IGenericEventEmitter,
-  onCreateConnection?: OnCreateConnection,
-): IGenericSqliteWorkerDialectConfig<Worker> {
-  return {
+export interface IWebWorkerDialectConfig<
+  T extends Record<string, unknown>,
+> extends Pick<
+    IGenericSqliteWorkerDialectConfig<globalThis.Worker, T>,
+    'data' | 'fileName' | 'mitt' | 'worker' | 'onCreateConnection'
+  > { }
+
+export function createWebWorkerDialectConfig<T extends Record<string, unknown>>(
+  config: IWebWorkerDialectConfig<T>,
+): () => Promisable<IGenericSqliteWorkerDialectConfig<globalThis.Worker, T>> {
+  return () => ({
+    ...config,
     handle: (worker, cb) => worker.onmessage = ({ data }) => cb(data),
-    mitt,
-    worker: typeof workerOrFn === 'function' ? workerOrFn : () => workerOrFn,
-    onCreateConnection,
-  }
+  })
 }

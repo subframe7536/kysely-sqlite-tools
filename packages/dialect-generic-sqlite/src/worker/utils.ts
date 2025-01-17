@@ -9,22 +9,22 @@ import {
   type WorkerToMainMsg,
 } from './type'
 
-export function createGenericOnMessageCallback(
-  init: () => Promisable<IGenericSqliteExecutor>,
+export type InitFn<T extends Record<string, unknown>> = (
+  url: string,
+  data: T
+) => Promisable<IGenericSqliteExecutor>
+
+export function createGenericOnMessageCallback<T extends Record<string, unknown>>(
+  init: InitFn<T>,
   post: (data: any) => void,
-): (data: MainToWorkerMsg) => Promise<void> {
+): (data: MainToWorkerMsg<T>) => Promise<void> {
   let db: IGenericSqliteExecutor
-  return async ([
-    msg,
-    data1,
-    data2,
-    data3,
-  ]: MainToWorkerMsg) => {
+  return async ([msg, data1, data2, data3]) => {
     const ret: WorkerToMainMsg = [msg, null, null]
     try {
       switch (msg) {
         case initEvent:
-          db = await init()
+          db = await init(data1, data2)
           break
         case runEvent:
           ret[1] = data1

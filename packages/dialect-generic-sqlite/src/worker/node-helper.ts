@@ -1,8 +1,8 @@
-import type { IGenericSqliteExecutor, OnCreateConnection, Promisable } from '../type'
+import type { Promisable } from '../type'
 import type { IGenericSqliteWorkerDialectConfig } from './type'
 import { EventEmitter } from 'node:events'
 import { parentPort, type Worker } from 'node:worker_threads'
-import { createGenericOnMessageCallback } from './utils'
+import { createGenericOnMessageCallback, type InitFn } from './utils'
 
 class NodeEventEmitterWrapper extends EventEmitter {
   override off(eventName?: string | symbol): this {
@@ -10,24 +10,31 @@ class NodeEventEmitterWrapper extends EventEmitter {
   }
 }
 
-export function createNodeOnMessageCallback(init: () => Promisable<IGenericSqliteExecutor>) {
+export function createNodeOnMessageCallback<T extends Record<string, unknown>>(
+  init: InitFn<T>,
+): void {
   if (!parentPort) {
     throw new Error('Must be run in a worker thread')
   }
-  return parentPort.on(
+  parentPort.on(
     'message',
-    createGenericOnMessageCallback(init, value => parentPort!.postMessage(value)),
+    createGenericOnMessageCallback<T>(init, value => parentPort!.postMessage(value)),
   )
 }
 
-export function createNodeWorkerConfig(
-  workerOrFn: Worker | (() => Promisable<Worker>),
-  onCreateConnection?: OnCreateConnection,
-): IGenericSqliteWorkerDialectConfig<Worker> {
-  return {
+export interface INodeWorkerDialectConfig<
+  T extends Record<string, unknown>,
+> extends Pick<
+    IGenericSqliteWorkerDialectConfig<Worker, T>,
+    'data' | 'fileName' | 'worker' | 'onCreateConnection'
+  > { }
+
+export function createNodeWorkerDialectConfig<T extends Record<string, unknown>>(
+  config: INodeWorkerDialectConfig<T>,
+): () => Promisable<IGenericSqliteWorkerDialectConfig<Worker, T>> {
+  return async () => ({
+    ...config,
     handle: (worker, cb) => worker.on('message', cb),
     mitt: new NodeEventEmitterWrapper(),
-    worker: typeof workerOrFn === 'function' ? workerOrFn : () => workerOrFn,
-    onCreateConnection,
-  }
+  })
 }

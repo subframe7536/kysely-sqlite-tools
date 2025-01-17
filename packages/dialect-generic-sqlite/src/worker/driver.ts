@@ -1,45 +1,63 @@
 import type { DatabaseConnection, Driver, QueryResult } from 'kysely'
+import type { Promisable } from '../type'
 import { CompiledQuery, SelectQueryNode } from 'kysely'
 import { ConnectionMutex } from '../mutex'
 import {
   closeEvent,
+  type CloseMsg,
   dataEvent,
   endEvent,
   type IGenericEventEmitter,
   type IGenericSqliteWorkerDialectConfig,
   type IGenericWorker,
   initEvent,
-  type MainToWorkerMsg,
+  type InitMsg,
   runEvent,
+  type RunMsg,
+  type StreamMsg,
 } from './type'
 
-export class GenericSqliteWorkerDriver<T extends IGenericWorker> implements Driver {
+async function access<T>(data: T | (() => Promisable<T>)): Promise<T> {
+  return typeof data === 'function' ? await (data as any)() : data
+}
+
+export class GenericSqliteWorkerDriver<
+  T extends IGenericWorker,
+  R extends Record<string, unknown>,
+> implements Driver {
   private connection?: DatabaseConnection
   private connectionMutex = new ConnectionMutex()
   private worker?: T
   private mitt?: IGenericEventEmitter
   constructor(
-    private config?: IGenericSqliteWorkerDialectConfig<T>,
-  ) { }
+    config: () => Promisable<IGenericSqliteWorkerDialectConfig<T, R>>,
+  ) {
+    this.init = async () => {
+      const { fileName, handle, mitt, worker, data, onCreateConnection } = await config()
+      this.mitt = mitt
+      this.worker = await access(worker)
 
-  async init(): Promise<void> {
-    this.mitt = this.config!.mitt
-    this.worker = await this.config!.worker()
+      handle(
+        this.worker,
+        ([type, ...msg]) => this.mitt!.emit(type, ...msg),
+      )
 
-    this.config!.handle(
-      this.worker,
-      ([type, ...msg]) => this.mitt!.emit(type, ...msg),
-    )
-    this.worker!.postMessage([initEvent] satisfies MainToWorkerMsg)
-    await new Promise<void>((resolve, reject) => {
-      this.mitt!.once(initEvent, (_, err) => err ? reject(err) : resolve())
-    })
+      this.worker!.postMessage([
+        initEvent,
+        fileName,
+        await access(data) || {} as any,
+      ] satisfies InitMsg<R>)
 
-    this.connection = new GenericSqliteWorkerConnection(this.worker!, this.mitt!)
-    await this.config!.onCreateConnection?.(this.connection)
+      await new Promise<void>((resolve, reject) => {
+        this.mitt!.once(initEvent, (_, err) => err ? reject(err) : resolve())
+      })
 
-    this.config = undefined
+      this.connection = new GenericSqliteWorkerConnection(this.worker!, this.mitt!)
+      onCreateConnection?.(this.connection)
+    }
   }
+
+  init: () => Promise<void>
 
   async acquireConnection(): Promise<DatabaseConnection> {
     // SQLite only has one single connection. We use a mutex here to wait
@@ -68,7 +86,7 @@ export class GenericSqliteWorkerDriver<T extends IGenericWorker> implements Driv
     if (!this.worker) {
       return
     }
-    this.worker.postMessage([closeEvent] satisfies MainToWorkerMsg)
+    this.worker.postMessage([closeEvent] satisfies CloseMsg)
     return new Promise<void>((resolve, reject) => {
       this.mitt?.once(closeEvent, (_, err) => {
         if (err) {
@@ -98,7 +116,7 @@ class GenericSqliteWorkerConnection implements DatabaseConnection {
       SelectQueryNode.is(query),
       sql,
       parameters,
-    ] satisfies MainToWorkerMsg)
+    ] satisfies StreamMsg)
     type ResolveData = [data: QueryResult<R> | undefined, done: boolean]
     let done = false
     let resolveFn: (value: ResolveData) => void
@@ -144,7 +162,7 @@ class GenericSqliteWorkerConnection implements DatabaseConnection {
       SelectQueryNode.is(query),
       sql,
       parameters,
-    ] satisfies MainToWorkerMsg)
+    ] satisfies RunMsg)
     return new Promise((resolve, reject) => {
       if (!this.mitt) {
         reject(new Error('kysely instance has been destroyed'))

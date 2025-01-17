@@ -2,7 +2,7 @@ import type { Options } from 'better-sqlite3'
 import type { IBaseSqliteDialectConfig, Promisable } from 'kysely-generic-sqlite'
 import path from 'node:path'
 import { Worker } from 'node:worker_threads'
-import { createNodeWorkerConfig } from 'kysely-generic-sqlite/node-helper'
+import { createNodeWorkerDialectConfig } from 'kysely-generic-sqlite/node-helper'
 import { GenericSqliteWorkerDialect } from 'kysely-generic-sqlite/worker'
 
 export { createOnMessageCallback } from './worker/util'
@@ -23,7 +23,7 @@ export interface SqliteWorkerDialectConfig extends IBaseSqliteDialectConfig {
   workerPath?: string
 }
 
-export class SqliteWorkerDialect extends GenericSqliteWorkerDialect<Worker> {
+export class SqliteWorkerDialect extends GenericSqliteWorkerDialect<Worker, {}> {
   constructor(config: SqliteWorkerDialectConfig) {
     const {
       source,
@@ -31,8 +31,9 @@ export class SqliteWorkerDialect extends GenericSqliteWorkerDialect<Worker> {
       onCreateConnection,
       workerPath = path.join(__dirname, 'worker.js'),
     } = config
-    super(createNodeWorkerConfig(
-      async () => new Worker(
+    super(createNodeWorkerDialectConfig({
+      fileName: '',
+      worker: async () => new Worker(
         workerPath,
         {
           workerData: {
@@ -42,6 +43,6 @@ export class SqliteWorkerDialect extends GenericSqliteWorkerDialect<Worker> {
         },
       ),
       onCreateConnection,
-    ))
+    }))
   }
 }

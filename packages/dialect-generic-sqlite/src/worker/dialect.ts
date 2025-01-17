@@ -1,3 +1,4 @@
+import type { Promisable } from '../type'
 import type { IGenericSqliteWorkerDialectConfig, IGenericWorker } from './type'
 import {
   type DatabaseIntrospector,
@@ -12,14 +13,17 @@ import {
 } from 'kysely'
 import { GenericSqliteWorkerDriver } from './driver'
 
-export class GenericSqliteWorkerDialect<T extends IGenericWorker> implements Dialect {
+export class GenericSqliteWorkerDialect<
+  T extends IGenericWorker,
+  R extends Record<string, unknown>,
+> implements Dialect {
   constructor(
-    private config: IGenericSqliteWorkerDialectConfig<T>,
-  ) {}
-
-  createDriver(): Driver {
-    return new GenericSqliteWorkerDriver<T>(this.config)
+    config: () => Promisable<IGenericSqliteWorkerDialectConfig<T, R>>,
+  ) {
+    this.createDriver = () => new GenericSqliteWorkerDriver(config)
   }
+
+  createDriver: () => Driver
 
   createQueryCompiler(): QueryCompiler {
     return new SqliteQueryCompiler()

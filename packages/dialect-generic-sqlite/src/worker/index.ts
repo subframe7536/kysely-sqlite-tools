@@ -4,5 +4,6 @@ export type {
   IGenericEventEmitter,
   IGenericSqliteWorkerDialectConfig,
   IGenericWorker,
+  IHandleMessage,
 } from './type'
 export * from './utils'

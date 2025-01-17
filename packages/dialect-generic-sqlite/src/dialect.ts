@@ -14,12 +14,12 @@ import { GenericSqliteDriver } from './driver'
 
 export class GenericSqliteDialect implements Dialect {
   constructor(
-    private config: IGenericSqliteDialectConfig,
-  ) {}
-
-  createDriver(): Driver {
-    return new GenericSqliteDriver(this.config)
+    config: IGenericSqliteDialectConfig,
+  ) {
+    this.createDriver = () => new GenericSqliteDriver(config)
   }
+
+  createDriver: () => Driver
 
   createQueryCompiler(): QueryCompiler {
     return new SqliteQueryCompiler()

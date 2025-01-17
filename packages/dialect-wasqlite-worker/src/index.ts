@@ -1,49 +1,33 @@
-import type { DatabaseIntrospector, Dialect, DialectAdapter, Driver, Kysely, QueryCompiler } from 'kysely'
-import type { WaSqliteWorkerDialectConfig } from './type'
-import { SqliteAdapter, SqliteIntrospector, SqliteQueryCompiler } from 'kysely'
-import { WaSqliteWorkerDriver } from './driver'
+import type { InitData, WaSqliteWorkerDialectConfig } from './type'
+import { isModuleWorkerSupport, isOpfsSupported } from '@subframe7536/sqlite-wasm'
+import { createWebWorkerDialectConfig } from 'kysely-generic-sqlite/web-helper'
+import { GenericSqliteWorkerDialect } from 'kysely-generic-sqlite/worker'
+import { mitt } from 'zen-mitt'
 
-export type { Promisable, WaSqliteWorkerDialectConfig } from './type'
 export { createOnMessageCallback } from './worker/utils'
 
-export {
-  customFunction,
-  isIdbSupported,
-  isModuleWorkerSupport,
-  isOpfsSupported,
-  type SQLiteDB,
-} from '@subframe7536/sqlite-wasm'
-
-export class WaSqliteWorkerDialect implements Dialect {
-  /**
-   * dialect for [`wa-sqlite`](https://github.com/rhashimoto/wa-sqlite),
-   * execute sql in `Web Worker`,
-   * store data in [OPFS](https://developer.mozilla.org/en-US/docs/Web/API/File_System_API/Origin_private_file_system) or IndexedDB
-   *
-   * @example
-   * import { WaSqliteWorkerDialect } from 'kysely-wasqlite-worker'
-   *
-   * const dialect = new WaSqliteWorkerDialect({
-   *   fileName: 'test',
-   * })
-   */
-  constructor(
-    private config: WaSqliteWorkerDialectConfig,
-  ) { }
-
-  createDriver(): Driver {
-    return new WaSqliteWorkerDriver(this.config)
-  }
-
-  createQueryCompiler(): QueryCompiler {
-    return new SqliteQueryCompiler()
-  }
-
-  createAdapter(): DialectAdapter {
-    return new SqliteAdapter()
-  }
-
-  createIntrospector(db: Kysely<any>): DatabaseIntrospector {
-    return new SqliteIntrospector(db)
+export class WaSqliteWorkerDialect extends GenericSqliteWorkerDialect<globalThis.Worker, InitData> {
+  constructor(config: WaSqliteWorkerDialectConfig) {
+    const { onCreateConnection, worker, fileName, preferOPFS, url } = config
+    const supportModule = isModuleWorkerSupport()
+    super(createWebWorkerDialectConfig({
+      fileName,
+      data: async () => {
+        const useOPFS = preferOPFS ? await isOpfsSupported() : false
+        return {
+          useOPFS,
+          url: typeof url === 'function' ? url(!useOPFS) : url,
+        }
+      },
+      worker: worker
+        ? typeof worker === 'function'
+          ? () => worker(supportModule)
+          : worker
+        : supportModule
+          ? new Worker(new URL('worker.mjs', import.meta.url), { type: 'module' })
+          : new Worker(new URL('worker.js', import.meta.url)),
+      mitt: mitt(),
+      onCreateConnection,
+    }))
   }
 }
