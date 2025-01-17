@@ -120,6 +120,9 @@ importers:
       kysely:
         specifier: '>=0.26'
         version: 0.27.5
+      kysely-generic-sqlite:
+        specifier: workspace:*
+        version: link:../dialect-generic-sqlite
     devDependencies:
       '@tauri-apps/plugin-sql':
         specifier: ^2.2.0
@@ -152,21 +155,6 @@ importers:
       kysely:
         specifier: '>=0.26'
         version: 0.27.5
-
-  packages/sqlite-builder:
-    dependencies:
-      '@subframe7536/type-utils':
-        specifier: ^0.1.6
-        version: 0.1.6
-      kysely:
-        specifier: '>=0.26'
-        version: 0.27.5
-      kysely-plugin-serialize:
-        specifier: workspace:*
-        version: link:../plugin-serialize
-      kysely-sqlite-utils:
-        specifier: workspace:*
-        version: link:../sqlite-utils
 
   packages/sqlite-utils:
     dependencies:

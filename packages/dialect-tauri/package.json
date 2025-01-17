@@ -38,6 +38,9 @@
     "@tauri-apps/plugin-sql": "^2.0.0",
     "kysely": ">=0.26"
   },
+  "dependencies": {
+    "kysely-generic-sqlite": "workspace:*"
+  },
   "devDependencies": {
     "@tauri-apps/plugin-sql": "^2.2.0"
   },

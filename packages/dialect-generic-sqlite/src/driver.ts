@@ -8,14 +8,16 @@ export class GenericSqliteDriver implements Driver {
   conn?: DatabaseConnection
   db?: IGenericSqliteExecutor
   constructor(
-    private config: IGenericSqliteDialectConfig,
-  ) {}
-
-  async init(): Promise<void> {
-    this.db = await this.config.create()
-    this.conn = new GenericSqliteConnection(this.db)
-    await this.config.onCreateConnection?.(this.conn)
+    config: IGenericSqliteDialectConfig,
+  ) {
+    this.init = async () => {
+      this.db = await config.create()
+      this.conn = new GenericSqliteConnection(this.db)
+      await config.onCreateConnection?.(this.conn)
+    }
   }
+
+  init: () => Promise<void>
 
   async acquireConnection(): Promise<DatabaseConnection> {
     // SQLite only has one single connection. We use a mutex here to wait

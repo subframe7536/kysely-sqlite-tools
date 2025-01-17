@@ -1,7 +1,7 @@
 import type Database from '@tauri-apps/plugin-sql'
-import type { DatabaseConnection } from 'kysely'
+import type { IBaseSqliteDialectConfig } from 'kysely-generic-sqlite'
 
-export interface TauriSqliteDialectConfig {
+export interface TauriSqliteDialectConfig extends IBaseSqliteDialectConfig {
   /**
    * Tauri database instance.
    *
@@ -17,13 +17,7 @@ export interface TauriSqliteDialectConfig {
    * })
    * ```
    */
-  database: Promisable<Database> | ((prefix: 'sqlite:') => Promisable<Database>)
-  /**
-   * Called once when the first query is executed.
-   *
-   * This is a Kysely specific feature and does not come from the `better-sqlite3` module.
-   */
-  onCreateConnection?: (connection: DatabaseConnection) => Promisable<void>
+  database: Database | ((prefix: 'sqlite:') => Promisable<Database>)
 }
 
 export type Promisable<T> = T | Promise<T>

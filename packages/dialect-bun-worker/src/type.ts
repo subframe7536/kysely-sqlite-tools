@@ -1,8 +1,8 @@
-import type { DatabaseConnection } from 'kysely'
+import type { IBaseSqliteDialectConfig } from 'kysely-generic-sqlite'
 
 export type Promisable<T> = T | Promise<T>
 
-export type BunWorkerDialectConfig = {
+export interface BunWorkerDialectConfig extends IBaseSqliteDialectConfig {
   /**
    * db file path
    *
@@ -18,7 +18,6 @@ export type BunWorkerDialectConfig = {
    * custom worker, default is a worker that use bun:sqlite
    */
   worker?: Worker
-  onCreateConnection?: (connection: DatabaseConnection) => Promisable<void>
 }
 
 export type InitData = {
