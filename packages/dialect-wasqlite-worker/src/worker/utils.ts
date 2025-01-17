@@ -1,4 +1,4 @@
-import type { Promisable } from 'kysely-generic-sqlite'
+import type { IGenericSqliteExecutor, Promisable } from 'kysely-generic-sqlite'
 import type { InitData } from '../type'
 import {
   changes as changesCore,
@@ -46,23 +46,21 @@ export function createOnMessageCallback(
 ): void {
   createWebOnMessageCallback<InitData>(async (fileName, initData) => {
     const core = await createCore(fileName, initData!)
-    return {
-      async all(sql, parameters) {
-        return await runCore(core, sql, parameters as any[])
-      },
-      async run(sql, parameters) {
-        await runCore(core, sql, parameters as any[])
-        return {
-          changes: changesCore(core),
-          lastInsertRowid: lastInsertRowIdCore(core),
-        }
-      },
-      async close() {
-        await closeCore(core)
-      },
-      iterator(_, sql, parameters) {
-        return iteratorCore(core, sql, parameters as any[])
-      },
-    }
+    return createSqliteExecutor(core)
   })
+}
+
+export function createSqliteExecutor(core: SQLiteDBCore): IGenericSqliteExecutor {
+  return {
+    all: async (sql, parameters) => await runCore(core, sql, parameters as any[]),
+    run: async (sql, parameters) => {
+      await runCore(core, sql, parameters as any[])
+      return {
+        changes: changesCore(core),
+        lastInsertRowid: lastInsertRowIdCore(core),
+      }
+    },
+    close: async () => await closeCore(core),
+    iterator: (_, sql, parameters) => iteratorCore(core, sql, parameters as any[]),
+  }
 }

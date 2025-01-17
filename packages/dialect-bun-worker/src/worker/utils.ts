@@ -1,3 +1,4 @@
+import type { IGenericSqliteExecutor } from 'kysely-generic-sqlite'
 import type { InitData } from '../type'
 import Database, { type Statement } from 'bun:sqlite'
 import { createWebOnMessageCallback } from 'kysely-generic-sqlite/web-helper'
@@ -29,14 +30,18 @@ export function createOnMessageCallback(
   createWebOnMessageCallback<InitData>((fileName, { cache }) => {
     const db = new Database(fileName, { create: true })
     onInit?.(db as any)
-    const fn = cache ? 'query' : 'prepare'
-    const getStmt = (sql: string) => db[fn](sql)
-
-    return {
-      all: (sql, parameters) => getStmt(sql).all(...parameters || []),
-      run: (sql, parameters) => getStmt(sql).run(...parameters || []),
-      close: () => db.close(),
-      iterator: (_, sql, parameters) => iterator(getStmt(sql), parameters),
-    }
+    return createSqliteExecutor(db, cache)
   })
+}
+
+export function createSqliteExecutor(db: Database, cache: boolean): IGenericSqliteExecutor {
+  const fn = cache ? 'query' : 'prepare'
+  const getStmt = (sql: string) => db[fn](sql)
+
+  return {
+    all: (sql, parameters) => getStmt(sql).all(...parameters || []),
+    run: (sql, parameters) => getStmt(sql).run(...parameters || []),
+    close: () => db.close(),
+    iterator: (_, sql, parameters) => iterator(getStmt(sql), parameters),
+  }
 }
