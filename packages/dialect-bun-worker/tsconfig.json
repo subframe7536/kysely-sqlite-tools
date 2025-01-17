@@ -1,23 +1,8 @@
 {
+  "extends": "@subframe7536/type-utils/tsconfig.json",
   "compilerOptions": {
-    "target": "esnext",
-    "lib": [
-      "ESNext",
-      "DOM"
-    ],
-    "moduleDetection": "force",
-    "module": "esnext",
-    "moduleResolution": "bundler",
     "types": [
-      "bun-types" // add Bun global
-    ],
-    "allowImportingTsExtensions": true,
-    "allowJs": true,
-    "strict": true,
-    "downlevelIteration": true,
-    "noEmit": true,
-    "allowSyntheticDefaultImports": true,
-    "forceConsistentCasingInFileNames": true,
-    "skipLibCheck": true
+      "bun-types"
+    ]
   }
 }

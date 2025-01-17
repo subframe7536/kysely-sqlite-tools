@@ -21,7 +21,7 @@ export async function useWaSqliteWorker() {
     url: () => wasmURL,
   })
   console.log('start wa-sqlite-worker test')
-  testDB(dialect)
+  testDB(dialect as any)
     .then(async (data) => {
       data?.forEach(e => console.log('[wa-sqlite-worker]', e))
       // const supportModuleWorker = isModuleWorkerSupport()

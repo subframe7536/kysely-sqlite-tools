@@ -42,7 +42,8 @@
     "kysely-generic-sqlite": "workspace:*"
   },
   "devDependencies": {
-    "@tauri-apps/plugin-sql": "^2.2.0"
+    "@tauri-apps/plugin-sql": "^2.2.0",
+    "kysely": "catalog:"
   },
   "publishConfig": {
     "access": "public"

@@ -8,7 +8,6 @@ export default defineConfig([
       'node-helper': 'src/worker/node-helper.ts',
       'web-helper': 'src/worker/web-helper.ts',
     },
-    clean: true,
     format: ['cjs', 'esm'],
     shims: true,
     dts: true,

@@ -29,5 +29,8 @@
   },
   "peerDependencies": {
     "kysely": ">=0.26"
+  },
+  "devDependencies": {
+    "kysely": "catalog:"
   }
 }

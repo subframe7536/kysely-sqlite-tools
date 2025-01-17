@@ -1,4 +1,4 @@
-import type { Generated } from 'kysely'
+import type { Dialect, Generated } from 'kysely'
 import { describe, expect, test } from 'bun:test'
 import { Kysely } from 'kysely'
 import { BunWorkerDialect } from '../src'
@@ -14,7 +14,7 @@ interface TestTable {
 }
 describe('test', () => {
   const db = new Kysely<DB>({
-    dialect: new BunWorkerDialect(),
+    dialect: new BunWorkerDialect() as unknown as Dialect,
   })
   test('test', async () => {
     await db.schema.createTable('test')
