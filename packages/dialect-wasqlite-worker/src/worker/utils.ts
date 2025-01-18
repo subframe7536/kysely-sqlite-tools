@@ -10,6 +10,22 @@ import {
 } from '@subframe7536/sqlite-wasm'
 import { createWebOnMessageCallback } from 'kysely-generic-sqlite/worker-helper-web'
 
+export type CreateDatabaseFn = (init: InitData) => Promisable<SQLiteDBCore>
+
+export const defaultCreateDatabaseFn: CreateDatabaseFn
+  = async ({ fileName, url, useOPFS }) => {
+    return (await import('@subframe7536/sqlite-wasm')).initSQLiteCore(
+      (
+        useOPFS
+          ? (await import('@subframe7536/sqlite-wasm/opfs')).useOpfsStorage
+          : (await import('@subframe7536/sqlite-wasm/idb')).useIdbStorage
+      )(
+        fileName,
+        { url },
+      ),
+    )
+  }
+
 /**
  * Handle worker message, support custom callback on initialization
  * @example
@@ -23,7 +39,7 @@ import { createWebOnMessageCallback } from 'kysely-generic-sqlite/worker-helper-
  * )
  */
 export function createOnMessageCallback(
-  create: (data: InitData) => Promisable<SQLiteDBCore>,
+  create: CreateDatabaseFn,
 ): void {
   createWebOnMessageCallback<InitData>(
     async (initData) => {
@@ -33,7 +49,7 @@ export function createOnMessageCallback(
   )
 }
 
-export function createSqliteExecutor(core: SQLiteDBCore): IGenericSqliteExecutor {
+function createSqliteExecutor(core: SQLiteDBCore): IGenericSqliteExecutor {
   return {
     all: async (sql, parameters) => await runCore(core, sql, parameters as any[]),
     run: async (sql, parameters) => {

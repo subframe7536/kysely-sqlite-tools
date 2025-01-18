@@ -1,7 +1,7 @@
-import type Database from 'bun:sqlite'
 import type { Statement } from 'bun:sqlite'
 import type { IGenericSqliteExecutor, Promisable } from 'kysely-generic-sqlite'
 import type { InitData } from '../type'
+import Database from 'bun:sqlite'
 import { createWebOnMessageCallback } from 'kysely-generic-sqlite/worker-helper-web'
 
 async function* iterator(stmt: Statement, parameters?: readonly unknown[]): AsyncIterableIterator<Record<string, any>> {
@@ -12,6 +12,11 @@ async function* iterator(stmt: Statement, parameters?: readonly unknown[]): Asyn
     yield row as any
   }
 }
+
+export type CreateDatabaseFn = (fileName: string) => Promisable<Database>
+
+export const defaultCreateDatabaseFn: CreateDatabaseFn
+  = fileName => new Database(fileName, { create: true })
 
 /**
  * Handle worker message, support custom callback on initialization
@@ -25,9 +30,7 @@ async function* iterator(stmt: Statement, parameters?: readonly unknown[]): Asyn
  *   }
  * )
  */
-export function createOnMessageCallback(
-  create: (fileName: string) => Promisable<Database>,
-): void {
+export function createOnMessageCallback(create: CreateDatabaseFn): void {
   createWebOnMessageCallback<InitData>(
     async ({ cache, fileName }) => {
       const db = await create(fileName)
@@ -36,7 +39,7 @@ export function createOnMessageCallback(
   )
 }
 
-export function createSqliteExecutor(db: Database, cache: boolean): IGenericSqliteExecutor {
+function createSqliteExecutor(db: Database, cache: boolean): IGenericSqliteExecutor {
   const fn = cache ? 'query' : 'prepare'
   const getStmt = (sql: string) => db[fn](sql)
 

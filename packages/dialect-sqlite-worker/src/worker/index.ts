@@ -1,4 +1,3 @@
-import Database from 'better-sqlite3'
-import { createOnMessageCallback } from './utils'
+import { createOnMessageCallback, defaultCreateDatabaseFn } from './utils'
 
-createOnMessageCallback((...args) => new Database(...args))
+createOnMessageCallback(defaultCreateDatabaseFn)

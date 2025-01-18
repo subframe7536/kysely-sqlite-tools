@@ -1,4 +1,3 @@
-import Database from 'bun:sqlite'
-import { createOnMessageCallback } from './utils'
+import { createOnMessageCallback, defaultCreateDatabaseFn } from './utils'
 
-createOnMessageCallback(fileName => new Database(fileName, { create: true }))
+createOnMessageCallback(defaultCreateDatabaseFn)

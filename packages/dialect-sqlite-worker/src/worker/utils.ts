@@ -1,7 +1,16 @@
 import type BetterSqlite3 from 'better-sqlite3'
 import type { IGenericSqliteExecutor, Promisable } from 'kysely-generic-sqlite'
 import { workerData } from 'node:worker_threads'
+import Database from 'better-sqlite3'
 import { createNodeOnMessageCallback } from 'kysely-generic-sqlite/worker-helper-node'
+
+export type CreateDatabaseFn = (
+  filename?: string | Buffer,
+  options?: BetterSqlite3.Options
+) => Promisable<BetterSqlite3.Database>
+
+export const defaultCreateDatabaseFn: CreateDatabaseFn
+  = (fileName, options) => new Database(fileName, options)
 
 /**
  * Handle worker message, support custom callback on initialization
@@ -16,10 +25,7 @@ import { createNodeOnMessageCallback } from 'kysely-generic-sqlite/worker-helper
  * )
  */
 export function createOnMessageCallback(
-  create: (
-    filename?: string | Buffer,
-    options?: BetterSqlite3.Options
-  ) => Promisable<BetterSqlite3.Database>,
+  create: CreateDatabaseFn,
 ): void {
   const { src, option } = workerData
   createNodeOnMessageCallback<{}>(
@@ -30,7 +36,7 @@ export function createOnMessageCallback(
   )
 }
 
-export function createSqliteExecutor(db: BetterSqlite3.Database): IGenericSqliteExecutor {
+function createSqliteExecutor(db: BetterSqlite3.Database): IGenericSqliteExecutor {
   const getStmt = (sql: string) => db.prepare(sql)
 
   return {
