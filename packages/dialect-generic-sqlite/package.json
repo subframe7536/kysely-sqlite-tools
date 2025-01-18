@@ -27,13 +27,13 @@
       "import": "./dist/worker.js",
       "require": "./dist/worker.cjs"
     },
-    "./node-helper": {
-      "import": "./dist/node-helper.js",
-      "require": "./dist/node-helper.cjs"
+    "./worker-helper-node": {
+      "import": "./dist/worker-helper-node.js",
+      "require": "./dist/worker-helper-node.cjs"
     },
-    "./web-helper": {
-      "import": "./dist/web-helper.js",
-      "require": "./dist/web-helper.cjs"
+    "./worker-helper-web": {
+      "import": "./dist/worker-helper-web.js",
+      "require": "./dist/worker-helper-web.cjs"
     }
   },
   "main": "./dist/index.cjs",
@@ -44,11 +44,11 @@
       "./worker": [
         "./dist/worker.d.ts"
       ],
-      "./node-helper": [
-        "./dist/node-helper.d.ts"
+      "./worker-helper-node": [
+        "./dist/worker-helper-node.d.ts"
       ],
-      "./web-helper": [
-        "./dist/web-helper.d.ts"
+      "./worker-helper-web": [
+        "./dist/worker-helper-web.d.ts"
       ]
     }
   },

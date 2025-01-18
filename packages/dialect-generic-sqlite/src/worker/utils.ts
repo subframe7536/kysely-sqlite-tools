@@ -1,4 +1,4 @@
-import type { IGenericSqliteExecutor } from '../type'
+import type { IGenericSqliteExecutor, Promisable } from '../type'
 import {
   closeEvent,
   dataEvent,
@@ -47,4 +47,8 @@ export function createGenericOnMessageCallback<T extends Record<string, unknown>
     }
     post(ret)
   }
+}
+
+export async function access<T>(data: T | (() => Promisable<T>)): Promise<T> {
+  return typeof data === 'function' ? await (data as any)() : data
 }

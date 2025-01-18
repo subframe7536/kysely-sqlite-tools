@@ -8,7 +8,7 @@ import {
   dataEvent,
   endEvent,
   type IGenericEventEmitter,
-  type IGenericSqliteWorkerDialectConfig,
+  type IGenericSqliteWorkerExecutor,
   type IGenericWorker,
   initEvent,
   type InitMsg,
@@ -17,10 +17,6 @@ import {
   type StreamMsg,
 } from './type'
 
-async function access<T>(data: T | (() => Promisable<T>)): Promise<T> {
-  return typeof data === 'function' ? await (data as any)() : data
-}
-
 export class GenericSqliteWorkerDriver<
   T extends IGenericWorker,
   R extends Record<string, unknown>,
@@ -28,22 +24,22 @@ export class GenericSqliteWorkerDriver<
   private worker?: T
   private mitt?: IGenericEventEmitter
   constructor(
-    config: () => Promisable<IGenericSqliteWorkerDialectConfig<T, R>>,
+    executor: () => Promisable<IGenericSqliteWorkerExecutor<T, R>>,
     onCreateConnection?: OnCreateConnection,
   ) {
     super(async () => {
-      const { handle, mitt, worker, data } = await config()
-      this.mitt = mitt
-      this.worker = await access(worker)
+      const exec = await executor()
+      this.mitt = exec.mitt
+      this.worker = exec.worker
 
-      handle(
+      exec.handle(
         this.worker,
         ([type, ...msg]) => this.mitt!.emit(type, ...msg),
       )
 
       this.worker.postMessage([
         initEvent,
-        await access(data) || {} as any,
+        exec.data || {} as any,
       ] satisfies InitMsg<R>)
 
       await new Promise<void>((resolve, reject) => {

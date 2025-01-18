@@ -1,7 +1,7 @@
 import type { IGenericSqliteExecutor } from 'kysely-generic-sqlite'
 import type { InitData } from '../type'
 import Database, { type Statement } from 'bun:sqlite'
-import { createWebOnMessageCallback } from 'kysely-generic-sqlite/web-helper'
+import { createWebOnMessageCallback } from 'kysely-generic-sqlite/worker-helper-web'
 
 async function* iterator(stmt: Statement, parameters?: readonly unknown[]): AsyncIterableIterator<Record<string, any>> {
   if (!('iterate' in stmt)) {

@@ -60,18 +60,18 @@ export interface IGenericEventEmitter {
 
 export type IHandleMessage<T extends IGenericWorker> = (worker: T, cb: (msg: WorkerToMainMsg) => any) => void
 
-export interface IGenericSqliteWorkerDialectConfig<
+export interface IGenericSqliteWorkerExecutor<
   W extends IGenericWorker,
   T extends Record<string, unknown>,
 > {
   /**
    * Extra data, as parameter in {@link InitFn}
    */
-  data?: T | (() => Promisable<T>)
+  data?: T
   /**
    * Worker creator
    */
-  worker: W | (() => Promisable<W>)
+  worker: W
   /**
    * Event emitter that used for dispatch messages from worker
    */

@@ -1,8 +1,8 @@
 import type { Promisable } from '../type'
-import type { IGenericEventEmitter, IGenericSqliteWorkerDialectConfig, IHandleMessage, InitFn } from './type'
+import type { IGenericEventEmitter, IGenericSqliteWorkerExecutor, IHandleMessage, InitFn } from './type'
 import { EventEmitter } from 'node:events'
 import { parentPort, type Worker } from 'node:worker_threads'
-import { createGenericOnMessageCallback } from './utils'
+import { access, createGenericOnMessageCallback } from './utils'
 
 class NodeEventEmitterWrapper extends EventEmitter {
   override off(eventName?: string | symbol): this {
@@ -29,16 +29,17 @@ export function createNodeMitt(): IGenericEventEmitter {
 
 export interface INodeWorkerDialectConfig<
   T extends Record<string, unknown>,
-> extends Pick<
-    IGenericSqliteWorkerDialectConfig<Worker, T>,
-    'data' | 'worker'
-  > { }
+> extends Pick<IGenericSqliteWorkerExecutor<Worker, T>, 'data'> {
+  worker: Worker | (() => Promisable<Worker>)
+}
 
-export function createNodeWorkerDialectConfig<T extends Record<string, unknown>>(
+export function createNodeWorkerExecutor<T extends Record<string, unknown>>(
   config: INodeWorkerDialectConfig<T>,
-): () => Promisable<IGenericSqliteWorkerDialectConfig<Worker, T>> {
+): () => Promisable<IGenericSqliteWorkerExecutor<Worker, T>> {
+  const { worker, data } = config
   return async () => ({
-    ...config,
+    data,
+    worker: await access(worker),
     handle: handleNodeWorker,
     mitt: createNodeMitt(),
   })

@@ -154,8 +154,8 @@ importers:
         version: 3.0.0
     devDependencies:
       '@subframe7536/sqlite-wasm':
-        specifier: ^0.5.0
-        version: 0.5.0
+        specifier: ^0.5.1
+        version: 0.5.1
       kysely:
         specifier: 'catalog:'
         version: 0.27.5
@@ -874,6 +874,9 @@ packages:
 
   '@subframe7536/sqlite-wasm@0.5.0':
     resolution: {integrity: sha512-Jfvo9dHP2jjWJckysF+nnk1YzSRR6jUSy5wYQxtxw9PMiJ0iAPgL434RW1x+lgCmzBYIgDFDqZeCPoaOgz3ZaA==}
+
+  '@subframe7536/sqlite-wasm@0.5.1':
+    resolution: {integrity: sha512-rRszpnvcT045Jd5HkDMIxaYI95BUl8H07mhYmklNW1CbNjJtiD3dN550lRXElwcDUpTQrdhIdmA9A5QwJ+ct+A==}
 
   '@subframe7536/type-utils@0.1.6':
     resolution: {integrity: sha512-7tUH6F6q7RluUGNZ3iB2oxnhJAW5w4aCVky6mBTajpuyiBPnO2v2E+lsaNI6oGeUVsGo0rsB1u3akSIQcOKXhA==}
@@ -3630,6 +3633,8 @@ snapshots:
       - vitest
 
   '@subframe7536/sqlite-wasm@0.5.0': {}
+
+  '@subframe7536/sqlite-wasm@0.5.1': {}
 
   '@subframe7536/type-utils@0.1.6': {}
 

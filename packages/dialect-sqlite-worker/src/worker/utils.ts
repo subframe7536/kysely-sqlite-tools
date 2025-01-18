@@ -1,7 +1,7 @@
 import type { IGenericSqliteExecutor } from 'kysely-generic-sqlite'
 import { workerData } from 'node:worker_threads'
 import Database, { type Database as BetterSqlite3Database } from 'better-sqlite3'
-import { createNodeOnMessageCallback } from 'kysely-generic-sqlite/node-helper'
+import { createNodeOnMessageCallback } from 'kysely-generic-sqlite/worker-helper-node'
 
 /**
  * Handle worker message, support custom callback on initialization
