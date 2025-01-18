@@ -7,7 +7,7 @@ No need to set response header like [official wasm](../dialect-wasm/README.md#of
 ## Install
 
 ```shell
-pnpm add kysely kysely-wasqlite-worker
+pnpm add kysely kysely-wasqlite-worker @subframe7536/sqlite-wasm
 ```
 
 ## Usage
@@ -33,11 +33,14 @@ const dialect = new WaSqliteWorkerDialect({
 in `worker.ts`
 
 ```ts
-import { createOnMessageCallback, customFunction } from 'kysely-wasqlite-worker'
+import { customFunctionCore } from '@subframe7536/sqlite-wasm'
+import { createOnMessageCallback, defaultCreateDatabaseFn } from 'kysely-wasqlite-worker'
 
 onmessage = createOnMessageCallback(
-  async (sqliteDB: SQLiteDB) => {
-    customFunction(sqliteDB.sqlite, sqliteDB.db, 'customFunction', (a, b) => a + b)
+  async (...args) => {
+    const sqliteDB = await defaultCreateDatabaseFn(...args)
+    customFunctionCore(sqliteDB, 'customFunction', (a, b) => a + b)
+    return sqliteDB
   }
 )
 ```
@@ -73,7 +76,7 @@ export interface WaSqliteWorkerDialectConfig {
    *       { type: 'classic', name: 'test' }
    *     )
    */
-  worker: Worker | ((supportModuleWorker: boolean) => Worker)
+  worker?: Worker | ((supportModuleWorker: boolean) => Worker)
   /**
    * wasm URL
    *
@@ -86,7 +89,7 @@ export interface WaSqliteWorkerDialectConfig {
    *   ? 'https://cdn.jsdelivr.net/gh/rhashimoto/wa-sqlite@v0.9.9/dist/wa-sqlite-async.wasm'
    *   : new URL('kysely-wasqlite-worker/wasm-sync', import.meta.url).href
    */
-  url: string | ((useAsyncWasm: boolean) => string)
+  url?: string | ((useAsyncWasm: boolean) => string)
   onCreateConnection?: (connection: DatabaseConnection) => Promisable<void>
 }
 ```

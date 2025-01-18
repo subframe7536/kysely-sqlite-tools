@@ -19,17 +19,20 @@ export function createGenericOnMessageCallback<T extends Record<string, unknown>
     const ret: WorkerToMainMsg = [msg, null, null]
     try {
       switch (msg) {
-        case initEvent:
+        case initEvent: {
           db = await init(data1)
           break
-        case runEvent:
+        }
+        case runEvent: {
           ret[1] = data1
             ? { rows: await db.all(data2, data3) }
             : { rows: [], ...await db.run(data2, data3) }
           break
-        case closeEvent:
+        }
+        case closeEvent: {
           await db.close()
           break
+        }
         case dataEvent: {
           if (!db.iterator) {
             throw new Error('streamQuery() is not supported.')

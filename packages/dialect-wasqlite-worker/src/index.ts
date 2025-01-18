@@ -4,7 +4,8 @@ import { GenericSqliteWorkerDialect } from 'kysely-generic-sqlite/worker'
 import { handleWebWorker } from 'kysely-generic-sqlite/worker-helper-web'
 import { mitt } from 'zen-mitt'
 
-export { createOnMessageCallback } from './worker/utils'
+export * from './type'
+export * from './worker/utils'
 
 export class WaSqliteWorkerDialect extends GenericSqliteWorkerDialect<globalThis.Worker, InitData> {
   constructor(config: WaSqliteWorkerDialectConfig) {

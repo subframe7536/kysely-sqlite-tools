@@ -1,7 +1,5 @@
 import type { IBaseSqliteDialectConfig } from 'kysely-generic-sqlite'
 
-export type Promisable<T> = T | Promise<T>
-
 export interface BunWorkerDialectConfig extends IBaseSqliteDialectConfig {
   /**
    * db file path

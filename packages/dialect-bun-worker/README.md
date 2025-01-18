@@ -25,11 +25,13 @@ const dialect = new BunWorkerDialect({
 in `worker.ts`
 
 ```ts
-import { createOnMessageCallback } from 'kysely-bun-worker'
+import { createOnMessageCallback, defaultCreateDatabaseFn } from 'kysely-bun-worker'
 
 onmessage = createOnMessageCallback(
-  async (db) => {
+  async (...args) => {
+    const db = defaultCreateDatabaseFn(...args)
     db.loadExtension(/* ... */)
+    return db
   }
 )
 ```

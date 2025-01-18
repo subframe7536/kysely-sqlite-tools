@@ -5,7 +5,7 @@ import { Worker } from 'node:worker_threads'
 import { GenericSqliteWorkerDialect } from 'kysely-generic-sqlite/worker'
 import { createNodeMitt, handleNodeWorker } from 'kysely-generic-sqlite/worker-helper-node'
 
-export { createOnMessageCallback } from './worker/utils'
+export * from './worker/utils'
 
 export interface SqliteWorkerDialectConfig extends IBaseSqliteDialectConfig {
   /**
