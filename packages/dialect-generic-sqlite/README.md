@@ -9,3 +9,183 @@ pnpm install kysely kysely-generic-sqlite
 ```
 
 ## Usage
+
+This is a abstraction for sqlite dialect, so the dialect is not worked out-of-box.
+
+Below is the guide to create a new dialect, use `better-sqlite3` as example.
+
+### Executor
+
+First of all, you need to create a function that returns a `IGenericSqliteExector`
+
+```ts
+import Database from 'better-sqlite3'
+
+function createSqliteExecutor(
+  fileName = ':memory:'
+): IGenericSqliteExecutor<BetterSqlite3.Database> {
+  const db = new Database(fileName)
+  const getStmt = (sql: string) => db.prepare(sql)
+
+  return {
+    db,
+    all: (sql, parameters) => getStmt(sql).all(parameters),
+    run: (sql, parameters) => getStmt(sql).run(parameters),
+    close: () => db.close(),
+    iterator: (isSelect, sql, parameters) => {
+      if (!isSelect) {
+        throw new Error('Only support select in stream()')
+      }
+      return getStmt(sql).iterate(parameters) as any
+    },
+  }
+}
+```
+
+### Run SQLs In Current Thread
+
+To create a dialect that run SQLs in current thread, you can use built-in dialect `GenericSqliteDialect`:
+
+```ts
+import type { DatabaseConnection } from 'kysely'
+import { CompiledQuery, Kysely } from 'kysely'
+import { GenericSqliteDialect } from 'kysely-generic-sqlite'
+
+const dialect = new GenericSqliteDialect(
+  createSqliteExecutor,
+  // optional on created callback
+  (conn: DatabaseConnection) => {
+    await conn.execute(CompiledQuery.raw('PRAGMA optimize'))
+  }
+)
+
+const db = new Kysely<YourDB>({ dialect })
+```
+
+### Run SQLs In NodeJS Worker Thread
+
+To create a dialect that run SQLs in nodejs's `worker_threads`, you can use built-in dialect `GenericSqliteWorkerDialect`:
+
+```ts
+import { Worker } from 'node:worker_threads'
+import { GenericSqliteWorkerDialect } from 'kysely-generic-sqlite/worker'
+import { createNodeWorkerExecutor } from 'kysely-generic-sqlite/worker-helper-node'
+
+const worker = new Worker('./worker.js')
+const dialect = new GenericSqliteWorkerDialect(
+  createNodeWorkerExecutor({
+    worker,
+    // Optional extra data.
+    // You can transport data using `workerData`
+    // or directly define in worker file
+    data: { fileName: ':memory:' },
+  }),
+  // optional on created callback
+  (conn: DatabaseConnection) => {
+    await conn.execute(CompiledQuery.raw('PRAGMA optimize'))
+  }
+)
+```
+
+in `worker.ts`
+
+```ts
+import BetterSqlite3Database, { type Database } from 'better-sqlite3'
+import { createNodeOnMessageCallback } from 'kysely-generic-sqlite/worker-helper-node'
+
+createNodeOnMessageCallback<{ fileName: string }>(
+  data => createSqliteExecutor(data.fileName)
+)
+```
+
+### Run SQLs In Web Worker
+
+To create a dialect that run SQLs in web worker, you can use built-in dialect `GenericSqliteWorkerDialect`:
+
+```ts
+import { GenericSqliteWorkerDialect } from 'kysely-generic-sqlite/worker'
+import { createWebWorkerExecutor } from 'kysely-generic-sqlite/worker-helper-node'
+import { mitt } from 'zen-mitt'
+
+const worker = new Worker(new URL('./worker.js', import.meta.url), { type: 'module' })
+const dialect = new GenericSqliteWorkerDialect(
+  createWebWorkerExecutor({
+    worker,
+    // Event Emitter to handle worker messages
+    mitt: mitt(),
+    // Optional extra data.
+    data: { fileName: ':memory:' },
+  }),
+  // optional on created callback
+  (conn: DatabaseConnection) => {
+    await conn.execute(CompiledQuery.raw('PRAGMA optimize'))
+  }
+)
+```
+
+in `worker.ts`
+
+```ts
+import { createWebOnMessageCallback } from 'kysely-generic-sqlite/worker-helper-web'
+
+async function createSqliteExecutor(fileName: string) {
+  // your implemention...
+}
+
+createWebOnMessageCallback<{ fileName: string }>(
+  (data) => {
+    const db = createSqliteExecutor(data.fileName)
+
+    // more handle with db instance...
+
+    return db
+  }
+)
+```
+
+### Send Custom Messages To Worker
+
+dialect:
+
+```ts
+import { GenericSqliteWorkerDialect } from 'kysely-generic-sqlite/worker'
+import { createNodeMitt, handleNodeWorker } from 'kysely-generic-sqlite/worker-helper-node'
+
+const outer = createNodeMitt()
+const dialect = new GenericSqliteWorkerDialect(
+  async () => {
+    const m = createNodeMitt()
+    m.on('test', console.log)
+    outer.on('call-test', () => m.emit('test', 'your-data'))
+    return {
+      worker: new Worker('./worker.js'),
+      mitt: m,
+      handle: handleNodeWorker
+    }
+  }
+)
+```
+
+in `worker.ts`
+
+```ts
+import BetterSqlite3Database, { type Database } from 'better-sqlite3'
+import { createNodeOnMessageCallback } from 'kysely-generic-sqlite/worker-helper-node'
+
+createNodeOnMessageCallback<{}, Database>(
+  data => createSqliteExecutor(':memory:'),
+  ([type, exec, data1, data2, data3]) => {
+    if (type === 'test') {
+      exec.db.pragma('optimize')
+      console.log(data1) // 'your-data'
+    }
+  }
+)
+```
+
+## Dialects Based On This dialect
+
+- [kysely-dialect-tauri](https://github.com/subframe7536/kysely-sqlite-tools/tree/master/packages/dialect-tauri)
+- [kysely-sqlite-worker](https://github.com/subframe7536/kysely-sqlite-tools/tree/master/packages/dialect-sqlite-worker)
+- [kysely-bun-worker](https://github.com/subframe7536/kysely-sqlite-tools/tree/master/packages/dialect-bun-worker)
+- [kysely-wasqlite-worker](https://github.com/subframe7536/kysely-sqlite-tools/tree/master/packages/dialect-wasqlite-worker)

@@ -15,7 +15,7 @@ import {
   runEvent,
   type RunMsg,
   type StreamMsg,
-} from './type'
+} from './types'
 
 export class GenericSqliteWorkerDriver<
   T extends IGenericWorker,

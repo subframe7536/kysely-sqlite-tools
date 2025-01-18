@@ -1,5 +1,5 @@
 import type { OnCreateConnection, Promisable } from '../type'
-import type { IGenericSqliteWorkerExecutor, IGenericWorker } from './type'
+import type { IGenericSqliteWorkerExecutor, IGenericWorker } from './types'
 import { BaseSqliteDialect } from '../dialect'
 import { GenericSqliteWorkerDriver } from './driver'
 

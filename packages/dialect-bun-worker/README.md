@@ -27,7 +27,7 @@ in `worker.ts`
 ```ts
 import { createOnMessageCallback, defaultCreateDatabaseFn } from 'kysely-bun-worker'
 
-onmessage = createOnMessageCallback(
+createOnMessageCallback(
   async (...args) => {
     const db = defaultCreateDatabaseFn(...args)
     db.loadExtension(/* ... */)

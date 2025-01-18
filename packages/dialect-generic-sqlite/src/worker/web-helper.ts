@@ -1,6 +1,11 @@
 import type { Promisable } from '../type'
-import type { IGenericSqliteWorkerExecutor, IHandleMessage, InitFn } from './type'
-import { access, createGenericOnMessageCallback, type RestMessageHandleFn } from './utils'
+import type {
+  HandleMessageFn,
+  IGenericSqliteWorkerExecutor,
+  InitFn,
+  RestMessageHandleFn,
+} from './types'
+import { access, createGenericOnMessageCallback } from './utils'
 
 export function createWebOnMessageCallback<T extends Record<string, unknown>, DB = unknown>(
   init: InitFn<T, DB>,
@@ -20,7 +25,7 @@ export interface IWebWorkerDialectConfig<
   worker: globalThis.Worker | (() => Promisable<globalThis.Worker>)
 }
 
-export const handleWebWorker: IHandleMessage<globalThis.Worker>
+export const handleWebWorker: HandleMessageFn<globalThis.Worker>
   = (worker, cb) => worker.onmessage = ({ data }) => cb(data)
 
 export function createWebWorkerExecutor<T extends Record<string, unknown>>(

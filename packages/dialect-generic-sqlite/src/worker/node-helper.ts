@@ -1,8 +1,14 @@
 import type { Promisable } from '../type'
-import type { IGenericEventEmitter, IGenericSqliteWorkerExecutor, IHandleMessage, InitFn } from './type'
+import type {
+  HandleMessageFn,
+  IGenericEventEmitter,
+  IGenericSqliteWorkerExecutor,
+  InitFn,
+  RestMessageHandleFn,
+} from './types'
 import { EventEmitter } from 'node:events'
 import { parentPort, type Worker } from 'node:worker_threads'
-import { access, createGenericOnMessageCallback, type RestMessageHandleFn } from './utils'
+import { access, createGenericOnMessageCallback } from './utils'
 
 class NodeEventEmitterWrapper extends EventEmitter {
   override off(eventName?: string | symbol): this {
@@ -26,7 +32,7 @@ export function createNodeOnMessageCallback<T extends Record<string, unknown>, D
     ),
   )
 }
-export const handleNodeWorker: IHandleMessage<Worker> = (worker, cb) => worker.on('message', cb)
+export const handleNodeWorker: HandleMessageFn<Worker> = (worker, cb) => worker.on('message', cb)
 
 export function createNodeMitt(): IGenericEventEmitter {
   return new NodeEventEmitterWrapper()

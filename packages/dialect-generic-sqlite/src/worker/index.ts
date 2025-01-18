@@ -1,9 +1,11 @@
 export * from './dialect'
 export * from './driver'
 export type {
+  HandleMessageFn,
   IGenericEventEmitter,
   IGenericSqliteWorkerExecutor,
   IGenericWorker,
-  IHandleMessage,
-} from './type'
+  InitFn,
+  RestMessageHandleFn,
+} from './types'
 export * from './utils'

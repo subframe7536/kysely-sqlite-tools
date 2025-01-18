@@ -6,20 +6,10 @@ import {
   initEvent,
   type InitFn,
   type MainToWorkerMsg,
+  type RestMessageHandleFn,
   runEvent,
   type WorkerToMainMsg,
-} from './type'
-
-/**
- * Function that handle user-defined message
- */
-export type RestMessageHandleFn<DB = unknown> = (
-  type: string,
-  exec: IGenericSqliteExecutor<DB>,
-  data1: unknown,
-  data2: unknown,
-  data3: unknown
-) => Promisable<any>
+} from './types'
 
 export function createGenericOnMessageCallback<T extends Record<string, unknown>, DB = unknown>(
   init: InitFn<T, DB>,

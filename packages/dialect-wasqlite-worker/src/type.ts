@@ -1,4 +1,5 @@
-import type { IBaseSqliteDialectConfig } from 'kysely-generic-sqlite'
+import type { IBaseSqliteDialectConfig, Promisable } from 'kysely-generic-sqlite'
+import type { IGenericEventEmitter } from 'kysely-generic-sqlite/worker'
 
 export interface WaSqliteWorkerDialectConfig extends IBaseSqliteDialectConfig {
   /**
@@ -42,6 +43,11 @@ export interface WaSqliteWorkerDialectConfig extends IBaseSqliteDialectConfig {
    *   : new URL('kysely-wasqlite-worker/wasm-sync', import.meta.url).href
    */
   url?: string | ((useAsyncWasm: boolean) => string)
+  /**
+   * Handle custom messages for event emitter
+   * @param mitt event emitter
+   */
+  message?: (mitt: IGenericEventEmitter) => Promisable<void>
 }
 
 export type InitData = {

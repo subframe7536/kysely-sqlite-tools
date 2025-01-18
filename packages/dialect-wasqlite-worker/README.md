@@ -1,6 +1,6 @@
 # kysely-wasqlite-worker
 
-[kysely](https://github.com/kysely-org/kysely) dialect for [`wa-sqlite`](https://github.com/rhashimoto/wa-sqlite), execute sql in `Web Worker`, store data in [OPFS](https://developer.mozilla.org/en-US/docs/Web/API/File_System_API/Origin_private_file_system) or IndexedDB
+[kysely](https://github.com/kysely-org/kysely) dialect for [`@subframe7536/sqlite-wasm`](https://github.com/subframe7536/sqlite-wasm) (use custom [`wa-sqlite`](https://github.com/rhashimoto/wa-sqlite) under the hood), execute sql in `Web Worker`, store data in [OPFS](https://developer.mozilla.org/en-US/docs/Web/API/File_System_API/Origin_private_file_system) or IndexedDB
 
 No need to set response header like [official wasm](../dialect-wasm/README.md#officialwasmdialect-performance)
 
@@ -25,14 +25,19 @@ const dialect = new WaSqliteWorkerDialect({
 in `worker.ts`
 
 ```ts
-import { customFunctionCore } from '@subframe7536/sqlite-wasm'
+import { customFunctionCore, exportDatabase } from '@subframe7536/sqlite-wasm'
 import { createOnMessageCallback, defaultCreateDatabaseFn } from 'kysely-wasqlite-worker'
 
-onmessage = createOnMessageCallback(
+createOnMessageCallback(
   async (...args) => {
     const sqliteDB = await defaultCreateDatabaseFn(...args)
     customFunctionCore(sqliteDB, 'customFunction', (a, b) => a + b)
     return sqliteDB
+  },
+  ([type, exec, data1, data2, data3]) => {
+    if (type === 'export') {
+      return exportDatabase(exec.db)
+    }
   }
 )
 ```
@@ -82,6 +87,11 @@ export interface WaSqliteWorkerDialectConfig {
    *   : new URL('kysely-wasqlite-worker/wasm-sync', import.meta.url).href
    */
   url?: string | ((useAsyncWasm: boolean) => string)
+  /**
+   * Handle custom messages for event emitter
+   * @param mitt event emitter
+   */
+  message?: (mitt: IGenericEventEmitter) => Promisable<void>
   onCreateConnection?: (connection: DatabaseConnection) => Promisable<void>
 }
 ```

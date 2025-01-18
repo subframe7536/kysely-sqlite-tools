@@ -18,7 +18,7 @@ export class TauriSqliteDialect extends GenericSqliteDialect {
         const db = typeof database === 'function' ? await database('sqlite:') : database
         return {
           db,
-          all: (sql, parameters) => db.select(sql, parameters as any),
+          all: async (sql, parameters) => await db.select(sql, parameters as any),
           run: async (sql, parameters) => {
             const { rowsAffected, lastInsertId } = await db.execute(sql, parameters as any)
             return {
@@ -26,7 +26,7 @@ export class TauriSqliteDialect extends GenericSqliteDialect {
               lastInsertRowid: lastInsertId!,
             }
           },
-          close: () => db.close(),
+          close: async () => await db.close(),
         }
       },
       onCreateConnection,

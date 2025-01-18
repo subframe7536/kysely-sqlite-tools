@@ -58,7 +58,7 @@ export interface IGenericEventEmitter {
   off: (eventName?: string) => void
 }
 
-export type IHandleMessage<T extends IGenericWorker> = (worker: T, cb: (msg: WorkerToMainMsg) => any) => void
+export type HandleMessageFn<T extends IGenericWorker> = (worker: T, cb: (msg: WorkerToMainMsg) => any) => void
 
 export interface IGenericSqliteWorkerExecutor<
   W extends IGenericWorker,
@@ -79,7 +79,7 @@ export interface IGenericSqliteWorkerExecutor<
   /**
    * Convert data in worker message event callback and send to mitt
    */
-  handle: IHandleMessage<W>
+  handle: HandleMessageFn<W>
 }
 
 /**
@@ -89,3 +89,14 @@ export type InitFn<
   T extends Record<string, unknown>,
   DB = unknown,
 > = (data: T) => Promisable<IGenericSqliteExecutor<DB>>
+
+/**
+ * Function that handle user-defined message
+ */
+export type RestMessageHandleFn<DB = unknown> = (
+  type: string,
+  exec: IGenericSqliteExecutor<DB>,
+  data1: unknown,
+  data2: unknown,
+  data3: unknown
+) => Promisable<any>
