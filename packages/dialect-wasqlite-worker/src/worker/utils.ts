@@ -42,10 +42,10 @@ export async function* iteratorCore(
  * )
  */
 export function createOnMessageCallback(
-  createCore: (fileName: string, data: InitData) => Promisable<SQLiteDBCore>,
+  createCore: (data: InitData) => Promisable<SQLiteDBCore>,
 ): void {
-  createWebOnMessageCallback<InitData>(async (fileName, initData) => {
-    const core = await createCore(fileName, initData!)
+  createWebOnMessageCallback<InitData>(async (initData) => {
+    const core = await createCore(initData!)
     return createSqliteExecutor(core)
   })
 }

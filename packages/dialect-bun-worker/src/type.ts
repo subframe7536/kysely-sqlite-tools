@@ -21,5 +21,6 @@ export interface BunWorkerDialectConfig extends IBaseSqliteDialectConfig {
 }
 
 export type InitData = {
+  fileName: string
   cache: boolean
 }

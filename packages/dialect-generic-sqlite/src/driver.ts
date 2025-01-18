@@ -1,7 +1,30 @@
 import type { DatabaseConnection, Driver, QueryResult } from 'kysely'
-import type { IGenericSqliteDialectConfig, IGenericSqliteExecutor } from './type'
+import type { IGenericSqliteExecutor, OnCreateConnection, Promisable } from './type'
 import { CompiledQuery, SelectQueryNode } from 'kysely'
-import { ConnectionMutex } from './mutex'
+
+export class ConnectionMutex {
+  private promise?: Promise<void>
+  private resolve?: () => void
+
+  async lock(): Promise<void> {
+    while (this.promise) {
+      await this.promise
+    }
+
+    this.promise = new Promise((resolve) => {
+      this.resolve = resolve
+    })
+  }
+
+  unlock(): void {
+    const resolve = this.resolve
+
+    this.promise = undefined
+    this.resolve = undefined
+
+    resolve?.()
+  }
+}
 
 export abstract class BaseSqliteDriver implements Driver {
   private mutex = new ConnectionMutex()
@@ -40,11 +63,14 @@ export abstract class BaseSqliteDriver implements Driver {
 
 export class GenericSqliteDriver extends BaseSqliteDriver {
   db?: IGenericSqliteExecutor
-  constructor(config: IGenericSqliteDialectConfig) {
+  constructor(
+    executor: () => Promisable<IGenericSqliteExecutor>,
+    onCreateConnection?: OnCreateConnection,
+  ) {
     super(async () => {
-      this.db = await config.create()
+      this.db = await executor()
       this.conn = new GenericSqliteConnection(this.db)
-      await config.onCreateConnection?.(this.conn)
+      await onCreateConnection?.(this.conn)
     })
   }
 

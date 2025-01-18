@@ -1,4 +1,4 @@
-import type { IGenericSqliteDialectConfig } from './type'
+import type { IGenericSqliteExecutor, OnCreateConnection, Promisable } from './type'
 import {
   type DatabaseIntrospector,
   type Dialect,
@@ -33,7 +33,16 @@ export class BaseSqliteDialect implements Dialect {
 }
 
 export class GenericSqliteDialect extends BaseSqliteDialect {
-  constructor(config: IGenericSqliteDialectConfig) {
-    super(() => new GenericSqliteDriver(config))
+  /**
+   * Dialect for generic usage of SQLite
+   *
+   * @param executor function to create {@link IGenericSqliteExecutor}
+   * @param onCreateConnection optional callback after connection created
+   */
+  constructor(
+    executor: () => Promisable<IGenericSqliteExecutor>,
+    onCreateConnection?: OnCreateConnection,
+  ) {
+    super(() => new GenericSqliteDriver(executor, onCreateConnection))
   }
 }

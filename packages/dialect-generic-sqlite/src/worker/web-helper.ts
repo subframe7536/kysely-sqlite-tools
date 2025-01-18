@@ -13,7 +13,7 @@ export interface IWebWorkerDialectConfig<
   T extends Record<string, unknown>,
 > extends Pick<
     IGenericSqliteWorkerDialectConfig<globalThis.Worker, T>,
-    'data' | 'fileName' | 'mitt' | 'worker' | 'onCreateConnection'
+    'data' | 'mitt' | 'worker'
   > { }
 
 export const handleWebWorker: IHandleMessage<globalThis.Worker> = (worker, cb) => worker.onmessage = ({ data }) => cb(data)

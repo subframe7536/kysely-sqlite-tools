@@ -13,8 +13,8 @@ export class TauriSqliteDialect extends GenericSqliteDialect {
     config: TauriSqliteDialectConfig,
   ) {
     const { database, onCreateConnection } = config
-    super({
-      create: async () => {
+    super(
+      async () => {
         const db = typeof database === 'function' ? await database('sqlite:') : database
         return {
           all: (sql, parameters) => db.select(sql, parameters as any),
@@ -29,6 +29,6 @@ export class TauriSqliteDialect extends GenericSqliteDialect {
         }
       },
       onCreateConnection,
-    })
+    )
   }
 }

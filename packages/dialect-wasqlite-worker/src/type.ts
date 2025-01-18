@@ -45,6 +45,7 @@ export interface WaSqliteWorkerDialectConfig extends IBaseSqliteDialectConfig {
 }
 
 export type InitData = {
+  fileName: string
   url?: string
   useOPFS?: boolean
 }

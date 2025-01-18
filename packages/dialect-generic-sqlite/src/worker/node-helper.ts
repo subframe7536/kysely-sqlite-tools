@@ -31,7 +31,7 @@ export interface INodeWorkerDialectConfig<
   T extends Record<string, unknown>,
 > extends Pick<
     IGenericSqliteWorkerDialectConfig<Worker, T>,
-    'data' | 'fileName' | 'worker' | 'onCreateConnection'
+    'data' | 'worker'
   > { }
 
 export function createNodeWorkerDialectConfig<T extends Record<string, unknown>>(

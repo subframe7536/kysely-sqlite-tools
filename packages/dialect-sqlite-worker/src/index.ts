@@ -31,18 +31,19 @@ export class SqliteWorkerDialect extends GenericSqliteWorkerDialect<Worker, {}> 
       onCreateConnection,
       workerPath = path.join(__dirname, 'worker.js'),
     } = config
-    super(createNodeWorkerDialectConfig({
-      fileName: '',
-      worker: async () => new Worker(
-        workerPath,
-        {
-          workerData: {
-            src: typeof source === 'function' ? await source() : source,
-            option: dbOption,
+    super(
+      createNodeWorkerDialectConfig({
+        worker: async () => new Worker(
+          workerPath,
+          {
+            workerData: {
+              src: typeof source === 'function' ? await source() : source,
+              option: dbOption,
+            },
           },
-        },
-      ),
+        ),
+      }),
       onCreateConnection,
-    }))
+    )
   }
 }

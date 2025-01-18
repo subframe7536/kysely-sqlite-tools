@@ -22,13 +22,14 @@ export class BunWorkerDialect extends GenericSqliteWorkerDialect<globalThis.Work
         { type: 'module' },
       ),
     } = config || {}
-    super(() => ({
-      fileName,
-      data: { cache },
-      mitt: createNodeMitt(),
-      handle: handleWebWorker,
-      worker,
+    super(
+      () => ({
+        data: { cache, fileName },
+        mitt: createNodeMitt(),
+        handle: handleWebWorker,
+        worker,
+      }),
       onCreateConnection,
-    }))
+    )
   }
 }

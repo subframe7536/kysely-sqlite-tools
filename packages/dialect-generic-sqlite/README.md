@@ -1,3 +1,11 @@
 # kysely-generic-sqlite
 
-Generic kysely dialect for SQLite, support run in main thread or worker
+Generic Kysely dialect for SQLite, supporting execution in the main thread or a worker.
+
+## Install
+
+```sh
+pnpm install kysely kysely-generic-sqlite
+```
+
+## Usage

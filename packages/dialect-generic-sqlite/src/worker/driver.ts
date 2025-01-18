@@ -1,5 +1,5 @@
 import type { CompiledQuery, DatabaseConnection, QueryResult } from 'kysely'
-import type { Promisable } from '../type'
+import type { OnCreateConnection, Promisable } from '../type'
 import { SelectQueryNode } from 'kysely'
 import { BaseSqliteDriver } from '../driver'
 import {
@@ -27,9 +27,12 @@ export class GenericSqliteWorkerDriver<
 > extends BaseSqliteDriver {
   private worker?: T
   private mitt?: IGenericEventEmitter
-  constructor(config: () => Promisable<IGenericSqliteWorkerDialectConfig<T, R>>) {
+  constructor(
+    config: () => Promisable<IGenericSqliteWorkerDialectConfig<T, R>>,
+    onCreateConnection?: OnCreateConnection,
+  ) {
     super(async () => {
-      const { fileName, handle, mitt, worker, data, onCreateConnection } = await config()
+      const { handle, mitt, worker, data } = await config()
       this.mitt = mitt
       this.worker = await access(worker)
 
@@ -40,7 +43,6 @@ export class GenericSqliteWorkerDriver<
 
       this.worker.postMessage([
         initEvent,
-        fileName,
         await access(data) || {} as any,
       ] satisfies InitMsg<R>)
 

@@ -27,7 +27,7 @@ async function* iterator(stmt: Statement, parameters?: readonly unknown[]): Asyn
 export function createOnMessageCallback(
   onInit?: (db: typeof Database) => void,
 ): void {
-  createWebOnMessageCallback<InitData>((fileName, { cache }) => {
+  createWebOnMessageCallback<InitData>(({ cache, fileName }) => {
     const db = new Database(fileName, { create: true })
     onInit?.(db as any)
     return createSqliteExecutor(db, cache)

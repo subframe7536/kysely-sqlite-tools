@@ -20,7 +20,7 @@ export function createGenericOnMessageCallback<T extends Record<string, unknown>
     try {
       switch (msg) {
         case initEvent:
-          db = await init(data1, data2)
+          db = await init(data1)
           break
         case runEvent:
           ret[1] = data1
