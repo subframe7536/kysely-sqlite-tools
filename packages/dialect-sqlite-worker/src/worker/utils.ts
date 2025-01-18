@@ -1,6 +1,6 @@
-import type { IGenericSqliteExecutor } from 'kysely-generic-sqlite'
+import type BetterSqlite3 from 'better-sqlite3'
+import type { IGenericSqliteExecutor, Promisable } from 'kysely-generic-sqlite'
 import { workerData } from 'node:worker_threads'
-import Database, { type Database as BetterSqlite3Database } from 'better-sqlite3'
 import { createNodeOnMessageCallback } from 'kysely-generic-sqlite/worker-helper-node'
 
 /**
@@ -15,16 +15,22 @@ import { createNodeOnMessageCallback } from 'kysely-generic-sqlite/worker-helper
  *   }
  * )
  */
-export function createOnMessageCallback(onInit?: (db: typeof Database) => void): void {
+export function createOnMessageCallback(
+  create: (
+    filename?: string | Buffer,
+    options?: BetterSqlite3.Options
+  ) => Promisable<BetterSqlite3.Database>,
+): void {
   const { src, option } = workerData
-  createNodeOnMessageCallback<{}>(() => {
-    const db = new Database(src, option)
-    onInit?.(db as any)
-    return createSqliteExecutor(db)
-  })
+  createNodeOnMessageCallback<{}>(
+    async () => {
+      const db = await create(src, option)
+      return createSqliteExecutor(db)
+    },
+  )
 }
 
-export function createSqliteExecutor(db: BetterSqlite3Database): IGenericSqliteExecutor {
+export function createSqliteExecutor(db: BetterSqlite3.Database): IGenericSqliteExecutor {
   const getStmt = (sql: string) => db.prepare(sql)
 
   return {

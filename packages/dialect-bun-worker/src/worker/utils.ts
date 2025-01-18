@@ -1,6 +1,7 @@
-import type { IGenericSqliteExecutor } from 'kysely-generic-sqlite'
+import type Database from 'bun:sqlite'
+import type { Statement } from 'bun:sqlite'
+import type { IGenericSqliteExecutor, Promisable } from 'kysely-generic-sqlite'
 import type { InitData } from '../type'
-import Database, { type Statement } from 'bun:sqlite'
 import { createWebOnMessageCallback } from 'kysely-generic-sqlite/worker-helper-web'
 
 async function* iterator(stmt: Statement, parameters?: readonly unknown[]): AsyncIterableIterator<Record<string, any>> {
@@ -25,13 +26,14 @@ async function* iterator(stmt: Statement, parameters?: readonly unknown[]): Asyn
  * )
  */
 export function createOnMessageCallback(
-  onInit?: (db: typeof Database) => void,
+  create: (fileName: string) => Promisable<Database>,
 ): void {
-  createWebOnMessageCallback<InitData>(({ cache, fileName }) => {
-    const db = new Database(fileName, { create: true })
-    onInit?.(db as any)
-    return createSqliteExecutor(db, cache)
-  })
+  createWebOnMessageCallback<InitData>(
+    async ({ cache, fileName }) => {
+      const db = await create(fileName)
+      return createSqliteExecutor(db, cache)
+    },
+  )
 }
 
 export function createSqliteExecutor(db: Database, cache: boolean): IGenericSqliteExecutor {

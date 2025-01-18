@@ -23,12 +23,14 @@ import { createWebOnMessageCallback } from 'kysely-generic-sqlite/worker-helper-
  * )
  */
 export function createOnMessageCallback(
-  createCore: (data: InitData) => Promisable<SQLiteDBCore>,
+  create: (data: InitData) => Promisable<SQLiteDBCore>,
 ): void {
-  createWebOnMessageCallback<InitData>(async (initData) => {
-    const core = await createCore(initData!)
-    return createSqliteExecutor(core)
-  })
+  createWebOnMessageCallback<InitData>(
+    async (initData) => {
+      const core = await create(initData!)
+      return createSqliteExecutor(core)
+    },
+  )
 }
 
 export function createSqliteExecutor(core: SQLiteDBCore): IGenericSqliteExecutor {
