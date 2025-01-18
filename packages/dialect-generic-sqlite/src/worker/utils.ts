@@ -10,15 +10,27 @@ import {
   type WorkerToMainMsg,
 } from './type'
 
-export function createGenericOnMessageCallback<T extends Record<string, unknown>>(
-  init: InitFn<T>,
+/**
+ * Function that handle user-defined message
+ */
+export type RestMessageHandleFn<DB = unknown> = (
+  type: string,
+  exec: IGenericSqliteExecutor<DB>,
+  data1: unknown,
+  data2: unknown,
+  data3: unknown
+) => Promisable<any>
+
+export function createGenericOnMessageCallback<T extends Record<string, unknown>, DB = unknown>(
+  init: InitFn<T, DB>,
   post: (data: any) => void,
+  rest?: RestMessageHandleFn<DB>,
 ): (data: MainToWorkerMsg<T>) => Promise<void> {
-  let db: IGenericSqliteExecutor
-  return async ([msg, data1, data2, data3]) => {
-    const ret: WorkerToMainMsg = [msg, null, null]
+  let db: IGenericSqliteExecutor<DB>
+  return async ([type, data1, data2, data3]) => {
+    const ret: WorkerToMainMsg = [type, null, null]
     try {
-      switch (msg) {
+      switch (type) {
         case initEvent: {
           db = await init(data1)
           break
@@ -39,10 +51,13 @@ export function createGenericOnMessageCallback<T extends Record<string, unknown>
           }
           const it = db.iterator(data1, data2, data3)
           for await (const row of it) {
-            post([msg, row as any, null] satisfies WorkerToMainMsg)
+            post([type, row as any, null] satisfies WorkerToMainMsg)
           }
           ret[0] = endEvent
           break
+        }
+        default: {
+          ret[1] = await rest?.(type, db, data1, data2, data3)
         }
       }
     } catch (error) {

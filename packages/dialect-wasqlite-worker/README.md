@@ -13,15 +13,7 @@ pnpm add kysely kysely-wasqlite-worker @subframe7536/sqlite-wasm
 ## Usage
 
 ```ts
-import {
-  generateDialectOptions,
-  isIdbSupported,
-  isModuleWorkerSupport,
-  isOpfsSupported,
-  useDefaultWasmURL,
-  useDefaultWorker,
-  WaSqliteWorkerDialect
-} from 'kysely-wasqlite-worker'
+import { WaSqliteWorkerDialect } from 'kysely-wasqlite-worker'
 
 const dialect = new WaSqliteWorkerDialect({
   fileName: 'test',

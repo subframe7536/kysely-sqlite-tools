@@ -6,7 +6,11 @@ export type Promisable<T> = T | Promise<T>
  * Represents an interface for executing SQLite operations.
  * This interface provides methods for querying, modifying, and managing SQLite database connections.
  */
-export interface IGenericSqliteExecutor {
+export interface IGenericSqliteExecutor<DB = unknown> {
+  /**
+   * Original database instance
+   */
+  db: DB
   /**
    * Closes the database connection.
    * @returns A promise or value that resolves when the connection is closed.

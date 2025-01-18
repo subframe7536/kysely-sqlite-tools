@@ -1,4 +1,5 @@
 import type { IGenericSqliteExecutor, Promisable } from 'kysely-generic-sqlite'
+import type { RestMessageHandleFn } from 'kysely-generic-sqlite/worker'
 import type { InitData } from '../type'
 import {
   changes as changesCore,
@@ -40,26 +41,29 @@ export const defaultCreateDatabaseFn: CreateDatabaseFn
  */
 export function createOnMessageCallback(
   create: CreateDatabaseFn,
+  rest?: RestMessageHandleFn<SQLiteDBCore>,
 ): void {
-  createWebOnMessageCallback<InitData>(
+  createWebOnMessageCallback<InitData, SQLiteDBCore>(
     async (initData) => {
       const core = await create(initData!)
       return createSqliteExecutor(core)
     },
+    rest,
   )
 }
 
-function createSqliteExecutor(core: SQLiteDBCore): IGenericSqliteExecutor {
+function createSqliteExecutor(db: SQLiteDBCore): IGenericSqliteExecutor<SQLiteDBCore> {
   return {
-    all: async (sql, parameters) => await runCore(core, sql, parameters as any[]),
+    db,
+    all: async (sql, parameters) => await runCore(db, sql, parameters as any[]),
     run: async (sql, parameters) => {
-      await runCore(core, sql, parameters as any[])
+      await runCore(db, sql, parameters as any[])
       return {
-        changes: changesCore(core),
-        lastInsertRowid: lastInsertRowIdCore(core),
+        changes: changesCore(db),
+        lastInsertRowid: lastInsertRowIdCore(db),
       }
     },
-    close: async () => await closeCore(core),
-    iterator: (_, sql, parameters) => iteratorCore(core, sql, parameters as any[]),
+    close: async () => await closeCore(db),
+    iterator: (_, sql, parameters) => iteratorCore(db, sql, parameters as any[]),
   }
 }

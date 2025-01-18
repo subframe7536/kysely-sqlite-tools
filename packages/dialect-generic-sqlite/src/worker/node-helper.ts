@@ -2,7 +2,7 @@ import type { Promisable } from '../type'
 import type { IGenericEventEmitter, IGenericSqliteWorkerExecutor, IHandleMessage, InitFn } from './type'
 import { EventEmitter } from 'node:events'
 import { parentPort, type Worker } from 'node:worker_threads'
-import { access, createGenericOnMessageCallback } from './utils'
+import { access, createGenericOnMessageCallback, type RestMessageHandleFn } from './utils'
 
 class NodeEventEmitterWrapper extends EventEmitter {
   override off(eventName?: string | symbol): this {
@@ -10,15 +10,20 @@ class NodeEventEmitterWrapper extends EventEmitter {
   }
 }
 
-export function createNodeOnMessageCallback<T extends Record<string, unknown>>(
-  init: InitFn<T>,
+export function createNodeOnMessageCallback<T extends Record<string, unknown>, DB = unknown>(
+  init: InitFn<T, DB>,
+  rest?: RestMessageHandleFn<DB>,
 ): void {
   if (!parentPort) {
     throw new Error('Must be run in a worker thread')
   }
   parentPort.on(
     'message',
-    createGenericOnMessageCallback<T>(init, value => parentPort!.postMessage(value)),
+    createGenericOnMessageCallback<T, DB>(
+      init,
+      value => parentPort!.postMessage(value),
+      rest,
+    ),
   )
 }
 export const handleNodeWorker: IHandleMessage<Worker> = (worker, cb) => worker.on('message', cb)

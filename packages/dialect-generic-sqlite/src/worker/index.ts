@@ -2,7 +2,7 @@ export * from './dialect'
 export * from './driver'
 export type {
   IGenericEventEmitter,
-  IGenericSqliteWorkerExecutor as IGenericSqliteWorkerDialectConfig,
+  IGenericSqliteWorkerExecutor,
   IGenericWorker,
   IHandleMessage,
 } from './type'

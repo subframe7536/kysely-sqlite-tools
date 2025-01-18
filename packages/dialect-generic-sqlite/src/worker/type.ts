@@ -87,4 +87,5 @@ export interface IGenericSqliteWorkerExecutor<
  */
 export type InitFn<
   T extends Record<string, unknown>,
-> = (data: T) => Promisable<IGenericSqliteExecutor>
+  DB = unknown,
+> = (data: T) => Promisable<IGenericSqliteExecutor<DB>>

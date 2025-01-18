@@ -17,6 +17,7 @@ export class TauriSqliteDialect extends GenericSqliteDialect {
       async () => {
         const db = typeof database === 'function' ? await database('sqlite:') : database
         return {
+          db,
           all: (sql, parameters) => db.select(sql, parameters as any),
           run: async (sql, parameters) => {
             const { rowsAffected, lastInsertId } = await db.execute(sql, parameters as any)
