@@ -27,6 +27,11 @@ export const defaultCreateDatabaseFn: CreateDatabaseFn
     )
   }
 
+function createRowMapper(sqlite: SQLiteDBCore['sqlite'], stmt: number) {
+  const cols = sqlite.column_names(stmt)
+  return (row: any[]) => Object.fromEntries(cols.map((key, i) => [key, row[i]]))
+}
+
 export async function queryData(
   core: SQLiteDBCore,
   sql: string,
@@ -51,18 +56,17 @@ export async function queryData(
     }
   }
 
-  const cols = core.sqlite.column_names(stmt)
+  const mapRow = createRowMapper(core.sqlite, stmt)
   // eslint-disable-next-line unicorn/no-new-array
   const result = new Array(size)
   let idx = 0
   while (await core.sqlite.step(stmt) === SQLITE_ROW) {
-    const row = core.sqlite.row(stmt)
-    result[idx++] = Object.fromEntries(cols.map((key, i) => [key, row[i]]))
+    result[idx++] = mapRow(core.sqlite.row(stmt))
   }
   return { rows: result }
 }
 
-export async function* iterator(
+export async function* iterateDate(
   core: SQLiteDBCore,
   sql: string,
   parameters?: readonly any[],
@@ -76,12 +80,11 @@ export async function* iterator(
       sqlite.bind_collection(stmt, parameters)
     }
     let idx = 0
-    const cols = sqlite.column_names(stmt)
+    const mapRow = createRowMapper(core.sqlite, stmt)
     while (1) {
       const result = await sqlite.step(stmt)
       if (result === SQLITE_ROW) {
-        const row = sqlite.row(stmt)
-        cache[idx] = Object.fromEntries(cols.map((key, i) => [key, row[i]]))
+        cache[idx] = mapRow(core.sqlite.row(stmt))
         if (++idx === chunkSize) {
           yield cache.slice(0, idx)
           idx = 0
@@ -141,7 +144,7 @@ function createSqliteExecutor(db: SQLiteDBCore): IGenericSqlite<SQLiteDBCore> {
     db,
     query: async (_isSelect, sql, parameters) => await queryData(db, sql, parameters),
     close: async () => await closeCore(db),
-    iterator: (_isSelect, sql, parameters, chunkSize) => iterator(
+    iterator: (_isSelect, sql, parameters, chunkSize) => iterateDate(
       db,
       sql,
       parameters as any[],

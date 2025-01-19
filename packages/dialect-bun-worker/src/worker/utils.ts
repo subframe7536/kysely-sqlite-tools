@@ -5,7 +5,10 @@ import Database from 'bun:sqlite'
 import { buildQueryFn, type IGenericSqlite, parseBigInt, type Promisable } from 'kysely-generic-sqlite'
 import { createWebOnMessageCallback } from 'kysely-generic-sqlite/worker-helper-web'
 
-async function* iterator(stmt: Statement, parameters?: readonly unknown[]): AsyncIterableIterator<Record<string, any>> {
+async function* iterateData(
+  stmt: Statement,
+  parameters?: readonly unknown[],
+): AsyncIterableIterator<Record<string, any>> {
   if (!('iterate' in stmt)) {
     throw new Error('Streaming not supported, please upgrade to Bun@^1.1.31')
   }
@@ -61,6 +64,6 @@ function createSqliteExecutor(db: Database, cache: boolean): IGenericSqlite<Data
       },
     }),
     close: () => db.close(),
-    iterator: (_, sql, parameters) => iterator(getStmt(sql), parameters),
+    iterator: (_, sql, parameters) => iterateData(getStmt(sql), parameters),
   }
 }
