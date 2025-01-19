@@ -46,6 +46,7 @@
   "scripts": {
     "dev": "tsup --watch",
     "test": "bun test",
+    "test:dev": "tsup && bun test",
     "build": "tsup"
   },
   "peerDependencies": {

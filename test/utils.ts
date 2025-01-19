@@ -1,4 +1,4 @@
-import { type Dialect, type Generated, Kysely } from 'kysely'
+import { CompiledQuery, type Dialect, type Generated, Kysely } from 'kysely'
 
 interface DB {
   test: TestTable
@@ -37,5 +37,25 @@ export async function testCase(dialect: Dialect, expect: any): Promise<void> {
     expect(row.int8).toStrictEqual(Uint8Array.from([1, 2, 3]))
   }
   expect(count).toStrictEqual(1)
+
+  const result = await db.executeQuery(
+    CompiledQuery.raw(
+      'insert into test("age", "name") values (?, ?) returning *',
+      [20, 'test name'],
+    ),
+  )
+  expect(result).toMatchInlineSnapshot(`
+    {
+      "rows": [
+        {
+          "age": 20,
+          "id": 2,
+          "int8": null,
+          "name": "test name",
+        },
+      ],
+    }
+  `)
+
   await db.destroy()
 }

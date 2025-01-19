@@ -1,5 +1,5 @@
 import type { QueryResult } from 'kysely'
-import type { IGenericSqliteExecutor, Promisable } from '../type'
+import type { IGenericSqlite, Promisable } from '../type'
 
 export const initEvent = '0'
 export const runEvent = '1'
@@ -60,7 +60,7 @@ export interface IGenericEventEmitter {
 
 export type HandleMessageFn<T extends IGenericWorker> = (worker: T, cb: (msg: WorkerToMainMsg) => any) => void
 
-export interface IGenericSqliteWorkerExecutor<
+export interface IGenericSqliteWorker<
   W extends IGenericWorker,
   T extends Record<string, unknown>,
 > {
@@ -88,14 +88,14 @@ export interface IGenericSqliteWorkerExecutor<
 export type InitFn<
   T extends Record<string, unknown>,
   DB = unknown,
-> = (data: T) => Promisable<IGenericSqliteExecutor<DB>>
+> = (data: T) => Promisable<IGenericSqlite<DB>>
 
 /**
- * Function that handle user-defined message
+ * Function that handle all message
  */
-export type RestMessageHandleFn<DB = unknown> = (
+export type MessageHandleFn<DB = unknown> = (
   type: string,
-  exec: IGenericSqliteExecutor<DB>,
+  exec: IGenericSqlite<DB>,
   data1: unknown,
   data2: unknown,
   data3: unknown

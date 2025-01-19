@@ -1,5 +1,5 @@
 import type { TauriSqliteDialectConfig } from './type'
-import { GenericSqliteDialect } from 'kysely-generic-sqlite'
+import { buildQueryFn, GenericSqliteDialect, parseBigInt } from 'kysely-generic-sqlite'
 
 export type { TauriSqliteDialectConfig } from './type'
 /**
@@ -18,14 +18,16 @@ export class TauriSqliteDialect extends GenericSqliteDialect {
         const db = typeof database === 'function' ? await database('sqlite:') : database
         return {
           db,
-          all: async (sql, parameters) => await db.select(sql, parameters as any),
-          run: async (sql, parameters) => {
-            const { rowsAffected, lastInsertId } = await db.execute(sql, parameters as any)
-            return {
-              changes: rowsAffected,
-              lastInsertRowid: lastInsertId!,
-            }
-          },
+          query: buildQueryFn({
+            all: async (sql, parameters) => await db.select(sql, parameters as any),
+            run: async (sql, parameters) => {
+              const { rowsAffected, lastInsertId } = await db.execute(sql, parameters as any)
+              return {
+                numAffectedRows: parseBigInt(rowsAffected),
+                insertId: parseBigInt(lastInsertId),
+              }
+            },
+          }),
           close: async () => await db.close(),
         }
       },

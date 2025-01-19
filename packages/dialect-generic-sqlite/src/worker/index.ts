@@ -3,9 +3,9 @@ export * from './driver'
 export type {
   HandleMessageFn,
   IGenericEventEmitter,
-  IGenericSqliteWorkerExecutor,
+  IGenericSqliteWorker as IGenericSqliteWorkerExecutor,
   IGenericWorker,
   InitFn,
-  RestMessageHandleFn,
+  MessageHandleFn,
 } from './types'
 export * from './utils'

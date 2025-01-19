@@ -2,9 +2,9 @@ import type { Promisable } from '../type'
 import type {
   HandleMessageFn,
   IGenericEventEmitter,
-  IGenericSqliteWorkerExecutor,
+  IGenericSqliteWorker,
   InitFn,
-  RestMessageHandleFn,
+  MessageHandleFn,
 } from './types'
 import { EventEmitter } from 'node:events'
 import { parentPort, type Worker } from 'node:worker_threads'
@@ -18,10 +18,10 @@ class NodeEventEmitterWrapper extends EventEmitter {
 
 export function createNodeOnMessageCallback<T extends Record<string, unknown>, DB = unknown>(
   init: InitFn<T, DB>,
-  rest?: RestMessageHandleFn<DB>,
+  rest?: MessageHandleFn<DB>,
 ): void {
   if (!parentPort) {
-    throw new Error('Must be run in a worker thread')
+    throw new Error('Must run in a worker thread')
   }
   parentPort.on(
     'message',
@@ -32,21 +32,47 @@ export function createNodeOnMessageCallback<T extends Record<string, unknown>, D
     ),
   )
 }
+
+/**
+ * Util for handle node worker message in main thread
+ */
 export const handleNodeWorker: HandleMessageFn<Worker> = (worker, cb) => worker.on('message', cb)
 
+/**
+ * Util to create node mitt
+ */
 export function createNodeMitt(): IGenericEventEmitter {
   return new NodeEventEmitterWrapper()
 }
 
 export interface INodeWorkerDialectConfig<
   T extends Record<string, unknown>,
-> extends Pick<IGenericSqliteWorkerExecutor<Worker, T>, 'data'> {
+> extends Pick<IGenericSqliteWorker<Worker, T>, 'data'> {
   worker: Worker | (() => Promisable<Worker>)
 }
 
+/**
+ * Create worker executor for node
+ * @param config {@link INodeWorkerDialectConfig}
+ * @example
+ * You can also manually create executor for node worker:
+ * ```ts
+ * import { GenericSqliteWorkerDialect } from 'kysely-generic-sqlite/worker'
+ * import { handleNodeWorker, createNodeMitt } from 'kysely-generic-sqlite/worker-helper-node'
+ *
+ * const worker = new Worker('./worker.js')
+ * const dialect = new GenericSqliteWorkerDialect(
+ *   () => {
+ *     worker,
+ *     mitt: createNodeMitt(),
+ *     handle: handleWebWorker,
+ *   }),
+ * )
+ * ```
+ */
 export function createNodeWorkerExecutor<T extends Record<string, unknown>>(
   config: INodeWorkerDialectConfig<T>,
-): () => Promisable<IGenericSqliteWorkerExecutor<Worker, T>> {
+): () => Promise<IGenericSqliteWorker<Worker, T>> {
   const { worker, data } = config
   return async () => ({
     data,

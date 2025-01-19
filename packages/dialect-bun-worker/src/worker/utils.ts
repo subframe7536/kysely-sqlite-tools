@@ -1,8 +1,8 @@
 import type { Statement } from 'bun:sqlite'
-import type { IGenericSqliteExecutor, Promisable } from 'kysely-generic-sqlite'
-import type { RestMessageHandleFn } from 'kysely-generic-sqlite/worker'
+import type { MessageHandleFn } from 'kysely-generic-sqlite/worker'
 import type { InitData } from '../type'
 import Database from 'bun:sqlite'
+import { buildQueryFn, type IGenericSqlite, parseBigInt, type Promisable } from 'kysely-generic-sqlite'
 import { createWebOnMessageCallback } from 'kysely-generic-sqlite/worker-helper-web'
 
 async function* iterator(stmt: Statement, parameters?: readonly unknown[]): AsyncIterableIterator<Record<string, any>> {
@@ -33,25 +33,33 @@ export const defaultCreateDatabaseFn: CreateDatabaseFn
  */
 export function createOnMessageCallback(
   create: CreateDatabaseFn,
-  rest?: RestMessageHandleFn<Database>,
+  message?: MessageHandleFn<Database>,
 ): void {
   createWebOnMessageCallback<InitData, Database>(
     async ({ cache, fileName }) => {
       const db = await create(fileName)
       return createSqliteExecutor(db, cache)
     },
-    rest,
+    message,
   )
 }
 
-function createSqliteExecutor(db: Database, cache: boolean): IGenericSqliteExecutor<Database> {
+function createSqliteExecutor(db: Database, cache: boolean): IGenericSqlite<Database> {
   const fn = cache ? 'query' : 'prepare'
   const getStmt = (sql: string) => db[fn](sql)
 
   return {
     db,
-    all: (sql, parameters) => getStmt(sql).all(...parameters || []),
-    run: (sql, parameters) => getStmt(sql).run(...parameters || []),
+    query: buildQueryFn({
+      all: (sql, parameters) => getStmt(sql).all(...parameters || []),
+      run: (sql, parameters) => {
+        const { changes, lastInsertRowid } = getStmt(sql).run(...parameters || [])
+        return {
+          insertId: parseBigInt(lastInsertRowid),
+          numAffectedRows: parseBigInt(changes),
+        }
+      },
+    }),
     close: () => db.close(),
     iterator: (_, sql, parameters) => iterator(getStmt(sql), parameters),
   }

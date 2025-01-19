@@ -32,6 +32,11 @@ createOnMessageCallback(
     const db = defaultCreateDatabaseFn(...args)
     db.loadExtension(/* ... */)
     return db
+  },
+  ([type, exec, data1, data2, data3]) => {
+    if (type === 'export') {
+      return exec.db.export()
+    }
   }
 )
 ```

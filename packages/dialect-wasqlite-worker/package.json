@@ -54,7 +54,7 @@
     "access": "public"
   },
   "peerDependencies": {
-    "@subframe7536/sqlite-wasm": ">=0.5.1",
+    "@subframe7536/sqlite-wasm": ">=0.5.0",
     "kysely": ">=0.26"
   },
   "dependencies": {

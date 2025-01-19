@@ -1,4 +1,4 @@
-import type { IGenericSqliteExecutor, Promisable } from '../type'
+import type { IGenericSqlite, Promisable } from '../type'
 import {
   closeEvent,
   dataEvent,
@@ -6,17 +6,23 @@ import {
   initEvent,
   type InitFn,
   type MainToWorkerMsg,
-  type RestMessageHandleFn,
+  type MessageHandleFn,
   runEvent,
   type WorkerToMainMsg,
 } from './types'
 
+/**
+ * Create generic message handler
+ * @param init Function that init sqlite executor
+ * @param post Function that post message to main thread
+ * @param message Handle all messages. If returning data is not `undefined` and `null`, it will be set as second element of first param
+ */
 export function createGenericOnMessageCallback<T extends Record<string, unknown>, DB = unknown>(
   init: InitFn<T, DB>,
   post: (data: any) => void,
-  rest?: RestMessageHandleFn<DB>,
+  message?: MessageHandleFn<DB>,
 ): (data: MainToWorkerMsg<T>) => Promise<void> {
-  let db: IGenericSqliteExecutor<DB>
+  let db: IGenericSqlite<DB>
   return async ([type, data1, data2, data3]) => {
     const ret: WorkerToMainMsg = [type, null, null]
     try {
@@ -26,9 +32,7 @@ export function createGenericOnMessageCallback<T extends Record<string, unknown>
           break
         }
         case runEvent: {
-          ret[1] = data1
-            ? { rows: await db.all(data2, data3) }
-            : { rows: [], ...await db.run(data2, data3) }
+          ret[1] = await db.query(data1, data2, data3)
           break
         }
         case closeEvent: {
@@ -46,8 +50,11 @@ export function createGenericOnMessageCallback<T extends Record<string, unknown>
           ret[0] = endEvent
           break
         }
-        default: {
-          ret[1] = await rest?.(type, db, data1, data2, data3)
+      }
+      if (message) {
+        const data = await message(type, db, data1, data2, data3)
+        if (data !== undefined && data !== null) {
+          ret[1] = data
         }
       }
     } catch (error) {

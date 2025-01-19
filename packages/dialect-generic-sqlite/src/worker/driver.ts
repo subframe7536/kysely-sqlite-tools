@@ -1,14 +1,14 @@
 import type { CompiledQuery, DatabaseConnection, QueryResult } from 'kysely'
 import type { OnCreateConnection, Promisable } from '../type'
 import { SelectQueryNode } from 'kysely'
-import { BaseSqliteDriver } from '../driver'
+import { BaseSqliteDriver } from '../base'
 import {
   closeEvent,
   type CloseMsg,
   dataEvent,
   endEvent,
   type IGenericEventEmitter,
-  type IGenericSqliteWorkerExecutor,
+  type IGenericSqliteWorker,
   type IGenericWorker,
   initEvent,
   type InitMsg,
@@ -24,7 +24,7 @@ export class GenericSqliteWorkerDriver<
   private worker?: T
   private mitt?: IGenericEventEmitter
   constructor(
-    executor: () => Promisable<IGenericSqliteWorkerExecutor<T, R>>,
+    executor: () => Promisable<IGenericSqliteWorker<T, R>>,
     onCreateConnection?: OnCreateConnection,
   ) {
     super(async () => {
@@ -118,7 +118,6 @@ class GenericSqliteWorkerConnection implements DatabaseConnection {
         this.mitt?.off(dataEvent)
         this.mitt?.off(endEvent)
       } else {
-        console.log(data)
         yield data!
       }
     }
@@ -132,7 +131,7 @@ class GenericSqliteWorkerConnection implements DatabaseConnection {
       sql,
       parameters,
     ] satisfies RunMsg)
-    return new Promise((resolve, reject) => {
+    return await new Promise((resolve, reject) => {
       if (!this.mitt) {
         reject(new Error('kysely instance has been destroyed'))
       }

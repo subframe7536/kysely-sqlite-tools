@@ -1,46 +1,16 @@
-import type { IGenericSqliteExecutor, OnCreateConnection, Promisable } from './type'
-import {
-  type DatabaseIntrospector,
-  type Dialect,
-  type DialectAdapter,
-  type Driver,
-  type Kysely,
-  type QueryCompiler,
-  SqliteAdapter,
-  SqliteIntrospector,
-  SqliteQueryCompiler,
-} from 'kysely'
+import type { IGenericSqlite, OnCreateConnection, Promisable } from './type'
+import { BaseSqliteDialect } from './base'
 import { GenericSqliteDriver } from './driver'
-
-export class BaseSqliteDialect implements Dialect {
-  constructor(create: () => Driver) {
-    this.createDriver = create
-  }
-
-  createDriver: () => Driver
-
-  createQueryCompiler(): QueryCompiler {
-    return new SqliteQueryCompiler()
-  }
-
-  createAdapter(): DialectAdapter {
-    return new SqliteAdapter()
-  }
-
-  createIntrospector(db: Kysely<any>): DatabaseIntrospector {
-    return new SqliteIntrospector(db)
-  }
-}
 
 export class GenericSqliteDialect extends BaseSqliteDialect {
   /**
-   * Dialect for generic usage of SQLite
+   * Dialect for generic SQLite that run SQLs in current thread
    *
-   * @param executor function to create {@link IGenericSqliteExecutor}
+   * @param executor function to create {@link IGenericSqlite}
    * @param onCreateConnection optional callback after connection created
    */
   constructor(
-    executor: () => Promisable<IGenericSqliteExecutor>,
+    executor: () => Promisable<IGenericSqlite>,
     onCreateConnection?: OnCreateConnection,
   ) {
     super(() => new GenericSqliteDriver(executor, onCreateConnection))

@@ -16,21 +16,29 @@ Below is the guide to create a new dialect, use `better-sqlite3` as example.
 
 ### Executor
 
-First of all, you need to create a function that returns a `IGenericSqliteExector`
+First of all, you need to create a function that returns a `IGenericSqlite`
 
 ```ts
-import Database from 'better-sqlite3'
+import type { Database } from 'better-sqlite3'
+import type { IGenericSqlite } from 'kysely-generic-sqlite'
 
-function createSqliteExecutor(
-  fileName = ':memory:'
-): IGenericSqliteExecutor<BetterSqlite3.Database> {
-  const db = new Database(fileName)
+function createSqliteExecutor(db: Database): IGenericSqlite<Database> {
   const getStmt = (sql: string) => db.prepare(sql)
 
   return {
     db,
-    all: (sql, parameters) => getStmt(sql).all(parameters),
-    run: (sql, parameters) => getStmt(sql).run(parameters),
+    query: (_isSelect, sql, parameters) => {
+      const stmt = getStmt(sql)
+      if (stmt.reader) {
+        return { rows: stmt.all(parameters) }
+      }
+      const { changes, lastInsertRowid } = stmt.run(parameters)
+      return {
+        rows: [],
+        numAffectedRows: parseBigInt(changes),
+        insertId: parseBigInt(lastInsertRowid),
+      }
+    },
     close: () => db.close(),
     iterator: (isSelect, sql, parameters) => {
       if (!isSelect) {
@@ -38,6 +46,33 @@ function createSqliteExecutor(
       }
       return getStmt(sql).iterate(parameters) as any
     },
+  }
+}
+```
+
+For client that does not support `stmt.reader`, there is a util `buildQueryFn`
+
+```ts
+import Database from 'bun:sqlite'
+import { type IGenericSqlite, parseBigInt } from 'kysely-generic-sqlite'
+
+function createSqliteExecutor(db: Database, cache: boolean): IGenericSqlite<Database> {
+  const fn = cache ? 'query' : 'prepare'
+  const getStmt = (sql: string) => db[fn](sql)
+
+  return {
+    db,
+    query: buildQueryFn({
+      all: (sql, parameters) => getStmt(sql).all(...parameters || []),
+      run: (sql, parameters) => {
+        const { changes, lastInsertRowid } = getStmt(sql).run(...parameters || [])
+        return {
+          insertId: parseBigInt(lastInsertRowid),
+          numAffectedRows: parseBigInt(changes),
+        }
+      },
+    }),
+    close: () => db.close(),
   }
 }
 ```
@@ -76,7 +111,7 @@ const dialect = new GenericSqliteWorkerDialect(
   createNodeWorkerExecutor({
     worker,
     // Optional extra data.
-    // You can transport data using `workerData`
+    // You can also transport data using `require('node:worker_threads').workerData`
     // or directly define in worker file
     data: { fileName: ':memory:' },
   }),
@@ -104,7 +139,7 @@ To create a dialect that run SQLs in web worker, you can use built-in dialect `G
 
 ```ts
 import { GenericSqliteWorkerDialect } from 'kysely-generic-sqlite/worker'
-import { createWebWorkerExecutor } from 'kysely-generic-sqlite/worker-helper-node'
+import { createWebWorkerExecutor } from 'kysely-generic-sqlite/worker-helper-web'
 import { mitt } from 'zen-mitt'
 
 const worker = new Worker(new URL('./worker.js', import.meta.url), { type: 'module' })
@@ -169,7 +204,7 @@ const dialect = new GenericSqliteWorkerDialect(
 in `worker.ts`
 
 ```ts
-import BetterSqlite3Database, { type Database } from 'better-sqlite3'
+import type { Database } from 'better-sqlite3'
 import { createNodeOnMessageCallback } from 'kysely-generic-sqlite/worker-helper-node'
 
 createNodeOnMessageCallback<{}, Database>(
