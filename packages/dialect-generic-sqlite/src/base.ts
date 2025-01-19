@@ -104,7 +104,20 @@ export abstract class BaseSqliteDriver implements Driver {
 /**
  * Wrapper for {@link IGenericSqlite}'s `query` function
  *
- * Do not support `returning` in `INSERT`, `UPDATE`, `DELETE`
+ * Do not support `returning` in `INSERT`, `UPDATE`, `DELETE`,
+ * never have `insertId` and `numAffectedRows` properties in `QueryResult`
+ * @param exec {@link IGenericSqliteExecutor}
+ */
+export function buildQueryFnAlt(exec: IGenericSqliteExecutor): IGenericSqlite['query'] {
+  return async (isSelect, sql, parameters) => isSelect
+    ? { rows: await exec.all(sql, parameters) }
+    : { rows: [], ...await exec.run(sql, parameters) }
+}
+
+/**
+ * Wrapper for {@link IGenericSqlite}'s `query` function
+ *
+ * Support `returning`, get `insertId` and `numAffectedRows` by calling `select 1`
  * @param exec {@link IGenericSqliteExecutor}
  */
 export function buildQueryFn(exec: IGenericSqliteExecutor): IGenericSqlite['query'] {
