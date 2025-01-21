@@ -221,6 +221,14 @@ createNodeOnMessageCallback<{}, Database>(
 )
 ```
 
+### Use Basic Dialect
+
+```ts
+import { BaseSqliteDialect } from 'kysely-generic-sqlite'
+
+const dialect = new BaseSqliteDialect(() => new YourCustomDialect())
+```
+
 ## Dialects Based On This dialect
 
 - [kysely-dialect-tauri](https://github.com/subframe7536/kysely-sqlite-tools/tree/master/packages/dialect-tauri)
