@@ -1,4 +1,4 @@
-import { defineEslintConfig } from '@subframe7536/eslint-config'
+import { defineEslintConfig, GLOB_JSON } from '@subframe7536/eslint-config'
 
 export default defineEslintConfig({
   overrideRules: {
@@ -10,6 +10,10 @@ export default defineEslintConfig({
     {
       files: './playground/**/*.{ts,vue}',
       rules: ['ts/explicit-function-return-type'],
+    },
+    {
+      files: GLOB_JSON,
+      rules: ['antfu/consistent-list-newline'],
     },
   ],
 })

@@ -1,8 +1,7 @@
-import type { DatabaseConnection, QueryResult } from 'kysely'
+import type { IBaseSqliteDialectConfig, Promisable } from 'kysely-generic-sqlite'
+import type { IGenericEventEmitter } from 'kysely-generic-sqlite/worker'
 
-export type Promisable<T> = T | Promise<T>
-
-export interface WaSqliteWorkerDialectConfig {
+export interface WaSqliteWorkerDialectConfig extends IBaseSqliteDialectConfig {
   /**
    * db file name
    */
@@ -44,45 +43,15 @@ export interface WaSqliteWorkerDialectConfig {
    *   : new URL('kysely-wasqlite-worker/wasm-sync', import.meta.url).href
    */
   url?: string | ((useAsyncWasm: boolean) => string)
-  onCreateConnection?: (connection: DatabaseConnection) => Promisable<void>
+  /**
+   * Handle custom messages for event emitter
+   * @param mitt event emitter
+   */
+  message?: (mitt: IGenericEventEmitter) => Promisable<void>
 }
 
-type RunMsg = [
-  type: 1,
-  isSelect: boolean,
-  sql: string,
-  parameters?: readonly unknown[],
-]
-type StreamMsg = [
-  type: 3,
-  sql: string,
-  parameters?: readonly unknown[],
-]
-
-type InitMsg = [
-  type: 0,
-  url: string,
-  fileName: string,
-  useOPFS: boolean,
-]
-
-type CloseMsg = [2]
-export type MainToWorkerMsg = InitMsg | RunMsg | CloseMsg | StreamMsg
-
-export type WorkerToMainMsg = {
-  [K in keyof Events]: [
-    type: K,
-    data: Events[K],
-    err: unknown,
-  ]
-}[keyof Events]
-type Events = {
-  0: null
-  1: QueryResult<any> | null
-  2: null
-  3: QueryResult<any>[] | null
-  4: null
-}
-export type EventWithError = {
-  [K in keyof Events]: [data: Events[K], err: unknown]
+export type InitData = {
+  fileName: string
+  url?: string
+  useOPFS?: boolean
 }

@@ -25,11 +25,18 @@ const dialect = new SqliteWorkerDialect({
 in `worker.ts`
 
 ```ts
-import { createOnMessageCallback } from 'kysely-sqlite-worker'
+import { createOnMessageCallback, defaultCreateDatabaseFn } from 'kysely-sqlite-worker'
 
 createOnMessageCallback(
-  async (db) => {
+  async (...args) => {
+    const db = defaultCreateDatabaseFn(...args)
     db.loadExtension(/* ... */)
+    return db
+  },
+  ([type, exec, data1, data2, data3]) => {
+    if (type === 'export') {
+      return exec.db.export()
+    }
   }
 )
 ```

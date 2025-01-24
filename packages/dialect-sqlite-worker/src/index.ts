@@ -1,32 +1,54 @@
-import type { DatabaseIntrospector, Dialect, DialectAdapter, Driver, Kysely, QueryCompiler } from 'kysely'
-import type { SqliteWorkerDialectConfig } from './type'
-import { SqliteAdapter, SqliteIntrospector, SqliteQueryCompiler } from 'kysely'
-import { SqliteWorkerDriver } from './driver'
+import type { Options } from 'better-sqlite3'
+import type { IBaseSqliteDialectConfig, Promisable } from 'kysely-generic-sqlite'
+import path from 'node:path'
+import { Worker } from 'node:worker_threads'
+import { GenericSqliteWorkerDialect } from 'kysely-generic-sqlite/worker'
+import { createNodeMitt, handleNodeWorker } from 'kysely-generic-sqlite/worker-helper-node'
 
-export type { Promisable, SqliteWorkerDialectConfig } from './type'
-export { createOnMessageCallback } from './worker/util'
+export * from './worker/utils'
 
-export class SqliteWorkerDialect implements Dialect {
+export interface SqliteWorkerDialectConfig extends IBaseSqliteDialectConfig {
   /**
-   * dialect for better-sqlite, execute sql in `node:worker_threads`
+   * db file path or existing buffer
    */
-  constructor(
-    private config: SqliteWorkerDialectConfig,
-  ) { }
+  source: string | Buffer | (() => Promisable<string | Buffer>)
+  /**
+   * better-sqlite3 initiate option
+   */
+  dbOption?: Options
+  /**
+   * db worker path
+   * @default join(__dirname, 'worker.js')
+   */
+  workerPath?: string
+}
 
-  createDriver(): Driver {
-    return new SqliteWorkerDriver(this.config)
-  }
-
-  createQueryCompiler(): QueryCompiler {
-    return new SqliteQueryCompiler()
-  }
-
-  createAdapter(): DialectAdapter {
-    return new SqliteAdapter()
-  }
-
-  createIntrospector(db: Kysely<any>): DatabaseIntrospector {
-    return new SqliteIntrospector(db)
+export class SqliteWorkerDialect extends GenericSqliteWorkerDialect<Worker, {}> {
+  constructor(config: SqliteWorkerDialectConfig) {
+    const {
+      source,
+      dbOption,
+      onCreateConnection,
+      workerPath = path.join(__dirname, 'worker.js'),
+    } = config
+    super(
+      async () => {
+        const worker = new Worker(
+          workerPath,
+          {
+            workerData: {
+              src: typeof source === 'function' ? await source() : source,
+              option: dbOption,
+            },
+          },
+        )
+        return {
+          handle: handleNodeWorker,
+          mitt: createNodeMitt(),
+          worker,
+        }
+      },
+      onCreateConnection,
+    )
   }
 }

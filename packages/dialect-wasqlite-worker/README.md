@@ -1,27 +1,19 @@
 # kysely-wasqlite-worker
 
-[kysely](https://github.com/kysely-org/kysely) dialect for [`wa-sqlite`](https://github.com/rhashimoto/wa-sqlite), execute sql in `Web Worker`, store data in [OPFS](https://developer.mozilla.org/en-US/docs/Web/API/File_System_API/Origin_private_file_system) or IndexedDB
+[kysely](https://github.com/kysely-org/kysely) dialect for [`@subframe7536/sqlite-wasm`](https://github.com/subframe7536/sqlite-wasm) (use custom [`wa-sqlite`](https://github.com/rhashimoto/wa-sqlite) under the hood), execute sql in `Web Worker`, store data in [OPFS](https://developer.mozilla.org/en-US/docs/Web/API/File_System_API/Origin_private_file_system) or IndexedDB
 
 No need to set response header like [official wasm](../dialect-wasm/README.md#officialwasmdialect-performance)
 
 ## Install
 
 ```shell
-pnpm add kysely kysely-wasqlite-worker
+pnpm add kysely kysely-wasqlite-worker @subframe7536/sqlite-wasm
 ```
 
 ## Usage
 
 ```ts
-import {
-  generateDialectOptions,
-  isIdbSupported,
-  isModuleWorkerSupport,
-  isOpfsSupported,
-  useDefaultWasmURL,
-  useDefaultWorker,
-  WaSqliteWorkerDialect
-} from 'kysely-wasqlite-worker'
+import { WaSqliteWorkerDialect } from 'kysely-wasqlite-worker'
 
 const dialect = new WaSqliteWorkerDialect({
   fileName: 'test',
@@ -33,11 +25,19 @@ const dialect = new WaSqliteWorkerDialect({
 in `worker.ts`
 
 ```ts
-import { createOnMessageCallback, customFunction } from 'kysely-wasqlite-worker'
+import { customFunctionCore, exportDatabase } from '@subframe7536/sqlite-wasm'
+import { createOnMessageCallback, defaultCreateDatabaseFn } from 'kysely-wasqlite-worker'
 
-onmessage = createOnMessageCallback(
-  async (sqliteDB: SQLiteDB) => {
-    customFunction(sqliteDB.sqlite, sqliteDB.db, 'customFunction', (a, b) => a + b)
+createOnMessageCallback(
+  async (...args) => {
+    const sqliteDB = await defaultCreateDatabaseFn(...args)
+    customFunctionCore(sqliteDB, 'customFunction', (a, b) => a + b)
+    return sqliteDB
+  },
+  ([type, exec, data1, data2, data3]) => {
+    if (type === 'export') {
+      return exportDatabase(exec.db)
+    }
   }
 )
 ```
@@ -73,7 +73,7 @@ export interface WaSqliteWorkerDialectConfig {
    *       { type: 'classic', name: 'test' }
    *     )
    */
-  worker: Worker | ((supportModuleWorker: boolean) => Worker)
+  worker?: Worker | ((supportModuleWorker: boolean) => Worker)
   /**
    * wasm URL
    *
@@ -86,7 +86,12 @@ export interface WaSqliteWorkerDialectConfig {
    *   ? 'https://cdn.jsdelivr.net/gh/rhashimoto/wa-sqlite@v0.9.9/dist/wa-sqlite-async.wasm'
    *   : new URL('kysely-wasqlite-worker/wasm-sync', import.meta.url).href
    */
-  url: string | ((useAsyncWasm: boolean) => string)
+  url?: string | ((useAsyncWasm: boolean) => string)
+  /**
+   * Handle custom messages for event emitter
+   * @param mitt event emitter
+   */
+  message?: (mitt: IGenericEventEmitter) => Promisable<void>
   onCreateConnection?: (connection: DatabaseConnection) => Promisable<void>
 }
 ```

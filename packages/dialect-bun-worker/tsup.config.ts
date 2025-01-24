@@ -7,7 +7,6 @@ export default defineConfig({
   },
   clean: true,
   format: ['cjs', 'esm'],
-  shims: true,
   dts: true,
   external: ['kysely', 'bun:sqlite'],
   treeshake: true,

@@ -8,7 +8,10 @@
   },
   "license": "MIT",
   "homepage": "https://github.com/subframe7536/kysely-sqlite-tools/tree/master/packages/dialect-wasqlite-worker",
-  "repository": "https://github.com/subframe7536/kysely-sqlite-tools/tree/master/packages/dialect-wasqlite-worker",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/subframe7536/kysely-sqlite-tools.git#master"
+  },
   "bugs": "https://github.com/subframe7536/kysely-sqlite-tools/issues",
   "keywords": [
     "kysely",
@@ -25,8 +28,8 @@
     },
     "./worker-classic": "./dist/worker.js",
     "./worker-module": "./dist/worker.mjs",
-    "./wasm-sync": "./dist/wa-sqlite.wasm",
-    "./wasm-async": "./dist/wa-sqlite-async.wasm"
+    "./wasm-sync": "./node_modules/@subframe7536/sqlite-wasm/dist/wa-sqlite.wasm",
+    "./wasm-async": "./node_modules/@subframe7536/sqlite-wasm/dist/wa-sqlite-async.wasm"
   },
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
@@ -51,12 +54,15 @@
     "access": "public"
   },
   "peerDependencies": {
+    "@subframe7536/sqlite-wasm": ">=0.5.0",
     "kysely": ">=0.26"
   },
   "dependencies": {
+    "kysely-generic-sqlite": "workspace:*",
     "zen-mitt": "^3.0.0"
   },
   "devDependencies": {
-    "@subframe7536/sqlite-wasm": "^0.4.1"
+    "@subframe7536/sqlite-wasm": "^0.5.1",
+    "kysely": "catalog:"
   }
 }

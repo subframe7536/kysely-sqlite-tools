@@ -8,7 +8,10 @@
   },
   "license": "MIT",
   "homepage": "https://github.com/subframe7536/kysely-sqlite-tools/tree/master/packages/dialect-bun-worker",
-  "repository": "https://github.com/subframe7536/kysely-sqlite-tools/tree/master/packages/dialect-bun-worker",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/subframe7536/kysely-sqlite-tools.git#master"
+  },
   "bugs": "https://github.com/subframe7536/kysely-sqlite-tools/issues",
   "keywords": [
     "kysely",
@@ -43,13 +46,17 @@
   "scripts": {
     "dev": "tsup --watch",
     "test": "bun test",
+    "test:dev": "tsup && bun test",
     "build": "tsup"
   },
   "peerDependencies": {
     "bun-types": ">=1.1.14",
     "kysely": ">=0.26"
   },
+  "dependencies": {
+    "kysely-generic-sqlite": "workspace:*"
+  },
   "devDependencies": {
-    "bun-types": "^1.1.43"
+    "kysely": "catalog:"
   }
 }

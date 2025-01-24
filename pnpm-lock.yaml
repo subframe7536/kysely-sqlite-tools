@@ -4,6 +4,12 @@ settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
+catalogs:
+  default:
+    kysely:
+      specifier: ^0.27.5
+      version: 0.27.5
+
 importers:
 
   .:
@@ -41,6 +47,9 @@ importers:
       bumpp:
         specifier: ^9.10.1
         version: 9.10.1
+      bun-types:
+        specifier: ^1.1.43
+        version: 1.1.43
       cz-git:
         specifier: ^1.11.0
         version: 1.11.0
@@ -60,7 +69,7 @@ importers:
         specifier: ^9.1.7
         version: 9.1.7
       kysely:
-        specifier: ^0.27.5
+        specifier: 'catalog:'
         version: 0.27.5
       lint-staged:
         specifier: ^15.4.0
@@ -86,18 +95,21 @@ importers:
 
   packages/dialect-bun-worker:
     dependencies:
-      kysely:
-        specifier: '>=0.26'
-        version: 0.27.5
-    devDependencies:
       bun-types:
-        specifier: ^1.1.43
+        specifier: '>=1.1.14'
         version: 1.1.43
-
-  packages/dialect-common-sqlite:
-    dependencies:
+      kysely-generic-sqlite:
+        specifier: workspace:*
+        version: link:../dialect-generic-sqlite
+    devDependencies:
       kysely:
-        specifier: '>=0.26'
+        specifier: 'catalog:'
+        version: 0.27.5
+
+  packages/dialect-generic-sqlite:
+    devDependencies:
+      kysely:
+        specifier: 'catalog:'
         version: 0.27.5
 
   packages/dialect-sqlite-worker:
@@ -105,59 +117,54 @@ importers:
       better-sqlite3:
         specifier: '*'
         version: 11.8.0
+      kysely-generic-sqlite:
+        specifier: workspace:*
+        version: link:../dialect-generic-sqlite
+    devDependencies:
       kysely:
-        specifier: '>=0.26'
+        specifier: 'catalog:'
         version: 0.27.5
 
   packages/dialect-tauri:
     dependencies:
-      kysely:
-        specifier: '>=0.26'
-        version: 0.27.5
+      kysely-generic-sqlite:
+        specifier: workspace:*
+        version: link:../dialect-generic-sqlite
     devDependencies:
       '@tauri-apps/plugin-sql':
         specifier: ^2.2.0
         version: 2.2.0
+      kysely:
+        specifier: 'catalog:'
+        version: 0.27.5
 
   packages/dialect-wasm:
-    dependencies:
+    devDependencies:
       kysely:
-        specifier: '>=0.26'
+        specifier: 'catalog:'
         version: 0.27.5
 
   packages/dialect-wasqlite-worker:
     dependencies:
-      kysely:
-        specifier: '>=0.26'
-        version: 0.27.5
+      kysely-generic-sqlite:
+        specifier: workspace:*
+        version: link:../dialect-generic-sqlite
       zen-mitt:
         specifier: ^3.0.0
         version: 3.0.0
     devDependencies:
       '@subframe7536/sqlite-wasm':
-        specifier: ^0.4.1
-        version: 0.4.1
+        specifier: ^0.5.1
+        version: 0.5.1
+      kysely:
+        specifier: 'catalog:'
+        version: 0.27.5
 
   packages/plugin-serialize:
-    dependencies:
+    devDependencies:
       kysely:
-        specifier: '>=0.26'
+        specifier: 'catalog:'
         version: 0.27.5
-
-  packages/sqlite-builder:
-    dependencies:
-      '@subframe7536/type-utils':
-        specifier: ^0.1.6
-        version: 0.1.6
-      kysely:
-        specifier: '>=0.26'
-        version: 0.27.5
-      kysely-plugin-serialize:
-        specifier: workspace:*
-        version: link:../plugin-serialize
-      kysely-sqlite-utils:
-        specifier: workspace:*
-        version: link:../sqlite-utils
 
   packages/sqlite-utils:
     dependencies:
@@ -170,6 +177,9 @@ importers:
       '@subframe7536/sqlite-wasm':
         specifier: ^0.5.0
         version: 0.5.0
+      kysely:
+        specifier: 'catalog:'
+        version: 0.27.5
       kysely-sqlite-builder:
         specifier: ^0.11.0
         version: 0.11.0(kysely@0.27.5)
@@ -862,11 +872,11 @@ packages:
       vue-eslint-parser:
         optional: true
 
-  '@subframe7536/sqlite-wasm@0.4.1':
-    resolution: {integrity: sha512-7hwPr0g7nRhbK7vpkRV378Jp8u95+r8KO6J8HISeew/vlUXmbeNIIx6nFPm5zfjAmi4vAEhDODJcMAZ+DYMKSQ==}
-
   '@subframe7536/sqlite-wasm@0.5.0':
     resolution: {integrity: sha512-Jfvo9dHP2jjWJckysF+nnk1YzSRR6jUSy5wYQxtxw9PMiJ0iAPgL434RW1x+lgCmzBYIgDFDqZeCPoaOgz3ZaA==}
+
+  '@subframe7536/sqlite-wasm@0.5.1':
+    resolution: {integrity: sha512-rRszpnvcT045Jd5HkDMIxaYI95BUl8H07mhYmklNW1CbNjJtiD3dN550lRXElwcDUpTQrdhIdmA9A5QwJ+ct+A==}
 
   '@subframe7536/type-utils@0.1.6':
     resolution: {integrity: sha512-7tUH6F6q7RluUGNZ3iB2oxnhJAW5w4aCVky6mBTajpuyiBPnO2v2E+lsaNI6oGeUVsGo0rsB1u3akSIQcOKXhA==}
@@ -3622,11 +3632,9 @@ snapshots:
       - typescript
       - vitest
 
-  '@subframe7536/sqlite-wasm@0.4.1':
-    dependencies:
-      '@subframe7536/type-utils': 0.1.6
-
   '@subframe7536/sqlite-wasm@0.5.0': {}
+
+  '@subframe7536/sqlite-wasm@0.5.1': {}
 
   '@subframe7536/type-utils@0.1.6': {}
 

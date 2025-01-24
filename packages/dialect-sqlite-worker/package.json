@@ -8,7 +8,10 @@
   },
   "license": "MIT",
   "homepage": "https://github.com/subframe7536/kysely-sqlite-tools/tree/master/packages/dialect-sqlite-worker",
-  "repository": "https://github.com/subframe7536/kysely-sqlite-tools/tree/master/packages/dialect-sqlite-worker",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/subframe7536/kysely-sqlite-tools.git#master"
+  },
   "bugs": "https://github.com/subframe7536/kysely-sqlite-tools/issues",
   "keywords": [
     "kysely",
@@ -49,5 +52,11 @@
   "peerDependencies": {
     "better-sqlite3": "*",
     "kysely": ">=0.26"
+  },
+  "dependencies": {
+    "kysely-generic-sqlite": "workspace:*"
+  },
+  "devDependencies": {
+    "kysely": "catalog:"
   }
 }

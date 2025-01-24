@@ -1,33 +1,37 @@
-import type { DatabaseIntrospector, DialectAdapter, Driver, Kysely, QueryCompiler } from 'kysely'
 import type { TauriSqliteDialectConfig } from './type'
-import { SqliteAdapter, SqliteIntrospector, SqliteQueryCompiler } from 'kysely'
-import { TauriSqliteDriver } from './driver'
+import { buildQueryFn, GenericSqliteDialect, parseBigInt } from 'kysely-generic-sqlite'
 
 export type { TauriSqliteDialectConfig } from './type'
 /**
  * https://github.com/tauri-apps/plugins-workspace/tree/dev/plugins/sql
  */
-export class TauriSqliteDialect {
+export class TauriSqliteDialect extends GenericSqliteDialect {
   /**
    * SQLite dialect for Tauri, using [official sql plugin](https://github.com/tauri-apps/plugins-workspace/tree/dev/plugins/sql)
    */
   constructor(
-    private config: TauriSqliteDialectConfig,
-  ) { }
-
-  createDriver(): Driver {
-    return new TauriSqliteDriver(this.config)
-  }
-
-  createQueryCompiler(): QueryCompiler {
-    return new SqliteQueryCompiler()
-  }
-
-  createAdapter(): DialectAdapter {
-    return new SqliteAdapter()
-  }
-
-  createIntrospector(db: Kysely<any>): DatabaseIntrospector {
-    return new SqliteIntrospector(db)
+    config: TauriSqliteDialectConfig,
+  ) {
+    const { database, onCreateConnection } = config
+    super(
+      async () => {
+        const db = typeof database === 'function' ? await database('sqlite:') : database
+        return {
+          db,
+          query: buildQueryFn({
+            all: async (sql, parameters) => await db.select(sql, parameters as any),
+            run: async (sql, parameters) => {
+              const { rowsAffected, lastInsertId } = await db.execute(sql, parameters as any)
+              return {
+                numAffectedRows: parseBigInt(rowsAffected),
+                insertId: parseBigInt(lastInsertId),
+              }
+            },
+          }),
+          close: async () => await db.close(),
+        }
+      },
+      onCreateConnection,
+    )
   }
 }

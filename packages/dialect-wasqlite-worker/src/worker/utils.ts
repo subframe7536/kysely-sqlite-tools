@@ -1,80 +1,154 @@
-import type { SQLiteDB } from '@subframe7536/sqlite-wasm'
 import type { QueryResult } from 'kysely'
-import type { MainToWorkerMsg, WorkerToMainMsg } from '../type'
-import { initSQLite } from '@subframe7536/sqlite-wasm'
+import type { MessageHandleFn } from 'kysely-generic-sqlite/worker'
+import type { InitData } from '../type'
+import {
+  changes as changesCore,
+  close as closeCore,
+  lastInsertRowId as lastInsertRowIdCore,
+  type SQLiteDBCore,
+} from '@subframe7536/sqlite-wasm'
+import { SQLITE_OK, SQLITE_ROW } from '@subframe7536/sqlite-wasm/constant'
+import { type IGenericSqlite, parseBigInt, type Promisable } from 'kysely-generic-sqlite'
+import { createWebOnMessageCallback } from 'kysely-generic-sqlite/worker-helper-web'
 
-let db: SQLiteDB
+export type CreateDatabaseFn = (init: InitData) => Promisable<SQLiteDBCore>
 
-async function init(
-  fileName: string,
-  url: string,
-  useOPFS: boolean,
-  afterInit?: (sqliteDB: SQLiteDB) => Promise<void>,
-): Promise<void> {
-  db = await initSQLite(
-    (
-      useOPFS
-        ? (await import('@subframe7536/sqlite-wasm/opfs')).useOpfsStorage
-        : (await import('@subframe7536/sqlite-wasm/idb')).useIdbStorage
-    )(
-      fileName,
-      { url },
-    ),
-  )
-  await afterInit?.(db)
+export const defaultCreateDatabaseFn: CreateDatabaseFn
+  = async ({ fileName, url, useOPFS }) => {
+    return (await import('@subframe7536/sqlite-wasm')).initSQLiteCore(
+      (
+        useOPFS
+          ? (await import('@subframe7536/sqlite-wasm/opfs')).useOpfsStorage
+          : (await import('@subframe7536/sqlite-wasm/idb')).useIdbStorage
+      )(
+        fileName,
+        { url },
+      ),
+    )
+  }
+
+function createRowMapper(sqlite: SQLiteDBCore['sqlite'], stmt: number) {
+  const cols = sqlite.column_names(stmt)
+  return (row: any[]) => Object.fromEntries(cols.map((key, i) => [key, row[i]]))
 }
-async function exec(isSelect: boolean, sql: string, parameters?: readonly unknown[]): Promise<QueryResult<any>> {
-  const rows = await db.run(sql, parameters as any[])
-  return isSelect || rows.length
-    ? { rows }
-    : {
-        rows,
-        insertId: BigInt(db.lastInsertRowId()),
-        numAffectedRows: BigInt(db.changes()),
+
+export async function queryData(
+  core: SQLiteDBCore,
+  sql: string,
+  parameters?: readonly any[],
+): Promise<QueryResult<any>> {
+  const stmt = (await core
+    .sqlite
+    .statements(core.pointer, sql)[Symbol.asyncIterator]()
+    .next()).value
+
+  if (parameters?.length) {
+    core.sqlite.bind_collection(stmt, parameters)
+  }
+
+  const size = core.sqlite.column_count(stmt)
+  if (size === 0) {
+    await core.sqlite.step(stmt)
+    return {
+      rows: [],
+      insertId: parseBigInt(lastInsertRowIdCore(core)),
+      numAffectedRows: parseBigInt(changesCore(core)),
+    }
+  }
+
+  const mapRow = createRowMapper(core.sqlite, stmt)
+  // eslint-disable-next-line unicorn/no-new-array
+  const result = new Array(size)
+  let idx = 0
+  while (await core.sqlite.step(stmt) === SQLITE_ROW) {
+    result[idx++] = mapRow(core.sqlite.row(stmt))
+  }
+  return { rows: result }
+}
+
+export async function* iterateDate(
+  core: SQLiteDBCore,
+  sql: string,
+  parameters?: readonly any[],
+  chunkSize = 1,
+): AsyncIterableIterator<any[]> {
+  const { sqlite, pointer } = core
+  // eslint-disable-next-line unicorn/no-new-array
+  let cache = new Array(chunkSize)
+  for await (const stmt of sqlite.statements(pointer, sql)) {
+    if (parameters?.length) {
+      sqlite.bind_collection(stmt, parameters)
+    }
+    let idx = 0
+    const mapRow = createRowMapper(core.sqlite, stmt)
+    while (1) {
+      const result = await sqlite.step(stmt)
+      if (result === SQLITE_ROW) {
+        cache[idx] = mapRow(core.sqlite.row(stmt))
+        if (++idx === chunkSize) {
+          yield cache.slice(0, idx)
+          idx = 0
+        }
+      } else if (result === SQLITE_OK) {
+        if (++idx === chunkSize) {
+          yield []
+        }
+      } else {
+        if (idx > 0) {
+          yield cache.slice(0, idx)
+        }
+        break
       }
-}
-async function stream(onData: (data: any) => void, sql: string, parameters?: readonly unknown[]): Promise<void> {
-  await db.stream(onData, sql, parameters as any[])
+    }
+  }
+  cache = undefined!
 }
 
 /**
- * Handle worker message, support custom callback on initialization
+ * Handle worker message, support custom message handler
  * @example
- * // worker.ts
- * import { createOnMessageCallback, customFunction } from 'kysely-wasqlite-worker'
+ * in `worker.ts`
+ * ```ts
+ * import { customFunctionCore, exportDatabase } from '@subframe7536/sqlite-wasm'
+ * import { createOnMessageCallback, defaultCreateDatabaseFn } from 'kysely-wasqlite-worker'
  *
- * onmessage = createOnMessageCallback(
- *   async (sqliteDB: SQLiteDB) => {
- *     customFunction(sqliteDB.sqlite, sqliteDB.db, 'customFunction', (a, b) => a + b)
+ * createOnMessageCallback(
+ *   async (...args) => {
+ *     const sqliteDB = await defaultCreateDatabaseFn(...args)
+ *     customFunctionCore(sqliteDB, 'customFunction', (a, b) => a + b)
+ *     return sqliteDB
+ *   },
+ *   ([type, exec, data1, data2, data3]) => {
+ *     if (type === 'export') {
+ *       return exportDatabase(exec.db)
+ *     }
  *   }
  * )
+ * ```
  */
 export function createOnMessageCallback(
-  afterInit?: (sqliteDB: SQLiteDB) => Promise<void>,
-): (event: MessageEvent<MainToWorkerMsg>) => Promise<void> {
-  return async ({
-    data: [msg, data1, data2, data3],
-  }: MessageEvent<MainToWorkerMsg>) => {
-    const ret: WorkerToMainMsg = [msg, null, null]
-    try {
-      switch (msg) {
-        case 0:
-          await init(data1, data2, data3, afterInit)
-          break
-        case 1:
-          ret[1] = await exec(data1, data2, data3)
-          break
-        case 2:
-          await db.close()
-          break
-        case 3:
-          await stream(val => postMessage([3, [val], null] satisfies WorkerToMainMsg), data1, data2)
-          ret[0] = 4
-          break
-      }
-    } catch (error) {
-      ret[2] = error
-    }
-    postMessage(ret)
+  create: CreateDatabaseFn,
+  message?: MessageHandleFn<SQLiteDBCore>,
+): void {
+  createWebOnMessageCallback<InitData, SQLiteDBCore>(
+    async (initData) => {
+      const core = await create(initData!)
+      return createSqliteExecutor(core)
+    },
+    message,
+  )
+}
+
+function createSqliteExecutor(db: SQLiteDBCore): IGenericSqlite<SQLiteDBCore> {
+  return {
+    db,
+    query: async (_isSelect, sql, parameters) => await queryData(db, sql, parameters),
+    close: async () => await closeCore(db),
+    iterator: (_isSelect, sql, parameters, chunkSize) => iterateDate(
+      db,
+      sql,
+      parameters as any[],
+      chunkSize,
+    ),
   }
 }

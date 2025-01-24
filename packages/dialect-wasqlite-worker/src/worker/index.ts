@@ -1,3 +1,3 @@
-import { createOnMessageCallback } from './utils'
+import { createOnMessageCallback, defaultCreateDatabaseFn } from './utils'
 
-onmessage = createOnMessageCallback()
+createOnMessageCallback(defaultCreateDatabaseFn)

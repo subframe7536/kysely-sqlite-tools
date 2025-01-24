@@ -6,7 +6,6 @@ export default defineConfig([
       index: 'src/index.ts',
       worker: 'src/worker/index.ts',
     },
-    clean: true,
     format: ['cjs', 'esm'],
     shims: true,
     dts: true,

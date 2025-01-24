@@ -6,6 +6,7 @@ import type {
   RootOperationNode,
   UnknownRow,
 } from 'kysely'
+// @ts-expect-error fxxk tsconfig
 import type { QueryId } from 'kysely/dist/esm/util/query-id'
 import type { Deserializer, Serializer } from './serializer'
 import { SerializeParametersTransformer } from './serialize-transformer'

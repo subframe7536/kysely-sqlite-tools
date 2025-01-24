@@ -8,7 +8,10 @@
   },
   "license": "MIT",
   "homepage": "https://github.com/subframe7536/kysely-sqlite-tools/tree/master/packages/plugin-serialize",
-  "repository": "https://github.com/subframe7536/kysely-sqlite-tools/tree/master/packages/plugin-serialize",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/subframe7536/kysely-sqlite-tools.git#master"
+  },
   "bugs": "https://github.com/subframe7536/kysely-sqlite-tools/issues",
   "keywords": [
     "kysely",
@@ -29,5 +32,8 @@
   },
   "peerDependencies": {
     "kysely": ">=0.26"
+  },
+  "devDependencies": {
+    "kysely": "catalog:"
   }
 }

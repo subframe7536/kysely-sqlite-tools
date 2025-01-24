@@ -8,7 +8,10 @@
   },
   "license": "MIT",
   "homepage": "https://github.com/subframe7536/kysely-sqlite-tools/tree/master/packages/dialect-wasm",
-  "repository": "https://github.com/subframe7536/kysely-sqlite-tools/tree/master/packages/dialect-wasm",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/subframe7536/kysely-sqlite-tools.git#master"
+  },
   "bugs": "https://github.com/subframe7536/kysely-sqlite-tools/issues",
   "keywords": [
     "kysely",
@@ -39,5 +42,8 @@
   },
   "publishConfig": {
     "access": "public"
+  },
+  "devDependencies": {
+    "kysely": "catalog:"
   }
 }

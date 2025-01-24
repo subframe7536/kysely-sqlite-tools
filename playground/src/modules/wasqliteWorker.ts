@@ -1,16 +1,16 @@
+import wasmURL from '@subframe7536/sqlite-wasm/dist/wa-sqlite-async.wasm?url'
+
 import {
-  isIdbSupported,
-  isModuleWorkerSupport,
-  isOpfsSupported,
+  // isIdbSupported,
+  // isModuleWorkerSupport,
+  // isOpfsSupported,
   WaSqliteWorkerDialect,
 } from 'kysely-wasqlite-worker'
-
-import wasmURL from 'kysely-wasqlite-worker/wasm-sync?url'
 
 import { testDB } from './utils'
 
 export async function useWaSqliteWorker() {
-  console.log(wasmURL)
+  // console.log(wasmURL)
   const dialect = new WaSqliteWorkerDialect({
     fileName: 'wa-sqlite-worker-test',
     // test classic worker
@@ -18,17 +18,17 @@ export async function useWaSqliteWorker() {
     //   new URL('kysely-wasqlite-worker/worker-classic', import.meta.url),
     // ),
     // test custom wasm URL
-    // url: () => wasmURL,
+    url: () => wasmURL,
   })
   console.log('start wa-sqlite-worker test')
-  testDB(dialect)
+  testDB(dialect as any)
     .then(async (data) => {
       data?.forEach(e => console.log('[wa-sqlite-worker]', e))
-      const supportModuleWorker = isModuleWorkerSupport()
-      const supportIDB = isIdbSupported()
-      const supportOPFS = await isOpfsSupported()
-      console.log('support module worker:', supportModuleWorker)
-      console.log('support IDBBatchAtomicVFS:', supportIDB)
-      console.log('support AccessHandlePoolVFS:', supportOPFS)
+      // const supportModuleWorker = isModuleWorkerSupport()
+      // const supportIDB = isIdbSupported()
+      // const supportOPFS = await isOpfsSupported()
+      // console.log('support module worker:', supportModuleWorker)
+      // console.log('support IDBBatchAtomicVFS:', supportIDB)
+      // console.log('support AccessHandlePoolVFS:', supportOPFS)
     })
 }
