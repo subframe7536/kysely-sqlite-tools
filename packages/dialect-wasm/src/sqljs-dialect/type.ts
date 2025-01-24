@@ -1,8 +1,16 @@
-import type { BaseDB } from '../baseDriver'
+import type { BaseDB } from '../types'
+
+type SqlValue = number | string | Uint8Array | null
+type ParamsObject = Record<string, SqlValue>
+type BindParams = SqlValue[] | ParamsObject | null
+interface QueryExecResult {
+  columns: string[]
+  values: SqlValue[][]
+}
 
 export interface SqlJSDB extends BaseDB {
-  export: () => Uint8Array
-  getRowsModified: () => number | bigint
+  exec: (sql: string, params?: BindParams) => QueryExecResult[]
+  getRowsModified: () => number
   prepare: (sql: string, params?: any[]) => Statement
 }
 interface Statement {

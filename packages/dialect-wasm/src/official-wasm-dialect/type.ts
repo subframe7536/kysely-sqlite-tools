@@ -1,4 +1,4 @@
-import type { BaseDB } from '../baseDriver'
+import type { BaseDB } from '../types'
 
 export type Option = {
   sql: string | string[]

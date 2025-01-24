@@ -1,4 +1,4 @@
-import type { BaseDB } from '../baseDriver'
+import type { BaseDB } from '../types'
 
 export interface CrSqliteDB extends BaseDB {
   execA: (sql: string, bind?: any[]) => Promise<any[]>

@@ -1,17 +1,14 @@
-import type { DatabaseConnection, Driver } from 'kysely'
 import type { Promisable } from '../types'
 import type { OfficialWasmDB } from './type'
-import { BaseDialect } from '../baseDialect'
-import { OfficialWasmDriver } from './driver'
+import { buildQueryFn, GenericSqliteDialect, type IBaseSqliteDialectConfig } from 'kysely-generic-sqlite'
+import { accessDB } from '../utils'
 
 export type { OfficialWasmDB } from './type'
-export interface OfficialWasmDialectConfig {
+export interface OfficialWasmDialectConfig extends IBaseSqliteDialectConfig {
   database: OfficialWasmDB | (() => Promisable<OfficialWasmDB>)
-  onCreateConnection?: (connection: DatabaseConnection) => Promisable<void>
 }
 
-export class OfficialWasmDialect extends BaseDialect {
-  private config: OfficialWasmDialectConfig
+export class OfficialWasmDialect extends GenericSqliteDialect {
   /**
    * dialect for [official wasm build](https://sqlite.org/wasm/doc/trunk/index.md)
    *
@@ -56,11 +53,24 @@ export class OfficialWasmDialect extends BaseDialect {
    * @see https://sqlite.org/wasm/doc/trunk/persistence.md#coop-coep
    */
   constructor(config: OfficialWasmDialectConfig) {
-    super()
-    this.config = config
-  }
-
-  createDriver(): Driver {
-    return new OfficialWasmDriver(this.config)
+    super(
+      async () => {
+        const db = await accessDB(config.database)
+        return {
+          db,
+          close: () => db.close(),
+          query: buildQueryFn({
+            all: (sql, parameters) => {
+              return db.selectObjects(sql, parameters as any)
+            },
+            run: () => ({
+              insertId: BigInt(db.selectArray('SELECT last_insert_rowid()')[0]),
+              numAffectedRows: BigInt(db.changes(false, true)),
+            }),
+          }),
+        }
+      },
+      config.onCreateConnection,
+    )
   }
 }

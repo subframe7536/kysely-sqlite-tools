@@ -50,7 +50,7 @@ export async function testDB(dialect: Dialect) {
       console.log('Stream Query', v)
     }
   } catch (error) {
-    console.error(error)
+    console.warn(error)
   }
 
   return db.selectFrom('test').selectAll().execute().then(async (data) => {

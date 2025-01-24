@@ -1,44 +1,52 @@
-import type { DatabaseConnection, Driver } from 'kysely'
-import type { Promisable } from '../types'
 import type { SqlJSDB } from './type'
-import { BaseDialect } from '../baseDialect'
-import { SqlJsDriver } from './driver'
+import {
+  buildQueryFn,
+  GenericSqliteDialect,
+  type IBaseSqliteDialectConfig,
+  type Promisable,
+} from 'kysely-generic-sqlite'
+import { accessDB } from '../utils'
 
-export interface SqlJsDialectConfig {
+export interface SqlJsDialectConfig extends IBaseSqliteDialectConfig {
   database: SqlJSDB | (() => Promisable<SqlJSDB>)
-  onWrite?: {
-    func: (buffer: Uint8Array) => void
-    /**
-     * whether to merge multiple writes
-     */
-    isThrottle?: boolean
-    /**
-     * merge all writes in [delay] ms
-     * @default 2000
-     */
-    delay?: number
-    /**
-     * If more than [maxCalls] writes are called, write immediately
-     * @default 1000
-     */
-    maxCalls?: number
-  }
-  onCreateConnection?: (connection: DatabaseConnection) => Promisable<void>
 }
-export class SqlJsDialect extends BaseDialect {
-  private config: SqlJsDialectConfig
-
+export class SqlJsDialect extends GenericSqliteDialect {
   /**
    * dialect for [sql.js](https://github.com/sql-js/sql.js)
    *
    * no support for bigint
    */
   constructor(config: SqlJsDialectConfig) {
-    super()
-    this.config = config
-  }
-
-  createDriver(): Driver {
-    return new SqlJsDriver(this.config)
+    super(
+      async () => {
+        const db = await accessDB(config.database)
+        return {
+          db,
+          close: () => db.close(),
+          query: buildQueryFn({
+            run: () => ({
+              insertId: BigInt(db.exec('SELECT last_insert_rowid()')[0].values[0][0] as number),
+              numAffectedRows: BigInt(db.getRowsModified()),
+            }),
+            all: (sql, parameters) => {
+              const stmt = db.prepare(sql)
+              try {
+                if (parameters?.length) {
+                  stmt.bind(parameters as any[])
+                }
+                const rows = []
+                while (stmt.step()) {
+                  rows.push(stmt.getAsObject())
+                }
+                return rows
+              } finally {
+                stmt.free()
+              }
+            },
+          }),
+        }
+      },
+      config.onCreateConnection,
+    )
   }
 }

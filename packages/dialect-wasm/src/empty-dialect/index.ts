@@ -1,11 +1,11 @@
-import { type Driver, DummyDriver } from 'kysely'
-import { BaseDialect } from '../baseDialect'
+import { DummyDriver } from 'kysely'
+import { BaseSqliteDialect } from 'kysely-generic-sqlite'
 
 /**
  * Should only be used to generate sql statements
  */
-export class EmptyDialect extends BaseDialect {
-  createDriver(): Driver {
-    return new DummyDriver()
+export class EmptyDialect extends BaseSqliteDialect {
+  constructor() {
+    super(() => new DummyDriver())
   }
 }

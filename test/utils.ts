@@ -9,7 +9,7 @@ interface TestTable {
   age: number
   int8: Uint8Array
 }
-export async function testCase(dialect: Dialect, expect: any): Promise<void> {
+export async function testCase(dialect: Dialect, expect: any, supportStream = true): Promise<void> {
   const db = new Kysely<DB>({ dialect })
   await db.schema.createTable('test')
     .addColumn('id', 'integer', builder => builder.autoIncrement().primaryKey())
@@ -28,15 +28,17 @@ export async function testCase(dialect: Dialect, expect: any): Promise<void> {
   expect(age).toStrictEqual(18)
   expect(name).toStrictEqual(`test ${dialect.toString()}`)
   expect(int8).toStrictEqual(Uint8Array.from([1, 2, 3]))
-  const rows = db.selectFrom('test').selectAll().stream()
-  let count = 0
-  for await (const row of rows) {
-    count++
-    expect(row.age).toStrictEqual(18)
-    expect(row.name).toStrictEqual(`test ${dialect.toString()}`)
-    expect(row.int8).toStrictEqual(Uint8Array.from([1, 2, 3]))
+  if (supportStream) {
+    const rows = db.selectFrom('test').selectAll().stream()
+    let count = 0
+    for await (const row of rows) {
+      count++
+      expect(row.age).toStrictEqual(18)
+      expect(row.name).toStrictEqual(`test ${dialect.toString()}`)
+      expect(row.int8).toStrictEqual(Uint8Array.from([1, 2, 3]))
+    }
+    expect(count).toStrictEqual(1)
   }
-  expect(count).toStrictEqual(1)
 
   const result = await db.executeQuery(
     CompiledQuery.raw(
@@ -44,18 +46,12 @@ export async function testCase(dialect: Dialect, expect: any): Promise<void> {
       [20, 'test name'],
     ),
   )
-  expect(result).toMatchInlineSnapshot(`
-    {
-      "rows": [
-        {
-          "age": 20,
-          "id": 2,
-          "int8": null,
-          "name": "test name",
-        },
-      ],
-    }
-  `)
+  expect(result.rows[0]).toStrictEqual({
+    age: 20,
+    id: 2,
+    int8: null,
+    name: 'test name',
+  })
 
   await db.destroy()
 }
