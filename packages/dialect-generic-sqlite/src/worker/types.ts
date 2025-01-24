@@ -60,7 +60,7 @@ export interface IGenericEventEmitter {
 
 export type HandleMessageFn<T extends IGenericWorker> = (worker: T, cb: (msg: WorkerToMainMsg) => any) => void
 
-export interface IGenericSqliteWorker<
+export interface IGenericSqliteWorkerExecutor<
   W extends IGenericWorker,
   T extends Record<string, unknown>,
 > {

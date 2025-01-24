@@ -3,7 +3,7 @@ export * from './driver'
 export type {
   HandleMessageFn,
   IGenericEventEmitter,
-  IGenericSqliteWorker as IGenericSqliteWorkerExecutor,
+  IGenericSqliteWorkerExecutor,
   IGenericWorker,
   InitFn,
   MessageHandleFn,

@@ -1,7 +1,7 @@
 import type { Promisable } from '../type'
 import type {
   HandleMessageFn,
-  IGenericSqliteWorker,
+  IGenericSqliteWorkerExecutor,
   InitFn,
   MessageHandleFn,
 } from './types'
@@ -21,7 +21,7 @@ export function createWebOnMessageCallback<T extends Record<string, unknown>, DB
 
 export interface IWebWorkerDialectConfig<
   T extends Record<string, unknown>,
-> extends Pick<IGenericSqliteWorker<globalThis.Worker, T>, 'data' | 'mitt'> {
+> extends Pick<IGenericSqliteWorkerExecutor<globalThis.Worker, T>, 'data' | 'mitt'> {
   worker: globalThis.Worker | (() => Promisable<globalThis.Worker>)
 }
 
@@ -53,7 +53,7 @@ export const handleWebWorker: HandleMessageFn<globalThis.Worker>
  */
 export function createWebWorkerExecutor<T extends Record<string, unknown>>(
   config: IWebWorkerDialectConfig<T>,
-): () => Promise<IGenericSqliteWorker<globalThis.Worker, T>> {
+): () => Promise<IGenericSqliteWorkerExecutor<globalThis.Worker, T>> {
   const { worker, ...rest } = config
   return async () => ({
     ...rest,

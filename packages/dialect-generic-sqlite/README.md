@@ -53,7 +53,7 @@ function createSqliteExecutor(db: Database): IGenericSqlite<Database> {
 For client that does not support `stmt.reader`, there are 2 utils with same parameters:
 
 - `buildQueryFn`: Support `returning`, get `insertId` and `numAffectedRows` by calling `select 1`
-- `buildQueryFnAlt`: Do not support `returning`, never have `insertId` and `numAffectedRows` properties in `QueryResult`
+- `buildQueryFnAlt`: Do not support `returning`
 
 ```ts
 import Database from 'bun:sqlite'

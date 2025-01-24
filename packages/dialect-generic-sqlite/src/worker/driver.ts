@@ -8,7 +8,7 @@ import {
   dataEvent,
   endEvent,
   type IGenericEventEmitter,
-  type IGenericSqliteWorker,
+  type IGenericSqliteWorkerExecutor,
   type IGenericWorker,
   initEvent,
   type InitMsg,
@@ -24,7 +24,7 @@ export class GenericSqliteWorkerDriver<
   private worker?: T
   private mitt?: IGenericEventEmitter
   constructor(
-    executor: () => Promisable<IGenericSqliteWorker<T, R>>,
+    executor: () => Promisable<IGenericSqliteWorkerExecutor<T, R>>,
     onCreateConnection?: OnCreateConnection,
   ) {
     super(async () => {

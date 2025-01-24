@@ -2,7 +2,7 @@ import type { Promisable } from '../type'
 import type {
   HandleMessageFn,
   IGenericEventEmitter,
-  IGenericSqliteWorker,
+  IGenericSqliteWorkerExecutor,
   InitFn,
   MessageHandleFn,
 } from './types'
@@ -47,7 +47,7 @@ export function createNodeMitt(): IGenericEventEmitter {
 
 export interface INodeWorkerDialectConfig<
   T extends Record<string, unknown>,
-> extends Pick<IGenericSqliteWorker<Worker, T>, 'data'> {
+> extends Pick<IGenericSqliteWorkerExecutor<Worker, T>, 'data'> {
   worker: Worker | (() => Promisable<Worker>)
 }
 
@@ -72,7 +72,7 @@ export interface INodeWorkerDialectConfig<
  */
 export function createNodeWorkerExecutor<T extends Record<string, unknown>>(
   config: INodeWorkerDialectConfig<T>,
-): () => Promise<IGenericSqliteWorker<Worker, T>> {
+): () => Promise<IGenericSqliteWorkerExecutor<Worker, T>> {
   const { worker, data } = config
   return async () => ({
     data,
