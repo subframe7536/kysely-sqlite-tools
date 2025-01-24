@@ -62,17 +62,6 @@ describe('test', () => {
   ],
 }
 `)
-    const result1 = await db
-      .insertInto('test')
-      .values([
-        { age: 1, int8: new Uint8Array(), name: 'test' },
-        { age: 1, int8: new Uint8Array(), name: 'test' },
-        { age: 1, int8: new Uint8Array(), name: 'test' },
-        { age: 1, int8: new Uint8Array(), name: 'test' },
-      ])
-      .returningAll()
-      .execute()
-    console.log(result1)
     await db.destroy()
   })
 })
