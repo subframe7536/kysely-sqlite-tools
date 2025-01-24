@@ -74,7 +74,7 @@ jobs:
 
     strategy:
       matrix:
-        node: [18, 20]
+        node: [20, 22]
         os: [ubuntu-latest, windows-latest, macos-latest]
       fail-fast: false
 
@@ -88,6 +88,8 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node }}
+      - name: Install bun
+        uses: oven-sh/setup-bun@v2
 
       - name: Setup
         run: npm i -g @antfu/ni
