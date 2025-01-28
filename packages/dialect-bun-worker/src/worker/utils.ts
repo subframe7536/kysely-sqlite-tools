@@ -10,7 +10,7 @@ async function* iterateData(
   parameters?: readonly unknown[],
 ): AsyncIterableIterator<Record<string, any>> {
   if (!('iterate' in stmt)) {
-    throw new Error('Streaming not supported, please upgrade to Bun@^1.1.31')
+    throw new Error('Streaming not supported, please upgrade to Bun@1.1.31 or later')
   }
   for (const row of stmt.iterate(...parameters || [] as any)) {
     yield row as any

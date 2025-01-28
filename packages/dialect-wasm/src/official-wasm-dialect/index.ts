@@ -64,7 +64,7 @@ export class OfficialWasmDialect extends GenericSqliteDialect {
               return db.selectObjects(sql, parameters as any)
             },
             run: () => ({
-              insertId: BigInt(db.selectArray('SELECT last_insert_rowid()')[0]),
+              insertId: BigInt((db.selectArray('SELECT last_insert_rowid()')?.[0] || 0) as number),
               numAffectedRows: BigInt(db.changes(false, true)),
             }),
           }),

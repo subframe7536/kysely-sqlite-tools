@@ -1,5 +1,6 @@
 # Kysely Sqlite Tools
 
+- [dialect](packages/dialect-generic-sqlite) for generic SQLite, support run in current or worker thread
 - [dialect](packages/dialect-wasm) for `wasm`, run SQLite in browser
 - [dialect](packages/dialect-sqlite-worker) for [`better-sqlite3`](https://github.com/WiseLibs/better-sqlite3), running sql in worker_thread
 - [dialect](packages/dialect-wasqlite-worker) for [`wa-sqlite`](https://github.com/rhashimoto/wa-sqlite), running sql in web worker, store data in OPFS or IndexedDB
