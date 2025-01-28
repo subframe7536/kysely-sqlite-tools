@@ -216,6 +216,7 @@ createNodeOnMessageCallback<{}, Database>(
     if (type === 'test') {
       exec.db.pragma('optimize')
       console.log(data1) // 'your-data'
+      return 'CUSTOM'
     }
   }
 )
@@ -226,7 +227,7 @@ createNodeOnMessageCallback<{}, Database>(
 ```ts
 import { BaseSqliteDialect } from 'kysely-generic-sqlite'
 
-const dialect = new BaseSqliteDialect(() => new YourCustomDialect())
+const dialect = new BaseSqliteDialect(() => new YourCustomDriver())
 ```
 
 ## Dialects Based On This dialect
