@@ -14,7 +14,7 @@
     "preinstall": "npx only-allow pnpm",
     "dev": "pnpm -r -F \"./packages/dialect*\" dev",
     "build": "pnpm -r -F \"./packages/dialect*\" build",
-    "release": "pnpm i && bumpp package.json packages/dialect*/package.json packages/plugin*/package.json",
+    "release": "pnpm i && bumpp package.json packages/dialect*/package.json",
     "serve": "cd playground && pnpm run dev",
     "publish": "pnpm -r -F \"./packages/dialect*\" publish --no-git-checks",
     "test": "pnpm run build && vitest run --root ./test --passWithNoTests && pnpm run test:bun",

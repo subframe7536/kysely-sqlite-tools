@@ -164,12 +164,6 @@ importers:
         specifier: 'catalog:'
         version: 0.27.5
 
-  packages/plugin-serialize:
-    devDependencies:
-      kysely:
-        specifier: 'catalog:'
-        version: 0.27.5
-
   packages/sqlite-utils:
     dependencies:
       kysely:
