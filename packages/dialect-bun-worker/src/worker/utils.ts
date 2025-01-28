@@ -2,7 +2,7 @@ import type { Statement } from 'bun:sqlite'
 import type { MessageHandleFn } from 'kysely-generic-sqlite/worker'
 import type { InitData } from '../type'
 import Database from 'bun:sqlite'
-import { buildQueryFn, type IGenericSqlite, parseBigInt, type Promisable } from 'kysely-generic-sqlite'
+import { type IGenericSqlite, parseBigInt, type Promisable } from 'kysely-generic-sqlite'
 import { createWebOnMessageCallback } from 'kysely-generic-sqlite/worker-helper-web'
 
 async function* iterateData(
@@ -49,20 +49,25 @@ export function createOnMessageCallback(
 
 function createSqliteExecutor(db: Database, cache: boolean): IGenericSqlite<Database> {
   const fn = cache ? 'query' : 'prepare'
-  const getStmt = (sql: string) => db[fn](sql)
+  const getStmt = (sql: string, parameters?: any[]) => db[fn](sql, parameters)
 
   return {
     db,
-    query: buildQueryFn({
-      all: (sql, parameters) => getStmt(sql).all(...parameters || []),
-      run: (sql, parameters) => {
-        const { changes, lastInsertRowid } = getStmt(sql).run(...parameters || [])
+    query: (_, sql, parameters) => {
+      const stmt = getStmt(sql, parameters as any[])
+      if (stmt.columnNames.length > 0) {
         return {
-          insertId: parseBigInt(lastInsertRowid),
-          numAffectedRows: parseBigInt(changes),
+          rows: stmt.all(),
         }
-      },
-    }),
+      } else {
+        const { changes, lastInsertRowid } = stmt.run()
+        return {
+          numAffectedRows: parseBigInt(changes),
+          insertId: parseBigInt(lastInsertRowid),
+          rows: [],
+        }
+      }
+    },
     close: () => db.close(),
     iterator: (_, sql, parameters) => iterateData(getStmt(sql), parameters),
   }
