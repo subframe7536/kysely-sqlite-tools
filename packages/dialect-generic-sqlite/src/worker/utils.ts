@@ -15,7 +15,7 @@ import {
  * Create generic message handler
  * @param init Function that init sqlite executor
  * @param post Function that post message to main thread
- * @param message Handle all messages. If returning data is not `undefined` and `null`, it will be set as second element of first param
+ * @param message Handle custom messages. If returning data is not `undefined` and `null`, it will be set as second element of first param
  */
 export function createGenericOnMessageCallback<T extends Record<string, unknown>, DB = unknown>(
   init: InitFn<T, DB>,
@@ -50,11 +50,13 @@ export function createGenericOnMessageCallback<T extends Record<string, unknown>
           ret[0] = endEvent
           break
         }
-      }
-      if (message) {
-        const data = await message(type, db, data1, data2, data3)
-        if (data !== undefined && data !== null) {
-          ret[1] = data
+        default: {
+          if (message) {
+            const data = await message(db, type, data1, data2, data3)
+            if (data !== undefined && data !== null) {
+              ret[1] = data
+            }
+          }
         }
       }
     } catch (error) {

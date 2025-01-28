@@ -94,8 +94,8 @@ export type InitFn<
  * Function that handle all message
  */
 export type MessageHandleFn<DB = unknown> = (
-  type: string,
   exec: IGenericSqlite<DB>,
+  type: string,
   data1: unknown,
   data2: unknown,
   data3: unknown

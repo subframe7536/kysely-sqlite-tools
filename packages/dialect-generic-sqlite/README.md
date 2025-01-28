@@ -212,7 +212,7 @@ import { createNodeOnMessageCallback } from 'kysely-generic-sqlite/worker-helper
 
 createNodeOnMessageCallback<{}, Database>(
   data => createSqliteExecutor(':memory:'),
-  ([type, exec, data1, data2, data3]) => {
+  (exec, type, data1, data2, data3) => {
     if (type === 'test') {
       exec.db.pragma('optimize')
       console.log(data1) // 'your-data'
