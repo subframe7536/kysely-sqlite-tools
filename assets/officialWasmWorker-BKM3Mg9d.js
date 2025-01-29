@@ -22,7 +22,7 @@ var sqlite3InitModule = (() => {
     });
     var ENVIRONMENT_IS_WEB = typeof window == "object";
     var ENVIRONMENT_IS_WORKER = typeof importScripts == "function";
-    typeof process == "object" && typeof process.versions == "object" && typeof process.versions.node == "string";
+    typeof process == "object" && typeof process.versions == "object" && typeof process.versions.node == "string" && process.type != "renderer";
     const sqlite3InitModuleState = globalThis.sqlite3InitModuleState || Object.assign(/* @__PURE__ */ Object.create(null), {
       debugModule: () => {
       }
@@ -118,12 +118,10 @@ var sqlite3InitModule = (() => {
     var __ATINIT__ = [];
     var __ATPOSTRUN__ = [];
     function preRun() {
-      if (Module["preRun"]) {
-        if (typeof Module["preRun"] == "function")
-          Module["preRun"] = [Module["preRun"]];
-        while (Module["preRun"].length) {
-          addOnPreRun(Module["preRun"].shift());
-        }
+      var preRuns = Module["preRun"];
+      if (preRuns) {
+        if (typeof preRuns == "function") preRuns = [preRuns];
+        preRuns.forEach(addOnPreRun);
       }
       callRuntimeCallbacks(__ATPRERUN__);
     }
@@ -133,12 +131,10 @@ var sqlite3InitModule = (() => {
       callRuntimeCallbacks(__ATINIT__);
     }
     function postRun() {
-      if (Module["postRun"]) {
-        if (typeof Module["postRun"] == "function")
-          Module["postRun"] = [Module["postRun"]];
-        while (Module["postRun"].length) {
-          addOnPostRun(Module["postRun"].shift());
-        }
+      var postRuns = Module["postRun"];
+      if (postRuns) {
+        if (typeof postRuns == "function") postRuns = [postRuns];
+        postRuns.forEach(addOnPostRun);
       }
       callRuntimeCallbacks(__ATPOSTRUN__);
     }
@@ -191,7 +187,7 @@ var sqlite3InitModule = (() => {
         }
         return f;
       }
-      return new URL("" + new URL("sqlite3-qlk9hduR.wasm", import.meta.url).href, import.meta.url).href;
+      return new URL("" + new URL("sqlite3-D0DavjUQ.wasm", import.meta.url).href, import.meta.url).href;
     }
     var wasmBinaryFile;
     function getBinarySync(file) {
@@ -261,7 +257,7 @@ var sqlite3InitModule = (() => {
           readyPromiseReject(e);
         }
       }
-      if (!wasmBinaryFile) wasmBinaryFile = findWasmBinary();
+      wasmBinaryFile ?? (wasmBinaryFile = findWasmBinary());
       instantiateAsync(
         wasmBinary,
         wasmBinaryFile,
@@ -271,9 +267,7 @@ var sqlite3InitModule = (() => {
       return {};
     }
     var callRuntimeCallbacks = (callbacks) => {
-      while (callbacks.length > 0) {
-        callbacks.shift()(Module);
-      }
+      callbacks.forEach((f) => f(Module));
     };
     Module["noExitRuntime"] || true;
     var PATH = {
@@ -399,7 +393,7 @@ var sqlite3InitModule = (() => {
       }
     };
     var UTF8Decoder = typeof TextDecoder != "undefined" ? new TextDecoder() : void 0;
-    var UTF8ArrayToString = (heapOrArray, idx, maxBytesToRead) => {
+    var UTF8ArrayToString = (heapOrArray, idx = 0, maxBytesToRead = NaN) => {
       var endIdx = idx + maxBytesToRead;
       var endPtr = idx;
       while (heapOrArray[endPtr] && !(endPtr >= endIdx)) ++endPtr;
@@ -587,7 +581,7 @@ var sqlite3InitModule = (() => {
         },
         put_char(tty, val) {
           if (val === null || val === 10) {
-            out(UTF8ArrayToString(tty.output, 0));
+            out(UTF8ArrayToString(tty.output));
             tty.output = [];
           } else {
             if (val != 0) tty.output.push(val);
@@ -595,7 +589,7 @@ var sqlite3InitModule = (() => {
         },
         fsync(tty) {
           if (tty.output && tty.output.length > 0) {
-            out(UTF8ArrayToString(tty.output, 0));
+            out(UTF8ArrayToString(tty.output));
             tty.output = [];
           }
         },
@@ -651,7 +645,7 @@ var sqlite3InitModule = (() => {
       default_tty1_ops: {
         put_char(tty, val) {
           if (val === null || val === 10) {
-            err(UTF8ArrayToString(tty.output, 0));
+            err(UTF8ArrayToString(tty.output));
             tty.output = [];
           } else {
             if (val != 0) tty.output.push(val);
@@ -659,7 +653,7 @@ var sqlite3InitModule = (() => {
         },
         fsync(tty) {
           if (tty.output && tty.output.length > 0) {
-            err(UTF8ArrayToString(tty.output, 0));
+            err(UTF8ArrayToString(tty.output));
             tty.output = [];
           }
         }
@@ -667,7 +661,6 @@ var sqlite3InitModule = (() => {
     };
     var zeroMemory = (address, size) => {
       HEAPU8.fill(0, address, address + size);
-      return address;
     };
     var alignMemory = (size, alignment) => {
       return Math.ceil(size / alignment) * alignment;
@@ -675,8 +668,8 @@ var sqlite3InitModule = (() => {
     var mmapAlloc = (size) => {
       size = alignMemory(size, 65536);
       var ptr = _emscripten_builtin_memalign(65536, size);
-      if (!ptr) return 0;
-      return zeroMemory(ptr, size);
+      if (ptr) zeroMemory(ptr, size);
+      return ptr;
     };
     var MEMFS = {
       ops_table: null,
@@ -1104,6 +1097,7 @@ var sqlite3InitModule = (() => {
       genericErrors: {},
       filesystems: null,
       syncFSRequests: 0,
+      readFiles: {},
       FSStream: class {
         constructor() {
           this.shared = {};
@@ -1751,7 +1745,7 @@ var sqlite3InitModule = (() => {
           throw new FS.ErrnoError(63);
         }
         node.node_ops.setattr(node, {
-          mode: mode & 4095 | node.mode & ~4095,
+          mode: mode & 4095 | node.mode & -4096,
           timestamp: Date.now()
         });
       },
@@ -1866,7 +1860,7 @@ var sqlite3InitModule = (() => {
           throw new FS.ErrnoError(44);
         }
         if (FS.isChrdev(node.mode)) {
-          flags &= ~512;
+          flags &= -513;
         }
         if (flags & 65536 && !FS.isDir(node.mode)) {
           throw new FS.ErrnoError(54);
@@ -1880,7 +1874,7 @@ var sqlite3InitModule = (() => {
         if (flags & 512 && !created) {
           FS.truncate(node, 0);
         }
-        flags &= ~(128 | 512 | 131072);
+        flags &= -131713;
         var stream = FS.createStream({
           node,
           path: FS.getPath(node),
@@ -1895,7 +1889,6 @@ var sqlite3InitModule = (() => {
           stream.stream_ops.open(stream);
         }
         if (Module["logReadFiles"] && !(flags & 1)) {
-          if (!FS.readFiles) FS.readFiles = {};
           if (!(path in FS.readFiles)) {
             FS.readFiles[path] = 1;
           }
@@ -2067,7 +2060,7 @@ var sqlite3InitModule = (() => {
         var buf = new Uint8Array(length);
         FS.read(stream, buf, 0, length, 0);
         if (opts.encoding === "utf8") {
-          ret = UTF8ArrayToString(buf, 0);
+          ret = UTF8ArrayToString(buf);
         } else if (opts.encoding === "binary") {
           ret = buf;
         }
@@ -2297,12 +2290,13 @@ var sqlite3InitModule = (() => {
         }
       },
       createDevice(parent, name, input, output) {
+        var _a;
         var path = PATH.join2(
           typeof parent == "string" ? parent : FS.getPath(parent),
           name
         );
         var mode = FS_getMode(!!input, !!output);
-        if (!FS.createDevice.major) FS.createDevice.major = 64;
+        (_a = FS.createDevice).major ?? (_a.major = 64);
         var dev = FS.makedev(FS.createDevice.major++, 0);
         FS.registerDevice(dev, {
           open(stream) {
@@ -3078,12 +3072,11 @@ var sqlite3InitModule = (() => {
       }
     };
     var _emscripten_date_now = () => Date.now();
-    var _emscripten_get_now;
-    _emscripten_get_now = () => performance.now();
+    var _emscripten_get_now = () => performance.now();
     var getHeapMax = () => 2147483648;
     var growMemory = (size) => {
       var b = wasmMemory.buffer;
-      var pages = (size - b.byteLength + 65535) / 65536;
+      var pages = (size - b.byteLength + 65535) / 65536 | 0;
       try {
         wasmMemory.grow(pages);
         updateMemoryViews();
@@ -3635,6 +3628,7 @@ var sqlite3InitModule = (() => {
     var _emscripten_builtin_memalign = (a0, a1) => (_emscripten_builtin_memalign = wasmExports["emscripten_builtin_memalign"])(a0, a1);
     Module["wasmMemory"] = wasmMemory;
     var calledRun;
+    var calledPrerun;
     dependenciesFulfilled = function runCaller() {
       if (!calledRun) run();
       if (!calledRun) dependenciesFulfilled = runCaller;
@@ -3643,14 +3637,17 @@ var sqlite3InitModule = (() => {
       if (runDependencies > 0) {
         return;
       }
-      preRun();
-      if (runDependencies > 0) {
-        return;
+      if (!calledPrerun) {
+        calledPrerun = 1;
+        preRun();
+        if (runDependencies > 0) {
+          return;
+        }
       }
       function doRun() {
         if (calledRun) return;
-        calledRun = true;
-        Module["calledRun"] = true;
+        calledRun = 1;
+        Module["calledRun"] = 1;
         if (ABORT) return;
         initRuntime();
         readyPromiseResolve(Module);
@@ -5314,7 +5311,7 @@ var sqlite3InitModule = (() => {
             if (1 === argc) return xcvPart.get(typeName);
             else if (2 === argc) {
               if (!adapter) {
-                delete xcvPart.get(typeName);
+                xcvPart.delete(typeName);
                 return func;
               } else if (!(adapter instanceof Function)) {
                 toss(modeName, "requires a function argument.");
@@ -7818,10 +7815,10 @@ var sqlite3InitModule = (() => {
       });
       globalThis.sqlite3ApiBootstrap.initializers.push(function(sqlite3) {
         sqlite3.version = {
-          libVersion: "3.47.0",
-          libVersionNumber: 3047e3,
-          sourceId: "2024-10-21 16:30:22 03a9703e27c44437c39363d0baf82db4ebc94538a0f28411c85dda156f82636e",
-          downloadVersion: 347e4
+          libVersion: "3.48.0",
+          libVersionNumber: 3048e3,
+          sourceId: "2025-01-14 11:05:00 d2fe6b05f38d9d7cd78c5d252e99ac59f1aea071d669830c1ffe4e8966e84010",
+          downloadVersion: 348e4
         };
       });
       globalThis.sqlite3ApiBootstrap.initializers.push(function(sqlite3) {
@@ -11209,7 +11206,7 @@ globalThis.sqlite3Worker1Promiser.defaultConfig = {
     return new Worker(
       new URL(
         /* @vite-ignore */
-        "" + new URL("sqlite3-worker1-bundler-friendly-HJfmH1B9.js", import.meta.url).href,
+        "" + new URL("sqlite3-worker1-bundler-friendly-C58Z0GEA.js", import.meta.url).href,
         import.meta.url
       ),
       {
@@ -11283,7 +11280,7 @@ function isObject(obj) {
 function freeze(obj) {
   return Object.freeze(obj);
 }
-function asArray(arg) {
+function asArray$1(arg) {
   if (isReadonlyArray(arg)) {
     return arg;
   } else {
@@ -12262,12 +12259,6 @@ const SelectQueryNode = freeze({
       frontModifiers: select.frontModifiers ? freeze([...select.frontModifiers, modifier]) : freeze([modifier])
     });
   },
-  cloneWithEndModifier(select, modifier) {
-    return freeze({
-      ...select,
-      endModifiers: select.endModifiers ? freeze([...select.endModifiers, modifier]) : freeze([modifier])
-    });
-  },
   cloneWithOrderByItems(selectNode, items) {
     return freeze({
       ...selectNode,
@@ -12821,6 +12812,12 @@ const QueryNode = freeze({
   is(node) {
     return SelectQueryNode.is(node) || InsertQueryNode.is(node) || UpdateQueryNode.is(node) || DeleteQueryNode.is(node) || MergeQueryNode.is(node);
   },
+  cloneWithEndModifier(node, modifier) {
+    return freeze({
+      ...node,
+      endModifiers: node.endModifiers ? freeze([...node.endModifiers, modifier]) : freeze([modifier])
+    });
+  },
   cloneWithWhere(node, operation) {
     return freeze({
       ...node,
@@ -13082,21 +13079,25 @@ const _OnConflictBuilder = class _OnConflictBuilder {
    * ### Examples
    *
    * ```ts
+   * const id = 1
+   * const first_name = 'John'
+   *
    * await db
    *   .insertInto('person')
-   *   .values({ first_name, pic })
+   *   .values({ first_name, id })
    *   .onConflict((oc) => oc
-   *     .column('pic')
+   *     .column('id')
    *     .doNothing()
    *   )
+   *   .execute()
    * ```
    *
    * The generated SQL (PostgreSQL):
    *
    * ```sql
-   * insert into "person" ("first_name", "pic")
+   * insert into "person" ("first_name", "id")
    * values ($1, $2)
-   * on conflict ("pic") do nothing
+   * on conflict ("id") do nothing
    * ```
    */
   doNothing() {
@@ -13113,21 +13114,25 @@ const _OnConflictBuilder = class _OnConflictBuilder {
    * ### Examples
    *
    * ```ts
+   * const id = 1
+   * const first_name = 'John'
+   *
    * await db
    *   .insertInto('person')
-   *   .values({ first_name, pic })
+   *   .values({ first_name, id })
    *   .onConflict((oc) => oc
-   *     .column('pic')
+   *     .column('id')
    *     .doUpdateSet({ first_name })
    *   )
+   *   .execute()
    * ```
    *
    * The generated SQL (PostgreSQL):
    *
    * ```sql
-   * insert into "person" ("first_name", "pic")
+   * insert into "person" ("first_name", "id")
    * values ($1, $2)
-   * on conflict ("pic")
+   * on conflict ("id")
    * do update set "first_name" = $3
    * ```
    *
@@ -13136,15 +13141,32 @@ const _OnConflictBuilder = class _OnConflictBuilder {
    * to create an upsert operation:
    *
    * ```ts
-   * db.insertInto('person')
-   *   .values(person)
-   *   .onConflict((oc) => oc
-   *     .column('id')
-   *     .doUpdateSet((eb) => ({
-   *       first_name: eb.ref('excluded.first_name'),
-   *       last_name: eb.ref('excluded.last_name')
-   *     }))
+   * import type { NewPerson } from 'type-editor' // imaginary module
+   *
+   * async function upsertPerson(person: NewPerson): Promise<void> {
+   *   await db.insertInto('person')
+   *     .values(person)
+   *     .onConflict((oc) => oc
+   *       .column('id')
+   *       .doUpdateSet((eb) => ({
+   *         first_name: eb.ref('excluded.first_name'),
+   *         last_name: eb.ref('excluded.last_name')
+   *       })
+   *     )
    *   )
+   *   .execute()
+   * }
+   * ```
+   *
+   * The generated SQL (PostgreSQL):
+   *
+   * ```sql
+   * insert into "person" ("first_name", "last_name")
+   * values ($1, $2)
+   * on conflict ("id")
+   * do update set
+   *  "first_name" = excluded."first_name",
+   *  "last_name" = excluded."last_name"
    * ```
    */
   doUpdateSet(update) {
@@ -13367,7 +13389,7 @@ const _InsertQueryBuilder = class _InsertQueryBuilder {
    *   .insertInto('person')
    *   .values(({ ref, selectFrom, fn }) => ({
    *     first_name: 'Jennifer',
-   *     last_name: sql<string>`>concat(${ani}, ${ston})`,
+   *     last_name: sql<string>`concat(${ani}, ${ston})`,
    *     middle_name: ref('first_name'),
    *     age: selectFrom('person')
    *       .select(fn.avg<number>('age').as('avg_age')),
@@ -13395,7 +13417,7 @@ const _InsertQueryBuilder = class _InsertQueryBuilder {
    * You can also use the callback version of subqueries or raw expressions:
    *
    * ```ts
-   * db.with('jennifer', (db) => db
+   * await db.with('jennifer', (db) => db
    *   .selectFrom('person')
    *   .where('first_name', '=', 'Jennifer')
    *   .select(['id', 'first_name', 'gender'])
@@ -13405,6 +13427,24 @@ const _InsertQueryBuilder = class _InsertQueryBuilder {
    *   name: eb.selectFrom('jennifer').select('first_name'),
    *   species: 'cat',
    * }))
+   * .execute()
+   * ```
+   *
+   * The generated SQL (PostgreSQL):
+   *
+   * ```sql
+   * with "jennifer" as (
+   *   select "id", "first_name", "gender"
+   *   from "person"
+   *   where "first_name" = $1
+   *   limit $2
+   * )
+   * insert into "pet" ("owner_id", "name", "species")
+   * values (
+   *  (select "id" from "jennifer"),
+   *  (select "first_name" from "jennifer"),
+   *  $3
+   * )
    * ```
    */
   values(insert) {
@@ -13427,9 +13467,10 @@ const _InsertQueryBuilder = class _InsertQueryBuilder {
    * ### Examples
    *
    * ```ts
-   * db.insertInto('person')
+   * await db.insertInto('person')
    *   .columns(['first_name'])
    *   .expression((eb) => eb.selectFrom('pet').select('pet.name'))
+   *   .execute()
    * ```
    *
    * The generated SQL (PostgreSQL):
@@ -13497,6 +13538,12 @@ const _InsertQueryBuilder = class _InsertQueryBuilder {
    *   .defaultValues()
    *   .execute()
    * ```
+   *
+   * The generated SQL (PostgreSQL):
+   *
+   * ```sql
+   * insert into "person" default values
+   * ```
    */
   defaultValues() {
     return new _InsertQueryBuilder({
@@ -13504,6 +13551,37 @@ const _InsertQueryBuilder = class _InsertQueryBuilder {
       queryNode: InsertQueryNode.cloneWith(__privateGet(this, _props6).queryNode, {
         defaultValues: true
       })
+    });
+  }
+  /**
+   * This can be used to add any additional SQL to the end of the query.
+   *
+   * ### Examples
+   *
+   * ```ts
+   * import { sql } from 'kysely'
+   *
+   * await db.insertInto('person')
+   *   .values({
+   *     first_name: 'John',
+   *     last_name: 'Doe',
+   *     gender: 'male',
+   *   })
+   *   .modifyEnd(sql`-- This is a comment`)
+   *   .execute()
+   * ```
+   *
+   * The generated SQL (MySQL):
+   *
+   * ```sql
+   * insert into `person` ("first_name", "last_name", "gender")
+   * values (?, ?, ?) -- This is a comment
+   * ```
+   */
+  modifyEnd(modifier) {
+    return new _InsertQueryBuilder({
+      ...__privateGet(this, _props6),
+      queryNode: QueryNode.cloneWithEndModifier(__privateGet(this, _props6).queryNode, modifier.toOperationNode())
     });
   }
   /**
@@ -13523,8 +13601,18 @@ const _InsertQueryBuilder = class _InsertQueryBuilder {
    * ```ts
    * await db.insertInto('person')
    *   .ignore()
-   *   .values(values)
+   *   .values({
+   *     first_name: 'John',
+   *     last_name: 'Doe',
+   *     gender: 'female',
+   *   })
    *   .execute()
+   * ```
+   *
+   * The generated SQL (MySQL):
+   *
+   * ```sql
+   * insert ignore into `person` ("first_name", "last_name", "gender") values (?, ?, ?)
    * ```
    */
   ignore() {
@@ -13545,6 +13633,8 @@ const _InsertQueryBuilder = class _InsertQueryBuilder {
    * Insert the first 5 rows:
    *
    * ```ts
+   * import { sql } from 'kysely'
+   *
    * await db.insertInto('person')
    *   .top(5)
    *   .columns(['first_name', 'gender'])
@@ -13563,6 +13653,8 @@ const _InsertQueryBuilder = class _InsertQueryBuilder {
    * Insert the first 50 percent of rows:
    *
    * ```ts
+   * import { sql } from 'kysely'
+   *
    * await db.insertInto('person')
    *   .top(50, 'percent')
    *   .columns(['first_name', 'gender'])
@@ -13598,6 +13690,7 @@ const _InsertQueryBuilder = class _InsertQueryBuilder {
    *   .values({
    *     name: 'Catto',
    *     species: 'cat',
+   *     owner_id: 3,
    *   })
    *   .onConflict((oc) => oc
    *     .column('name')
@@ -13609,10 +13702,10 @@ const _InsertQueryBuilder = class _InsertQueryBuilder {
    * The generated SQL (PostgreSQL):
    *
    * ```sql
-   * insert into "pet" ("name", "species")
-   * values ($1, $2)
+   * insert into "pet" ("name", "species", "owner_id")
+   * values ($1, $2, $3)
    * on conflict ("name")
-   * do update set "species" = $3
+   * do update set "species" = $4
    * ```
    *
    * You can provide the name of the constraint instead of a column name:
@@ -13623,6 +13716,7 @@ const _InsertQueryBuilder = class _InsertQueryBuilder {
    *   .values({
    *     name: 'Catto',
    *     species: 'cat',
+   *     owner_id: 3,
    *   })
    *   .onConflict((oc) => oc
    *     .constraint('pet_name_key')
@@ -13634,10 +13728,10 @@ const _InsertQueryBuilder = class _InsertQueryBuilder {
    * The generated SQL (PostgreSQL):
    *
    * ```sql
-   * insert into "pet" ("name", "species")
-   * values ($1, $2)
+   * insert into "pet" ("name", "species", "owner_id")
+   * values ($1, $2, $3)
    * on conflict on constraint "pet_name_key"
-   * do update set "species" = $3
+   * do update set "species" = $4
    * ```
    *
    * You can also specify an expression as the conflict target in case
@@ -13651,6 +13745,7 @@ const _InsertQueryBuilder = class _InsertQueryBuilder {
    *   .values({
    *     name: 'Catto',
    *     species: 'cat',
+   *     owner_id: 3,
    *   })
    *   .onConflict((oc) => oc
    *     .expression(sql<string>`lower(name)`)
@@ -13662,10 +13757,10 @@ const _InsertQueryBuilder = class _InsertQueryBuilder {
    * The generated SQL (PostgreSQL):
    *
    * ```sql
-   * insert into "pet" ("name", "species")
-   * values ($1, $2)
+   * insert into "pet" ("name", "species", "owner_id")
+   * values ($1, $2, $3)
    * on conflict (lower(name))
-   * do update set "species" = $3
+   * do update set "species" = $4
    * ```
    *
    * You can add a filter for the update statement like this:
@@ -13676,11 +13771,12 @@ const _InsertQueryBuilder = class _InsertQueryBuilder {
    *   .values({
    *     name: 'Catto',
    *     species: 'cat',
+   *     owner_id: 3,
    *   })
    *   .onConflict((oc) => oc
    *     .column('name')
    *     .doUpdateSet({ species: 'hamster' })
-   *     .where('excluded.name', '!=', 'Catto'')
+   *     .where('excluded.name', '!=', 'Catto')
    *   )
    *   .execute()
    * ```
@@ -13688,11 +13784,11 @@ const _InsertQueryBuilder = class _InsertQueryBuilder {
    * The generated SQL (PostgreSQL):
    *
    * ```sql
-   * insert into "pet" ("name", "species")
-   * values ($1, $2)
+   * insert into "pet" ("name", "species", "owner_id")
+   * values ($1, $2, $3)
    * on conflict ("name")
-   * do update set "species" = $3
-   * where "excluded"."name" != $4
+   * do update set "species" = $4
+   * where "excluded"."name" != $5
    * ```
    *
    * You can create an `on conflict do nothing` clauses like this:
@@ -13703,6 +13799,7 @@ const _InsertQueryBuilder = class _InsertQueryBuilder {
    *   .values({
    *     name: 'Catto',
    *     species: 'cat',
+   *     owner_id: 3,
    *   })
    *   .onConflict((oc) => oc
    *     .column('name')
@@ -13714,8 +13811,8 @@ const _InsertQueryBuilder = class _InsertQueryBuilder {
    * The generated SQL (PostgreSQL):
    *
    * ```sql
-   * insert into "pet" ("name", "species")
-   * values ($1, $2)
+   * insert into "pet" ("name", "species", "owner_id")
+   * values ($1, $2, $3)
    * on conflict ("name") do nothing
    * ```
    *
@@ -13724,8 +13821,13 @@ const _InsertQueryBuilder = class _InsertQueryBuilder {
    * `ExpressionBuilder`:
    *
    * ```ts
-   * db.insertInto('person')
-   *   .values(person)
+   * await db.insertInto('person')
+   *   .values({
+   *     id: 1,
+   *     first_name: 'John',
+   *     last_name: 'Doe',
+   *     gender: 'male',
+   *   })
    *   .onConflict(oc => oc
    *     .column('id')
    *     .doUpdateSet({
@@ -13733,6 +13835,18 @@ const _InsertQueryBuilder = class _InsertQueryBuilder {
    *       last_name: (eb) => eb.ref('excluded.last_name')
    *     })
    *   )
+   *   .execute()
+   * ```
+   *
+   * The generated SQL (PostgreSQL):
+   *
+   * ```sql
+   * insert into "person" ("id", "first_name", "last_name", "gender")
+   * values ($1, $2, $3, $4)
+   * on conflict ("id")
+   * do update set
+   *  "first_name" = "excluded"."first_name",
+   *  "last_name" = "excluded"."last_name"
    * ```
    */
   onConflict(callback) {
@@ -13759,8 +13873,22 @@ const _InsertQueryBuilder = class _InsertQueryBuilder {
    * ```ts
    * await db
    *   .insertInto('person')
-   *   .values(values)
-   *   .onDuplicateKeyUpdate({ species: 'hamster' })
+   *   .values({
+   *     id: 1,
+   *     first_name: 'John',
+   *     last_name: 'Doe',
+   *     gender: 'male',
+   *   })
+   *   .onDuplicateKeyUpdate({ updated_at: new Date().toISOString() })
+   *   .execute()
+   * ```
+   *
+   * The generated SQL (MySQL):
+   *
+   * ```sql
+   * insert into `person` (`id`, `first_name`, `last_name`, `gender`)
+   * values (?, ?, ?, ?)
+   * on duplicate key update `updated_at` = ?
    * ```
    */
   onDuplicateKeyUpdate(update) {
@@ -13801,16 +13929,17 @@ const _InsertQueryBuilder = class _InsertQueryBuilder {
    * ### Examples
    *
    * ```ts
-   * db.insertInto('person')
-   *   .values({ first_name: 'James', last_name: 'Smith', age: 42 })
+   * await db.insertInto('person')
+   *   .values({ first_name: 'James', last_name: 'Smith', gender: 'male' })
    *   .returning(['first_name'])
    *   .clearReturning()
+   *   .execute()
    * ```
    *
    * The generated SQL(PostgreSQL):
    *
    * ```sql
-   * insert into "person" ("James", "Smith", 42)
+   * insert into "person" ("first_name", "last_name", "gender") values ($1, $2, $3)
    * ```
    */
   clearReturning() {
@@ -13831,13 +13960,15 @@ const _InsertQueryBuilder = class _InsertQueryBuilder {
    * The next example uses a helper function `log` to log a query:
    *
    * ```ts
+   * import type { Compilable } from 'kysely'
+   *
    * function log<T extends Compilable>(qb: T): T {
    *   console.log(qb.compile())
    *   return qb
    * }
    *
-   * db.updateTable('person')
-   *   .set(values)
+   * await db.insertInto('person')
+   *   .values({ first_name: 'John', last_name: 'Doe', gender: 'male' })
    *   .$call(log)
    *   .execute()
    * ```
@@ -13858,7 +13989,9 @@ const _InsertQueryBuilder = class _InsertQueryBuilder {
    * ### Examples
    *
    * ```ts
-   * async function insertPerson(values: InsertablePerson, returnLastName: boolean) {
+   * import type { NewPerson } from 'type-editor' // imaginary module
+   *
+   * async function insertPerson(values: NewPerson, returnLastName: boolean) {
    *   return await db
    *     .insertInto('person')
    *     .values(values)
@@ -13873,11 +14006,11 @@ const _InsertQueryBuilder = class _InsertQueryBuilder {
    * the code. In the example above the return type of the `insertPerson` function is:
    *
    * ```ts
-   * {
+   * Promise<{
    *   id: number
    *   first_name: string
    *   last_name?: string
-   * }
+   * }>
    * ```
    */
   $if(condition, func) {
@@ -13915,23 +14048,41 @@ const _InsertQueryBuilder = class _InsertQueryBuilder {
    * Turn this code:
    *
    * ```ts
+   * import type { Person } from 'type-editor' // imaginary module
+   *
    * const person = await db.insertInto('person')
-   *   .values({ ...inputPerson, nullable_column: 'hell yeah!' })
+   *   .values({
+   *     first_name: 'John',
+   *     last_name: 'Doe',
+   *     gender: 'male',
+   *     nullable_column: 'hell yeah!'
+   *   })
    *   .returningAll()
    *   .executeTakeFirstOrThrow()
    *
-   * if (nullable_column) {
+   * if (isWithNoNullValue(person)) {
    *   functionThatExpectsPersonWithNonNullValue(person)
+   * }
+   *
+   * function isWithNoNullValue(person: Person): person is Person & { nullable_column: string } {
+   *   return person.nullable_column != null
    * }
    * ```
    *
    * Into this:
    *
    * ```ts
+   * import type { NotNull } from 'kysely'
+   *
    * const person = await db.insertInto('person')
-   *   .values({ ...inputPerson, nullable_column: 'hell yeah!' })
+   *   .values({
+   *     first_name: 'John',
+   *     last_name: 'Doe',
+   *     gender: 'male',
+   *     nullable_column: 'hell yeah!'
+   *   })
    *   .returningAll()
-   *   .$narrowType<{ nullable_column: string }>()
+   *   .$narrowType<{ nullable_column: NotNull }>()
    *   .executeTakeFirstOrThrow()
    *
    * functionThatExpectsPersonWithNonNullValue(person)
@@ -13963,22 +14114,29 @@ const _InsertQueryBuilder = class _InsertQueryBuilder {
    * ### Examples
    *
    * ```ts
-   * const result = await db
-   *   .with('new_person', (qb) => qb
-   *     .insertInto('person')
-   *     .values(person)
-   *     .returning('id')
-   *     .$assertType<{ id: string }>()
-   *   )
-   *   .with('new_pet', (qb) => qb
-   *     .insertInto('pet')
-   *     .values((eb) => ({ owner_id: eb.selectFrom('new_person').select('id'), ...pet }))
-   *     .returning(['name as pet_name', 'species'])
-   *     .$assertType<{ pet_name: string, species: Species }>()
-   *   )
-   *   .selectFrom(['new_person', 'new_pet'])
-   *   .selectAll()
-   *   .executeTakeFirstOrThrow()
+   * import type { NewPerson, NewPet, Species } from 'type-editor' // imaginary module
+   *
+   * async function insertPersonAndPet(person: NewPerson, pet: Omit<NewPet, 'owner_id'>) {
+   *   return await db
+   *     .with('new_person', (qb) => qb
+   *       .insertInto('person')
+   *       .values(person)
+   *       .returning('id')
+   *       .$assertType<{ id: number }>()
+   *     )
+   *     .with('new_pet', (qb) => qb
+   *       .insertInto('pet')
+   *       .values((eb) => ({
+   *         owner_id: eb.selectFrom('new_person').select('id'),
+   *         ...pet
+   *       }))
+   *       .returning(['name as pet_name', 'species'])
+   *       .$assertType<{ pet_name: string, species: Species }>()
+   *     )
+   *     .selectFrom(['new_person', 'new_pet'])
+   *     .selectAll()
+   *     .executeTakeFirstOrThrow()
+   * }
    * ```
    */
   $assertType() {
@@ -14207,10 +14365,11 @@ const _DeleteQueryBuilder = class _DeleteQueryBuilder {
    * ### Examples
    *
    * ```ts
-   * db.deleteFrom('pet')
+   * await db.deleteFrom('pet')
    *   .returningAll()
    *   .where('name', '=', 'Max')
    *   .clearReturning()
+   *   .execute()
    * ```
    *
    * The generated SQL(PostgreSQL):
@@ -14231,11 +14390,12 @@ const _DeleteQueryBuilder = class _DeleteQueryBuilder {
    * ### Examples
    *
    * ```ts
-   * db.deleteFrom('pet')
+   * await db.deleteFrom('pet')
    *   .returningAll()
    *   .where('name', '=', 'Max')
    *   .limit(5)
    *   .clearLimit()
+   *   .execute()
    * ```
    *
    * The generated SQL(PostgreSQL):
@@ -14256,11 +14416,12 @@ const _DeleteQueryBuilder = class _DeleteQueryBuilder {
    * ### Examples
    *
    * ```ts
-   * db.deleteFrom('pet')
+   * await db.deleteFrom('pet')
    *   .returningAll()
    *   .where('name', '=', 'Max')
    *   .orderBy('id')
    *   .clearOrderBy()
+   *   .execute()
    * ```
    *
    * The generated SQL(PostgreSQL):
@@ -14332,11 +14493,44 @@ const _DeleteQueryBuilder = class _DeleteQueryBuilder {
    *   .limit(5)
    *   .execute()
    * ```
+   *
+   * The generated SQL (MySQL):
+   *
+   * ```sql
+   * delete from `pet` order by `created_at` limit ?
+   * ```
    */
   limit(limit) {
     return new _DeleteQueryBuilder({
       ...__privateGet(this, _props7),
       queryNode: DeleteQueryNode.cloneWithLimit(__privateGet(this, _props7).queryNode, LimitNode.create(parseValueExpression(limit)))
+    });
+  }
+  /**
+   * This can be used to add any additional SQL to the end of the query.
+   *
+   * ### Examples
+   *
+   * ```ts
+   * import { sql } from 'kysely'
+   *
+   * await db.deleteFrom('person')
+   *   .where('first_name', '=', 'John')
+   *   .modifyEnd(sql`-- This is a comment`)
+   *   .execute()
+   * ```
+   *
+   * The generated SQL (MySQL):
+   *
+   * ```sql
+   * delete from `person`
+   * where `first_name` = "John" -- This is a comment
+   * ```
+   */
+  modifyEnd(modifier) {
+    return new _DeleteQueryBuilder({
+      ...__privateGet(this, _props7),
+      queryNode: QueryNode.cloneWithEndModifier(__privateGet(this, _props7).queryNode, modifier.toOperationNode())
     });
   }
   /**
@@ -14351,12 +14545,14 @@ const _DeleteQueryBuilder = class _DeleteQueryBuilder {
    * The next example uses a helper function `log` to log a query:
    *
    * ```ts
+   * import type { Compilable } from 'kysely'
+   *
    * function log<T extends Compilable>(qb: T): T {
    *   console.log(qb.compile())
    *   return qb
    * }
    *
-   * db.deleteFrom('person')
+   * await db.deleteFrom('person')
    *   .$call(log)
    *   .execute()
    * ```
@@ -14392,11 +14588,11 @@ const _DeleteQueryBuilder = class _DeleteQueryBuilder {
    * the code. In the example above the return type of the `deletePerson` function is:
    *
    * ```ts
-   * {
+   * Promise<{
    *   id: number
    *   first_name: string
    *   last_name?: string
-   * }
+   * }>
    * ```
    */
   $if(condition, func) {
@@ -14433,25 +14629,33 @@ const _DeleteQueryBuilder = class _DeleteQueryBuilder {
    * Turn this code:
    *
    * ```ts
+   * import type { Person } from 'type-editor' // imaginary module
+   *
    * const person = await db.deleteFrom('person')
-   *   .where('id', '=', id)
+   *   .where('id', '=', 3)
    *   .where('nullable_column', 'is not', null)
    *   .returningAll()
    *   .executeTakeFirstOrThrow()
    *
-   * if (person.nullable_column) {
+   * if (isWithNoNullValue(person)) {
    *   functionThatExpectsPersonWithNonNullValue(person)
+   * }
+   *
+   * function isWithNoNullValue(person: Person): person is Person & { nullable_column: string } {
+   *   return person.nullable_column != null
    * }
    * ```
    *
    * Into this:
    *
    * ```ts
+   * import type { NotNull } from 'kysely'
+   *
    * const person = await db.deleteFrom('person')
-   *   .where('id', '=', id)
+   *   .where('id', '=', 3)
    *   .where('nullable_column', 'is not', null)
    *   .returningAll()
-   *   .$narrowType<{ nullable_column: string }>()
+   *   .$narrowType<{ nullable_column: NotNull }>()
    *   .executeTakeFirstOrThrow()
    *
    * functionThatExpectsPersonWithNonNullValue(person)
@@ -14483,22 +14687,26 @@ const _DeleteQueryBuilder = class _DeleteQueryBuilder {
    * ### Examples
    *
    * ```ts
-   * const result = await db
-   *   .with('deleted_person', (qb) => qb
-   *     .deleteFrom('person')
-   *     .where('id', '=', person.id)
-   *     .returning('first_name')
-   *     .$assertType<{ first_name: string }>()
-   *   )
-   *   .with('deleted_pet', (qb) => qb
-   *     .deleteFrom('pet')
-   *     .where('owner_id', '=', person.id)
-   *     .returning(['name as pet_name', 'species'])
-   *     .$assertType<{ pet_name: string, species: Species }>()
-   *   )
-   *   .selectFrom(['deleted_person', 'deleted_pet'])
-   *   .selectAll()
-   *   .executeTakeFirstOrThrow()
+   * import type { Species } from 'type-editor' // imaginary module
+   *
+   * async function deletePersonAndPets(personId: number) {
+   *   return await db
+   *     .with('deleted_person', (qb) => qb
+   *        .deleteFrom('person')
+   *        .where('id', '=', personId)
+   *        .returning('first_name')
+   *        .$assertType<{ first_name: string }>()
+   *     )
+   *     .with('deleted_pets', (qb) => qb
+   *       .deleteFrom('pet')
+   *       .where('owner_id', '=', personId)
+   *       .returning(['name as pet_name', 'species'])
+   *       .$assertType<{ pet_name: string, species: Species }>()
+   *     )
+   *     .selectFrom(['deleted_person', 'deleted_pets'])
+   *     .selectAll()
+   *     .execute()
+   * }
    * ```
    */
   $assertType() {
@@ -14585,14 +14793,14 @@ class UpdateResult {
   constructor(numUpdatedRows, numChangedRows) {
     /**
      * The number of rows the update query updated (even if not changed).
-    */
+     */
     __publicField(this, "numUpdatedRows");
     /**
      * The number of rows the update query changed.
      *
      * This is **optional** and only supported in dialects such as MySQL.
      * You would probably use {@link numUpdatedRows} in most cases.
-    */
+     */
     __publicField(this, "numChangedRows");
     this.numUpdatedRows = numUpdatedRows;
     this.numChangedRows = numChangedRows;
@@ -14704,15 +14912,17 @@ const _UpdateQueryBuilder = class _UpdateQueryBuilder {
    * Update the first 2 rows in the 'person' table:
    *
    * ```ts
-   * return await db
+   * await db
    *   .updateTable('person')
    *   .set({ first_name: 'Foo' })
-   *   .limit(2);
+   *   .limit(2)
+   *   .execute()
    * ```
    *
    * The generated SQL (MySQL):
+   *
    * ```sql
-   * update `person` set `first_name` = 'Foo' limit 2
+   * update `person` set `first_name` = ? limit ?
    * ```
    */
   limit(limit) {
@@ -14752,6 +14962,35 @@ const _UpdateQueryBuilder = class _UpdateQueryBuilder {
     });
   }
   /**
+   * This can be used to add any additional SQL to the end of the query.
+   *
+   * ### Examples
+   *
+   * ```ts
+   * import { sql } from 'kysely'
+   *
+   * await db.updateTable('person')
+   *   .set({ age: 39 })
+   *   .where('first_name', '=', 'John')
+   *   .modifyEnd(sql.raw('-- This is a comment'))
+   *   .execute()
+   * ```
+   *
+   * The generated SQL (MySQL):
+   *
+   * ```sql
+   * update `person`
+   * set `age` = 39
+   * where `first_name` = "John" -- This is a comment
+   * ```
+   */
+  modifyEnd(modifier) {
+    return new _UpdateQueryBuilder({
+      ...__privateGet(this, _props8),
+      queryNode: QueryNode.cloneWithEndModifier(__privateGet(this, _props8).queryNode, modifier.toOperationNode())
+    });
+  }
+  /**
    * Clears all `returning` clauses from the query.
    *
    * ### Examples
@@ -14788,10 +15027,17 @@ const _UpdateQueryBuilder = class _UpdateQueryBuilder {
    * The next example uses a helper function `log` to log a query:
    *
    * ```ts
+   * import type { Compilable } from 'kysely'
+   * import type { PersonUpdate } from 'type-editor' // imaginary module
+   *
    * function log<T extends Compilable>(qb: T): T {
    *   console.log(qb.compile())
    *   return qb
    * }
+   *
+   * const values = {
+   *   first_name: 'John',
+   * } satisfies PersonUpdate
    *
    * db.updateTable('person')
    *   .set(values)
@@ -14815,7 +15061,9 @@ const _UpdateQueryBuilder = class _UpdateQueryBuilder {
    * ### Examples
    *
    * ```ts
-   * async function updatePerson(id: number, updates: UpdateablePerson, returnLastName: boolean) {
+   * import type { PersonUpdate } from 'type-editor' // imaginary module
+   *
+   * async function updatePerson(id: number, updates: PersonUpdate, returnLastName: boolean) {
    *   return await db
    *     .updateTable('person')
    *     .set(updates)
@@ -14831,11 +15079,11 @@ const _UpdateQueryBuilder = class _UpdateQueryBuilder {
    * the code. In the example above the return type of the `updatePerson` function is:
    *
    * ```ts
-   * {
+   * Promise<{
    *   id: number
    *   first_name: string
    *   last_name?: string
-   * }
+   * }>
    * ```
    */
   $if(condition, func) {
@@ -14873,27 +15121,41 @@ const _UpdateQueryBuilder = class _UpdateQueryBuilder {
    * Turn this code:
    *
    * ```ts
+   * import type { Person } from 'type-editor' // imaginary module
+   *
+   * const id = 1
+   * const now = new Date().toISOString()
+   *
    * const person = await db.updateTable('person')
-   *   .set({ deletedAt: now })
+   *   .set({ deleted_at: now })
    *   .where('id', '=', id)
    *   .where('nullable_column', 'is not', null)
    *   .returningAll()
    *   .executeTakeFirstOrThrow()
    *
-   * if (person.nullable_column) {
+   * if (isWithNoNullValue(person)) {
    *   functionThatExpectsPersonWithNonNullValue(person)
+   * }
+   *
+   * function isWithNoNullValue(person: Person): person is Person & { nullable_column: string } {
+   *   return person.nullable_column != null
    * }
    * ```
    *
    * Into this:
    *
    * ```ts
+   * import type { NotNull } from 'kysely'
+   *
+   * const id = 1
+   * const now = new Date().toISOString()
+   *
    * const person = await db.updateTable('person')
-   *   .set({ deletedAt: now })
+   *   .set({ deleted_at: now })
    *   .where('id', '=', id)
    *   .where('nullable_column', 'is not', null)
    *   .returningAll()
-   *   .$narrowType<{ deletedAt: Date; nullable_column: string }>()
+   *   .$narrowType<{ deleted_at: Date; nullable_column: NotNull }>()
    *   .executeTakeFirstOrThrow()
    *
    * functionThatExpectsPersonWithNonNullValue(person)
@@ -14925,6 +15187,17 @@ const _UpdateQueryBuilder = class _UpdateQueryBuilder {
    * ### Examples
    *
    * ```ts
+   * import type { PersonUpdate, PetUpdate, Species } from 'type-editor' // imaginary module
+   *
+   * const person = {
+   *   id: 1,
+   *   gender: 'other',
+   * } satisfies PersonUpdate
+   *
+   * const pet = {
+   *   name: 'Fluffy',
+   * } satisfies PetUpdate
+   *
    * const result = await db
    *   .with('updated_person', (qb) => qb
    *     .updateTable('person')
@@ -15458,6 +15731,7 @@ class OperationNodeTransformer {
       returning: this.transformNode(node.returning),
       onConflict: this.transformNode(node.onConflict),
       onDuplicateKey: this.transformNode(node.onDuplicateKey),
+      endModifiers: this.transformNodeList(node.endModifiers),
       with: this.transformNode(node.with),
       ignore: node.ignore,
       replace: node.replace,
@@ -15481,6 +15755,7 @@ class OperationNodeTransformer {
       joins: this.transformNodeList(node.joins),
       where: this.transformNode(node.where),
       returning: this.transformNode(node.returning),
+      endModifiers: this.transformNodeList(node.endModifiers),
       with: this.transformNode(node.with),
       orderBy: this.transformNode(node.orderBy),
       limit: this.transformNode(node.limit),
@@ -15578,6 +15853,7 @@ class OperationNodeTransformer {
       where: this.transformNode(node.where),
       updates: this.transformNodeList(node.updates),
       returning: this.transformNode(node.returning),
+      endModifiers: this.transformNodeList(node.endModifiers),
       with: this.transformNode(node.with),
       explain: this.transformNode(node.explain),
       limit: this.transformNode(node.limit),
@@ -15884,6 +16160,7 @@ class OperationNodeTransformer {
       kind: "AggregateFunctionNode",
       aggregated: this.transformNodeList(node.aggregated),
       distinct: node.distinct,
+      orderBy: this.transformNode(node.orderBy),
       filter: this.transformNode(node.filter),
       func: node.func,
       over: this.transformNode(node.over)
@@ -15994,6 +16271,7 @@ class OperationNodeTransformer {
       whens: this.transformNodeList(node.whens),
       with: this.transformNode(node.with),
       top: this.transformNode(node.top),
+      endModifiers: this.transformNodeList(node.endModifiers),
       output: this.transformNode(node.output)
     });
   }
@@ -16376,6 +16654,35 @@ const _MergeQueryBuilder = class _MergeQueryBuilder {
     __privateSet(this, _props10, freeze(props));
   }
   /**
+   * This can be used to add any additional SQL to the end of the query.
+   *
+   * ### Examples
+   *
+   * ```ts
+   * import { sql } from 'kysely'
+   *
+   * await db
+   *   .mergeInto('person')
+   *   .using('pet', 'pet.owner_id', 'person.id')
+   *   .whenMatched()
+   *   .thenDelete()
+   *   .modifyEnd(sql.raw('-- this is a comment'))
+   *   .execute()
+   * ```
+   *
+   * The generated SQL (PostgreSQL):
+   *
+   * ```sql
+   * merge into "person" using "pet" on "pet"."owner_id" = "person"."id" when matched then delete -- this is a comment
+   * ```
+   */
+  modifyEnd(modifier) {
+    return new _MergeQueryBuilder({
+      ...__privateGet(this, _props10),
+      queryNode: QueryNode.cloneWithEndModifier(__privateGet(this, _props10).queryNode, modifier.toOperationNode())
+    });
+  }
+  /**
    * Changes a `merge into` query to an `merge top into` query.
    *
    * `top` clause is only supported by some dialects like MS SQL Server.
@@ -16455,6 +16762,35 @@ const _WheneableMergeQueryBuilder = class _WheneableMergeQueryBuilder {
     __privateAdd(this, _WheneableMergeQueryBuilder_instances);
     __privateAdd(this, _props11);
     __privateSet(this, _props11, freeze(props));
+  }
+  /**
+   * This can be used to add any additional SQL to the end of the query.
+   *
+   * ### Examples
+   *
+   * ```ts
+   * import { sql } from 'kysely'
+   *
+   * await db
+   *   .mergeInto('person')
+   *   .using('pet', 'pet.owner_id', 'person.id')
+   *   .whenMatched()
+   *   .thenDelete()
+   *   .modifyEnd(sql.raw('-- this is a comment'))
+   *   .execute()
+   * ```
+   *
+   * The generated SQL (PostgreSQL):
+   *
+   * ```sql
+   * merge into "person" using "pet" on "pet"."owner_id" = "person"."id" when matched then delete -- this is a comment
+   * ```
+   */
+  modifyEnd(modifier) {
+    return new _WheneableMergeQueryBuilder({
+      ...__privateGet(this, _props11),
+      queryNode: QueryNode.cloneWithEndModifier(__privateGet(this, _props11).queryNode, modifier.toOperationNode())
+    });
   }
   /**
    * See {@link MergeQueryBuilder.top}.
@@ -16604,13 +16940,15 @@ const _WheneableMergeQueryBuilder = class _WheneableMergeQueryBuilder {
    * The next example uses a helper function `log` to log a query:
    *
    * ```ts
+   * import type { Compilable } from 'kysely'
+   *
    * function log<T extends Compilable>(qb: T): T {
    *   console.log(qb.compile())
    *   return qb
    * }
    *
-   * db.updateTable('person')
-   *   .set(values)
+   * await db.updateTable('person')
+   *   .set({ first_name: 'John' })
    *   .$call(log)
    *   .execute()
    * ```
@@ -16631,7 +16969,9 @@ const _WheneableMergeQueryBuilder = class _WheneableMergeQueryBuilder {
    * ### Examples
    *
    * ```ts
-   * async function updatePerson(id: number, updates: UpdateablePerson, returnLastName: boolean) {
+   * import type { PersonUpdate } from 'type-editor' // imaginary module
+   *
+   * async function updatePerson(id: number, updates: PersonUpdate, returnLastName: boolean) {
    *   return await db
    *     .updateTable('person')
    *     .set(updates)
@@ -16647,11 +16987,11 @@ const _WheneableMergeQueryBuilder = class _WheneableMergeQueryBuilder {
    * the code. In the example above the return type of the `updatePerson` function is:
    *
    * ```ts
-   * {
+   * Promise<{
    *   id: number
    *   first_name: string
    *   last_name?: string
-   * }
+   * }>
    * ```
    */
   $if(condition, func) {
@@ -16816,7 +17156,7 @@ class MatchedThenableMergeQueryBuilder {
    *   .thenUpdate((ub) => ub
    *     .set(sql`metadata['has_pets']`, 'Y')
    *     .set({
-   *       updated_at: Date.now(),
+   *       updated_at: new Date().toISOString(),
    *     })
    *   )
    *   .execute()
@@ -16951,7 +17291,7 @@ const _QueryCreator = class _QueryCreator {
    *     last_name: 'Aniston'
    *   })
    *   .returning('id')
-   *   .executeTakeFirst()
+   *   .executeTakeFirstOrThrow()
    * ```
    */
   insertInto(table) {
@@ -17175,7 +17515,7 @@ const _QueryCreator = class _QueryCreator {
    * This only affects the query created through the builder returned from
    * this method and doesn't modify the `db` instance.
    *
-   * See [this recipe](https://github.com/koskimas/kysely/tree/master/site/docs/recipes/schemas.md)
+   * See [this recipe](https://github.com/kysely-org/kysely/blob/master/site/docs/recipes/0007-schemas.md)
    * for a more detailed explanation.
    *
    * ### Examples
@@ -17508,7 +17848,7 @@ const _SelectQueryBuilderImpl = class _SelectQueryBuilderImpl {
   modifyEnd(modifier) {
     return new _SelectQueryBuilderImpl({
       ...__privateGet(this, _props15),
-      queryNode: SelectQueryNode.cloneWithEndModifier(__privateGet(this, _props15).queryNode, SelectModifierNode.createWithExpression(modifier.toOperationNode()))
+      queryNode: QueryNode.cloneWithEndModifier(__privateGet(this, _props15).queryNode, SelectModifierNode.createWithExpression(modifier.toOperationNode()))
     });
   }
   distinct() {
@@ -17520,37 +17860,37 @@ const _SelectQueryBuilderImpl = class _SelectQueryBuilderImpl {
   forUpdate(of) {
     return new _SelectQueryBuilderImpl({
       ...__privateGet(this, _props15),
-      queryNode: SelectQueryNode.cloneWithEndModifier(__privateGet(this, _props15).queryNode, SelectModifierNode.create("ForUpdate", of ? asArray(of).map(parseTable$1) : void 0))
+      queryNode: QueryNode.cloneWithEndModifier(__privateGet(this, _props15).queryNode, SelectModifierNode.create("ForUpdate", of ? asArray$1(of).map(parseTable$1) : void 0))
     });
   }
   forShare(of) {
     return new _SelectQueryBuilderImpl({
       ...__privateGet(this, _props15),
-      queryNode: SelectQueryNode.cloneWithEndModifier(__privateGet(this, _props15).queryNode, SelectModifierNode.create("ForShare", of ? asArray(of).map(parseTable$1) : void 0))
+      queryNode: QueryNode.cloneWithEndModifier(__privateGet(this, _props15).queryNode, SelectModifierNode.create("ForShare", of ? asArray$1(of).map(parseTable$1) : void 0))
     });
   }
   forKeyShare(of) {
     return new _SelectQueryBuilderImpl({
       ...__privateGet(this, _props15),
-      queryNode: SelectQueryNode.cloneWithEndModifier(__privateGet(this, _props15).queryNode, SelectModifierNode.create("ForKeyShare", of ? asArray(of).map(parseTable$1) : void 0))
+      queryNode: QueryNode.cloneWithEndModifier(__privateGet(this, _props15).queryNode, SelectModifierNode.create("ForKeyShare", of ? asArray$1(of).map(parseTable$1) : void 0))
     });
   }
   forNoKeyUpdate(of) {
     return new _SelectQueryBuilderImpl({
       ...__privateGet(this, _props15),
-      queryNode: SelectQueryNode.cloneWithEndModifier(__privateGet(this, _props15).queryNode, SelectModifierNode.create("ForNoKeyUpdate", of ? asArray(of).map(parseTable$1) : void 0))
+      queryNode: QueryNode.cloneWithEndModifier(__privateGet(this, _props15).queryNode, SelectModifierNode.create("ForNoKeyUpdate", of ? asArray$1(of).map(parseTable$1) : void 0))
     });
   }
   skipLocked() {
     return new _SelectQueryBuilderImpl({
       ...__privateGet(this, _props15),
-      queryNode: SelectQueryNode.cloneWithEndModifier(__privateGet(this, _props15).queryNode, SelectModifierNode.create("SkipLocked"))
+      queryNode: QueryNode.cloneWithEndModifier(__privateGet(this, _props15).queryNode, SelectModifierNode.create("SkipLocked"))
     });
   }
   noWait() {
     return new _SelectQueryBuilderImpl({
       ...__privateGet(this, _props15),
-      queryNode: SelectQueryNode.cloneWithEndModifier(__privateGet(this, _props15).queryNode, SelectModifierNode.create("NoWait"))
+      queryNode: QueryNode.cloneWithEndModifier(__privateGet(this, _props15).queryNode, SelectModifierNode.create("NoWait"))
     });
   }
   selectAll(table) {
@@ -17819,6 +18159,12 @@ const AggregateFunctionNode = freeze({
       distinct: true
     });
   },
+  cloneWithOrderBy(aggregateFunctionNode, orderItems) {
+    return freeze({
+      ...aggregateFunctionNode,
+      orderBy: aggregateFunctionNode.orderBy ? OrderByNode.cloneWithItems(aggregateFunctionNode.orderBy, orderItems) : OrderByNode.create(orderItems)
+    });
+  },
   cloneWithFilter(aggregateFunctionNode, filter) {
     return freeze({
       ...aggregateFunctionNode,
@@ -17912,6 +18258,35 @@ const _AggregateFunctionBuilder = class _AggregateFunctionBuilder {
     return new _AggregateFunctionBuilder({
       ...__privateGet(this, _props16),
       aggregateFunctionNode: AggregateFunctionNode.cloneWithDistinct(__privateGet(this, _props16).aggregateFunctionNode)
+    });
+  }
+  /**
+   * Adds an `order by` clause inside the aggregate function.
+   *
+   * ### Examples
+   *
+   * ```ts
+   * const result = await db
+   *   .selectFrom('person')
+   *   .innerJoin('pet', 'pet.owner_id', 'person.id')
+   *   .select((eb) =>
+   *     eb.fn.jsonAgg('pet').orderBy('pet.name').as('person_pets')
+   *   )
+   *   .executeTakeFirstOrThrow()
+   * ```
+   *
+   * The generated SQL (PostgreSQL):
+   *
+   * ```sql
+   * select json_agg("pet" order by "pet"."name") as "person_pets"
+   * from "person"
+   * inner join "pet" ON "pet"."owner_id" = "person"."id"
+   * ```
+   */
+  orderBy(orderBy, direction) {
+    return new _AggregateFunctionBuilder({
+      ...__privateGet(this, _props16),
+      aggregateFunctionNode: AggregateFunctionNode.cloneWithOrderBy(__privateGet(this, _props16).aggregateFunctionNode, parseOrderBy([orderBy, direction]))
     });
   }
   filterWhere(...args) {
@@ -18257,9 +18632,12 @@ class JSONPathBuilder {
    * ### Examples
    *
    * ```ts
-   * db.selectFrom('person').select(eb =>
-   *   eb.ref('nicknames', '->').at(0).as('primary_nickname')
-   * )
+   * await db.selectFrom('person')
+   *   .select(eb =>
+   *     eb.ref('nicknames', '->').at(0).as('primary_nickname')
+   *   )
+   *   .execute()
+   * ```
    *
    * The generated SQL (PostgreSQL):
    *
@@ -18373,7 +18751,7 @@ createBuilderWithPathLeg_fn = function(legType, value) {
   }
   return new TraversedJSONPathBuilder(JSONPathNode.cloneWithLeg(__privateGet(this, _node4), JSONPathLegNode.create(legType, value)));
 };
-class TraversedJSONPathBuilder extends JSONPathBuilder {
+const _TraversedJSONPathBuilder = class _TraversedJSONPathBuilder extends JSONPathBuilder {
   constructor(node) {
     super(node);
     __privateAdd(this, _node5);
@@ -18393,16 +18771,17 @@ class TraversedJSONPathBuilder extends JSONPathBuilder {
    * returns a copy of this `JSONPathBuilder` with a new output type.
    */
   $castTo() {
-    return new JSONPathBuilder(__privateGet(this, _node5));
+    return new _TraversedJSONPathBuilder(__privateGet(this, _node5));
   }
   $notNull() {
-    return new JSONPathBuilder(__privateGet(this, _node5));
+    return new _TraversedJSONPathBuilder(__privateGet(this, _node5));
   }
   toOperationNode() {
     return __privateGet(this, _node5);
   }
-}
+};
 _node5 = new WeakMap();
+let TraversedJSONPathBuilder = _TraversedJSONPathBuilder;
 class AliasedJSONPathBuilder {
   constructor(jsonPath, alias) {
     __privateAdd(this, _jsonPath);
@@ -18466,7 +18845,19 @@ const SIMPLE_COLUMN_DATA_TYPES = [
   "json",
   "jsonb",
   "blob",
-  "varbinary"
+  "varbinary",
+  "int4range",
+  "int4multirange",
+  "int8range",
+  "int8multirange",
+  "numrange",
+  "nummultirange",
+  "tsrange",
+  "tsmultirange",
+  "tstzrange",
+  "tstzmultirange",
+  "daterange",
+  "datemultirange"
 ];
 const COLUMN_DATA_TYPE_REGEX = [
   /^varchar\(\d+\)$/,
@@ -18834,6 +19225,23 @@ const _ColumnDefinitionBuilder = class _ColumnDefinitionBuilder {
    *
    * Some dialects like PostgreSQL don't support this. On PostgreSQL
    * you can use the `serial` or `bigserial` data type instead.
+   *
+   * ### Examples
+   *
+   * ```ts
+   * await db.schema
+   *   .createTable('person')
+   *   .addColumn('id', 'integer', col => col.autoIncrement().primaryKey())
+   *   .execute()
+   * ```
+   *
+   * The generated SQL (MySQL):
+   *
+   * ```sql
+   * create table `person` (
+   *   `id` integer primary key auto_increment
+   * )
+   * ```
    */
   autoIncrement() {
     return new _ColumnDefinitionBuilder(ColumnDefinitionNode.cloneWith(__privateGet(this, _node6), { autoIncrement: true }));
@@ -18844,6 +19252,23 @@ const _ColumnDefinitionBuilder = class _ColumnDefinitionBuilder {
    * This only works on some dialects like MS SQL Server (MSSQL).
    *
    * For PostgreSQL's `generated always as identity` use {@link generatedAlwaysAsIdentity}.
+   *
+   * ### Examples
+   *
+   * ```ts
+   * await db.schema
+   *   .createTable('person')
+   *   .addColumn('id', 'integer', col => col.identity().primaryKey())
+   *   .execute()
+   * ```
+   *
+   * The generated SQL (MSSQL):
+   *
+   * ```sql
+   * create table "person" (
+   *   "id" integer identity primary key
+   * )
+   * ```
    */
   identity() {
     return new _ColumnDefinitionBuilder(ColumnDefinitionNode.cloneWith(__privateGet(this, _node6), { identity: true }));
@@ -18853,6 +19278,22 @@ const _ColumnDefinitionBuilder = class _ColumnDefinitionBuilder {
    *
    * If you want to specify a composite primary key use the
    * {@link CreateTableBuilder.addPrimaryKeyConstraint} method.
+   *
+   * ### Examples
+   *
+   * ```ts
+   * await db.schema
+   *   .createTable('person')
+   *   .addColumn('id', 'integer', col => col.primaryKey())
+   *   .execute()
+   * ```
+   *
+   * The generated SQL (MySQL):
+   *
+   * ```sql
+   * create table `person` (
+   *   `id` integer primary key
+   * )
    */
   primaryKey() {
     return new _ColumnDefinitionBuilder(ColumnDefinitionNode.cloneWith(__privateGet(this, _node6), { primaryKey: true }));
@@ -18867,7 +19308,18 @@ const _ColumnDefinitionBuilder = class _ColumnDefinitionBuilder {
    * ### Examples
    *
    * ```ts
-   * col.references('person.id')
+   * await db.schema
+   *   .createTable('pet')
+   *   .addColumn('owner_id', 'integer', (col) => col.references('person.id'))
+   *   .execute()
+   * ```
+   *
+   * The generated SQL (PostgreSQL):
+   *
+   * ```sql
+   * create table "pet" (
+   *   "owner_id" integer references "person" ("id")
+   * )
    * ```
    */
   references(ref) {
@@ -18891,7 +19343,22 @@ const _ColumnDefinitionBuilder = class _ColumnDefinitionBuilder {
    * ### Examples
    *
    * ```ts
-   * col.references('person.id').onDelete('cascade')
+   * await db.schema
+   *   .createTable('pet')
+   *   .addColumn(
+   *     'owner_id',
+   *     'integer',
+   *     (col) => col.references('person.id').onDelete('cascade')
+   *   )
+   *   .execute()
+   * ```
+   *
+   * The generated SQL (PostgreSQL):
+   *
+   * ```sql
+   * create table "pet" (
+   *   "owner_id" integer references "person" ("id") on delete cascade
+   * )
    * ```
    */
   onDelete(onDelete) {
@@ -18905,10 +19372,29 @@ const _ColumnDefinitionBuilder = class _ColumnDefinitionBuilder {
   /**
    * Adds an `on update` constraint for the foreign key column.
    *
+   * If your database engine doesn't support foreign key constraints in the
+   * column definition (like MySQL 5) you need to call the table level
+   * {@link CreateTableBuilder.addForeignKeyConstraint} method instead.
+   *
    * ### Examples
    *
    * ```ts
-   * col.references('person.id').onUpdate('cascade')
+   * await db.schema
+   *   .createTable('pet')
+   *   .addColumn(
+   *     'owner_id',
+   *     'integer',
+   *     (col) => col.references('person.id').onUpdate('cascade')
+   *   )
+   *   .execute()
+   * ```
+   *
+   * The generated SQL (PostgreSQL):
+   *
+   * ```sql
+   * create table "pet" (
+   *   "owner_id" integer references "person" ("id") on update cascade
+   * )
    * ```
    */
   onUpdate(onUpdate) {
@@ -18921,12 +19407,46 @@ const _ColumnDefinitionBuilder = class _ColumnDefinitionBuilder {
   }
   /**
    * Adds a unique constraint for the column.
+   *
+   * ### Examples
+   *
+   * ```ts
+   * await db.schema
+   *   .createTable('person')
+   *   .addColumn('email', 'varchar(255)', col => col.unique())
+   *   .execute()
+   * ```
+   *
+   * The generated SQL (MySQL):
+   *
+   * ```sql
+   * create table `person` (
+   *   `email` varchar(255) unique
+   * )
+   * ```
    */
   unique() {
     return new _ColumnDefinitionBuilder(ColumnDefinitionNode.cloneWith(__privateGet(this, _node6), { unique: true }));
   }
   /**
    * Adds a `not null` constraint for the column.
+   *
+   * ### Examples
+   *
+   * ```ts
+   * await db.schema
+   *   .createTable('person')
+   *   .addColumn('first_name', 'varchar(255)', col => col.notNull())
+   *   .execute()
+   * ```
+   *
+   * The generated SQL (MySQL):
+   *
+   * ```sql
+   * create table `person` (
+   *   `first_name` varchar(255) not null
+   * )
+   * ```
    */
   notNull() {
     return new _ColumnDefinitionBuilder(ColumnDefinitionNode.cloneWith(__privateGet(this, _node6), { notNull: true }));
@@ -18935,6 +19455,23 @@ const _ColumnDefinitionBuilder = class _ColumnDefinitionBuilder {
    * Adds a `unsigned` modifier for the column.
    *
    * This only works on some dialects like MySQL.
+   *
+   * ### Examples
+   *
+   * ```ts
+   * await db.schema
+   *   .createTable('person')
+   *   .addColumn('age', 'integer', col => col.unsigned())
+   *   .execute()
+   * ```
+   *
+   * The generated SQL (MySQL):
+   *
+   * ```sql
+   * create table `person` (
+   *   `age` integer unsigned
+   * )
+   * ```
    */
   unsigned() {
     return new _ColumnDefinitionBuilder(ColumnDefinitionNode.cloneWith(__privateGet(this, _node6), { unsigned: true }));
@@ -18945,10 +19482,18 @@ const _ColumnDefinitionBuilder = class _ColumnDefinitionBuilder {
    * ### Examples
    *
    * ```ts
-   * db.schema
+   * await db.schema
    *   .createTable('pet')
    *   .addColumn('number_of_legs', 'integer', (col) => col.defaultTo(4))
    *   .execute()
+   * ```
+   *
+   * The generated SQL (MySQL):
+   *
+   * ```sql
+   * create table `pet` (
+   *   `number_of_legs` integer default 4
+   * )
    * ```
    *
    * Values passed to `defaultTo` are interpreted as value literals by default. You can define
@@ -18957,14 +19502,22 @@ const _ColumnDefinitionBuilder = class _ColumnDefinitionBuilder {
    * ```ts
    * import { sql } from 'kysely'
    *
-   * db.schema
+   * await db.schema
    *   .createTable('pet')
    *   .addColumn(
-   *     'number_of_legs',
-   *     'integer',
-   *     (col) => col.defaultTo(sql`any SQL here`)
+   *     'created_at',
+   *     'timestamp',
+   *     (col) => col.defaultTo(sql`CURRENT_TIMESTAMP`)
    *   )
    *   .execute()
+   * ```
+   *
+   * The generated SQL (MySQL):
+   *
+   * ```sql
+   * create table `pet` (
+   *   `created_at` timestamp default CURRENT_TIMESTAMP
+   * )
    * ```
    */
   defaultTo(value) {
@@ -18980,12 +19533,20 @@ const _ColumnDefinitionBuilder = class _ColumnDefinitionBuilder {
    * ```ts
    * import { sql } from 'kysely'
    *
-   * db.schema
+   * await db.schema
    *   .createTable('pet')
    *   .addColumn('number_of_legs', 'integer', (col) =>
    *     col.check(sql`number_of_legs < 5`)
    *   )
    *   .execute()
+   * ```
+   *
+   * The generated SQL (MySQL):
+   *
+   * ```sql
+   * create table `pet` (
+   *   `number_of_legs` integer check (number_of_legs < 5)
+   * )
    * ```
    */
   check(expression) {
@@ -19001,12 +19562,20 @@ const _ColumnDefinitionBuilder = class _ColumnDefinitionBuilder {
    * ```ts
    * import { sql } from 'kysely'
    *
-   * db.schema
+   * await db.schema
    *   .createTable('person')
    *   .addColumn('full_name', 'varchar(255)',
    *     (col) => col.generatedAlwaysAs(sql`concat(first_name, ' ', last_name)`)
    *   )
    *   .execute()
+   * ```
+   *
+   * The generated SQL (MySQL):
+   *
+   * ```sql
+   * create table `person` (
+   *   `full_name` varchar(255) generated always as (concat(first_name, ' ', last_name))
+   * )
    * ```
    */
   generatedAlwaysAs(expression) {
@@ -19020,6 +19589,23 @@ const _ColumnDefinitionBuilder = class _ColumnDefinitionBuilder {
    * This only works on some dialects like PostgreSQL.
    *
    * For MS SQL Server (MSSQL)'s identity column use {@link identity}.
+   *
+   * ### Examples
+   *
+   * ```ts
+   * await db.schema
+   *   .createTable('person')
+   *   .addColumn('id', 'integer', col => col.generatedAlwaysAsIdentity().primaryKey())
+   *   .execute()
+   * ```
+   *
+   * The generated SQL (PostgreSQL):
+   *
+   * ```sql
+   * create table "person" (
+   *   "id" integer generated always as identity primary key
+   * )
+   * ```
    */
   generatedAlwaysAsIdentity() {
     return new _ColumnDefinitionBuilder(ColumnDefinitionNode.cloneWith(__privateGet(this, _node6), {
@@ -19028,6 +19614,27 @@ const _ColumnDefinitionBuilder = class _ColumnDefinitionBuilder {
   }
   /**
    * Adds the `generated by default as identity` specifier on supported dialects.
+   *
+   * This only works on some dialects like PostgreSQL.
+   *
+   * For MS SQL Server (MSSQL)'s identity column use {@link identity}.
+   *
+   * ### Examples
+   *
+   * ```ts
+   * await db.schema
+   *   .createTable('person')
+   *   .addColumn('id', 'integer', col => col.generatedByDefaultAsIdentity().primaryKey())
+   *   .execute()
+   * ```
+   *
+   * The generated SQL (PostgreSQL):
+   *
+   * ```sql
+   * create table "person" (
+   *   "id" integer generated by default as identity primary key
+   * )
+   * ```
    */
   generatedByDefaultAsIdentity() {
     return new _ColumnDefinitionBuilder(ColumnDefinitionNode.cloneWith(__privateGet(this, _node6), {
@@ -19041,13 +19648,23 @@ const _ColumnDefinitionBuilder = class _ColumnDefinitionBuilder {
    * ### Examples
    *
    * ```ts
-   * db.schema
+   * import { sql } from 'kysely'
+   *
+   * await db.schema
    *   .createTable('person')
    *   .addColumn('full_name', 'varchar(255)', (col) => col
-   *     .generatedAlwaysAs("concat(first_name, ' ', last_name)")
+   *     .generatedAlwaysAs(sql`concat(first_name, ' ', last_name)`)
    *     .stored()
    *   )
    *   .execute()
+   * ```
+   *
+   * The generated SQL (MySQL):
+   *
+   * ```sql
+   * create table `person` (
+   *   `full_name` varchar(255) generated always as (concat(first_name, ' ', last_name)) stored
+   * )
    * ```
    */
   stored() {
@@ -19066,10 +19683,17 @@ const _ColumnDefinitionBuilder = class _ColumnDefinitionBuilder {
    * ### Examples
    *
    * ```ts
-   * db.schema.createTable('person')
-   *  .addColumn('id', 'integer', col => col.primaryKey())
-   *  .addColumn('first_name', 'varchar(36)', col => col.modifyFront(sql`collate utf8mb4_general_ci`).notNull())
-   *  .execute()
+   * import { sql } from 'kysely'
+   *
+   * await db.schema
+   *   .createTable('person')
+   *   .addColumn('id', 'integer', col => col.primaryKey())
+   *   .addColumn(
+   *     'first_name',
+   *     'varchar(36)',
+   *     (col) => col.modifyFront(sql`collate utf8mb4_general_ci`).notNull()
+   *   )
+   *   .execute()
    * ```
    *
    * The generated SQL (MySQL):
@@ -19093,10 +19717,11 @@ const _ColumnDefinitionBuilder = class _ColumnDefinitionBuilder {
    * ### Examples
    *
    * ```ts
-   * db.schema.createTable('person')
-   *  .addColumn('id', 'integer', col => col.primaryKey())
-   *  .addColumn('first_name', 'varchar(30)', col => col.unique().nullsNotDistinct())
-   *  .execute()
+   * db.schema
+   *   .createTable('person')
+   *   .addColumn('id', 'integer', col => col.primaryKey())
+   *   .addColumn('first_name', 'varchar(30)', col => col.unique().nullsNotDistinct())
+   *   .execute()
    * ```
    *
    * The generated SQL (PostgreSQL):
@@ -19112,8 +19737,22 @@ const _ColumnDefinitionBuilder = class _ColumnDefinitionBuilder {
     return new _ColumnDefinitionBuilder(ColumnDefinitionNode.cloneWith(__privateGet(this, _node6), { nullsNotDistinct: true }));
   }
   /**
-   * Adds `if not exists` specifier.
-   * This only works for PostgreSQL.
+   * Adds `if not exists` specifier. This only works for PostgreSQL.
+   *
+   * ### Examples
+   *
+   * ```ts
+   * await db.schema
+   *   .alterTable('person')
+   *   .addColumn('email', 'varchar(255)', col => col.unique().ifNotExists())
+   *   .execute()
+   * ```
+   *
+   * The generated SQL (PostgreSQL):
+   *
+   * ```sql
+   * alter table "person" add column if not exists "email" varchar(255) unique
+   * ```
    */
   ifNotExists() {
     return new _ColumnDefinitionBuilder(ColumnDefinitionNode.cloneWith(__privateGet(this, _node6), { ifNotExists: true }));
@@ -19124,10 +19763,19 @@ const _ColumnDefinitionBuilder = class _ColumnDefinitionBuilder {
    * ### Examples
    *
    * ```ts
-   * db.schema.createTable('person')
-   *  .addColumn('id', 'integer', col => col.primaryKey())
-   *  .addColumn('age', 'integer', col => col.unsigned().notNull().modifyEnd(sql`comment ${sql.lit('it is not polite to ask a woman her age')}`))
-   *  .execute()
+   * import { sql } from 'kysely'
+   *
+   * await db.schema
+   *   .createTable('person')
+   *   .addColumn('id', 'integer', col => col.primaryKey())
+   *   .addColumn(
+   *     'age',
+   *     'integer',
+   *     col => col.unsigned()
+   *       .notNull()
+   *       .modifyEnd(sql`comment ${sql.lit('it is not polite to ask a woman her age')}`)
+   *   )
+   *   .execute()
    * ```
    *
    * The generated SQL (MySQL):
@@ -19468,6 +20116,23 @@ const _AlterTableAddIndexBuilder = class _AlterTableAddIndexBuilder {
   }
   /**
    * Makes the index unique.
+   *
+   * ### Examples
+   *
+   * ```ts
+   * await db.schema
+   *   .alterTable('person')
+   *   .addIndex('person_first_name_index')
+   *   .unique()
+   *   .column('email')
+   *   .execute()
+   * ```
+   *
+   * The generated SQL (MySQL):
+   *
+   * ```sql
+   * alter table `person` add unique index `person_first_name_index` (`email`)
+   * ```
    */
   unique() {
     return new _AlterTableAddIndexBuilder({
@@ -19489,11 +20154,11 @@ const _AlterTableAddIndexBuilder = class _AlterTableAddIndexBuilder {
    *
    * ```ts
    * await db.schema
-   *         .alterTable('person')
-   *         .createIndex('person_first_name_and_age_index')
-   *         .column('first_name')
-   *         .column('age desc')
-   *         .execute()
+   *   .alterTable('person')
+   *   .addIndex('person_first_name_and_age_index')
+   *   .column('first_name')
+   *   .column('age desc')
+   *   .execute()
    * ```
    *
    * The generated SQL (MySQL):
@@ -19522,10 +20187,10 @@ const _AlterTableAddIndexBuilder = class _AlterTableAddIndexBuilder {
    *
    * ```ts
    * await db.schema
-   *         .alterTable('person')
-   *         .addIndex('person_first_name_and_age_index')
-   *         .columns(['first_name', 'age desc'])
-   *         .execute()
+   *   .alterTable('person')
+   *   .addIndex('person_first_name_and_age_index')
+   *   .columns(['first_name', 'age desc'])
+   *   .execute()
    * ```
    *
    * The generated SQL (MySQL):
@@ -20139,7 +20804,7 @@ const _CreateTableBuilder = class _CreateTableBuilder {
    *
    * await db.schema
    *   .createTable('person')
-   *   .addColumn('id', 'integer', (col) => col.autoIncrement().primaryKey()),
+   *   .addColumn('id', 'integer', (col) => col.autoIncrement().primaryKey())
    *   .addColumn('first_name', 'varchar(50)', (col) => col.notNull())
    *   .addColumn('last_name', 'varchar(255)')
    *   .addColumn('bank_balance', 'numeric(8, 2)')
@@ -20147,7 +20812,7 @@ const _CreateTableBuilder = class _CreateTableBuilder {
    *   // don't include it.
    *   .addColumn('data', sql`any_type_here`)
    *   .addColumn('parent_id', 'integer', (col) =>
-   *     col.references('person.id').onDelete('cascade'))
+   *     col.references('person.id').onDelete('cascade')
    *   )
    * ```
    *
@@ -20158,11 +20823,18 @@ const _CreateTableBuilder = class _CreateTableBuilder {
    * `create table` query. See the next example:
    *
    * ```ts
+   * await db.schema
+   *   .createTable('person')
+   *   .addColumn('id', 'integer', (col) => col.primaryKey())
    *   .addColumn('parent_id', 'integer')
    *   .addForeignKeyConstraint(
-   *     'person_parent_id_fk', ['parent_id'], 'person', ['id'],
+   *     'person_parent_id_fk',
+   *     ['parent_id'],
+   *     'person',
+   *     ['id'],
    *     (cb) => cb.onDelete('cascade')
    *   )
+   *   .execute()
    * ```
    *
    * Another good example is that PostgreSQL doesn't support the `auto_increment`
@@ -20172,7 +20844,8 @@ const _CreateTableBuilder = class _CreateTableBuilder {
    * ```ts
    * await db.schema
    *   .createTable('person')
-   *   .addColumn('id', 'serial', (col) => col.primaryKey()),
+   *   .addColumn('id', 'serial', (col) => col.primaryKey())
+   *   .execute()
    * ```
    */
   addColumn(columnName, dataType, build = noop) {
@@ -20191,7 +20864,12 @@ const _CreateTableBuilder = class _CreateTableBuilder {
    * ### Examples
    *
    * ```ts
-   * addPrimaryKeyConstraint('primary_key', ['first_name', 'last_name'])
+   * await db.schema
+   *   .createTable('person')
+   *   .addColumn('first_name', 'varchar(64)')
+   *   .addColumn('last_name', 'varchar(64)')
+   *   .addPrimaryKeyConstraint('primary_key', ['first_name', 'last_name'])
+   *   .execute()
    * ```
    */
   addPrimaryKeyConstraint(constraintName, columns) {
@@ -20209,12 +20887,30 @@ const _CreateTableBuilder = class _CreateTableBuilder {
    * ### Examples
    *
    * ```ts
-   * addUniqueConstraint('first_name_last_name_unique', ['first_name', 'last_name'])
+   * await db.schema
+   *   .createTable('person')
+   *   .addColumn('first_name', 'varchar(64)')
+   *   .addColumn('last_name', 'varchar(64)')
+   *   .addUniqueConstraint(
+   *     'first_name_last_name_unique',
+   *     ['first_name', 'last_name']
+   *   )
+   *   .execute()
    * ```
    *
    * In dialects such as PostgreSQL you can specify `nulls not distinct` as follows:
+   *
    * ```ts
-   * addUniqueConstraint('first_name_last_name_unique', ['first_name', 'last_name'], (builder) => builder.nullsNotDistinct())
+   * await db.schema
+   *   .createTable('person')
+   *   .addColumn('first_name', 'varchar(64)')
+   *   .addColumn('last_name', 'varchar(64)')
+   *   .addUniqueConstraint(
+   *     'first_name_last_name_unique',
+   *     ['first_name', 'last_name'],
+   *     (cb) => cb.nullsNotDistinct()
+   *   )
+   *   .execute()
    * ```
    */
   addUniqueConstraint(constraintName, columns, build = noop) {
@@ -20235,7 +20931,11 @@ const _CreateTableBuilder = class _CreateTableBuilder {
    * ```ts
    * import { sql } from 'kysely'
    *
-   * addCheckConstraint('check_legs', sql`number_of_legs < 5`)
+   * await db.schema
+   *   .createTable('animal')
+   *   .addColumn('number_of_legs', 'integer')
+   *   .addCheckConstraint('check_legs', sql`number_of_legs < 5`)
+   *   .execute()
    * ```
    */
   addCheckConstraint(constraintName, checkExpression) {
@@ -20253,24 +20953,33 @@ const _CreateTableBuilder = class _CreateTableBuilder {
    * ### Examples
    *
    * ```ts
-   * addForeignKeyConstraint(
-   *   'owner_id_foreign',
-   *   ['owner_id'],
-   *   'person',
-   *   ['id'],
-   * )
+   * await db.schema
+   *   .createTable('pet')
+   *   .addColumn('owner_id', 'integer')
+   *   .addForeignKeyConstraint(
+   *     'owner_id_foreign',
+   *     ['owner_id'],
+   *     'person',
+   *     ['id'],
+   *   )
+   *   .execute()
    * ```
    *
    * Add constraint for multiple columns:
    *
    * ```ts
-   * addForeignKeyConstraint(
-   *   'owner_id_foreign',
-   *   ['owner_id1', 'owner_id2'],
-   *   'person',
-   *   ['id1', 'id2'],
-   *   (cb) => cb.onDelete('cascade')
-   * )
+   * await db.schema
+   *   .createTable('pet')
+   *   .addColumn('owner_id1', 'integer')
+   *   .addColumn('owner_id2', 'integer')
+   *   .addForeignKeyConstraint(
+   *     'owner_id_foreign',
+   *     ['owner_id1', 'owner_id2'],
+   *     'person',
+   *     ['id1', 'id2'],
+   *     (cb) => cb.onDelete('cascade')
+   *   )
+   *   .execute()
    * ```
    */
   addForeignKeyConstraint(constraintName, columns, targetTable, targetColumns, build = noop) {
@@ -20288,11 +20997,14 @@ const _CreateTableBuilder = class _CreateTableBuilder {
    * ### Examples
    *
    * ```ts
-   * db.schema.createTable('person')
+   * import { sql } from 'kysely'
+   *
+   * await db.schema
+   *   .createTable('person')
    *   .modifyFront(sql`global temporary`)
    *   .addColumn('id', 'integer', col => col.primaryKey())
    *   .addColumn('first_name', 'varchar(64)', col => col.notNull())
-   *   .addColumn('last_name', 'varchar(64), col => col.notNull())
+   *   .addColumn('last_name', 'varchar(64)', col => col.notNull())
    *   .execute()
    * ```
    *
@@ -20320,10 +21032,13 @@ const _CreateTableBuilder = class _CreateTableBuilder {
    * ### Examples
    *
    * ```ts
-   * db.schema.createTable('person')
-   *   .addColumn('id', 'integer', col => col => primaryKey())
+   * import { sql } from 'kysely'
+   *
+   * await db.schema
+   *   .createTable('person')
+   *   .addColumn('id', 'integer', col => col.primaryKey())
    *   .addColumn('first_name', 'varchar(64)', col => col.notNull())
-   *   .addColumn('last_name', 'varchar(64), col => col.notNull())
+   *   .addColumn('last_name', 'varchar(64)', col => col.notNull())
    *   .modifyEnd(sql`collate utf8_unicode_ci`)
    *   .execute()
    * ```
@@ -20350,7 +21065,8 @@ const _CreateTableBuilder = class _CreateTableBuilder {
    * ### Examples
    *
    * ```ts
-   * db.schema.createTable('copy')
+   * await db.schema
+   *   .createTable('copy')
    *   .temporary()
    *   .as(db.selectFrom('person').select(['first_name', 'last_name']))
    *   .execute()
@@ -20377,17 +21093,19 @@ const _CreateTableBuilder = class _CreateTableBuilder {
    * ### Examples
    *
    * ```ts
-   * db.schema
+   * await db.schema
    *   .createTable('test')
    *   .$call((builder) => builder.addColumn('id', 'integer'))
    *   .execute()
    * ```
    *
+   * This is useful for creating reusable functions that can be called with a builder.
+   *
    * ```ts
-   * const addDefaultColumns = <T extends string, C extends string = never>(
-   *   builder: CreateTableBuilder<T, C>
-   * ) => {
-   *   return builder
+   * import { type CreateTableBuilder, sql } from 'kysely'
+   *
+   * const addDefaultColumns = (ctb: CreateTableBuilder<any, any>) => {
+   *   return ctb
    *     .addColumn('id', 'integer', (col) => col.notNull())
    *     .addColumn('created_at', 'date', (col) =>
    *       col.notNull().defaultTo(sql`now()`)
@@ -20397,7 +21115,7 @@ const _CreateTableBuilder = class _CreateTableBuilder {
    *     )
    * }
    *
-   * db.schema
+   * await db.schema
    *   .createTable('test')
    *   .$call(addDefaultColumns)
    *   .execute()
@@ -21201,11 +21919,11 @@ class DynamicModule {
    * const { ref } = db.dynamic
    *
    * // Some column name provided by the user. Value not known at compile time.
-   * const columnFromUserInput = req.query.select;
+   * const columnFromUserInput: PossibleColumns = 'birthdate';
    *
    * // A type that lists all possible values `columnFromUserInput` can have.
    * // You can use `keyof Person` if any column of an interface is allowed.
-   * type PossibleColumns = 'last_name' | 'first_name' | 'birth_date'
+   * type PossibleColumns = 'last_name' | 'first_name' | 'birthdate'
    *
    * const [person] = await db.selectFrom('person')
    *   .select([
@@ -21217,12 +21935,12 @@ class DynamicModule {
    * // The resulting type contains all `PossibleColumns` as optional fields
    * // because we cannot know which field was actually selected before
    * // running the code.
-   * const lastName: string | undefined = person.last_name
-   * const firstName: string | undefined = person.first_name
-   * const birthDate: string | undefined = person.birth_date
+   * const lastName: string | null | undefined = person?.last_name
+   * const firstName: string | undefined = person?.first_name
+   * const birthDate: Date | null | undefined = person?.birthdate
    *
    * // The result type also contains the compile time selection `id`.
-   * person.id
+   * person?.id
    * ```
    */
   ref(reference) {
@@ -21549,8 +22267,40 @@ const _Kysely = class _Kysely extends QueryCreator {
     });
   }
   /**
-   * Returns a {@link FunctionModule} that can be used to write type safe function
+   * Returns a {@link FunctionModule} that can be used to write somewhat type-safe function
    * calls.
+   *
+   * ```ts
+   * const { count } = db.fn
+   *
+   * await db.selectFrom('person')
+   *   .innerJoin('pet', 'pet.owner_id', 'person.id')
+   *   .select([
+   *     'id',
+   *     count('pet.id').as('person_count'),
+   *   ])
+   *   .groupBy('person.id')
+   *   .having(count('pet.id'), '>', 10)
+   *   .execute()
+   * ```
+   *
+   * The generated SQL (PostgreSQL):
+   *
+   * ```sql
+   * select "person"."id", count("pet"."id") as "person_count"
+   * from "person"
+   * inner join "pet" on "pet"."owner_id" = "person"."id"
+   * group by "person"."id"
+   * having count("pet"."id") > $1
+   * ```
+   *
+   * Why "somewhat" type-safe? Because the function calls are not bound to the
+   * current query context. They allow you to reference columns and tables that
+   * are not in the current query. E.g. remove the `innerJoin` from the previous
+   * query and TypeScript won't even complain.
+   *
+   * If you want to make the function calls fully type-safe, you can use the
+   * {@link ExpressionBuilder.fn} getter for a query context-aware, stricter {@link FunctionModule}.
    *
    * ```ts
    * await db.selectFrom('person')
@@ -21563,16 +22313,6 @@ const _Kysely = class _Kysely extends QueryCreator {
    *   .having((eb) => eb.fn.count('pet.id'), '>', 10)
    *   .execute()
    * ```
-   *
-   * The generated SQL (PostgreSQL):
-   *
-   * ```sql
-   * select "person"."id", count("pet"."id") as "pet_count"
-   * from "person"
-   * inner join "pet" on "pet"."owner_id" = "person"."id"
-   * group by "person"."id"
-   * having count("pet"."id") > $1
-   * ```
    */
   get fn() {
     return createFunctionModule();
@@ -21583,8 +22323,11 @@ const _Kysely = class _Kysely extends QueryCreator {
    * The returned {@link TransactionBuilder} can be used to configure the transaction. The
    * {@link TransactionBuilder.execute} method can then be called to run the transaction.
    * {@link TransactionBuilder.execute} takes a function that is run inside the
-   * transaction. If the function throws, the transaction is rolled back. Otherwise
-   * the transaction is committed.
+   * transaction. If the function throws an exception,
+   * 1. the exception is caught,
+   * 2. the transaction is rolled back, and
+   * 3. the exception is thrown again.
+   * Otherwise the transaction is committed.
    *
    * The callback function passed to the {@link TransactionBuilder.execute | execute}
    * method gets the transaction object as its only argument. The transaction is
@@ -21595,9 +22338,12 @@ const _Kysely = class _Kysely extends QueryCreator {
    *
    * <!-- siteExample("transactions", "Simple transaction", 10) -->
    *
-   * This example inserts two rows in a transaction. If an error is thrown inside
-   * the callback passed to the `execute` method, the transaction is rolled back.
-   * Otherwise it's committed.
+   * This example inserts two rows in a transaction. If an exception is thrown inside
+   * the callback passed to the `execute` method,
+   * 1. the exception is caught,
+   * 2. the transaction is rolled back, and
+   * 3. the exception is thrown again.
+   * Otherwise the transaction is committed.
    *
    * ```ts
    * const catto = await db.transaction().execute(async (trx) => {
@@ -21625,12 +22371,18 @@ const _Kysely = class _Kysely extends QueryCreator {
    * Setting the isolation level:
    *
    * ```ts
+   * import type { Kysely } from 'kysely'
+   *
    * await db
    *   .transaction()
    *   .setIsolationLevel('serializable')
    *   .execute(async (trx) => {
    *     await doStuff(trx)
    *   })
+   *
+   * async function doStuff(kysely: typeof db) {
+   *   // ...
+   * }
    * ```
    */
   transaction() {
@@ -21650,6 +22402,10 @@ const _Kysely = class _Kysely extends QueryCreator {
    *     // the same connection.
    *     await doStuff(db)
    *   })
+   *
+   * async function doStuff(kysely: typeof db) {
+   *   // ...
+   * }
    * ```
    */
   connection() {
@@ -21693,7 +22449,6 @@ const _Kysely = class _Kysely extends QueryCreator {
    *
    * The following example adds and uses a temporary table:
    *
-   * @example
    * ```ts
    * await db.schema
    *   .createTable('temp_table')
@@ -21742,7 +22497,7 @@ const _Kysely = class _Kysely extends QueryCreator {
   /**
    * Executes a given compiled query or query builder.
    *
-   * See {@link https://github.com/koskimas/kysely/blob/master/site/docs/recipes/splitting-build-compile-and-execute-code.md#execute-compiled-queries splitting build, compile and execute code recipe} for more information.
+   * See {@link https://github.com/kysely-org/kysely/blob/master/site/docs/recipes/0004-splitting-query-building-and-execution.md#execute-compiled-queries splitting build, compile and execute code recipe} for more information.
    */
   executeQuery(query, queryId = createQueryId()) {
     const compiledQuery = isCompilable(query) ? query.compile() : query;
@@ -21784,9 +22539,6 @@ const _Transaction = class _Transaction extends Kysely {
       executor: __privateGet(this, _props38).executor.withoutPlugins()
     });
   }
-  /**
-   * @override
-   */
   withSchema(schema) {
     return new _Transaction({
       ...__privateGet(this, _props38),
@@ -22311,6 +23063,10 @@ class DefaultQueryCompiler extends OperationNodeVisitor {
     if (isSubQuery && !MergeQueryNode.is(rootQueryNode)) {
       this.append(")");
     }
+    if (node.endModifiers?.length) {
+      this.append(" ");
+      this.compileList(node.endModifiers, " ");
+    }
   }
   visitValues(node) {
     this.append("values ");
@@ -22365,6 +23121,10 @@ class DefaultQueryCompiler extends OperationNodeVisitor {
     }
     if (isSubQuery) {
       this.append(")");
+    }
+    if (node.endModifiers?.length) {
+      this.append(" ");
+      this.compileList(node.endModifiers, " ");
     }
   }
   visitReturning(node) {
@@ -22662,6 +23422,10 @@ class DefaultQueryCompiler extends OperationNodeVisitor {
     }
     if (isSubQuery && !MergeQueryNode.is(rootQueryNode)) {
       this.append(")");
+    }
+    if (node.endModifiers?.length) {
+      this.append(" ");
+      this.compileList(node.endModifiers, " ");
     }
   }
   visitColumnUpdate(node) {
@@ -23073,6 +23837,10 @@ class DefaultQueryCompiler extends OperationNodeVisitor {
       this.append("distinct ");
     }
     this.compileList(node.aggregated);
+    if (node.orderBy) {
+      this.append(" ");
+      this.visitNode(node.orderBy);
+    }
     this.append(")");
     if (node.filter) {
       this.append(" filter(");
@@ -23213,6 +23981,10 @@ class DefaultQueryCompiler extends OperationNodeVisitor {
     if (node.output) {
       this.append(" ");
       this.visitNode(node.output);
+    }
+    if (node.endModifiers?.length) {
+      this.append(" ");
+      this.compileList(node.endModifiers, " ");
     }
   }
   visitMatched(node) {
@@ -23475,7 +24247,15 @@ class SqliteAdapter extends DialectAdapterBase {
   async releaseMigrationLock(_db2, _opt) {
   }
 }
-var BaseDialect = class {
+var BaseSqliteDialect = class {
+  /**
+   * Base class that implements {@link Dialect}
+   * @param create function that create {@link Driver}
+   */
+  constructor(create) {
+    __publicField(this, "createDriver");
+    this.createDriver = create;
+  }
   createQueryCompiler() {
     return new SqliteQueryCompiler();
   }
@@ -23484,28 +24264,6 @@ var BaseDialect = class {
   }
   createIntrospector(db) {
     return new SqliteIntrospector(db);
-  }
-};
-var BaseDriver = class {
-  constructor() {
-    __publicField(this, "connectionMutex", new ConnectionMutex());
-    __publicField(this, "connection");
-  }
-  async acquireConnection() {
-    await this.connectionMutex.lock();
-    return this.connection;
-  }
-  async beginTransaction(connection) {
-    await connection.executeQuery(CompiledQuery.raw("begin"));
-  }
-  async commitTransaction(connection) {
-    await connection.executeQuery(CompiledQuery.raw("commit"));
-  }
-  async rollbackTransaction(connection) {
-    await connection.executeQuery(CompiledQuery.raw("rollback"));
-  }
-  async releaseConnection() {
-    this.connectionMutex.unlock();
   }
 };
 var ConnectionMutex = class {
@@ -23528,51 +24286,86 @@ var ConnectionMutex = class {
     resolve?.();
   }
 };
-var BaseSqliteConnection = class {
-  streamQuery() {
-    throw new Error("sqlite-wasm driver doesn't support streaming");
+var BaseSqliteDriver = class {
+  /**
+   * Base abstract class that implements {@link Driver}
+   *
+   * You **MUST** assign `this.conn` in `init` and implement `destroy` method
+   */
+  constructor(init) {
+    __publicField(this, "mutex", new ConnectionMutex());
+    __publicField(this, "conn");
+    __publicField(this, "init");
+    this.init = init;
   }
-  async executeQuery({ parameters, query, sql: sql2 }) {
-    const rows = await this.query(sql2, parameters);
-    return SelectQueryNode.is(query) || rows.length ? { rows } : {
-      rows,
-      ...await this.info()
-    };
+  async acquireConnection() {
+    await this.mutex.lock();
+    return this.conn;
+  }
+  async beginTransaction(connection) {
+    await connection.executeQuery(CompiledQuery.raw("begin"));
+  }
+  async commitTransaction(connection) {
+    await connection.executeQuery(CompiledQuery.raw("commit"));
+  }
+  async rollbackTransaction(connection) {
+    await connection.executeQuery(CompiledQuery.raw("rollback"));
+  }
+  async releaseConnection() {
+    this.mutex.unlock();
   }
 };
-var OfficialWasmDriver = class extends BaseDriver {
-  constructor(config) {
-    super();
-    __publicField(this, "config");
+function buildQueryFn(exec) {
+  return async (isSelect, sql2, parameters) => {
+    const rows = await exec.all(sql2, parameters);
+    return isSelect || rows.length ? { rows } : { rows: [], ...await exec.run("select 1") };
+  };
+}
+var GenericSqliteDriver = class extends BaseSqliteDriver {
+  constructor(executor, onCreateConnection) {
+    super(async () => {
+      this.db = await executor();
+      this.conn = new GenericSqliteConnection(this.db);
+      await onCreateConnection?.(this.conn);
+    });
     __publicField(this, "db");
-    this.config = config;
-  }
-  async init() {
-    this.db = typeof this.config.database === "function" ? await this.config.database() : this.config.database;
-    this.connection = new OfficailSqliteWasmConnection(this.db);
-    await this.config.onCreateConnection?.(this.connection);
   }
   async destroy() {
-    this.db?.close();
+    await this.db?.close();
   }
 };
-var OfficailSqliteWasmConnection = class extends BaseSqliteConnection {
+var GenericSqliteConnection = class {
   constructor(db) {
-    super();
-    __publicField(this, "db");
     this.db = db;
   }
-  async query(sql2, params) {
-    return this.db.selectObjects(sql2, params);
+  async *streamQuery({ parameters, query, sql: sql2 }) {
+    if (!this.db.iterator) {
+      throw new Error("streamQuery() is not supported.");
+    }
+    const it = this.db.iterator(SelectQueryNode.is(query), sql2, parameters);
+    for await (const row of it) {
+      yield { rows: [row] };
+    }
   }
-  async info() {
-    return {
-      insertId: BigInt(this.db.selectArray("SELECT last_insert_rowid()")[0]),
-      numAffectedRows: BigInt(this.db.changes(false, true))
-    };
+  async executeQuery({ parameters, query, sql: sql2 }) {
+    return await this.db.query(SelectQueryNode.is(query), sql2, parameters);
   }
 };
-var OfficialWasmDialect = class extends BaseDialect {
+var GenericSqliteDialect = class extends BaseSqliteDialect {
+  /**
+   * Dialect for generic SQLite that run SQLs in current thread
+   *
+   * @param executor function to create {@link IGenericSqlite}
+   * @param onCreateConnection optional callback after connection created
+   */
+  constructor(executor, onCreateConnection) {
+    super(() => new GenericSqliteDriver(executor, onCreateConnection));
+  }
+};
+async function accessDB(accessor) {
+  return typeof accessor === "function" ? await accessor() : accessor;
+}
+var OfficialWasmDialect = class extends GenericSqliteDialect {
   /**
    * dialect for [official wasm build](https://sqlite.org/wasm/doc/trunk/index.md)
    *
@@ -23617,12 +24410,25 @@ var OfficialWasmDialect = class extends BaseDialect {
    * @see https://sqlite.org/wasm/doc/trunk/persistence.md#coop-coep
    */
   constructor(config) {
-    super();
-    __publicField(this, "config");
-    this.config = config;
-  }
-  createDriver() {
-    return new OfficialWasmDriver(this.config);
+    super(
+      async () => {
+        const db = await accessDB(config.database);
+        return {
+          db,
+          close: () => db.close(),
+          query: buildQueryFn({
+            all: (sql2, parameters) => {
+              return db.selectObjects(sql2, parameters);
+            },
+            run: () => ({
+              insertId: BigInt(db.selectArray("SELECT last_insert_rowid()")?.[0] || 0),
+              numAffectedRows: BigInt(db.changes(false, true))
+            })
+          })
+        };
+      },
+      config.onCreateConnection
+    );
   }
 };
 var SerializeParametersTransformer = class extends OperationNodeTransformer {
@@ -23751,15 +24557,26 @@ var defaultDeserializer = (parameter) => {
   }
   return parameter;
 };
+var QUESTION_MARKER = "_Q_";
+var QUESTION_MARKER_REGEX = new RegExp(QUESTION_MARKER, "g");
+var QUESTION_MATCH_REGEX = /\?/;
+var QUESTION_MATCH_REGEX_GLOBAL = /\?/g;
 function createKyselyLogger(options = {}) {
-  const { enable = "error", logger = console.log, merge, logQueryNode } = options;
-  const questionMarker = "_Q_";
-  const regexp = new RegExp(questionMarker, "g");
+  const {
+    enable = "error",
+    logger = console.log,
+    merge,
+    logQueryNode
+  } = options;
   return (event) => {
     if (!enable || typeof enable === "string" && event.level !== enable) {
       return;
     }
-    const { level, queryDurationMillis, query: { parameters, sql: sql2, query } } = event;
+    const {
+      level,
+      queryDurationMillis,
+      query: { parameters, sql: sql2, query }
+    } = event;
     const err = level === "error" ? event.error : void 0;
     let _sql2 = sql2.replace(/\r?\n/g, " ").replace(/\s+/g, " ");
     if (merge) {
@@ -23768,13 +24585,13 @@ function createKyselyLogger(options = {}) {
           param2 = param2.toLocaleString();
         }
         if (typeof param2 === "string") {
-          param2 = `'${param2}'`.replace(/\?/g, questionMarker);
+          param2 = `'${param2}'`.replace(QUESTION_MATCH_REGEX_GLOBAL, QUESTION_MARKER);
         }
-        _sql2 = _sql2.replace(/\?/, param2);
+        _sql2 = _sql2.replace(QUESTION_MATCH_REGEX, param2);
       }
     }
     const param = {
-      sql: _sql2.replace(regexp, "?"),
+      sql: _sql2.replace(QUESTION_MARKER_REGEX, "?"),
       params: parameters,
       duration: Math.round(queryDurationMillis * 100) / 100,
       error: err
@@ -24027,15 +24844,15 @@ var column = {
    */
   blob: (options) => parse(DataType.blob, options),
   /**
-   * Column type: text (serialize with `JSON.parse` and `JSON.stringify`)
+   * Column type: INTEGER
    */
   boolean: (options) => parse(DataType.boolean, options),
   /**
-   * Column type: text (serialize with `JSON.parse` and `JSON.stringify`)
+   * Column type: TEXT (serialize with `JSON.parse` and `JSON.stringify`)
    */
   date: (options) => parse(DataType.date, options),
   /**
-   * Column type: text (serialize with `JSON.parse` and `JSON.stringify`)
+   * Column type: TEXT (serialize with `JSON.parse` and `JSON.stringify`)
    */
   object: (options) => parse(DataType.object, options)
 };
@@ -24091,6 +24908,7 @@ function parseColumnType(type) {
       break;
     case DataType.increments:
       isIncrements = true;
+    // eslint-disable-next-line no-fallthrough
     case DataType.boolean:
     case DataType.int:
       dataType = "INTEGER";
@@ -24098,20 +24916,24 @@ function parseColumnType(type) {
     case DataType.blob:
       dataType = "BLOB";
       break;
+    // date, object, string or other
     default:
       dataType = "TEXT";
   }
   return [dataType, isIncrements];
 }
+function asArray(arr) {
+  return Array.isArray(arr) ? arr : [arr];
+}
 function parseArray(arr) {
-  const columns = Array.isArray(arr) ? arr : [arr];
+  const columns = asArray(arr);
   let key = "";
   let columnList = "";
   for (const c of columns) {
     key += `_${c}`;
     columnList += `"${c}",`;
   }
-  return [columnList.slice(0, -1), key];
+  return [columnList.slice(0, -1), key, columns[0]];
 }
 function parseDefaultValue(trx, defaultTo) {
   if (defaultTo === void 0 || defaultTo === null) {
@@ -24134,9 +24956,9 @@ function dropTable(tableName) {
 function createTableWithIndexAndTrigger(trx, tableName, table) {
   const { index, ...props } = table;
   const result = [];
-  const { updateColumn, sql: sql3 } = createTable(trx, tableName, props);
+  const [sql3, updateColumn, triggerColumn] = createTable(trx, tableName, props);
   result.push(sql3, ...createTableIndex(tableName, index));
-  const triggerSql = createTimeTrigger(tableName, updateColumn);
+  const triggerSql = createTimeTrigger(tableName, updateColumn, triggerColumn);
   if (triggerSql) {
     result.push(triggerSql);
   }
@@ -24148,18 +24970,21 @@ function createTableIndex(tableName, index = []) {
     return `CREATE INDEX IF NOT EXISTS idx_${tableName + key} on "${tableName}" (${columnListStr});`;
   });
 }
-function createTable(trx, tableName, { columns, primary, unique }) {
+function createTable(trx, tableName, { columns, primary, unique, withoutRowId }) {
   let updateColumn;
-  let autoIncrementColumn;
+  let triggerColumn;
   const columnList = [];
   for (const [columnName, columnProperty] of Object.entries(columns)) {
     const { type, notNull, defaultTo } = columnProperty;
     const [dataType, isIncrements] = parseColumnType(type);
     if (isIncrements) {
-      if (autoIncrementColumn) {
-        throw new Error(`Multiple AUTOINCREMENT columns (${autoIncrementColumn}, ${columnName}) in table ${tableName}`);
+      if (withoutRowId) {
+        throw new Error(`Cannot setup AUTOINCREMENT column "${columnName}" in table "${tableName}" without rowid `);
       }
-      autoIncrementColumn = columnName;
+      if (triggerColumn) {
+        throw new Error(`Multiple AUTOINCREMENT columns (${triggerColumn}, ${columnName}) in table ${tableName}`);
+      }
+      triggerColumn = columnName;
       columnList.push(`"${columnName}" ${dataType} PRIMARY KEY AUTOINCREMENT`);
     } else {
       if (defaultTo === TGRU) {
@@ -24169,29 +24994,34 @@ function createTable(trx, tableName, { columns, primary, unique }) {
     }
   }
   if (primary) {
-    const [targetColumns, key] = parseArray(primary);
-    if (!autoIncrementColumn) {
+    const [targetColumns, key, first] = parseArray(primary);
+    if (!triggerColumn) {
       columnList.push(`PRIMARY KEY (${targetColumns})`);
-    } else if (autoIncrementColumn !== key.substring(1)) {
-      throw new Error(`Exists AUTOINCREMENT column "${autoIncrementColumn}" in table "${tableName}", cannot setup extra primary key (${targetColumns})`);
+      triggerColumn = first;
+    } else if (triggerColumn !== key.substring(1)) {
+      throw new Error(`Exists AUTOINCREMENT column "${triggerColumn}" in table "${tableName}", cannot setup extra primary key (${targetColumns})`);
     }
+  } else if (withoutRowId) {
+    throw new Error(`No primary key in table "${tableName}" and "withoutRowId" setup`);
   }
   if (unique) {
     for (const uk of unique) {
       columnList.push(`UNIQUE (${parseArray(uk)[0]})`);
     }
   }
-  return {
-    sql: `CREATE TABLE IF NOT EXISTS "${tableName}" (${columnList});`,
-    updateColumn
-  };
+  const rowIdClause = withoutRowId ? " WITHOUT ROWID" : "";
+  return [
+    `CREATE TABLE IF NOT EXISTS "${tableName}" (${columnList})${rowIdClause};`,
+    updateColumn,
+    triggerColumn || "rowid"
+  ];
 }
-function createTimeTrigger(tableName, updateColumn) {
-  if (!updateColumn) {
+function createTimeTrigger(tableName, updateColumn, triggerColumn) {
+  if (!updateColumn || !triggerColumn) {
     return;
   }
   const triggerName = `tgr_${tableName}_${updateColumn}`;
-  return `CREATE TRIGGER IF NOT EXISTS "${triggerName}" AFTER UPDATE ON "${tableName}" BEGIN UPDATE "${tableName}" SET "${updateColumn}" = CURRENT_TIMESTAMP WHERE "rowid" = NEW."rowid"; END;`;
+  return `CREATE TRIGGER IF NOT EXISTS "${triggerName}" AFTER UPDATE ON "${tableName}" BEGIN UPDATE "${tableName}" SET "${updateColumn}" = CURRENT_TIMESTAMP WHERE "${triggerColumn}" = NEW."${triggerColumn}"; END;`;
 }
 function renameTable(tableName, newTableName) {
   return `ALTER TABLE "${tableName}" RENAME TO "${newTableName}";`;
@@ -24218,7 +25048,7 @@ function dropTrigger(triggerName) {
 function migrateWholeTable(trx, tableName, restoreColumnList, targetTable) {
   const result = [];
   const tempTableName = `_temp_${tableName}`;
-  const { updateColumn, sql: sql3 } = createTable(trx, tempTableName, targetTable);
+  const [sql3, updateColumn, triggerColumn] = createTable(trx, tempTableName, targetTable);
   result.push(sql3);
   if (restoreColumnList.length) {
     let cols = "";
@@ -24232,7 +25062,7 @@ function migrateWholeTable(trx, tableName, restoreColumnList, targetTable) {
   result.push(dropTable(tableName));
   result.push(renameTable(tempTableName, tableName));
   result.push(...createTableIndex(tableName, targetTable.index));
-  const triggerSql = createTimeTrigger(tableName, updateColumn);
+  const triggerSql = createTimeTrigger(tableName, updateColumn, triggerColumn);
   if (triggerSql) {
     result.push(triggerSql);
   }
@@ -24380,7 +25210,7 @@ function updateTable(trx, tableName, existTable, targetTable, migrateColumn) {
       deleteColumnList.push(name);
     }
   }
-  if (isChanged || isPrimaryKeyChanged(existTable.primary, targetTable.primary || autoIncrementColumn) || isUniqueChanged(existTable.unique, targetTable.unique)) {
+  if (isChanged || isPrimaryKeyChanged(existTable.primary, targetTable.primary || autoIncrementColumn) || isUniqueChanged(existTable.unique, targetTable.unique) || targetTable.withoutRowId) {
     return migrateWholeTable(trx, tableName, updateColumnList, targetTable);
   }
   const result = [
@@ -24400,7 +25230,7 @@ function updateTable(trx, tableName, existTable, targetTable, migrateColumn) {
       result.splice(0, 0, dropTrigger(existTrigger));
     }
     if (updateTimeColumn) {
-      result.push(createTimeTrigger(tableName, updateTimeColumn));
+      result.push(createTimeTrigger(tableName, updateTimeColumn, asArray(targetTable.primary)[0] || autoIncrementColumn));
     }
   }
   return result;
@@ -24486,7 +25316,7 @@ async function testDB(dialect2) {
       console.log("Stream Query", v2);
     }
   } catch (error) {
-    console.error(error);
+    console.warn(error);
   }
   return db.selectFrom("test").selectAll().execute().then(async (data) => {
     await db.destroy();

@@ -5,702 +5,10 @@ var __typeError = (msg) => {
 var __defNormalProp = (obj, key, value) => key in obj ? __defProp(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
 var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "symbol" ? key + "" : key, value);
 var __accessCheck = (obj, member, msg) => member.has(obj) || __typeError("Cannot " + msg);
-var __privateGet = (obj, member, getter) => (__accessCheck(obj, member, "read from private field"), getter ? getter.call(obj) : member.get(obj));
 var __privateAdd = (obj, member, value) => member.has(obj) ? __typeError("Cannot add the same private member more than once") : member instanceof WeakSet ? member.add(obj) : member.set(obj, value);
-var __privateSet = (obj, member, value, setter) => (__accessCheck(obj, member, "write to private field"), setter ? setter.call(obj, value) : member.set(obj, value), value);
 var __privateMethod = (obj, member, method) => (__accessCheck(obj, member, "access private method"), method);
-var _mapIdToFile, _mapPathToFile, _lastError, _idb, _isReady, __IDBMirrorVFS_instances, initialize_fn, acceptTx_fn, commitTx_fn, dropTx_fn, deleteFile_fn, getOldestTxInUse_fn, lock_fn, processBroadcasts_fn, setView_fn, _a;
-import { F as FacadeVFS, S as SQLITE_OPEN_MAIN_DB, b as SQLITE_OPEN_CREATE, o as SQLITE_LOCK_NONE, d as SQLITE_OK, c as SQLITE_CANTOPEN, e as SQLITE_IOERR_DELETE, f as SQLITE_IOERR_ACCESS, g as SQLITE_OPEN_DELETEONCLOSE, h as SQLITE_IOERR_CLOSE, i as SQLITE_IOERR_SHORT_READ, j as SQLITE_IOERR_READ, k as SQLITE_IOERR_WRITE, l as SQLITE_IOERR_TRUNCATE, s as SQLITE_LOCK_EXCLUSIVE, t as SQLITE_LOCK_RESERVED, a as SQLITE_BUSY, u as SQLITE_LOCK_SHARED, v as SQLITE_IOERR_LOCK, w as SQLITE_FCNTL_COMMIT_PHASETWO, x as SQLITE_FCNTL_OVERWRITE, y as SQLITE_FCNTL_SYNC, z as SQLITE_FCNTL_ROLLBACK_ATOMIC_WRITE, A as SQLITE_FCNTL_COMMIT_ATOMIC_WRITE, B as SQLITE_FCNTL_BEGIN_ATOMIC_WRITE, p as SQLITE_FCNTL_PRAGMA, C as SQLITE_ERROR, q as SQLITE_IOERR, r as SQLITE_NOTFOUND, D as SQLITE_IOCAP_BATCH_ATOMIC, E as SQLITE_IOCAP_UNDELETABLE_WHEN_OPEN } from "./worker-CFxf6H7s.js";
-var SHARED2 = { mode: "shared" };
-var POLL_SHARED2 = { ifAvailable: true, mode: "shared" };
-var POLL_EXCLUSIVE2 = { ifAvailable: true, mode: "exclusive" };
-Math.random().toString(36).slice(2);
-var File2 = class {
-  constructor(pathname, flags) {
-    /** @type {string} */
-    __publicField(this, "path");
-    /** @type {number} */
-    __publicField(this, "flags");
-    /** @type {number} */
-    __publicField(this, "blockSize");
-    /** @type {Map<number, Uint8Array>} */
-    __publicField(this, "blocks");
-    // Members below are only used for SQLITE_OPEN_MAIN_DB.
-    /** @type {Transaction} */
-    __publicField(this, "viewTx");
-    // last transaction incorporated
-    /** @type {function?} */
-    __publicField(this, "viewReleaser");
-    /** @type {BroadcastChannel} */
-    __publicField(this, "broadcastChannel");
-    /** @type {Transaction[]} */
-    __publicField(this, "broadcastReceived");
-    /** @type {number} */
-    __publicField(this, "lockState");
-    /** @type {{write?: function, reserved?: function, hint?: function}} */
-    __publicField(this, "locks");
-    /** @type {AbortController} */
-    __publicField(this, "abortController");
-    /** @type {Transaction?} */
-    __publicField(this, "txActive");
-    /** @type {boolean} */
-    __publicField(this, "txWriteHint");
-    /** @type {boolean} */
-    __publicField(this, "txOverwrite");
-    /** @type {string} */
-    __publicField(this, "synchronous");
-    this.path = pathname;
-    this.flags = flags;
-    this.blockSize = 0;
-    this.blocks = /* @__PURE__ */ new Map();
-    if (flags & SQLITE_OPEN_MAIN_DB) {
-      this.viewTx = null;
-      this.viewReleaser = null;
-      this.broadcastChannel = new BroadcastChannel("mirror:" + pathname);
-      this.broadcastReceived = [];
-      this.lockState = SQLITE_LOCK_NONE;
-      this.locks = {};
-      this.txActive = null;
-      this.txWriteHint = false;
-      this.txOverwrite = false;
-      this.synchronous = "full";
-    }
-  }
-};
-var IDBMirrorVFS = (_a = class extends FacadeVFS {
-  constructor(name, module, options = {}) {
-    super(name, module);
-    __privateAdd(this, __IDBMirrorVFS_instances);
-    /** @type {Map<number, File>} */
-    __privateAdd(this, _mapIdToFile, /* @__PURE__ */ new Map());
-    /** @type {Map<string, File>} */
-    __privateAdd(this, _mapPathToFile, /* @__PURE__ */ new Map());
-    __privateAdd(this, _lastError, null);
-    /** @type {IDBDatabase} */
-    __privateAdd(this, _idb);
-    __publicField(this, "log", null);
-    // console.log;
-    /** @type {Promise} */
-    __privateAdd(this, _isReady);
-    __privateSet(this, _isReady, __privateMethod(this, __IDBMirrorVFS_instances, initialize_fn).call(this, name));
-  }
-  static async create(name, module, options) {
-    const instance = new _a(name, module, options);
-    await instance.isReady();
-    return instance;
-  }
-  close() {
-    return __privateGet(this, _idb).close();
-  }
-  async isReady() {
-    await super.isReady();
-    return __privateGet(this, _isReady);
-  }
-  /**
-   * @param {string?} zName 
-   * @param {number} fileId 
-   * @param {number} flags 
-   * @param {DataView} pOutFlags 
-   * @returns {Promise<number>}
-   */
-  async jOpen(zName, fileId, flags, pOutFlags) {
-    try {
-      const url = new URL(zName || Math.random().toString(36).slice(2), "file://");
-      const path = url.pathname;
-      let file;
-      if (flags & SQLITE_OPEN_MAIN_DB) {
-        file = new File2(path, flags);
-        const idbTx = __privateGet(this, _idb).transaction(["blocks", "tx"], "readwrite");
-        const blocks = idbTx.objectStore("blocks");
-        if (await idbX(blocks.count([path, 0])) === 0) {
-          if (flags & SQLITE_OPEN_CREATE) {
-            await idbX(blocks.put({ path, offset: 0, data: new Uint8Array(0) }));
-          } else {
-            throw new Error("File not found");
-          }
-        }
-        await new Promise((resolve, reject) => {
-          const range = IDBKeyRange.bound([path, 0], [path, Infinity]);
-          const request = blocks.openCursor(range);
-          request.onsuccess = () => {
-            const cursor = request.result;
-            if (cursor) {
-              const { offset, data } = cursor.value;
-              file.blocks.set(offset, data);
-              cursor.continue();
-            } else {
-              resolve();
-            }
-          };
-          request.onerror = () => reject(request.error);
-        });
-        file.blockSize = file.blocks.get(0)?.byteLength ?? 0;
-        const transactions = idbTx.objectStore("tx");
-        file.viewTx = await new Promise((resolve, reject) => {
-          const range = IDBKeyRange.bound([path, 0], [path, Infinity]);
-          const request = transactions.openCursor(range, "prev");
-          request.onsuccess = () => {
-            const cursor = request.result;
-            if (cursor) {
-              resolve(cursor.value);
-            } else {
-              resolve({ txId: 0 });
-            }
-          };
-          request.onerror = () => reject(request.error);
-        });
-        await __privateMethod(this, __IDBMirrorVFS_instances, setView_fn).call(this, file, file.viewTx);
-        file.broadcastChannel.addEventListener("message", (event) => {
-          file.broadcastReceived.push(event.data);
-          if (file.lockState === SQLITE_LOCK_NONE) {
-            __privateMethod(this, __IDBMirrorVFS_instances, processBroadcasts_fn).call(this, file);
-          }
-        });
-      } else {
-        file = __privateGet(this, _mapPathToFile).get(path);
-        if (!file) {
-          if (flags & SQLITE_OPEN_CREATE) {
-            file = new File2(path, flags);
-            file.blocks.set(0, new Uint8Array(0));
-          } else {
-            throw new Error("File not found");
-          }
-        }
-      }
-      pOutFlags.setInt32(0, flags, true);
-      __privateGet(this, _mapIdToFile).set(fileId, file);
-      __privateGet(this, _mapPathToFile).set(path, file);
-      return SQLITE_OK;
-    } catch (e) {
-      __privateSet(this, _lastError, e);
-      return SQLITE_CANTOPEN;
-    }
-  }
-  /**
-   * @param {string} zName 
-   * @param {number} syncDir 
-   * @returns {Promise<number>}
-   */
-  async jDelete(zName, syncDir) {
-    try {
-      const url = new URL(zName, "file://");
-      const pathname = url.pathname;
-      const result = await __privateMethod(this, __IDBMirrorVFS_instances, deleteFile_fn).call(this, pathname);
-      if (syncDir) {
-        await result;
-      }
-      return SQLITE_OK;
-    } catch (e) {
-      return SQLITE_IOERR_DELETE;
-    }
-  }
-  /**
-   * @param {string} zName 
-   * @param {number} flags 
-   * @param {DataView} pResOut 
-   * @returns {Promise<number>}
-   */
-  async jAccess(zName, flags, pResOut) {
-    try {
-      const url = new URL(zName, "file://");
-      const pathname = url.pathname;
-      const exists = __privateGet(this, _mapPathToFile).has(pathname);
-      pResOut.setInt32(0, exists ? 1 : 0, true);
-      return SQLITE_OK;
-    } catch (e) {
-      __privateSet(this, _lastError, e);
-      return SQLITE_IOERR_ACCESS;
-    }
-  }
-  /**
-   * @param {number} fileId 
-   * @returns {Promise<number>}
-   */
-  async jClose(fileId) {
-    try {
-      const file = __privateGet(this, _mapIdToFile).get(fileId);
-      __privateGet(this, _mapIdToFile).delete(fileId);
-      if (file?.flags & SQLITE_OPEN_MAIN_DB) {
-        file.broadcastChannel.close();
-        file.viewReleaser?.();
-      }
-      if (file?.flags & SQLITE_OPEN_DELETEONCLOSE) {
-        __privateMethod(this, __IDBMirrorVFS_instances, deleteFile_fn).call(this, file.path);
-      }
-      return SQLITE_OK;
-    } catch (e) {
-      return SQLITE_IOERR_CLOSE;
-    }
-  }
-  /**
-   * @param {number} fileId 
-   * @param {Uint8Array} pData 
-   * @param {number} iOffset
-   * @returns {number}
-   */
-  jRead(fileId, pData, iOffset) {
-    try {
-      const file = __privateGet(this, _mapIdToFile).get(fileId);
-      let bytesRead = 0;
-      let pDataOffset = 0;
-      while (pDataOffset < pData.byteLength) {
-        const fileOffset = iOffset + pDataOffset;
-        const blockIndex = Math.floor(fileOffset / file.blockSize);
-        const blockOffset = fileOffset % file.blockSize;
-        const block = file.txActive?.blocks.get(blockIndex * file.blockSize) ?? file.blocks.get(blockIndex * file.blockSize);
-        if (!block) {
-          break;
-        }
-        const blockLength = Math.min(
-          block.byteLength - blockOffset,
-          pData.byteLength - pDataOffset
-        );
-        pData.set(block.subarray(blockOffset, blockOffset + blockLength), pDataOffset);
-        pDataOffset += blockLength;
-        bytesRead += blockLength;
-      }
-      if (bytesRead < pData.byteLength) {
-        pData.fill(0, bytesRead);
-        return SQLITE_IOERR_SHORT_READ;
-      }
-      return SQLITE_OK;
-    } catch (e) {
-      __privateSet(this, _lastError, e);
-      return SQLITE_IOERR_READ;
-    }
-  }
-  /**
-   * @param {number} fileId 
-   * @param {Uint8Array} pData 
-   * @param {number} iOffset
-   * @returns {number}
-   */
-  jWrite(fileId, pData, iOffset) {
-    try {
-      const file = __privateGet(this, _mapIdToFile).get(fileId);
-      if (file.flags & SQLITE_OPEN_MAIN_DB) {
-        if (!file.txActive) {
-          file.txActive = {
-            path: file.path,
-            txId: file.viewTx.txId + 1,
-            blocks: /* @__PURE__ */ new Map(),
-            fileSize: file.blockSize * file.blocks.size
-          };
-        }
-        file.txActive.blocks.set(iOffset, pData.slice());
-        file.txActive.fileSize = Math.max(file.txActive.fileSize, iOffset + pData.byteLength);
-        file.blockSize = pData.byteLength;
-      } else {
-        let block = file.blocks.get(0);
-        if (iOffset + pData.byteLength > block.byteLength) {
-          const newSize = Math.max(iOffset + pData.byteLength, 2 * block.byteLength);
-          const newBlock = new Uint8Array(newSize);
-          newBlock.set(block);
-          file.blocks.set(0, newBlock);
-          block = newBlock;
-        }
-        block.set(pData, iOffset);
-        file.blockSize = Math.max(file.blockSize, iOffset + pData.byteLength);
-      }
-      return SQLITE_OK;
-    } catch (e) {
-      this.lastError = e;
-      return SQLITE_IOERR_WRITE;
-    }
-  }
-  /**
-   * @param {number} fileId 
-   * @param {number} iSize 
-   * @returns {number}
-   */
-  jTruncate(fileId, iSize) {
-    try {
-      const file = __privateGet(this, _mapIdToFile).get(fileId);
-      if (file.flags & SQLITE_OPEN_MAIN_DB) {
-        file.txActive.fileSize = iSize;
-      } else {
-        if (iSize < file.blockSize) {
-          const block = file.blocks.get(0);
-          file.blocks.set(0, block.subarray(0, iSize));
-          file.blockSize = iSize;
-        }
-      }
-      return SQLITE_OK;
-    } catch (e) {
-      console.error(e);
-      this.lastError = e;
-      return SQLITE_IOERR_TRUNCATE;
-    }
-  }
-  /**
-   * @param {number} fileId 
-   * @param {DataView} pSize64 
-   * @returns {number|Promise<number>}
-   */
-  jFileSize(fileId, pSize64) {
-    const file = __privateGet(this, _mapIdToFile).get(fileId);
-    const size = file.txActive?.fileSize ?? file.blockSize * file.blocks.size;
-    pSize64.setBigInt64(0, BigInt(size), true);
-    return SQLITE_OK;
-  }
-  /**
-   * @param {number} fileId 
-   * @param {number} lockType 
-   * @returns {Promise<number>}
-   */
-  async jLock(fileId, lockType) {
-    const file = __privateGet(this, _mapIdToFile).get(fileId);
-    if (lockType <= file.lockState) return SQLITE_OK;
-    switch (lockType) {
-      case SQLITE_LOCK_SHARED:
-        if (file.txWriteHint) {
-          if (!await __privateMethod(this, __IDBMirrorVFS_instances, lock_fn).call(this, file, "hint")) {
-            return SQLITE_BUSY;
-          }
-        }
-        break;
-      case SQLITE_LOCK_RESERVED:
-        if (!file.locks.hint && !await __privateMethod(this, __IDBMirrorVFS_instances, lock_fn).call(this, file, "hint", POLL_EXCLUSIVE2)) {
-          return SQLITE_BUSY;
-        }
-        if (!await __privateMethod(this, __IDBMirrorVFS_instances, lock_fn).call(this, file, "reserved", POLL_EXCLUSIVE2)) {
-          file.locks.hint();
-          return SQLITE_BUSY;
-        }
-        const idbTx = __privateGet(this, _idb).transaction(["blocks", "tx"]);
-        const range = IDBKeyRange.bound(
-          [file.path, file.viewTx.txId],
-          [file.path, Infinity]
-        );
-        const entries = await idbX(idbTx.objectStore("tx").getAll(range));
-        if (entries.length && entries.at(-1).txId > file.viewTx.txId) {
-          const blocks = idbTx.objectStore("blocks");
-          for (const entry of entries) {
-            for (const offset of Array.from(entry.blocks.keys())) {
-              const value = await idbX(blocks.get([file.path, offset]));
-              entry.blocks.set(offset, value.data);
-            }
-          }
-          file.broadcastReceived.push(...entries);
-          file.locks.reserved();
-          return SQLITE_BUSY;
-        }
-        console.assert(entries[0]?.txId === file.viewTx.txId || !file.viewTx.txId);
-        break;
-      case SQLITE_LOCK_EXCLUSIVE:
-        await __privateMethod(this, __IDBMirrorVFS_instances, lock_fn).call(this, file, "write");
-        break;
-    }
-    file.lockState = lockType;
-    return SQLITE_OK;
-  }
-  /**
-   * @param {number} fileId 
-   * @param {number} lockType 
-   * @returns {number}
-   */
-  jUnlock(fileId, lockType) {
-    const file = __privateGet(this, _mapIdToFile).get(fileId);
-    if (lockType >= file.lockState) return SQLITE_OK;
-    switch (lockType) {
-      case SQLITE_LOCK_SHARED:
-        file.locks.write?.();
-        file.locks.reserved?.();
-        file.locks.hint?.();
-        break;
-      case SQLITE_LOCK_NONE:
-        __privateMethod(this, __IDBMirrorVFS_instances, processBroadcasts_fn).call(this, file);
-        file.locks.write?.();
-        file.locks.reserved?.();
-        file.locks.hint?.();
-        break;
-    }
-    file.lockState = lockType;
-    return SQLITE_OK;
-  }
-  /**
-   * @param {number} fileId
-   * @param {DataView} pResOut 
-   * @returns {Promise<number>}
-   */
-  async jCheckReservedLock(fileId, pResOut) {
-    try {
-      const file = __privateGet(this, _mapIdToFile).get(fileId);
-      console.assert(file.flags & SQLITE_OPEN_MAIN_DB);
-      if (await __privateMethod(this, __IDBMirrorVFS_instances, lock_fn).call(this, file, "reserved", POLL_SHARED2)) {
-        pResOut.setInt32(0, 0, true);
-        file.locks.reserved();
-      } else {
-        pResOut.setInt32(0, 1, true);
-      }
-      return SQLITE_OK;
-    } catch (e) {
-      console.error(e);
-      this.lastError = e;
-      return SQLITE_IOERR_LOCK;
-    }
-  }
-  /**
-   * @param {number} fileId
-   * @param {number} op
-   * @param {DataView} pArg
-   * @returns {Promise<number>}
-   */
-  async jFileControl(fileId, op, pArg) {
-    try {
-      const file = __privateGet(this, _mapIdToFile).get(fileId);
-      switch (op) {
-        case SQLITE_FCNTL_PRAGMA:
-          const key = cvtString(pArg, 4);
-          const value = cvtString(pArg, 8);
-          this.log?.("xFileControl", file.path, "PRAGMA", key, value);
-          switch (key.toLowerCase()) {
-            case "page_size":
-              if (value && file.blockSize && Number(value) !== file.blockSize) {
-                return SQLITE_ERROR;
-              }
-              break;
-            case "synchronous":
-              if (value) {
-                switch (value.toLowerCase()) {
-                  case "full":
-                  case "2":
-                  case "extra":
-                  case "3":
-                    file.synchronous = "full";
-                    break;
-                  case "normal":
-                  case "1":
-                    file.synchronous = "normal";
-                    break;
-                  default:
-                    console.warn(`unsupported synchronous mode: ${value}`);
-                    return SQLITE_ERROR;
-                }
-              }
-              break;
-          }
-          break;
-        case SQLITE_FCNTL_BEGIN_ATOMIC_WRITE:
-          this.log?.("xFileControl", "BEGIN_ATOMIC_WRITE", file.path);
-          return SQLITE_OK;
-        case SQLITE_FCNTL_COMMIT_ATOMIC_WRITE:
-          this.log?.("xFileControl", "COMMIT_ATOMIC_WRITE", file.path);
-          return SQLITE_OK;
-        case SQLITE_FCNTL_ROLLBACK_ATOMIC_WRITE:
-          __privateMethod(this, __IDBMirrorVFS_instances, dropTx_fn).call(this, file);
-          return SQLITE_OK;
-        case SQLITE_FCNTL_SYNC:
-          this.log?.("xFileControl", "SYNC", file.path);
-          if (file.txActive && !file.txOverwrite) {
-            await __privateMethod(this, __IDBMirrorVFS_instances, commitTx_fn).call(this, file);
-          }
-          break;
-        case SQLITE_FCNTL_OVERWRITE:
-          file.txOverwrite = true;
-          break;
-        case SQLITE_FCNTL_COMMIT_PHASETWO:
-          this.log?.("xFileControl", "COMMIT_PHASETWO", file.path);
-          if (file.txActive) {
-            await __privateMethod(this, __IDBMirrorVFS_instances, commitTx_fn).call(this, file);
-          }
-          file.txOverwrite = false;
-          break;
-      }
-    } catch (e) {
-      __privateSet(this, _lastError, e);
-      return SQLITE_IOERR;
-    }
-    return SQLITE_NOTFOUND;
-  }
-  /**
-   * @param {number} fileId
-   * @returns {number|Promise<number>}
-   */
-  jDeviceCharacteristics(fileId) {
-    return 0 | SQLITE_IOCAP_BATCH_ATOMIC | SQLITE_IOCAP_UNDELETABLE_WHEN_OPEN;
-  }
-  /**
-   * @param {Uint8Array} zBuf 
-   * @returns {number}
-   */
-  jGetLastError(zBuf) {
-    if (__privateGet(this, _lastError)) {
-      console.error(__privateGet(this, _lastError));
-      const outputArray = zBuf.subarray(0, zBuf.byteLength - 1);
-      const { written } = new TextEncoder().encodeInto(__privateGet(this, _lastError).message, outputArray);
-      zBuf[written] = 0;
-    }
-    return SQLITE_OK;
-  }
-}, _mapIdToFile = new WeakMap(), _mapPathToFile = new WeakMap(), _lastError = new WeakMap(), _idb = new WeakMap(), _isReady = new WeakMap(), __IDBMirrorVFS_instances = new WeakSet(), initialize_fn = async function(name) {
-  __privateSet(this, _idb, await new Promise((resolve, reject) => {
-    const request = indexedDB.open(name, 1);
-    request.onupgradeneeded = (event) => {
-      const db = request.result;
-      switch (event.oldVersion) {
-        case 0:
-          db.createObjectStore("blocks", { keyPath: ["path", "offset"] });
-          db.createObjectStore("tx", { keyPath: ["path", "txId"] });
-          break;
-      }
-    };
-    request.onsuccess = () => resolve(request.result);
-    request.onerror = () => reject(request.error);
-  }));
-}, /**
- * 
- * @param {File} file 
- * @param {Transaction} tx 
- */
-acceptTx_fn = function(file, tx) {
-  for (const [offset, data] of tx.blocks) {
-    file.blocks.set(offset, data);
-    if (file.blockSize === 0) {
-      file.blockSize = data.byteLength;
-    }
-  }
-  let truncated = tx.fileSize + file.blockSize;
-  while (file.blocks.delete(truncated)) {
-    truncated += file.blockSize;
-  }
-  file.viewTx = tx;
-}, commitTx_fn = async function(file) {
-  __privateMethod(this, __IDBMirrorVFS_instances, acceptTx_fn).call(this, file, file.txActive);
-  __privateMethod(this, __IDBMirrorVFS_instances, setView_fn).call(this, file, file.txActive);
-  const oldestTxId = await __privateMethod(this, __IDBMirrorVFS_instances, getOldestTxInUse_fn).call(this, file);
-  const idbTx = __privateGet(this, _idb).transaction(["blocks", "tx"], "readwrite");
-  const blocks = idbTx.objectStore("blocks");
-  for (const [offset, data] of file.txActive.blocks) {
-    blocks.put({ path: file.path, offset, data });
-  }
-  const oldRange = IDBKeyRange.bound(
-    [file.path, -Infinity],
-    [file.path, oldestTxId],
-    false,
-    true
-  );
-  idbTx.objectStore("tx").delete(oldRange);
-  const txSansData = Object.assign({}, file.txActive);
-  txSansData.blocks = new Map(Array.from(file.txActive.blocks, ([k]) => [k, null]));
-  idbTx.objectStore("tx").put(txSansData);
-  const complete = new Promise((resolve, reject) => {
-    const message = file.txActive;
-    idbTx.oncomplete = () => {
-      file.broadcastChannel.postMessage(message);
-      resolve();
-    };
-    idbTx.onabort = () => reject(idbTx.error);
-    idbTx.commit();
-  });
-  if (file.synchronous === "full") {
-    await complete;
-  }
-  file.txActive = null;
-  file.txWriteHint = false;
-}, /**
- * @param {File} file 
- */
-dropTx_fn = function(file) {
-  file.txActive = null;
-  file.txWriteHint = false;
-}, deleteFile_fn = async function(path) {
-  __privateGet(this, _mapPathToFile).delete(path);
-  const request = __privateGet(this, _idb).transaction(["blocks"], "readwrite").objectStore("blocks").delete(IDBKeyRange.bound([path, 0], [path, Infinity]));
-  await new Promise((resolve, reject) => {
-    const idbTx = request.transaction;
-    idbTx.oncomplete = resolve;
-    idbTx.onerror = () => reject(idbTx.error);
-  });
-}, getOldestTxInUse_fn = async function(file) {
-  const TX_LOCK_REGEX = /^(.*)@@\[(\d+)\]$/;
-  let oldestTxId = file.viewTx.txId;
-  const locks = await navigator.locks.query();
-  for (const { name } of locks.held) {
-    const m = TX_LOCK_REGEX.exec(name);
-    if (m && m[1] === file.path) {
-      oldestTxId = Math.min(oldestTxId, Number(m[2]));
-    }
-  }
-  return oldestTxId;
-}, /**
- * Acquire one of the database file internal Web Locks.
- * @param {File} file 
- * @param {'write'|'reserved'|'hint'} name 
- * @param {LockOptions} options 
- * @returns {Promise<boolean>}
- */
-lock_fn = function(file, name, options = {}) {
-  return new Promise((resolve) => {
-    const lockName = `${file.path}@@${name}`;
-    navigator.locks.request(lockName, options, (lock) => {
-      if (lock) {
-        return new Promise((release) => {
-          file.locks[name] = () => {
-            release();
-            file.locks[name] = null;
-          };
-          resolve(true);
-        });
-      } else {
-        file.locks[name] = null;
-        resolve(false);
-      }
-    }).catch((e) => {
-      if (e.name !== "AbortError") throw e;
-    });
-  });
-}, /**
- * Handle prevously received messages from other connections.
- * @param {File} file 
- */
-processBroadcasts_fn = function(file) {
-  file.broadcastReceived.sort((a, b) => a.txId - b.txId);
-  let nHandled = 0;
-  let newTx = file.viewTx;
-  for (const message of file.broadcastReceived) {
-    if (message.txId <= newTx.txId) ;
-    else if (message.txId === newTx.txId + 1) {
-      this.log?.(`accept tx ${message.txId}`);
-      __privateMethod(this, __IDBMirrorVFS_instances, acceptTx_fn).call(this, file, message);
-      newTx = message;
-    } else {
-      console.warn(`missing tx ${newTx.txId + 1} (got ${message.txId})`);
-      break;
-    }
-    nHandled++;
-  }
-  file.broadcastReceived.splice(0, nHandled);
-  if (newTx.txId > file.viewTx.txId) {
-    __privateMethod(this, __IDBMirrorVFS_instances, setView_fn).call(this, file, newTx);
-  }
-}, setView_fn = async function(file, tx) {
-  file.viewTx = tx;
-  const lockName = `${file.path}@@[${tx.txId}]`;
-  const newReleaser = await new Promise((resolve) => {
-    navigator.locks.request(lockName, SHARED2, (lock) => {
-      return new Promise((release) => {
-        resolve(release);
-      });
-    });
-  });
-  file.viewReleaser?.();
-  file.viewReleaser = newReleaser;
-}, _a);
-function idbX(request) {
-  return new Promise((resolve, reject) => {
-    request.onsuccess = () => resolve(request.result);
-    request.onerror = () => reject(request.error);
-  });
-}
-function cvtString(dataView, offset) {
-  const p = dataView.getUint32(offset, true);
-  if (p) {
-    const chars = new Uint8Array(dataView.buffer, p);
-    return new TextDecoder().decode(chars.subarray(0, chars.indexOf(0)));
-  }
-  return null;
-}
+var __OPFSCoopSyncVFS_instances, initialize_fn, createPersistentFile_fn, requestAccessHandle_fn, releaseAccessHandle_fn, acquireLock_fn, _a;
+import { F as FacadeVFS, S as SQLITE_OPEN_MAIN_DB, a as SQLITE_BUSY, b as SQLITE_OPEN_CREATE, c as SQLITE_CANTOPEN, d as SQLITE_OK, e as SQLITE_IOERR_DELETE, f as SQLITE_IOERR_ACCESS, g as SQLITE_OPEN_DELETEONCLOSE, h as SQLITE_IOERR_CLOSE, i as SQLITE_IOERR_SHORT_READ, j as SQLITE_IOERR_READ, k as SQLITE_IOERR_WRITE, l as SQLITE_IOERR_TRUNCATE, m as SQLITE_IOERR_FSYNC, n as SQLITE_IOERR_FSTAT, o as SQLITE_LOCK_NONE, p as SQLITE_FCNTL_PRAGMA, q as SQLITE_IOERR, r as SQLITE_NOTFOUND } from "./worker-DOi0qhOK.js";
 var Module = (() => {
   var _scriptName = import.meta.url;
   return function(moduleArg = {}) {
@@ -712,7 +20,7 @@ var Module = (() => {
       readyPromiseReject = reject;
     });
     var ENVIRONMENT_IS_WEB = typeof window == "object";
-    var ENVIRONMENT_IS_WORKER = typeof importScripts == "function";
+    var ENVIRONMENT_IS_WORKER = typeof WorkerGlobalScope != "undefined";
     typeof process == "object" && typeof process.versions == "object" && typeof process.versions.node == "string" && process.type != "renderer";
     var moduleOverrides = Object.assign({}, Module2);
     var thisProgram = "./this.program";
@@ -854,13 +162,13 @@ var Module = (() => {
     var isDataURI = (filename) => filename.startsWith(dataURIPrefix);
     function findWasmBinary() {
       if (Module2["locateFile"]) {
-        var f = "wa-sqlite-async.wasm";
+        var f = "wa-sqlite.wasm";
         if (!isDataURI(f)) {
           return locateFile(f);
         }
         return f;
       }
-      return new URL("" + new URL("wa-sqlite-async-Dnl4NGqM.wasm", import.meta.url).href, import.meta.url).href;
+      return new URL("" + new URL("wa-sqlite-CIFlBQuC.wasm", import.meta.url).href, import.meta.url).href;
     }
     var wasmBinaryFile;
     function getBinarySync(file) {
@@ -904,10 +212,9 @@ var Module = (() => {
       var info = getWasmImports();
       function receiveInstance(instance, module) {
         wasmExports = instance.exports;
-        wasmExports = Asyncify.instrumentWasmExports(wasmExports);
         wasmMemory = wasmExports["pa"];
         updateMemoryViews();
-        wasmTable = wasmExports["hf"];
+        wasmTable = wasmExports["jf"];
         addOnInit(wasmExports["qa"]);
         removeRunDependency();
         return wasmExports;
@@ -930,10 +237,12 @@ var Module = (() => {
     }
     var tempDouble;
     var tempI64;
-    function ExitStatus(status) {
-      this.name = "ExitStatus";
-      this.message = `Program terminated with exit(${status})`;
-      this.status = status;
+    class ExitStatus {
+      constructor(status) {
+        __publicField(this, "name", "ExitStatus");
+        this.message = `Program terminated with exit(${status})`;
+        this.status = status;
+      }
     }
     var callRuntimeCallbacks = (callbacks) => {
       while (callbacks.length > 0) {
@@ -997,7 +306,7 @@ var Module = (() => {
     var stackRestore = (val) => __emscripten_stack_restore(val);
     var stackSave = () => _emscripten_stack_get_current();
     var UTF8Decoder = typeof TextDecoder != "undefined" ? new TextDecoder() : void 0;
-    var UTF8ArrayToString = (heapOrArray, idx, maxBytesToRead) => {
+    var UTF8ArrayToString = (heapOrArray, idx = 0, maxBytesToRead = NaN) => {
       var endIdx = idx + maxBytesToRead;
       var endPtr = idx;
       while (heapOrArray[endPtr] && !(endPtr >= endIdx)) ++endPtr;
@@ -1269,14 +578,14 @@ var Module = (() => {
       return FS_stdin_getChar();
     }, put_char(tty, val) {
       if (val === null || val === 10) {
-        out(UTF8ArrayToString(tty.output, 0));
+        out(UTF8ArrayToString(tty.output));
         tty.output = [];
       } else {
         if (val != 0) tty.output.push(val);
       }
     }, fsync(tty) {
       if (tty.output && tty.output.length > 0) {
-        out(UTF8ArrayToString(tty.output, 0));
+        out(UTF8ArrayToString(tty.output));
         tty.output = [];
       }
     }, ioctl_tcgets(tty) {
@@ -1287,27 +596,26 @@ var Module = (() => {
       return [24, 80];
     } }, default_tty1_ops: { put_char(tty, val) {
       if (val === null || val === 10) {
-        err(UTF8ArrayToString(tty.output, 0));
+        err(UTF8ArrayToString(tty.output));
         tty.output = [];
       } else {
         if (val != 0) tty.output.push(val);
       }
     }, fsync(tty) {
       if (tty.output && tty.output.length > 0) {
-        err(UTF8ArrayToString(tty.output, 0));
+        err(UTF8ArrayToString(tty.output));
         tty.output = [];
       }
     } } };
     var zeroMemory = (address, size) => {
       HEAPU8.fill(0, address, address + size);
-      return address;
     };
     var alignMemory = (size, alignment) => Math.ceil(size / alignment) * alignment;
     var mmapAlloc = (size) => {
       size = alignMemory(size, 65536);
       var ptr = _emscripten_builtin_memalign(65536, size);
-      if (!ptr) return 0;
-      return zeroMemory(ptr, size);
+      if (ptr) zeroMemory(ptr, size);
+      return ptr;
     };
     var MEMFS = { ops_table: null, mount(mount) {
       return MEMFS.createNode(null, "/", 16384 | 511, 0);
@@ -1607,12 +915,12 @@ var Module = (() => {
     };
     var FS = { root: null, mounts: [], devices: {}, streams: [], nextInode: 1, nameTable: null, currentPath: "/", initialized: false, ignorePermissions: true, ErrnoError: class {
       constructor(errno) {
-        this.name = "ErrnoError";
+        __publicField(this, "name", "ErrnoError");
         this.errno = errno;
       }
     }, genericErrors: {}, filesystems: null, syncFSRequests: 0, readFiles: {}, FSStream: class {
       constructor() {
-        this.shared = {};
+        __publicField(this, "shared", {});
       }
       get object() {
         return this.node;
@@ -1643,20 +951,20 @@ var Module = (() => {
       }
     }, FSNode: class {
       constructor(parent, name, mode, rdev) {
+        __publicField(this, "node_ops", {});
+        __publicField(this, "stream_ops", {});
+        __publicField(this, "readMode", 292 | 73);
+        __publicField(this, "writeMode", 146);
+        __publicField(this, "mounted", null);
         if (!parent) {
           parent = this;
         }
         this.parent = parent;
         this.mount = parent.mount;
-        this.mounted = null;
         this.id = FS.nextInode++;
         this.name = name;
         this.mode = mode;
-        this.node_ops = {};
-        this.stream_ops = {};
         this.rdev = rdev;
-        this.readMode = 292 | 73;
-        this.writeMode = 146;
       }
       get read() {
         return (this.mode & this.readMode) === this.readMode;
@@ -2182,7 +1490,7 @@ var Module = (() => {
       if (!node.node_ops.setattr) {
         throw new FS.ErrnoError(63);
       }
-      node.node_ops.setattr(node, { mode: mode & 4095 | node.mode & ~4095, timestamp: Date.now() });
+      node.node_ops.setattr(node, { mode: mode & 4095 | node.mode & -4096, timestamp: Date.now() });
     }, lchmod(path, mode) {
       FS.chmod(path, mode, true);
     }, fchmod(fd, mode) {
@@ -2277,7 +1585,7 @@ var Module = (() => {
         throw new FS.ErrnoError(44);
       }
       if (FS.isChrdev(node.mode)) {
-        flags &= ~512;
+        flags &= -513;
       }
       if (flags & 65536 && !FS.isDir(node.mode)) {
         throw new FS.ErrnoError(54);
@@ -2291,7 +1599,7 @@ var Module = (() => {
       if (flags & 512 && !created) {
         FS.truncate(node, 0);
       }
-      flags &= ~(128 | 512 | 131072);
+      flags &= -131713;
       var stream = FS.createStream({ node, path: FS.getPath(node), flags, seekable: true, position: 0, stream_ops: node.stream_ops, ungotten: [], error: false });
       if (stream.stream_ops.open) {
         stream.stream_ops.open(stream);
@@ -2439,7 +1747,7 @@ var Module = (() => {
       var buf = new Uint8Array(length);
       FS.read(stream, buf, 0, length, 0);
       if (opts.encoding === "utf8") {
-        ret = UTF8ArrayToString(buf, 0);
+        ret = UTF8ArrayToString(buf);
       } else if (opts.encoding === "binary") {
         ret = buf;
       }
@@ -2682,8 +1990,8 @@ var Module = (() => {
     }, createLazyFile(parent, name, url, canRead, canWrite) {
       class LazyUint8Array {
         constructor() {
-          this.lengthKnown = false;
-          this.chunks = [];
+          __publicField(this, "lengthKnown", false);
+          __publicField(this, "chunks", []);
         }
         get(idx) {
           if (idx > this.length - 1 || idx < 0) {
@@ -2924,11 +2232,11 @@ var Module = (() => {
         return -e.errno;
       }
     }
-    function syscallGetVarargI() {
+    var syscallGetVarargI = () => {
       var ret = HEAP32[+SYSCALLS.varargs >> 2];
       SYSCALLS.varargs += 4;
       return ret;
-    }
+    };
     var syscallGetVarargP = syscallGetVarargI;
     function ___syscall_fcntl64(fd, cmd, varargs) {
       SYSCALLS.varargs = varargs;
@@ -3149,6 +2457,7 @@ var Module = (() => {
     var __abort_js = () => {
       abort("");
     };
+    var runtimeKeepaliveCounter = 0;
     var __emscripten_runtime_keepalive_clear = () => {
       noExitRuntime = false;
       runtimeKeepaliveCounter = 0;
@@ -3215,7 +2524,6 @@ var Module = (() => {
       }
       quit_(1, e);
     };
-    var runtimeKeepaliveCounter = 0;
     var keepRuntimeAlive = () => noExitRuntime || runtimeKeepaliveCounter > 0;
     var _proc_exit = (code) => {
       EXITSTATUS = code;
@@ -3294,7 +2602,7 @@ var Module = (() => {
     var getHeapMax = () => 2147483648;
     var growMemory = (size) => {
       var b = wasmMemory.buffer;
-      var pages = (size - b.byteLength + 65535) / 65536;
+      var pages = (size - b.byteLength + 65535) / 65536 | 0;
       try {
         wasmMemory.grow(pages);
         updateMemoryViews();
@@ -3429,29 +2737,18 @@ var Module = (() => {
         return e.errno;
       }
     }
-    var _fd_sync = function(fd) {
+    function _fd_sync(fd) {
       try {
         var stream = SYSCALLS.getStreamFromFD(fd);
-        return Asyncify.handleSleep((wakeUp) => {
-          var mount = stream.node.mount;
-          if (!mount.type.syncfs) {
-            wakeUp(0);
-            return;
-          }
-          mount.type.syncfs(mount, false, (err2) => {
-            if (err2) {
-              wakeUp(29);
-              return;
-            }
-            wakeUp(0);
-          });
-        });
+        if (stream.stream_ops?.fsync) {
+          return stream.stream_ops.fsync(stream);
+        }
+        return 0;
       } catch (e) {
         if (typeof FS == "undefined" || !(e.name === "ErrnoError")) throw e;
         return e.errno;
       }
-    };
-    _fd_sync.isAsync = true;
+    }
     var doWritev = (stream, iov, iovcnt, offset) => {
       var ret = 0;
       for (var i = 0; i < iovcnt; i++) {
@@ -3509,117 +2806,101 @@ var Module = (() => {
     function _ipp_async(...args) {
       return adapters_support(true, ...args);
     }
-    _ipp_async.isAsync = true;
     function _ippipppp(...args) {
       return adapters_support(false, ...args);
     }
     function _ippipppp_async(...args) {
       return adapters_support(true, ...args);
     }
-    _ippipppp_async.isAsync = true;
     function _ippp(...args) {
       return adapters_support(false, ...args);
     }
     function _ippp_async(...args) {
       return adapters_support(true, ...args);
     }
-    _ippp_async.isAsync = true;
     function _ipppi(...args) {
       return adapters_support(false, ...args);
     }
     function _ipppi_async(...args) {
       return adapters_support(true, ...args);
     }
-    _ipppi_async.isAsync = true;
     function _ipppiii(...args) {
       return adapters_support(false, ...args);
     }
     function _ipppiii_async(...args) {
       return adapters_support(true, ...args);
     }
-    _ipppiii_async.isAsync = true;
     function _ipppiiip(...args) {
       return adapters_support(false, ...args);
     }
     function _ipppiiip_async(...args) {
       return adapters_support(true, ...args);
     }
-    _ipppiiip_async.isAsync = true;
     function _ipppip(...args) {
       return adapters_support(false, ...args);
     }
     function _ipppip_async(...args) {
       return adapters_support(true, ...args);
     }
-    _ipppip_async.isAsync = true;
     function _ipppj(...args) {
       return adapters_support(false, ...args);
     }
     function _ipppj_async(...args) {
       return adapters_support(true, ...args);
     }
-    _ipppj_async.isAsync = true;
     function _ipppp(...args) {
       return adapters_support(false, ...args);
     }
     function _ipppp_async(...args) {
       return adapters_support(true, ...args);
     }
-    _ipppp_async.isAsync = true;
     function _ippppi(...args) {
       return adapters_support(false, ...args);
     }
     function _ippppi_async(...args) {
       return adapters_support(true, ...args);
     }
-    _ippppi_async.isAsync = true;
     function _ippppij(...args) {
       return adapters_support(false, ...args);
     }
     function _ippppij_async(...args) {
       return adapters_support(true, ...args);
     }
-    _ippppij_async.isAsync = true;
     function _ippppip(...args) {
       return adapters_support(false, ...args);
     }
     function _ippppip_async(...args) {
       return adapters_support(true, ...args);
     }
-    _ippppip_async.isAsync = true;
     function _ipppppip(...args) {
       return adapters_support(false, ...args);
     }
     function _ipppppip_async(...args) {
       return adapters_support(true, ...args);
     }
-    _ipppppip_async.isAsync = true;
     function _vppippii(...args) {
       return adapters_support(false, ...args);
     }
     function _vppippii_async(...args) {
       return adapters_support(true, ...args);
     }
-    _vppippii_async.isAsync = true;
     function _vppp(...args) {
       return adapters_support(false, ...args);
     }
     function _vppp_async(...args) {
       return adapters_support(true, ...args);
     }
-    _vppp_async.isAsync = true;
     function _vpppip(...args) {
       return adapters_support(false, ...args);
     }
     function _vpppip_async(...args) {
       return adapters_support(true, ...args);
     }
-    _vpppip_async.isAsync = true;
-    var runAndAbortIfError = (func) => {
-      try {
-        return func();
-      } catch (e) {
-        abort(e);
+    var uleb128Encode = (n, target) => {
+      if (n < 128) {
+        target.push(n);
+      } else {
+        target.push(n % 128 | 128, n >> 7);
       }
     };
     var sigToWasmTypes = (sig) => {
@@ -3629,150 +2910,6 @@ var Module = (() => {
         type.parameters.push(typeNames[sig[i]]);
       }
       return type;
-    };
-    var runtimeKeepalivePush = () => {
-      runtimeKeepaliveCounter += 1;
-    };
-    var runtimeKeepalivePop = () => {
-      runtimeKeepaliveCounter -= 1;
-    };
-    var Asyncify = { instrumentWasmImports(imports) {
-      var importPattern = /^(ipp|ipp_async|ippp|ippp_async|vppp|vppp_async|ipppj|ipppj_async|ipppi|ipppi_async|ipppp|ipppp_async|ipppip|ipppip_async|vpppip|vpppip_async|ippppi|ippppi_async|ippppij|ippppij_async|ipppiii|ipppiii_async|ippppip|ippppip_async|ippipppp|ippipppp_async|ipppppip|ipppppip_async|ipppiiip|ipppiiip_async|vppippii|vppippii_async|invoke_.*|__asyncjs__.*)$/;
-      for (let [x, original] of Object.entries(imports)) {
-        if (typeof original == "function") {
-          original.isAsync || importPattern.test(x);
-        }
-      }
-    }, instrumentWasmExports(exports) {
-      var ret = {};
-      for (let [x, original] of Object.entries(exports)) {
-        if (typeof original == "function") {
-          ret[x] = (...args) => {
-            Asyncify.exportCallStack.push(x);
-            try {
-              return original(...args);
-            } finally {
-              if (!ABORT) {
-                Asyncify.exportCallStack.pop();
-                Asyncify.maybeStopUnwind();
-              }
-            }
-          };
-        } else {
-          ret[x] = original;
-        }
-      }
-      return ret;
-    }, State: { Normal: 0, Unwinding: 1, Rewinding: 2, Disabled: 3 }, state: 0, StackSize: 16384, currData: null, handleSleepReturnValue: 0, exportCallStack: [], callStackNameToId: {}, callStackIdToName: {}, callStackId: 0, asyncPromiseHandlers: null, sleepCallbacks: [], getCallStackId(funcName) {
-      var id = Asyncify.callStackNameToId[funcName];
-      if (id === void 0) {
-        id = Asyncify.callStackId++;
-        Asyncify.callStackNameToId[funcName] = id;
-        Asyncify.callStackIdToName[id] = funcName;
-      }
-      return id;
-    }, maybeStopUnwind() {
-      if (Asyncify.currData && Asyncify.state === Asyncify.State.Unwinding && Asyncify.exportCallStack.length === 0) {
-        Asyncify.state = Asyncify.State.Normal;
-        runAndAbortIfError(_asyncify_stop_unwind);
-        if (typeof Fibers != "undefined") {
-          Fibers.trampoline();
-        }
-      }
-    }, whenDone() {
-      return new Promise((resolve, reject) => {
-        Asyncify.asyncPromiseHandlers = { resolve, reject };
-      });
-    }, allocateData() {
-      var ptr = _malloc(12 + Asyncify.StackSize);
-      Asyncify.setDataHeader(ptr, ptr + 12, Asyncify.StackSize);
-      Asyncify.setDataRewindFunc(ptr);
-      return ptr;
-    }, setDataHeader(ptr, stack, stackSize) {
-      HEAPU32[ptr >> 2] = stack;
-      HEAPU32[ptr + 4 >> 2] = stack + stackSize;
-    }, setDataRewindFunc(ptr) {
-      var bottomOfCallStack = Asyncify.exportCallStack[0];
-      var rewindId = Asyncify.getCallStackId(bottomOfCallStack);
-      HEAP32[ptr + 8 >> 2] = rewindId;
-    }, getDataRewindFuncName(ptr) {
-      var id = HEAP32[ptr + 8 >> 2];
-      var name = Asyncify.callStackIdToName[id];
-      return name;
-    }, getDataRewindFunc(name) {
-      var func = wasmExports[name];
-      return func;
-    }, doRewind(ptr) {
-      var name = Asyncify.getDataRewindFuncName(ptr);
-      var func = Asyncify.getDataRewindFunc(name);
-      return func();
-    }, handleSleep(startAsync) {
-      if (ABORT) return;
-      if (Asyncify.state === Asyncify.State.Normal) {
-        var reachedCallback = false;
-        var reachedAfterCallback = false;
-        startAsync((handleSleepReturnValue = 0) => {
-          if (ABORT) return;
-          Asyncify.handleSleepReturnValue = handleSleepReturnValue;
-          reachedCallback = true;
-          if (!reachedAfterCallback) {
-            return;
-          }
-          Asyncify.state = Asyncify.State.Rewinding;
-          runAndAbortIfError(() => _asyncify_start_rewind(Asyncify.currData));
-          if (typeof MainLoop != "undefined" && MainLoop.func) {
-            MainLoop.resume();
-          }
-          var asyncWasmReturnValue, isError = false;
-          try {
-            asyncWasmReturnValue = Asyncify.doRewind(Asyncify.currData);
-          } catch (err2) {
-            asyncWasmReturnValue = err2;
-            isError = true;
-          }
-          var handled = false;
-          if (!Asyncify.currData) {
-            var asyncPromiseHandlers = Asyncify.asyncPromiseHandlers;
-            if (asyncPromiseHandlers) {
-              Asyncify.asyncPromiseHandlers = null;
-              (isError ? asyncPromiseHandlers.reject : asyncPromiseHandlers.resolve)(asyncWasmReturnValue);
-              handled = true;
-            }
-          }
-          if (isError && !handled) {
-            throw asyncWasmReturnValue;
-          }
-        });
-        reachedAfterCallback = true;
-        if (!reachedCallback) {
-          Asyncify.state = Asyncify.State.Unwinding;
-          Asyncify.currData = Asyncify.allocateData();
-          if (typeof MainLoop != "undefined" && MainLoop.func) {
-            MainLoop.pause();
-          }
-          runAndAbortIfError(() => _asyncify_start_unwind(Asyncify.currData));
-        }
-      } else if (Asyncify.state === Asyncify.State.Rewinding) {
-        Asyncify.state = Asyncify.State.Normal;
-        runAndAbortIfError(_asyncify_stop_rewind);
-        _free(Asyncify.currData);
-        Asyncify.currData = null;
-        Asyncify.sleepCallbacks.forEach(callUserCallback);
-      } else {
-        abort(`invalid state: ${Asyncify.state}`);
-      }
-      return Asyncify.handleSleepReturnValue;
-    }, handleAsync(startAsync) {
-      return Asyncify.handleSleep((wakeUp) => {
-        startAsync().then(wakeUp);
-      });
-    } };
-    var uleb128Encode = (n, target) => {
-      if (n < 128) {
-        target.push(n);
-      } else {
-        target.push(n % 128 | 128, n >> 7);
-      }
     };
     var generateFuncType = (sig, target) => {
       var sigRet = sig.slice(0, 1);
@@ -3905,20 +3042,12 @@ var Module = (() => {
           }
         }
       }
-      var previousAsync = Asyncify.currData;
       var ret = func(...cArgs);
       function onDone(ret2) {
-        runtimeKeepalivePop();
         if (stack !== 0) stackRestore(stack);
         return convertReturnValue(ret2);
       }
-      var asyncMode = opts?.async;
-      runtimeKeepalivePush();
-      if (Asyncify.currData != previousAsync) {
-        return Asyncify.whenDone().then(onDone);
-      }
       ret = onDone(ret);
-      if (asyncMode) return Promise.resolve(ret);
       return ret;
     };
     var cwrap = (ident, returnType, argTypes, opts) => {
@@ -3927,7 +3056,7 @@ var Module = (() => {
       if (numericRet && numericArgs && !opts) {
         return getCFunc(ident);
       }
-      return (...args) => ccall(ident, returnType, argTypes, args, opts);
+      return (...args) => ccall(ident, returnType, argTypes, args);
     };
     var getTempRet0 = (val) => __emscripten_tempret_get();
     var stringToUTF16 = (str, outPtr, maxBytesToWrite) => {
@@ -4016,7 +3145,7 @@ var Module = (() => {
     FS.createPreloadedFile = FS_createPreloadedFile;
     FS.staticInit();
     adapters_support();
-    var wasmImports = { a: ___assert_fail, aa: ___syscall_chmod, da: ___syscall_faccessat, ba: ___syscall_fchmod, $: ___syscall_fchown32, b: ___syscall_fcntl64, _: ___syscall_fstat64, y: ___syscall_ftruncate64, U: ___syscall_getcwd, Y: ___syscall_lstat64, R: ___syscall_mkdirat, W: ___syscall_newfstatat, P: ___syscall_openat, N: ___syscall_readlinkat, M: ___syscall_rmdir, Z: ___syscall_stat64, K: ___syscall_unlinkat, J: ___syscall_utimensat, F: __abort_js, E: __emscripten_runtime_keepalive_clear, w: __localtime_js, u: __mmap_js, v: __munmap_js, G: __setitimer_js, Q: __tzset_js, n: _emscripten_date_now, g: _emscripten_get_now, H: _emscripten_resize_heap, S: _environ_get, T: _environ_sizes_get, o: _fd_close, I: _fd_fdstat_get, O: _fd_read, x: _fd_seek, V: _fd_sync, L: _fd_write, na: _ipp, r: _ipp_async, ka: _ippipppp, oa: _ippipppp_async, j: _ippp, k: _ippp_async, c: _ipppi, d: _ipppi_async, ga: _ipppiii, ha: _ipppiii_async, ia: _ipppiiip, ja: _ipppiiip_async, h: _ipppip, i: _ipppip_async, z: _ipppj, A: _ipppj_async, e: _ipppp, f: _ipppp_async, ea: _ippppi, fa: _ippppi_async, B: _ippppij, C: _ippppij_async, p: _ippppip, q: _ippppip_async, la: _ipppppip, ma: _ipppppip_async, D: _proc_exit, s: _vppippii, t: _vppippii_async, l: _vppp, m: _vppp_async, X: _vpppip, ca: _vpppip_async };
+    var wasmImports = { a: ___assert_fail, aa: ___syscall_chmod, da: ___syscall_faccessat, ba: ___syscall_fchmod, $: ___syscall_fchown32, b: ___syscall_fcntl64, _: ___syscall_fstat64, y: ___syscall_ftruncate64, U: ___syscall_getcwd, Y: ___syscall_lstat64, R: ___syscall_mkdirat, W: ___syscall_newfstatat, P: ___syscall_openat, N: ___syscall_readlinkat, M: ___syscall_rmdir, Z: ___syscall_stat64, K: ___syscall_unlinkat, J: ___syscall_utimensat, F: __abort_js, E: __emscripten_runtime_keepalive_clear, w: __localtime_js, u: __mmap_js, v: __munmap_js, G: __setitimer_js, Q: __tzset_js, n: _emscripten_date_now, g: _emscripten_get_now, H: _emscripten_resize_heap, S: _environ_get, T: _environ_sizes_get, o: _fd_close, I: _fd_fdstat_get, O: _fd_read, x: _fd_seek, V: _fd_sync, L: _fd_write, s: _ipp, t: _ipp_async, ka: _ippipppp, oa: _ippipppp_async, j: _ippp, k: _ippp_async, c: _ipppi, d: _ipppi_async, ga: _ipppiii, ha: _ipppiii_async, ia: _ipppiiip, ja: _ipppiiip_async, h: _ipppip, i: _ipppip_async, z: _ipppj, A: _ipppj_async, e: _ipppp, f: _ipppp_async, ea: _ippppi, fa: _ippppi_async, B: _ippppij, C: _ippppij_async, p: _ippppip, q: _ippppip_async, la: _ipppppip, ma: _ipppppip_async, D: _proc_exit, na: _vppippii, r: _vppippii_async, l: _vppp, m: _vppp_async, X: _vpppip, ca: _vpppip_async };
     var wasmExports = createWasm();
     Module2["_sqlite3_status64"] = (a0, a1, a2, a3) => (Module2["_sqlite3_status64"] = wasmExports["ra"])(a0, a1, a2, a3);
     Module2["_sqlite3_status"] = (a0, a1, a2, a3) => (Module2["_sqlite3_status"] = wasmExports["sa"])(a0, a1, a2, a3);
@@ -4268,26 +3397,23 @@ var Module = (() => {
     Module2["_sqlite3_compileoption_used"] = (a0) => (Module2["_sqlite3_compileoption_used"] = wasmExports["We"])(a0);
     Module2["_sqlite3_compileoption_get"] = (a0) => (Module2["_sqlite3_compileoption_get"] = wasmExports["Xe"])(a0);
     Module2["_sqlite3_sourceid"] = () => (Module2["_sqlite3_sourceid"] = wasmExports["Ye"])();
-    var _malloc = Module2["_malloc"] = (a0) => (_malloc = Module2["_malloc"] = wasmExports["Ze"])(a0);
-    var _free = Module2["_free"] = (a0) => (_free = Module2["_free"] = wasmExports["_e"])(a0);
+    Module2["_malloc"] = (a0) => (Module2["_malloc"] = wasmExports["Ze"])(a0);
+    Module2["_free"] = (a0) => (Module2["_free"] = wasmExports["_e"])(a0);
     Module2["_RegisterExtensionFunctions"] = (a0) => (Module2["_RegisterExtensionFunctions"] = wasmExports["$e"])(a0);
     Module2["_getSqliteFree"] = () => (Module2["_getSqliteFree"] = wasmExports["af"])();
     var _main = Module2["_main"] = (a0, a1) => (_main = Module2["_main"] = wasmExports["bf"])(a0, a1);
     Module2["_libauthorizer_set_authorizer"] = (a0, a1, a2) => (Module2["_libauthorizer_set_authorizer"] = wasmExports["cf"])(a0, a1, a2);
     Module2["_libfunction_create_function"] = (a0, a1, a2, a3, a4, a5, a6, a7) => (Module2["_libfunction_create_function"] = wasmExports["df"])(a0, a1, a2, a3, a4, a5, a6, a7);
-    Module2["_libhook_update_hook"] = (a0, a1, a2) => (Module2["_libhook_update_hook"] = wasmExports["ef"])(a0, a1, a2);
-    Module2["_libprogress_progress_handler"] = (a0, a1, a2, a3) => (Module2["_libprogress_progress_handler"] = wasmExports["ff"])(a0, a1, a2, a3);
-    Module2["_libvfs_vfs_register"] = (a0, a1, a2, a3, a4, a5) => (Module2["_libvfs_vfs_register"] = wasmExports["gf"])(a0, a1, a2, a3, a4, a5);
-    var _emscripten_builtin_memalign = (a0, a1) => (_emscripten_builtin_memalign = wasmExports["jf"])(a0, a1);
-    var __emscripten_timeout = (a0, a1) => (__emscripten_timeout = wasmExports["kf"])(a0, a1);
-    var __emscripten_tempret_get = () => (__emscripten_tempret_get = wasmExports["lf"])();
-    var __emscripten_stack_restore = (a0) => (__emscripten_stack_restore = wasmExports["mf"])(a0);
-    var __emscripten_stack_alloc = (a0) => (__emscripten_stack_alloc = wasmExports["nf"])(a0);
-    var _emscripten_stack_get_current = () => (_emscripten_stack_get_current = wasmExports["of"])();
-    var _asyncify_start_unwind = (a0) => (_asyncify_start_unwind = wasmExports["pf"])(a0);
-    var _asyncify_stop_unwind = () => (_asyncify_stop_unwind = wasmExports["qf"])();
-    var _asyncify_start_rewind = (a0) => (_asyncify_start_rewind = wasmExports["rf"])(a0);
-    var _asyncify_stop_rewind = () => (_asyncify_stop_rewind = wasmExports["sf"])();
+    Module2["_libhook_commit_hook"] = (a0, a1, a2) => (Module2["_libhook_commit_hook"] = wasmExports["ef"])(a0, a1, a2);
+    Module2["_libhook_update_hook"] = (a0, a1, a2) => (Module2["_libhook_update_hook"] = wasmExports["ff"])(a0, a1, a2);
+    Module2["_libprogress_progress_handler"] = (a0, a1, a2, a3) => (Module2["_libprogress_progress_handler"] = wasmExports["gf"])(a0, a1, a2, a3);
+    Module2["_libvfs_vfs_register"] = (a0, a1, a2, a3, a4, a5) => (Module2["_libvfs_vfs_register"] = wasmExports["hf"])(a0, a1, a2, a3, a4, a5);
+    var _emscripten_builtin_memalign = (a0, a1) => (_emscripten_builtin_memalign = wasmExports["kf"])(a0, a1);
+    var __emscripten_timeout = (a0, a1) => (__emscripten_timeout = wasmExports["lf"])(a0, a1);
+    var __emscripten_tempret_get = () => (__emscripten_tempret_get = wasmExports["mf"])();
+    var __emscripten_stack_restore = (a0) => (__emscripten_stack_restore = wasmExports["nf"])(a0);
+    var __emscripten_stack_alloc = (a0) => (__emscripten_stack_alloc = wasmExports["of"])(a0);
+    var _emscripten_stack_get_current = () => (_emscripten_stack_get_current = wasmExports["pf"])();
     Module2["_sqlite3_version"] = 5472;
     Module2["getTempRet0"] = getTempRet0;
     Module2["ccall"] = ccall;
@@ -4429,6 +3555,24 @@ var Module = (() => {
       const AsyncFunction = Object.getPrototypeOf(async function() {
       }).constructor;
       let pAsyncFlags = 0;
+      Module2["commit_hook"] = function(db, xCommitHook) {
+        if (pAsyncFlags) {
+          Module2["deleteCallback"](pAsyncFlags);
+          Module2["_sqlite3_free"](pAsyncFlags);
+          pAsyncFlags = 0;
+        }
+        pAsyncFlags = Module2["_sqlite3_malloc"](4);
+        setValue(pAsyncFlags, xCommitHook instanceof AsyncFunction ? 1 : 0, "i32");
+        ccall("libhook_commit_hook", "void", ["number", "number", "number"], [db, xCommitHook ? 1 : 0, pAsyncFlags]);
+        if (xCommitHook) {
+          Module2["setCallback"](pAsyncFlags, (_) => xCommitHook());
+        }
+      };
+    })();
+    (function() {
+      const AsyncFunction = Object.getPrototypeOf(async function() {
+      }).constructor;
+      let pAsyncFlags = 0;
       Module2["progress_handler"] = function(db, nOps, xProgress, pApp) {
         if (pAsyncFlags) {
           Module2["deleteCallback"](pAsyncFlags);
@@ -4479,28 +3623,512 @@ var Module = (() => {
     return moduleRtn;
   };
 })();
-var wa_sqlite_async_default = Module;
-async function useIdbStorage(fileName, options = {}) {
-  const {
-    url,
-    lockPolicy = "shared+hint",
-    lockTimeout = Infinity,
-    readonly
-  } = options;
-  const sqliteModule = await wa_sqlite_async_default(
-    url ? { locateFile: () => url } : void 0
+var wa_sqlite_default = Module;
+var DEFAULT_TEMPORARY_FILES = 10;
+var LOCK_NOTIFY_INTERVAL = 1e3;
+var DB_RELATED_FILE_SUFFIXES = ["", "-journal", "-wal"];
+var finalizationRegistry = new FinalizationRegistry((releaser) => releaser());
+var File = class {
+  constructor(path, flags) {
+    /** @type {string} */
+    __publicField(this, "path");
+    /** @type {number} */
+    __publicField(this, "flags");
+    /** @type {FileSystemSyncAccessHandle} */
+    __publicField(this, "accessHandle");
+    /** @type {PersistentFile?} */
+    __publicField(this, "persistentFile");
+    this.path = path;
+    this.flags = flags;
+  }
+};
+var PersistentFile = class {
+  constructor(fileHandle) {
+    /** @type {FileSystemFileHandle} */
+    __publicField(this, "fileHandle");
+    /** @type {FileSystemSyncAccessHandle} */
+    __publicField(this, "accessHandle", null);
+    // The following properties are for main database files.
+    /** @type {boolean} */
+    __publicField(this, "isLockBusy", false);
+    /** @type {boolean} */
+    __publicField(this, "isFileLocked", false);
+    /** @type {boolean} */
+    __publicField(this, "isRequestInProgress", false);
+    /** @type {function} */
+    __publicField(this, "handleLockReleaser", null);
+    /** @type {BroadcastChannel} */
+    __publicField(this, "handleRequestChannel");
+    /** @type {boolean} */
+    __publicField(this, "isHandleRequested", false);
+    this.fileHandle = fileHandle;
+  }
+};
+var OPFSCoopSyncVFS = (_a = class extends FacadeVFS {
+  constructor(name, module) {
+    super(name, module);
+    __privateAdd(this, __OPFSCoopSyncVFS_instances);
+    /** @type {Map<number, File>} */
+    __publicField(this, "mapIdToFile", /* @__PURE__ */ new Map());
+    __publicField(this, "lastError", null);
+    __publicField(this, "log", null);
+    //function(...args) { console.log(`[${contextName}]`, ...args) };
+    /** @type {Map<string, PersistentFile>} */
+    __publicField(this, "persistentFiles", /* @__PURE__ */ new Map());
+    /** @type {Map<string, FileSystemSyncAccessHandle>} */
+    __publicField(this, "boundAccessHandles", /* @__PURE__ */ new Map());
+    /** @type {Set<FileSystemSyncAccessHandle>} */
+    __publicField(this, "unboundAccessHandles", /* @__PURE__ */ new Set());
+    /** @type {Set<string>} */
+    __publicField(this, "accessiblePaths", /* @__PURE__ */ new Set());
+    __publicField(this, "releaser", null);
+  }
+  static async create(name, module) {
+    var _a2;
+    const vfs = new _a(name, module);
+    await Promise.all([
+      vfs.isReady(),
+      __privateMethod(_a2 = vfs, __OPFSCoopSyncVFS_instances, initialize_fn).call(_a2, DEFAULT_TEMPORARY_FILES)
+    ]);
+    return vfs;
+  }
+  /**
+   * @param {string?} zName 
+   * @param {number} fileId 
+   * @param {number} flags 
+   * @param {DataView} pOutFlags 
+   * @returns {number}
+   */
+  jOpen(zName, fileId, flags, pOutFlags) {
+    try {
+      const url = new URL(zName || Math.random().toString(36).slice(2), "file://");
+      const path = url.pathname;
+      if (flags & SQLITE_OPEN_MAIN_DB) {
+        const persistentFile = this.persistentFiles.get(path);
+        if (persistentFile?.isRequestInProgress) {
+          return SQLITE_BUSY;
+        } else if (!persistentFile) {
+          this.log?.(`creating persistent file for ${path}`);
+          const create = !!(flags & SQLITE_OPEN_CREATE);
+          this._module.retryOps.push((async () => {
+            try {
+              let dirHandle = await navigator.storage.getDirectory();
+              const directories = path.split("/").filter((d) => d);
+              const filename = directories.pop();
+              for (const directory of directories) {
+                dirHandle = await dirHandle.getDirectoryHandle(directory, { create });
+              }
+              for (const suffix of DB_RELATED_FILE_SUFFIXES) {
+                const fileHandle = await dirHandle.getFileHandle(filename + suffix, { create });
+                await __privateMethod(this, __OPFSCoopSyncVFS_instances, createPersistentFile_fn).call(this, fileHandle);
+              }
+              const file2 = new File(path, flags);
+              file2.persistentFile = this.persistentFiles.get(path);
+              await __privateMethod(this, __OPFSCoopSyncVFS_instances, requestAccessHandle_fn).call(this, file2);
+            } catch (e) {
+              const persistentFile2 = new PersistentFile(null);
+              this.persistentFiles.set(path, persistentFile2);
+              console.error(e);
+            }
+          })());
+          return SQLITE_BUSY;
+        } else if (!persistentFile.fileHandle) {
+          this.persistentFiles.delete(path);
+          return SQLITE_CANTOPEN;
+        } else if (!persistentFile.accessHandle) {
+          this._module.retryOps.push((async () => {
+            const file2 = new File(path, flags);
+            file2.persistentFile = this.persistentFiles.get(path);
+            await __privateMethod(this, __OPFSCoopSyncVFS_instances, requestAccessHandle_fn).call(this, file2);
+          })());
+          return SQLITE_BUSY;
+        }
+      }
+      if (!this.accessiblePaths.has(path) && !(flags & SQLITE_OPEN_CREATE)) {
+        throw new Error(`File ${path} not found`);
+      }
+      const file = new File(path, flags);
+      this.mapIdToFile.set(fileId, file);
+      if (this.persistentFiles.has(path)) {
+        file.persistentFile = this.persistentFiles.get(path);
+      } else if (this.boundAccessHandles.has(path)) {
+        file.accessHandle = this.boundAccessHandles.get(path);
+      } else if (this.unboundAccessHandles.size) {
+        file.accessHandle = this.unboundAccessHandles.values().next().value;
+        file.accessHandle.truncate(0);
+        this.unboundAccessHandles.delete(file.accessHandle);
+        this.boundAccessHandles.set(path, file.accessHandle);
+      }
+      this.accessiblePaths.add(path);
+      pOutFlags.setInt32(0, flags, true);
+      return SQLITE_OK;
+    } catch (e) {
+      this.lastError = e;
+      return SQLITE_CANTOPEN;
+    }
+  }
+  /**
+   * @param {string} zName 
+   * @param {number} syncDir 
+   * @returns {number}
+   */
+  jDelete(zName, syncDir) {
+    try {
+      const url = new URL(zName, "file://");
+      const path = url.pathname;
+      if (this.persistentFiles.has(path)) {
+        const persistentFile = this.persistentFiles.get(path);
+        persistentFile.accessHandle.truncate(0);
+      } else {
+        this.boundAccessHandles.get(path)?.truncate(0);
+      }
+      this.accessiblePaths.delete(path);
+      return SQLITE_OK;
+    } catch (e) {
+      this.lastError = e;
+      return SQLITE_IOERR_DELETE;
+    }
+  }
+  /**
+   * @param {string} zName 
+   * @param {number} flags 
+   * @param {DataView} pResOut 
+   * @returns {number}
+   */
+  jAccess(zName, flags, pResOut) {
+    try {
+      const url = new URL(zName, "file://");
+      const path = url.pathname;
+      pResOut.setInt32(0, this.accessiblePaths.has(path) ? 1 : 0, true);
+      return SQLITE_OK;
+    } catch (e) {
+      this.lastError = e;
+      return SQLITE_IOERR_ACCESS;
+    }
+  }
+  /**
+   * @param {number} fileId 
+   * @returns {number}
+   */
+  jClose(fileId) {
+    try {
+      const file = this.mapIdToFile.get(fileId);
+      this.mapIdToFile.delete(fileId);
+      if (file?.flags & SQLITE_OPEN_MAIN_DB) {
+        if (file.persistentFile?.handleLockReleaser) {
+          __privateMethod(this, __OPFSCoopSyncVFS_instances, releaseAccessHandle_fn).call(this, file);
+        }
+      } else if (file?.flags & SQLITE_OPEN_DELETEONCLOSE) {
+        file.accessHandle.truncate(0);
+        this.accessiblePaths.delete(file.path);
+        if (!this.persistentFiles.has(file.path)) {
+          this.boundAccessHandles.delete(file.path);
+          this.unboundAccessHandles.add(file.accessHandle);
+        }
+      }
+      return SQLITE_OK;
+    } catch (e) {
+      this.lastError = e;
+      return SQLITE_IOERR_CLOSE;
+    }
+  }
+  /**
+   * @param {number} fileId 
+   * @param {Uint8Array} pData 
+   * @param {number} iOffset
+   * @returns {number}
+   */
+  jRead(fileId, pData, iOffset) {
+    try {
+      const file = this.mapIdToFile.get(fileId);
+      const accessHandle = file.accessHandle || file.persistentFile.accessHandle;
+      const bytesRead = accessHandle.read(pData.subarray(), { at: iOffset });
+      if (file.flags & SQLITE_OPEN_MAIN_DB && !file.persistentFile.isFileLocked) {
+        __privateMethod(this, __OPFSCoopSyncVFS_instances, releaseAccessHandle_fn).call(this, file);
+      }
+      if (bytesRead < pData.byteLength) {
+        pData.fill(0, bytesRead);
+        return SQLITE_IOERR_SHORT_READ;
+      }
+      return SQLITE_OK;
+    } catch (e) {
+      this.lastError = e;
+      return SQLITE_IOERR_READ;
+    }
+  }
+  /**
+   * @param {number} fileId 
+   * @param {Uint8Array} pData 
+   * @param {number} iOffset
+   * @returns {number}
+   */
+  jWrite(fileId, pData, iOffset) {
+    try {
+      const file = this.mapIdToFile.get(fileId);
+      const accessHandle = file.accessHandle || file.persistentFile.accessHandle;
+      const nBytes = accessHandle.write(pData.subarray(), { at: iOffset });
+      if (nBytes !== pData.byteLength) throw new Error("short write");
+      return SQLITE_OK;
+    } catch (e) {
+      this.lastError = e;
+      return SQLITE_IOERR_WRITE;
+    }
+  }
+  /**
+   * @param {number} fileId 
+   * @param {number} iSize 
+   * @returns {number}
+   */
+  jTruncate(fileId, iSize) {
+    try {
+      const file = this.mapIdToFile.get(fileId);
+      const accessHandle = file.accessHandle || file.persistentFile.accessHandle;
+      accessHandle.truncate(iSize);
+      return SQLITE_OK;
+    } catch (e) {
+      this.lastError = e;
+      return SQLITE_IOERR_TRUNCATE;
+    }
+  }
+  /**
+   * @param {number} fileId 
+   * @param {number} flags 
+   * @returns {number}
+   */
+  jSync(fileId, flags) {
+    try {
+      const file = this.mapIdToFile.get(fileId);
+      const accessHandle = file.accessHandle || file.persistentFile.accessHandle;
+      accessHandle.flush();
+      return SQLITE_OK;
+    } catch (e) {
+      this.lastError = e;
+      return SQLITE_IOERR_FSYNC;
+    }
+  }
+  /**
+   * @param {number} fileId 
+   * @param {DataView} pSize64 
+   * @returns {number}
+   */
+  jFileSize(fileId, pSize64) {
+    try {
+      const file = this.mapIdToFile.get(fileId);
+      const accessHandle = file.accessHandle || file.persistentFile.accessHandle;
+      const size = accessHandle.getSize();
+      pSize64.setBigInt64(0, BigInt(size), true);
+      return SQLITE_OK;
+    } catch (e) {
+      this.lastError = e;
+      return SQLITE_IOERR_FSTAT;
+    }
+  }
+  /**
+   * @param {number} fileId 
+   * @param {number} lockType 
+   * @returns {number}
+   */
+  jLock(fileId, lockType) {
+    const file = this.mapIdToFile.get(fileId);
+    if (file.persistentFile.isRequestInProgress) {
+      file.persistentFile.isLockBusy = true;
+      return SQLITE_BUSY;
+    }
+    file.persistentFile.isFileLocked = true;
+    if (!file.persistentFile.handleLockReleaser) {
+      file.persistentFile.handleRequestChannel.onmessage = () => {
+        this.log?.(`received notification for ${file.path}`);
+        if (file.persistentFile.isFileLocked) {
+          file.persistentFile.isHandleRequested = true;
+        } else {
+          __privateMethod(this, __OPFSCoopSyncVFS_instances, releaseAccessHandle_fn).call(this, file);
+        }
+        file.persistentFile.handleRequestChannel.onmessage = null;
+      };
+      __privateMethod(this, __OPFSCoopSyncVFS_instances, requestAccessHandle_fn).call(this, file);
+      this.log?.("returning SQLITE_BUSY");
+      file.persistentFile.isLockBusy = true;
+      return SQLITE_BUSY;
+    }
+    file.persistentFile.isLockBusy = false;
+    return SQLITE_OK;
+  }
+  /**
+   * @param {number} fileId 
+   * @param {number} lockType 
+   * @returns {number}
+   */
+  jUnlock(fileId, lockType) {
+    const file = this.mapIdToFile.get(fileId);
+    if (lockType === SQLITE_LOCK_NONE) {
+      if (!file.persistentFile.isLockBusy) {
+        if (file.persistentFile.isHandleRequested) {
+          __privateMethod(this, __OPFSCoopSyncVFS_instances, releaseAccessHandle_fn).call(this, file);
+          this.isHandleRequested = false;
+        }
+        file.persistentFile.isFileLocked = false;
+      }
+    }
+    return SQLITE_OK;
+  }
+  /**
+   * @param {number} fileId
+   * @param {number} op
+   * @param {DataView} pArg
+   * @returns {number|Promise<number>}
+   */
+  jFileControl(fileId, op, pArg) {
+    try {
+      const file = this.mapIdToFile.get(fileId);
+      switch (op) {
+        case SQLITE_FCNTL_PRAGMA:
+          const key = extractString(pArg, 4);
+          const value = extractString(pArg, 8);
+          this.log?.("xFileControl", file.path, "PRAGMA", key, value);
+          switch (key.toLowerCase()) {
+            case "journal_mode":
+              if (value && !["off", "memory", "delete", "wal"].includes(value.toLowerCase())) {
+                throw new Error('journal_mode must be "off", "memory", "delete", or "wal"');
+              }
+              break;
+          }
+          break;
+      }
+    } catch (e) {
+      this.lastError = e;
+      return SQLITE_IOERR;
+    }
+    return SQLITE_NOTFOUND;
+  }
+  /**
+   * @param {Uint8Array} zBuf 
+   * @returns 
+   */
+  jGetLastError(zBuf) {
+    if (this.lastError) {
+      console.error(this.lastError);
+      const outputArray = zBuf.subarray(0, zBuf.byteLength - 1);
+      const { written } = new TextEncoder().encodeInto(this.lastError.message, outputArray);
+      zBuf[written] = 0;
+    }
+    return SQLITE_OK;
+  }
+}, __OPFSCoopSyncVFS_instances = new WeakSet(), initialize_fn = async function(nTemporaryFiles) {
+  const root = await navigator.storage.getDirectory();
+  for await (const entry of root.values()) {
+    if (entry.kind === "directory" && entry.name.startsWith(".ahp-")) {
+      await navigator.locks.request(entry.name, { ifAvailable: true }, async (lock) => {
+        if (lock) {
+          this.log?.(`Deleting temporary directory ${entry.name}`);
+          await root.removeEntry(entry.name, { recursive: true });
+        } else {
+          this.log?.(`Temporary directory ${entry.name} is in use`);
+        }
+      });
+    }
+  }
+  const tmpDirName = `.ahp-${Math.random().toString(36).slice(2)}`;
+  this.releaser = await new Promise((resolve) => {
+    navigator.locks.request(tmpDirName, () => {
+      return new Promise((release) => {
+        resolve(release);
+      });
+    });
+  });
+  finalizationRegistry.register(this, this.releaser);
+  const tmpDir = await root.getDirectoryHandle(tmpDirName, { create: true });
+  for (let i = 0; i < nTemporaryFiles; i++) {
+    const tmpFile = await tmpDir.getFileHandle(`${i}.tmp`, { create: true });
+    const tmpAccessHandle = await tmpFile.createSyncAccessHandle();
+    this.unboundAccessHandles.add(tmpAccessHandle);
+  }
+}, createPersistentFile_fn = async function(fileHandle) {
+  const persistentFile = new PersistentFile(fileHandle);
+  const root = await navigator.storage.getDirectory();
+  const relativePath = await root.resolve(fileHandle);
+  const path = `/${relativePath.join("/")}`;
+  persistentFile.handleRequestChannel = new BroadcastChannel(`ahp:${path}`);
+  this.persistentFiles.set(path, persistentFile);
+  const f = await fileHandle.getFile();
+  if (f.size) {
+    this.accessiblePaths.add(path);
+  }
+  return persistentFile;
+}, /**
+ * @param {File} file 
+ */
+requestAccessHandle_fn = function(file) {
+  console.assert(!file.persistentFile.handleLockReleaser);
+  if (!file.persistentFile.isRequestInProgress) {
+    file.persistentFile.isRequestInProgress = true;
+    this._module.retryOps.push((async () => {
+      file.persistentFile.handleLockReleaser = await __privateMethod(this, __OPFSCoopSyncVFS_instances, acquireLock_fn).call(this, file.persistentFile);
+      this.log?.(`creating access handles for ${file.path}`);
+      await Promise.all(DB_RELATED_FILE_SUFFIXES.map(async (suffix) => {
+        const persistentFile = this.persistentFiles.get(file.path + suffix);
+        if (persistentFile) {
+          persistentFile.accessHandle = await persistentFile.fileHandle.createSyncAccessHandle();
+        }
+      }));
+      file.persistentFile.isRequestInProgress = false;
+    })());
+    return this._module.retryOps.at(-1);
+  }
+  return Promise.resolve();
+}, releaseAccessHandle_fn = async function(file) {
+  DB_RELATED_FILE_SUFFIXES.forEach(async (suffix) => {
+    const persistentFile = this.persistentFiles.get(file.path + suffix);
+    if (persistentFile) {
+      persistentFile.accessHandle?.close();
+      persistentFile.accessHandle = null;
+    }
+  });
+  this.log?.(`access handles closed for ${file.path}`);
+  file.persistentFile.handleLockReleaser?.();
+  file.persistentFile.handleLockReleaser = null;
+  this.log?.(`lock released for ${file.path}`);
+}, /**
+ * @param {PersistentFile} persistentFile 
+ * @returns  {Promise<function>} lock releaser
+ */
+acquireLock_fn = function(persistentFile) {
+  return new Promise((resolve) => {
+    const lockName = persistentFile.handleRequestChannel.name;
+    const notify = () => {
+      this.log?.(`notifying for ${lockName}`);
+      persistentFile.handleRequestChannel.postMessage(null);
+    };
+    const notifyId = setInterval(notify, LOCK_NOTIFY_INTERVAL);
+    setTimeout(notify);
+    this.log?.(`lock requested: ${lockName}`);
+    navigator.locks.request(lockName, (lock) => {
+      this.log?.(`lock acquired: ${lockName}`, lock);
+      clearInterval(notifyId);
+      return new Promise(resolve);
+    });
+  });
+}, _a);
+function extractString(dataView, offset) {
+  const p = dataView.getUint32(offset, true);
+  if (p) {
+    const chars = new Uint8Array(dataView.buffer, p);
+    return new TextDecoder().decode(chars.subarray(0, chars.indexOf(0)));
+  }
+  return null;
+}
+async function useOpfsStorage(path, options = {}) {
+  const { url, ...rest } = options;
+  const sqliteModule = await wa_sqlite_default(
+    options.url ? { locateFile: () => options.url } : void 0
   );
-  const idbName = fileName.endsWith(".db") ? fileName : `${fileName}.db`;
-  const vfsOptions = { idbName, lockPolicy, lockTimeout };
   return {
-    path: idbName,
-    readonly,
+    path,
     sqliteModule,
-    vfsFn: IDBMirrorVFS.create,
-    vfsOptions
+    vfsFn: OPFSCoopSyncVFS.create,
+    ...rest
   };
 }
 export {
-  IDBMirrorVFS,
-  useIdbStorage
+  OPFSCoopSyncVFS,
+  useOpfsStorage
 };

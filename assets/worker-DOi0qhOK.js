@@ -20,6 +20,7 @@ var SQLITE_NOTICE = 27;
 var SQLITE_ROW = 100;
 var SQLITE_DONE = 101;
 var SQLITE_IOERR_ACCESS = 3338;
+var SQLITE_IOERR_CHECKRESERVEDLOCK = 3594;
 var SQLITE_IOERR_CLOSE = 4106;
 var SQLITE_IOERR_DELETE = 2570;
 var SQLITE_IOERR_FSTAT = 1802;
@@ -28,6 +29,7 @@ var SQLITE_IOERR_LOCK = 3850;
 var SQLITE_IOERR_READ = 266;
 var SQLITE_IOERR_SHORT_READ = 522;
 var SQLITE_IOERR_TRUNCATE = 1546;
+var SQLITE_IOERR_UNLOCK = 2058;
 var SQLITE_IOERR_WRITE = 778;
 var SQLITE_OPEN_READONLY = 1;
 var SQLITE_OPEN_READWRITE = 2;
@@ -35,16 +37,15 @@ var SQLITE_OPEN_CREATE = 4;
 var SQLITE_OPEN_DELETEONCLOSE = 8;
 var SQLITE_OPEN_URI = 64;
 var SQLITE_OPEN_MAIN_DB = 256;
+var SQLITE_OPEN_TEMP_DB = 512;
 var SQLITE_LOCK_NONE = 0;
 var SQLITE_LOCK_SHARED = 1;
 var SQLITE_LOCK_RESERVED = 2;
 var SQLITE_LOCK_EXCLUSIVE = 4;
 var SQLITE_IOCAP_UNDELETABLE_WHEN_OPEN = 2048;
 var SQLITE_IOCAP_BATCH_ATOMIC = 16384;
-var SQLITE_FCNTL_OVERWRITE = 11;
 var SQLITE_FCNTL_PRAGMA = 14;
 var SQLITE_FCNTL_SYNC = 21;
-var SQLITE_FCNTL_COMMIT_PHASETWO = 22;
 var SQLITE_FCNTL_BEGIN_ATOMIC_WRITE = 31;
 var SQLITE_FCNTL_COMMIT_ATOMIC_WRITE = 32;
 var SQLITE_FCNTL_ROLLBACK_ATOMIC_WRITE = 33;
@@ -727,8 +728,8 @@ function Factory(Module) {
     };
   }();
   const databases = /* @__PURE__ */ new Set();
-  function verifyDatabase(db2) {
-    if (!databases.has(db2)) {
+  function verifyDatabase(db) {
+    if (!databases.has(db)) {
       throw new SQLiteError("not a database", SQLITE_MISUSE);
     }
   }
@@ -786,7 +787,7 @@ function Factory(Module) {
       const ptr = Module._sqlite3_malloc(byteLength);
       Module.HEAPU8.subarray(ptr).set(value);
       const result = f(stmt, i, ptr, byteLength, sqliteFreeAddress);
-      return check(fname, result, mapStmtToDB.get(stmt));
+      return check2(fname, result, mapStmtToDB.get(stmt));
     };
   }();
   sqlite3.bind_parameter_count = function() {
@@ -804,7 +805,7 @@ function Factory(Module) {
     return function(stmt, i, value) {
       verifyStatement(stmt);
       const result = f(stmt, i, value);
-      return check(fname, result, mapStmtToDB.get(stmt));
+      return check2(fname, result, mapStmtToDB.get(stmt));
     };
   }();
   sqlite3.bind_int = function() {
@@ -814,7 +815,7 @@ function Factory(Module) {
       verifyStatement(stmt);
       if (value > 2147483647 || value < -2147483648) return SQLITE_RANGE;
       const result = f(stmt, i, value);
-      return check(fname, result, mapStmtToDB.get(stmt));
+      return check2(fname, result, mapStmtToDB.get(stmt));
     };
   }();
   sqlite3.bind_int64 = function() {
@@ -826,7 +827,7 @@ function Factory(Module) {
       const lo32 = value & 0xffffffffn;
       const hi32 = value >> 32n;
       const result = f(stmt, i, Number(lo32), Number(hi32));
-      return check(fname, result, mapStmtToDB.get(stmt));
+      return check2(fname, result, mapStmtToDB.get(stmt));
     };
   }();
   sqlite3.bind_null = function() {
@@ -835,7 +836,7 @@ function Factory(Module) {
     return function(stmt, i) {
       verifyStatement(stmt);
       const result = f(stmt, i);
-      return check(fname, result, mapStmtToDB.get(stmt));
+      return check2(fname, result, mapStmtToDB.get(stmt));
     };
   }();
   sqlite3.bind_parameter_name = function() {
@@ -854,15 +855,15 @@ function Factory(Module) {
       verifyStatement(stmt);
       const ptr = createUTF8(value);
       const result = f(stmt, i, ptr, -1, sqliteFreeAddress);
-      return check(fname, result, mapStmtToDB.get(stmt));
+      return check2(fname, result, mapStmtToDB.get(stmt));
     };
   }();
   sqlite3.changes = function() {
     const fname = "sqlite3_changes";
     const f = Module.cwrap(fname, ...decl("n:n"));
-    return function(db2) {
-      verifyDatabase(db2);
-      const result = f(db2);
+    return function(db) {
+      verifyDatabase(db);
+      const result = f(db);
       return result;
     };
   }();
@@ -872,17 +873,17 @@ function Factory(Module) {
     return function(stmt) {
       verifyStatement(stmt);
       const result = f(stmt);
-      return check(fname, result, mapStmtToDB.get(stmt));
+      return check2(fname, result, mapStmtToDB.get(stmt));
     };
   }();
   sqlite3.close = function() {
     const fname = "sqlite3_close";
     const f = Module.cwrap(fname, ...decl("n:n"), { async });
-    return async function(db2) {
-      verifyDatabase(db2);
-      const result = await f(db2);
-      databases.delete(db2);
-      return check(fname, result, db2);
+    return async function(db) {
+      verifyDatabase(db);
+      const result = await f(db);
+      databases.delete(db);
+      return check2(fname, result, db);
     };
   }();
   sqlite3.column = function(stmt, iCol) {
@@ -998,13 +999,13 @@ function Factory(Module) {
       return result;
     };
   }();
-  sqlite3.create_function = function(db2, zFunctionName, nArg, eTextRep, pApp, xFunc, xStep, xFinal) {
-    verifyDatabase(db2);
+  sqlite3.create_function = function(db, zFunctionName, nArg, eTextRep, pApp, xFunc, xStep, xFinal) {
+    verifyDatabase(db);
     function adapt(f) {
       return f instanceof AsyncFunction ? async (ctx, n, values) => f(ctx, Module.HEAP32.subarray(values / 4, values / 4 + n)) : (ctx, n, values) => f(ctx, Module.HEAP32.subarray(values / 4, values / 4 + n));
     }
     const result = Module.create_function(
-      db2,
+      db,
       zFunctionName,
       nArg,
       eTextRep,
@@ -1013,7 +1014,7 @@ function Factory(Module) {
       xStep && adapt(xStep),
       xFinal
     );
-    return check("sqlite3_create_function", result, db2);
+    return check2("sqlite3_create_function", result, db);
   };
   sqlite3.data_count = function() {
     const fname = "sqlite3_data_count";
@@ -1024,8 +1025,8 @@ function Factory(Module) {
       return result;
     };
   }();
-  sqlite3.exec = async function(db2, sql, callback) {
-    for await (const stmt of sqlite3.statements(db2, sql)) {
+  sqlite3.exec = async function(db, sql, callback) {
+    for await (const stmt of sqlite3.statements(db, sql)) {
       let columns;
       while (await sqlite3.step(stmt) === SQLITE_ROW) {
         if (callback) {
@@ -1049,8 +1050,8 @@ function Factory(Module) {
   sqlite3.get_autocommit = function() {
     const fname = "sqlite3_get_autocommit";
     const f = Module.cwrap(fname, ...decl("n:n"));
-    return function(db2) {
-      const result = f(db2);
+    return function(db) {
+      const result = f(db);
       return result;
     };
   }();
@@ -1073,8 +1074,8 @@ function Factory(Module) {
   sqlite3.limit = function() {
     const fname = "sqlite3_limit";
     const f = Module.cwrap(fname, ...decl("nnn:n"));
-    return function(db2, id, newVal) {
-      const result = f(db2, id, newVal);
+    return function(db, id, newVal) {
+      const result = f(db, id, newVal);
       return result;
     };
   }();
@@ -1086,19 +1087,19 @@ function Factory(Module) {
       zVfs = createUTF8(zVfs);
       try {
         const rc = await retry(() => f(zFilename, tmpPtr[0], flags, zVfs));
-        const db2 = Module.getValue(tmpPtr[0], "*");
-        databases.add(db2);
-        Module.ccall("RegisterExtensionFunctions", "void", ["number"], [db2]);
-        check(fname, rc);
-        return db2;
+        const db = Module.getValue(tmpPtr[0], "*");
+        databases.add(db);
+        Module.ccall("RegisterExtensionFunctions", "void", ["number"], [db]);
+        check2(fname, rc);
+        return db;
       } finally {
         Module._sqlite3_free(zVfs);
       }
     };
   }();
-  sqlite3.progress_handler = function(db2, nProgressOps, handler, userData) {
-    verifyDatabase(db2);
-    Module.progress_handler(db2, nProgressOps, handler, userData);
+  sqlite3.progress_handler = function(db, nProgressOps, handler, userData) {
+    verifyDatabase(db);
+    Module.progress_handler(db, nProgressOps, handler, userData);
   };
   sqlite3.reset = function() {
     const fname = "sqlite3_reset";
@@ -1106,7 +1107,7 @@ function Factory(Module) {
     return async function(stmt) {
       verifyStatement(stmt);
       const result = await f(stmt);
-      return check(fname, result, mapStmtToDB.get(stmt));
+      return check2(fname, result, mapStmtToDB.get(stmt));
     };
   }();
   sqlite3.result = function(context, value) {
@@ -1193,8 +1194,8 @@ function Factory(Module) {
     }
     return row;
   };
-  sqlite3.set_authorizer = function(db2, xAuth, pApp) {
-    verifyDatabase(db2);
+  sqlite3.set_authorizer = function(db, xAuth, pApp) {
+    verifyDatabase(db);
     function cvtArgs(_, iAction, p3, p4, p5, p6) {
       return [
         _,
@@ -1208,8 +1209,8 @@ function Factory(Module) {
     function adapt(f) {
       return f instanceof AsyncFunction ? async (_, iAction, p3, p4, p5, p6) => f(...cvtArgs(_, iAction, p3, p4, p5, p6)) : (_, iAction, p3, p4, p5, p6) => f(...cvtArgs(_, iAction, p3, p4, p5, p6));
     }
-    const result = Module.set_authorizer(db2, adapt(xAuth), pApp);
-    return check("sqlite3_set_authorizer", result, db2);
+    const result = Module.set_authorizer(db, adapt(xAuth), pApp);
+    return check2("sqlite3_set_authorizer", result, db);
   };
   sqlite3.sql = function() {
     const fname = "sqlite3_sql";
@@ -1220,7 +1221,7 @@ function Factory(Module) {
       return result;
     };
   }();
-  sqlite3.statements = function(db2, sql, options = {}) {
+  sqlite3.statements = function(db, sql, options = {}) {
     const prepare = Module.cwrap(
       "sqlite3_prepare_v3",
       "number",
@@ -1254,7 +1255,7 @@ function Factory(Module) {
           const zTail = Module.getValue(pzTail, "*");
           const rc = await retry(() => {
             return prepare(
-              db2,
+              db,
               zTail,
               pzEnd - pzTail,
               options.flags || 0,
@@ -1263,11 +1264,11 @@ function Factory(Module) {
             );
           });
           if (rc !== SQLITE_OK) {
-            check("sqlite3_prepare_v3", rc, db2);
+            check2("sqlite3_prepare_v3", rc, db);
           }
           stmt = Module.getValue(pStmt, "*");
           if (stmt) {
-            mapStmtToDB.set(stmt, db2);
+            mapStmtToDB.set(stmt, db);
             yield stmt;
           }
         } while (stmt);
@@ -1284,11 +1285,15 @@ function Factory(Module) {
     return async function(stmt) {
       verifyStatement(stmt);
       const rc = await retry(() => f(stmt));
-      return check(fname, rc, mapStmtToDB.get(stmt), [SQLITE_ROW, SQLITE_DONE]);
+      return check2(fname, rc, mapStmtToDB.get(stmt), [SQLITE_ROW, SQLITE_DONE]);
     };
   }();
-  sqlite3.update_hook = function(db2, xUpdateHook) {
-    verifyDatabase(db2);
+  sqlite3.commit_hook = function(db, xCommitHook) {
+    verifyDatabase(db);
+    Module.commit_hook(db, xCommitHook);
+  };
+  sqlite3.update_hook = function(db, xUpdateHook) {
+    verifyDatabase(db);
     function cvtArgs(iUpdateType, dbName, tblName, lo32, hi32) {
       return [
         iUpdateType,
@@ -1300,7 +1305,7 @@ function Factory(Module) {
     function adapt(f) {
       return f instanceof AsyncFunction ? async (iUpdateType, dbName, tblName, lo32, hi32) => f(...cvtArgs(iUpdateType, dbName, tblName, lo32, hi32)) : (iUpdateType, dbName, tblName, lo32, hi32) => f(...cvtArgs(iUpdateType, dbName, tblName, lo32, hi32));
     }
-    Module.update_hook(db2, adapt(xUpdateHook));
+    Module.update_hook(db, adapt(xUpdateHook));
   };
   sqlite3.value = function(pValue) {
     const type = sqlite3.value_type(pValue);
@@ -1383,11 +1388,11 @@ function Factory(Module) {
   }();
   sqlite3.vfs_register = function(vfs, makeDefault) {
     const result = Module.vfs_register(vfs, makeDefault);
-    return check("sqlite3_vfs_register", result);
+    return check2("sqlite3_vfs_register", result);
   };
-  function check(fname, result, db2 = null, allowed = [SQLITE_OK]) {
+  function check2(fname, result, db = null, allowed = [SQLITE_OK]) {
     if (allowed.includes(result)) return result;
-    const message = db2 ? Module.ccall("sqlite3_errmsg", "string", ["number"], [db2]) : fname;
+    const message = db ? Module.ccall("sqlite3_errmsg", "string", ["number"], [db]) : fname;
     throw new SQLiteError(message, result);
   }
   async function retry(f) {
@@ -1431,110 +1436,195 @@ function decl(s) {
   result.push(args);
   return result;
 }
-async function initSQLite(options) {
-  const { path, sqliteModule, vfsFn, vfsOptions, readonly } = await options;
+async function close(core) {
+  await core.sqlite.close(core.pointer);
+  await core.vfs.close();
+}
+function changes(core) {
+  return core.sqliteModule._sqlite3_changes(core.pointer);
+}
+function lastInsertRowId(core) {
+  return core.sqliteModule._sqlite3_last_insert_rowid(core.pointer);
+}
+async function initSQLiteCore(options) {
+  const { path, sqliteModule, vfsFn, vfsOptions, readonly, beforeOpen } = await options;
   const sqlite = Factory(sqliteModule);
   const vfs = await vfsFn(path, sqliteModule, vfsOptions);
   sqlite.vfs_register(vfs, true);
-  const db2 = await sqlite.open_v2(
+  await beforeOpen?.(vfs, path);
+  const pointer = await sqlite.open_v2(
     path,
-    readonly ? SQLITE_OPEN_READONLY : void 0
+    readonly ? SQLITE_OPEN_READONLY : SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE
   );
-  const close = async () => {
-    await sqlite.close(db2);
-  };
-  const changes = () => {
-    return sqliteModule._sqlite3_changes(db2);
-  };
-  const lastInsertRowId = () => {
-    return sqliteModule._sqlite3_last_insert_rowid(db2);
-  };
-  const stream2 = async (onData, sql, parameters) => {
-    for await (const stmt of sqlite.statements(db2, sql)) {
-      if (parameters?.length) {
-        sqlite.bind_collection(stmt, parameters);
-      }
-      const cols = sqlite.column_names(stmt);
-      while (await sqlite.step(stmt) === SQLITE_ROW) {
-        const row = sqlite.row(stmt);
-        onData(Object.fromEntries(cols.map((key, i) => [key, row[i]])));
-      }
-    }
-  };
-  const run = async (sql, parameters) => {
-    const results = [];
-    await stream2((data) => results.push(data), sql, parameters);
-    return results;
-  };
   return {
-    changes,
-    close,
-    db: db2,
-    lastInsertRowId,
+    db: pointer,
     path,
-    run,
+    pointer,
     sqlite,
     sqliteModule,
-    stream: stream2,
     vfs
   };
 }
-var db;
-async function init(fileName, url, useOPFS, afterInit) {
-  db = await initSQLite(
-    (useOPFS ? (await import("./opfs-VOBQLCW7-BrJQ4pkt.js")).useOpfsStorage : (await import("./idb-IGW3UAB4-DL_ii4ZP.js")).useIdbStorage)(
-      fileName,
-      { url }
-    )
-  );
-  await afterInit?.(db);
+var index = /* @__PURE__ */ Object.freeze({
+  __proto__: null,
+  changes,
+  close,
+  initSQLiteCore,
+  lastInsertRowId
+});
+function parseBigInt(num) {
+  return num === void 0 || num === null ? void 0 : BigInt(num);
 }
-async function exec(isSelect, sql, parameters) {
-  const rows = await db.run(sql, parameters);
-  return isSelect || rows.length ? { rows } : {
-    rows,
-    insertId: BigInt(db.lastInsertRowId()),
-    numAffectedRows: BigInt(db.changes())
-  };
-}
-async function stream(onData, sql, parameters) {
-  await db.stream(onData, sql, parameters);
-}
-function createOnMessageCallback(afterInit) {
-  return async ({
-    data: [msg, data1, data2, data3]
-  }) => {
-    const ret = [msg, null, null];
+var initEvent = "0";
+var runEvent = "1";
+var closeEvent = "2";
+var dataEvent = "3";
+var endEvent = "4";
+function createGenericOnMessageCallback(init, post, message) {
+  let db;
+  return async ([type, data1, data2, data3]) => {
+    const ret = [type, null, null];
     try {
-      switch (msg) {
-        case 0:
-          await init(data1, data2, data3, afterInit);
+      switch (type) {
+        case initEvent: {
+          db = await init(data1);
           break;
-        case 1:
-          ret[1] = await exec(data1, data2, data3);
+        }
+        case runEvent: {
+          ret[1] = await db.query(data1, data2, data3);
           break;
-        case 2:
+        }
+        case closeEvent: {
           await db.close();
           break;
-        case 3:
-          await stream((val) => postMessage([3, [val], null]), data1, data2);
-          ret[0] = 4;
+        }
+        case dataEvent: {
+          if (!db.iterator) {
+            throw new Error("streamQuery() is not supported.");
+          }
+          const it = db.iterator(data1, data2, data3);
+          for await (const row of it) {
+            post([type, row, null]);
+          }
+          ret[0] = endEvent;
           break;
+        }
+        default: {
+          if (message) ;
+        }
       }
     } catch (error) {
       ret[2] = error;
     }
-    postMessage(ret);
+    post(ret);
   };
 }
-onmessage = createOnMessageCallback();
+function createWebOnMessageCallback(init, message) {
+  const cb = createGenericOnMessageCallback(
+    init,
+    (value) => globalThis.postMessage(value),
+    message
+  );
+  globalThis.onmessage = ({ data }) => cb(data);
+}
+var defaultCreateDatabaseFn = async ({ fileName, url, useOPFS }) => {
+  return (await Promise.resolve().then(function() {
+    return index;
+  })).initSQLiteCore(
+    (useOPFS ? (await import("./opfs-VdSuEOXU.js")).useOpfsStorage : (await import("./idb-SrXRx2Mk.js")).useIdbStorage)(
+      fileName,
+      { url }
+    )
+  );
+};
+function createRowMapper(sqlite, stmt) {
+  const cols = sqlite.column_names(stmt);
+  return (row) => Object.fromEntries(cols.map((key, i) => [key, row[i]]));
+}
+async function queryData(core, sql, parameters) {
+  const stmt = (await core.sqlite.statements(core.pointer, sql)[Symbol.asyncIterator]().next()).value;
+  if (parameters?.length) {
+    core.sqlite.bind_collection(stmt, parameters);
+  }
+  const size = core.sqlite.column_count(stmt);
+  if (size === 0) {
+    await core.sqlite.step(stmt);
+    return {
+      rows: [],
+      insertId: parseBigInt(lastInsertRowId(core)),
+      numAffectedRows: parseBigInt(changes(core))
+    };
+  }
+  const mapRow = createRowMapper(core.sqlite, stmt);
+  const result = new Array(size);
+  let idx = 0;
+  while (await core.sqlite.step(stmt) === SQLITE_ROW) {
+    result[idx++] = mapRow(core.sqlite.row(stmt));
+  }
+  return { rows: result };
+}
+async function* iterateDate(core, sql, parameters, chunkSize = 1) {
+  const { sqlite, pointer } = core;
+  let cache = new Array(chunkSize);
+  for await (const stmt of sqlite.statements(pointer, sql)) {
+    if (parameters?.length) {
+      sqlite.bind_collection(stmt, parameters);
+    }
+    let idx = 0;
+    const mapRow = createRowMapper(core.sqlite, stmt);
+    while (1) {
+      const result = await sqlite.step(stmt);
+      if (result === SQLITE_ROW) {
+        cache[idx] = mapRow(core.sqlite.row(stmt));
+        if (++idx === chunkSize) {
+          yield cache.slice(0, idx);
+          idx = 0;
+        }
+      } else if (result === SQLITE_OK) {
+        if (++idx === chunkSize) {
+          yield [];
+        }
+      } else {
+        if (idx > 0) {
+          yield cache.slice(0, idx);
+        }
+        break;
+      }
+    }
+  }
+  cache = void 0;
+}
+function createOnMessageCallback(create, message) {
+  createWebOnMessageCallback(
+    async (initData) => {
+      const core = await create(initData);
+      return createSqliteExecutor(core);
+    },
+    message
+  );
+}
+function createSqliteExecutor(db) {
+  return {
+    db,
+    query: async (_isSelect, sql, parameters) => await queryData(db, sql, parameters),
+    close: async () => await close(db),
+    iterator: (_isSelect, sql, parameters, chunkSize) => iterateDate(
+      db,
+      sql,
+      parameters,
+      chunkSize
+    )
+  };
+}
+createOnMessageCallback(defaultCreateDatabaseFn);
 export {
   SQLITE_FCNTL_COMMIT_ATOMIC_WRITE as A,
   SQLITE_FCNTL_BEGIN_ATOMIC_WRITE as B,
-  SQLITE_ERROR as C,
-  SQLITE_IOCAP_BATCH_ATOMIC as D,
-  SQLITE_IOCAP_UNDELETABLE_WHEN_OPEN as E,
+  SQLITE_FCNTL_SYNC as C,
+  SQLITE_ERROR as D,
+  SQLITE_IOCAP_BATCH_ATOMIC as E,
   FacadeVFS as F,
+  SQLITE_IOCAP_UNDELETABLE_WHEN_OPEN as G,
   SQLITE_OPEN_MAIN_DB as S,
   SQLITE_BUSY as a,
   SQLITE_OPEN_CREATE as b,
@@ -1554,12 +1644,12 @@ export {
   SQLITE_FCNTL_PRAGMA as p,
   SQLITE_IOERR as q,
   SQLITE_NOTFOUND as r,
-  SQLITE_LOCK_EXCLUSIVE as s,
-  SQLITE_LOCK_RESERVED as t,
-  SQLITE_LOCK_SHARED as u,
-  SQLITE_IOERR_LOCK as v,
-  SQLITE_FCNTL_COMMIT_PHASETWO as w,
-  SQLITE_FCNTL_OVERWRITE as x,
-  SQLITE_FCNTL_SYNC as y,
+  SQLITE_IOERR_LOCK as s,
+  SQLITE_IOERR_UNLOCK as t,
+  SQLITE_IOERR_CHECKRESERVEDLOCK as u,
+  SQLITE_LOCK_RESERVED as v,
+  SQLITE_LOCK_EXCLUSIVE as w,
+  SQLITE_LOCK_SHARED as x,
+  SQLITE_OPEN_TEMP_DB as y,
   SQLITE_FCNTL_ROLLBACK_ATOMIC_WRITE as z
 };
