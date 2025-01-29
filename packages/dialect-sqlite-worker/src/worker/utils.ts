@@ -14,7 +14,8 @@ export const defaultCreateDatabaseFn: CreateDatabaseFn
   = (fileName, options) => new Database(fileName, options)
 
 /**
- * Handle worker message, support custom message handler
+ * Handle worker message, support custom message handler,
+ * built-in: {@link defaultCreateDatabaseFn}
  * @example
  * in `worker.ts`
  * ```ts
@@ -48,7 +49,7 @@ export function createOnMessageCallback(
   )
 }
 
-function createSqliteExecutor(db: BetterSqlite3.Database): IGenericSqlite<BetterSqlite3.Database> {
+export function createSqliteExecutor(db: BetterSqlite3.Database): IGenericSqlite<BetterSqlite3.Database> {
   const getStmt = (sql: string) => db.prepare(sql)
 
   return {

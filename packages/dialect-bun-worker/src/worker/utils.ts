@@ -23,7 +23,8 @@ export const defaultCreateDatabaseFn: CreateDatabaseFn
   = fileName => new Database(fileName, { create: true })
 
 /**
- * Handle worker message, support custom callback on initialization
+ * Handle worker message, support custom callback on initialization.
+ * Built-in: {@link defaultCreateDatabaseFn}
  * @example
  * // worker.ts
  * import { createOnMessageCallback } from 'kysely-bun-worker'
@@ -47,7 +48,7 @@ export function createOnMessageCallback(
   )
 }
 
-function createSqliteExecutor(db: Database, cache: boolean): IGenericSqlite<Database> {
+export function createSqliteExecutor(db: Database, cache: boolean): IGenericSqlite<Database> {
   const fn = cache ? 'query' : 'prepare'
   const getStmt = (sql: string, parameters?: any[]) => db[fn](sql, parameters)
 

@@ -32,7 +32,7 @@ function createRowMapper(sqlite: SQLiteDBCore['sqlite'], stmt: number) {
   return (row: any[]) => Object.fromEntries(cols.map((key, i) => [key, row[i]]))
 }
 
-export async function queryData(
+async function queryData(
   core: SQLiteDBCore,
   sql: string,
   parameters?: readonly any[],
@@ -66,7 +66,7 @@ export async function queryData(
   return { rows: result }
 }
 
-export async function* iterateDate(
+async function* iterateDate(
   core: SQLiteDBCore,
   sql: string,
   parameters?: readonly any[],
@@ -105,7 +105,8 @@ export async function* iterateDate(
 }
 
 /**
- * Handle worker message, support custom message handler
+ * Handle worker message, support custom message handler,
+ * built-in: {@link defaultCreateDatabaseFn}
  * @example
  * in `worker.ts`
  * ```ts
@@ -139,7 +140,7 @@ export function createOnMessageCallback(
   )
 }
 
-function createSqliteExecutor(db: SQLiteDBCore): IGenericSqlite<SQLiteDBCore> {
+export function createSqliteExecutor(db: SQLiteDBCore): IGenericSqlite<SQLiteDBCore> {
   return {
     db,
     query: async (_isSelect, sql, parameters) => await queryData(db, sql, parameters),
