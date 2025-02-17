@@ -22423,7 +22423,7 @@ var GenericSqliteWorkerDriver = class extends BaseSqliteDriver {
         this.mitt.once(initEvent, (_, err) => err ? reject(err) : resolve());
       });
       this.conn = new GenericSqliteWorkerConnection(this.worker, this.mitt);
-      onCreateConnection?.(this.conn);
+      await onCreateConnection?.(this.conn);
     });
     __publicField(this, "worker");
     __publicField(this, "mitt");
