@@ -1,6 +1,5 @@
-import type { Promisable } from '../types'
 import type { OfficialWasmDB } from './type'
-import { buildQueryFn, GenericSqliteDialect, type IBaseSqliteDialectConfig } from 'kysely-generic-sqlite'
+import { buildQueryFn, GenericSqliteDialect, type IBaseSqliteDialectConfig, type Promisable } from 'kysely-generic-sqlite'
 import { accessDB } from '../utils'
 
 export type { OfficialWasmDB } from './type'

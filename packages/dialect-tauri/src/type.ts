@@ -1,5 +1,5 @@
 import type Database from '@tauri-apps/plugin-sql'
-import type { IBaseSqliteDialectConfig } from 'kysely-generic-sqlite'
+import type { IBaseSqliteDialectConfig, Promisable } from 'kysely-generic-sqlite'
 
 export interface TauriSqliteDialectConfig extends IBaseSqliteDialectConfig {
   /**
@@ -19,5 +19,3 @@ export interface TauriSqliteDialectConfig extends IBaseSqliteDialectConfig {
    */
   database: Database | ((prefix: 'sqlite:') => Promisable<Database>)
 }
-
-export type Promisable<T> = T | Promise<T>
