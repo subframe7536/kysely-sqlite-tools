@@ -47,7 +47,7 @@ export class GenericSqliteWorkerDriver<
       })
 
       this.conn = new GenericSqliteWorkerConnection(this.worker, this.mitt)
-      onCreateConnection?.(this.conn)
+      await onCreateConnection?.(this.conn)
     })
   }
 
