@@ -1,7 +1,7 @@
 {
   "name": "kysely-generic-sqlite",
   "type": "module",
-  "version": "1.0.1",
+  "version": "1.1.0",
   "description": "Generic kysely dialect for SQLite, support run in main thread or worker",
   "author": {
     "name": "subframe7536",
