@@ -11,9 +11,10 @@ export class BunSqliteDialect extends GenericSqliteDialect {
       url = ':memory:',
       cacheStatment = false,
       onCreateConnection,
+      dbOptions = { create: true },
     } = config || {}
     super(
-      () => createSqliteExecutor(new Database(url), cacheStatment),
+      () => createSqliteExecutor(new Database(url, dbOptions), cacheStatment),
       onCreateConnection,
     )
   }

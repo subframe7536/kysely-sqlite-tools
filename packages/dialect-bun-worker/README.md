@@ -16,6 +16,7 @@ bun install kysely kysely-bun-worker
 import { BunWorkerDialect } from 'kysely-bun-worker'
 
 const dialect = new BunWorkerDialect({
+  // default
   url: ':memory:',
 })
 ```
@@ -34,6 +35,19 @@ createOnMessageCallback(
     return db
   }
 )
+```
+
+### Normal Dialect
+
+In v1.1.0, you can use `BunSqliteDialect` to run SQLs in main thread
+
+```ts
+import { BunSqliteDialect } from 'kysely-bun-worker'
+
+const dialect = new BunSqliteDialect({
+  // default
+  url: ':memory:',
+})
 ```
 
 ## Config
@@ -56,5 +70,10 @@ export type BunWorkerDialectConfig = {
    * custom worker, default is a worker that use bun:sqlite
    */
   worker?: Worker
+  /**
+   * DB constructor options
+   * @default { create: true }
+   */
+  dbOptions?: ConstructorParameters<typeof Database>[1]
 }
 ```

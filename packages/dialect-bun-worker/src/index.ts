@@ -19,10 +19,11 @@ export class BunWorkerDialect extends GenericSqliteWorkerDialect<globalThis.Work
         new URL('./worker', import.meta.url),
         { type: 'module' },
       ),
+      dbOptions: opt = { create: true },
     } = config || {}
     super(
       () => ({
-        data: { cache, fileName },
+        data: { cache, fileName, opt },
         mitt: createNodeMitt(),
         handle: handleWebWorker,
         worker,

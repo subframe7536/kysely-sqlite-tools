@@ -1,6 +1,6 @@
 import type { Statement } from 'bun:sqlite'
 import type { MessageHandleFn } from 'kysely-generic-sqlite/worker'
-import type { InitData } from '../type'
+import type { DBOptions, InitData } from '../type'
 import Database from 'bun:sqlite'
 import { type IGenericSqlite, parseBigInt, type Promisable } from 'kysely-generic-sqlite'
 import { createWebOnMessageCallback } from 'kysely-generic-sqlite/worker-helper-web'
@@ -17,10 +17,13 @@ async function* iterateData(
   }
 }
 
-export type CreateDatabaseFn = (fileName: string) => Promisable<Database>
+export type CreateDatabaseFn = (
+  fileName: string,
+  opt: DBOptions
+) => Promisable<Database>
 
 export const defaultCreateDatabaseFn: CreateDatabaseFn
-  = fileName => new Database(fileName, { create: true })
+  = (fileName, opt) => new Database(fileName, opt)
 
 /**
  * Handle worker message, support custom callback on initialization.
@@ -40,8 +43,8 @@ export function createOnMessageCallback(
   message?: MessageHandleFn<Database>,
 ): void {
   createWebOnMessageCallback<InitData, Database>(
-    async ({ cache, fileName }) => {
-      const db = await create(fileName)
+    async ({ cache, fileName, opt }) => {
+      const db = await create(fileName, opt)
       return createSqliteExecutor(db, cache)
     },
     message,
