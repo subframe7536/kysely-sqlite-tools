@@ -6,8 +6,11 @@ import type {
   InitFn,
   MessageHandleFn,
 } from './types'
+import type { Worker } from 'node:worker_threads'
+
 import { EventEmitter } from 'node:events'
-import { parentPort, type Worker } from 'node:worker_threads'
+import { parentPort } from 'node:worker_threads'
+
 import { access, createGenericOnMessageCallback } from './utils'
 
 class NodeEventEmitterWrapper extends EventEmitter {

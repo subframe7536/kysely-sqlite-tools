@@ -1,5 +1,8 @@
 import type { NodeWasmDatabase } from './type'
-import { buildQueryFn, GenericSqliteDialect, type IBaseSqliteDialectConfig, type Promisable } from 'kysely-generic-sqlite'
+import type { IBaseSqliteDialectConfig, Promisable } from 'kysely-generic-sqlite'
+
+import { buildQueryFn, GenericSqliteDialect } from 'kysely-generic-sqlite'
+
 import { accessDB } from '../utils'
 
 export interface NodeWasmDialectConfig extends IBaseSqliteDialectConfig {

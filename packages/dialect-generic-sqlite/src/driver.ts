@@ -1,6 +1,8 @@
-import type { CompiledQuery, DatabaseConnection, QueryResult } from 'kysely'
 import type { IGenericSqlite, OnCreateConnection, Promisable } from './type'
+import type { CompiledQuery, DatabaseConnection, QueryResult } from 'kysely'
+
 import { SelectQueryNode } from 'kysely'
+
 import { BaseSqliteDriver } from './base'
 
 export class GenericSqliteDriver extends BaseSqliteDriver {

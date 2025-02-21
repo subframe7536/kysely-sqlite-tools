@@ -1,7 +1,9 @@
 import type { Options } from 'better-sqlite3'
 import type { IBaseSqliteDialectConfig, Promisable } from 'kysely-generic-sqlite'
+
 import path from 'node:path'
 import { Worker } from 'node:worker_threads'
+
 import { GenericSqliteWorkerDialect } from 'kysely-generic-sqlite/worker'
 import { createNodeMitt, handleNodeWorker } from 'kysely-generic-sqlite/worker-helper-node'
 

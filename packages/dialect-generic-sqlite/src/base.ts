@@ -1,13 +1,16 @@
 import type { IGenericSqlite, IGenericSqliteExecutor } from './type'
+import type {
+  DatabaseConnection,
+  DatabaseIntrospector,
+  Dialect,
+  DialectAdapter,
+  Driver,
+  Kysely,
+  QueryCompiler,
+} from 'kysely'
+
 import {
   CompiledQuery,
-  type DatabaseConnection,
-  type DatabaseIntrospector,
-  type Dialect,
-  type DialectAdapter,
-  type Driver,
-  type Kysely,
-  type QueryCompiler,
   SqliteAdapter,
   SqliteIntrospector,
   SqliteQueryCompiler,

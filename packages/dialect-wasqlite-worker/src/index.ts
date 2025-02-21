@@ -1,4 +1,5 @@
 import type { InitData, WaSqliteWorkerDialectConfig } from './type'
+
 import { isModuleWorkerSupport, isOpfsSupported } from '@subframe7536/sqlite-wasm'
 import { GenericSqliteWorkerDialect } from 'kysely-generic-sqlite/worker'
 import { handleWebWorker } from 'kysely-generic-sqlite/worker-helper-web'

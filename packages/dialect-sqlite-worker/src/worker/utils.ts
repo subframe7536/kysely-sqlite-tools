@@ -1,8 +1,11 @@
 import type BetterSqlite3 from 'better-sqlite3'
+import type { IGenericSqlite, Promisable } from 'kysely-generic-sqlite'
 import type { MessageHandleFn } from 'kysely-generic-sqlite/worker'
+
 import { workerData } from 'node:worker_threads'
+
 import Database from 'better-sqlite3'
-import { type IGenericSqlite, parseBigInt, type Promisable } from 'kysely-generic-sqlite'
+import { parseBigInt } from 'kysely-generic-sqlite'
 import { createNodeOnMessageCallback } from 'kysely-generic-sqlite/worker-helper-node'
 
 export type CreateDatabaseFn = (

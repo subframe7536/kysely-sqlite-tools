@@ -1,4 +1,5 @@
 import type { IGenericSqlite, OnCreateConnection, Promisable } from './type'
+
 import { BaseSqliteDialect } from './base'
 import { GenericSqliteDriver } from './driver'
 

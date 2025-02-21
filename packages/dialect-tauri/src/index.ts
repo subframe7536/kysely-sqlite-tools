@@ -1,4 +1,5 @@
 import type { TauriSqliteDialectConfig } from './type'
+
 import { buildQueryFn, GenericSqliteDialect, parseBigInt } from 'kysely-generic-sqlite'
 
 export type { TauriSqliteDialectConfig } from './type'

@@ -1,5 +1,6 @@
 import type { Dialect } from 'kysely'
 import type { InferDatabase } from 'kysely-sqlite-builder/schema'
+
 import { SqliteBuilder } from 'kysely-sqlite-builder'
 import { column, defineTable, useSchema } from 'kysely-sqlite-builder/schema'
 

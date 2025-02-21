@@ -1,5 +1,4 @@
 import wasmURL from '@subframe7536/sqlite-wasm/dist/wa-sqlite-async.wasm?url'
-
 import {
   // isIdbSupported,
   // isModuleWorkerSupport,

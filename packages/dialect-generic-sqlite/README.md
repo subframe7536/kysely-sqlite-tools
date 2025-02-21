@@ -56,8 +56,10 @@ For client that does not support `stmt.reader`, there are 2 utils with same para
 - `buildQueryFnAlt`: Do not support `returning`
 
 ```ts
+import type { IGenericSqlite } from 'kysely-generic-sqlite'
+
 import Database from 'bun:sqlite'
-import { type IGenericSqlite, parseBigInt } from 'kysely-generic-sqlite'
+import { parseBigInt } from 'kysely-generic-sqlite'
 
 function createSqliteExecutor(db: Database, cache: boolean): IGenericSqlite<Database> {
   const fn = cache ? 'query' : 'prepare'
@@ -86,6 +88,7 @@ To create a dialect that run SQLs in current thread, you can use built-in dialec
 
 ```ts
 import type { DatabaseConnection } from 'kysely'
+
 import { CompiledQuery, Kysely } from 'kysely'
 import { GenericSqliteDialect } from 'kysely-generic-sqlite'
 
@@ -106,6 +109,7 @@ To create a dialect that run SQLs in nodejs's `worker_threads`, you can use buil
 
 ```ts
 import { Worker } from 'node:worker_threads'
+
 import { GenericSqliteWorkerDialect } from 'kysely-generic-sqlite/worker'
 import { createNodeWorkerExecutor } from 'kysely-generic-sqlite/worker-helper-node'
 
@@ -128,7 +132,9 @@ const dialect = new GenericSqliteWorkerDialect(
 in `worker.ts`
 
 ```ts
-import BetterSqlite3Database, { type Database } from 'better-sqlite3'
+import type { Database } from 'better-sqlite3'
+
+import BetterSqlite3Database from 'better-sqlite3'
 import { createNodeOnMessageCallback } from 'kysely-generic-sqlite/worker-helper-node'
 
 createNodeOnMessageCallback<{ fileName: string }>(
@@ -208,6 +214,7 @@ in `worker.ts`
 
 ```ts
 import type { Database } from 'better-sqlite3'
+
 import { createNodeOnMessageCallback } from 'kysely-generic-sqlite/worker-helper-node'
 
 createNodeOnMessageCallback<{}, Database>(

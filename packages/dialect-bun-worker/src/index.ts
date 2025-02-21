@@ -1,4 +1,5 @@
 import type { BunWorkerDialectConfig, InitData } from './type'
+
 import { GenericSqliteWorkerDialect } from 'kysely-generic-sqlite/worker'
 import { createNodeMitt } from 'kysely-generic-sqlite/worker-helper-node'
 import { handleWebWorker } from 'kysely-generic-sqlite/worker-helper-web'

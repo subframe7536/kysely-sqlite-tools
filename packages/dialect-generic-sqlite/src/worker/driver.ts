@@ -1,20 +1,24 @@
-import type { CompiledQuery, DatabaseConnection, QueryResult } from 'kysely'
 import type { OnCreateConnection, Promisable } from '../type'
+import type {
+  CloseMsg,
+  IGenericEventEmitter,
+  IGenericSqliteWorkerExecutor,
+  IGenericWorker,
+  InitMsg,
+  RunMsg,
+  StreamMsg,
+} from './types'
+import type { CompiledQuery, DatabaseConnection, QueryResult } from 'kysely'
+
 import { SelectQueryNode } from 'kysely'
+
 import { BaseSqliteDriver } from '../base'
 import {
   closeEvent,
-  type CloseMsg,
   dataEvent,
   endEvent,
-  type IGenericEventEmitter,
-  type IGenericSqliteWorkerExecutor,
-  type IGenericWorker,
   initEvent,
-  type InitMsg,
   runEvent,
-  type RunMsg,
-  type StreamMsg,
 } from './types'
 
 export class GenericSqliteWorkerDriver<

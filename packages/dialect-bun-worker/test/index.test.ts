@@ -1,6 +1,8 @@
+import type { Dialect, Generated } from 'kysely'
+
 import { describe, expect, test } from 'bun:test'
-import { CompiledQuery, type Dialect, type Generated } from 'kysely'
-import { Kysely } from 'kysely'
+import { CompiledQuery, Kysely } from 'kysely'
+
 import { BunWorkerDialect } from '../src'
 
 interface DB {

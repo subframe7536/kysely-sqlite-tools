@@ -5,6 +5,7 @@ import type {
   InitFn,
   MessageHandleFn,
 } from './types'
+
 import { access, createGenericOnMessageCallback } from './utils'
 
 export function createWebOnMessageCallback<T extends Record<string, unknown>, DB = unknown>(

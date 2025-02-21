@@ -1,5 +1,5 @@
-import type { QueryResult } from 'kysely'
 import type { IGenericSqlite, Promisable } from '../type'
+import type { QueryResult } from 'kysely'
 
 export const initEvent = '0'
 export const runEvent = '1'

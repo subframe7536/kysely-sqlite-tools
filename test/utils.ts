@@ -1,4 +1,6 @@
-import { CompiledQuery, type Dialect, type Generated, Kysely } from 'kysely'
+import type { Dialect, Generated } from 'kysely'
+
+import { CompiledQuery, Kysely } from 'kysely'
 
 interface DB {
   test: TestTable

@@ -1,14 +1,16 @@
-import type { QueryResult } from 'kysely'
-import type { MessageHandleFn } from 'kysely-generic-sqlite/worker'
 import type { InitData } from '../type'
+import type { SQLiteDBCore } from '@subframe7536/sqlite-wasm'
+import type { QueryResult } from 'kysely'
+import type { IGenericSqlite, Promisable } from 'kysely-generic-sqlite'
+import type { MessageHandleFn } from 'kysely-generic-sqlite/worker'
+
 import {
   changes as changesCore,
   close as closeCore,
   lastInsertRowId as lastInsertRowIdCore,
-  type SQLiteDBCore,
 } from '@subframe7536/sqlite-wasm'
 import { SQLITE_OK, SQLITE_ROW } from '@subframe7536/sqlite-wasm/constant'
-import { type IGenericSqlite, parseBigInt, type Promisable } from 'kysely-generic-sqlite'
+import { parseBigInt } from 'kysely-generic-sqlite'
 import { createWebOnMessageCallback } from 'kysely-generic-sqlite/worker-helper-web'
 
 export type CreateDatabaseFn = (init: InitData) => Promisable<SQLiteDBCore>

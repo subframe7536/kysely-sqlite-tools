@@ -1,10 +1,12 @@
 import type { SqlJSDB } from './type'
+import type { IBaseSqliteDialectConfig, Promisable } from 'kysely-generic-sqlite'
+
 import {
   buildQueryFn,
   GenericSqliteDialect,
-  type IBaseSqliteDialectConfig,
-  type Promisable,
+
 } from 'kysely-generic-sqlite'
+
 import { accessDB } from '../utils'
 
 export interface SqlJsDialectConfig extends IBaseSqliteDialectConfig {

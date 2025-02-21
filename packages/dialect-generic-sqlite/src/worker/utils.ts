@@ -1,14 +1,12 @@
 import type { IGenericSqlite, Promisable } from '../type'
+import type { InitFn, MainToWorkerMsg, MessageHandleFn, WorkerToMainMsg } from './types'
+
 import {
   closeEvent,
   dataEvent,
   endEvent,
   initEvent,
-  type InitFn,
-  type MainToWorkerMsg,
-  type MessageHandleFn,
   runEvent,
-  type WorkerToMainMsg,
 } from './types'
 
 /**

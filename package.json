@@ -3,7 +3,7 @@
   "type": "module",
   "version": "1.0.1",
   "private": true,
-  "packageManager": "pnpm@9.15.4",
+  "packageManager": "pnpm@10.4.1",
   "description": "",
   "author": {
     "name": "subframe7536",
@@ -26,32 +26,38 @@
     "commit": "czg"
   },
   "devDependencies": {
-    "@commitlint/cli": "^19.6.1",
-    "@commitlint/config-conventional": "^19.6.0",
-    "@sqlite.org/sqlite-wasm": "^3.48.0-build3",
-    "@subframe7536/eslint-config": "^1.1.8",
+    "@commitlint/cli": "^19.7.1",
+    "@commitlint/config-conventional": "^19.7.1",
+    "@sqlite.org/sqlite-wasm": "^3.49.1-build1",
+    "@subframe7536/eslint-config": "^1.2.0",
     "@subframe7536/type-utils": "^0.1.6",
     "@types/better-sqlite3": "^7.6.12",
-    "@types/node": "^20.17.16",
+    "@types/node": "^20.17.19",
     "@types/sql.js": "^1.4.9",
     "@vlcn.io/crsqlite-wasm": "^0.16.0",
     "better-sqlite3": "^11.8.1",
-    "bumpp": "^10.0.1",
-    "bun-types": "^1.2.1",
+    "bumpp": "^10.0.3",
+    "bun-types": "^1.2.2",
     "cz-git": "^1.11.0",
     "czg": "^1.11.0",
-    "eslint": "^9.19.0",
+    "eslint": "^9.20.1",
     "eslint-plugin-vue": "^9.32.0",
-    "eslint-processor-vue-blocks": "^1.0.0",
+    "eslint-processor-vue-blocks": "^2.0.0",
     "husky": "^9.1.7",
     "kysely": "catalog:",
     "lint-staged": "^15.4.3",
-    "node-sqlite3-wasm": "^0.8.32",
+    "node-sqlite3-wasm": "^0.8.34",
     "sql.js": "^1.12.0",
     "tsup": "^8.3.6",
     "typescript": "^5.7.3",
-    "vite": "^6.0.11",
-    "vitest": "^3.0.4"
+    "vite": "^6.1.1",
+    "vitest": "^3.0.6"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "better-sqlite3",
+      "esbuild"
+    ]
   },
   "lint-staged": {
     "*": [

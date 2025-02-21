@@ -60,10 +60,10 @@
   },
   "dependencies": {
     "kysely-generic-sqlite": "workspace:*",
-    "zen-mitt": "^3.0.0"
+    "zen-mitt": "^3.1.0"
   },
   "devDependencies": {
-    "@subframe7536/sqlite-wasm": "^0.5.1",
+    "@subframe7536/sqlite-wasm": "^0.5.3",
     "kysely": "catalog:"
   }
 }

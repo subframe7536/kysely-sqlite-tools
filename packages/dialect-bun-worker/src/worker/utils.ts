@@ -1,8 +1,10 @@
-import type { Statement } from 'bun:sqlite'
-import type { MessageHandleFn } from 'kysely-generic-sqlite/worker'
 import type { DBOptions, InitData } from '../type'
+import type { Statement } from 'bun:sqlite'
+import type { IGenericSqlite, Promisable } from 'kysely-generic-sqlite'
+import type { MessageHandleFn } from 'kysely-generic-sqlite/worker'
+
 import Database from 'bun:sqlite'
-import { type IGenericSqlite, parseBigInt, type Promisable } from 'kysely-generic-sqlite'
+import { parseBigInt } from 'kysely-generic-sqlite'
 import { createWebOnMessageCallback } from 'kysely-generic-sqlite/worker-helper-web'
 
 async function* iterateData(
