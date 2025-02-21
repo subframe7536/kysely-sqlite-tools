@@ -22,3 +22,17 @@ export type InitData = {
   fileName: string
   cache: boolean
 }
+
+export interface BunSqliteDialectConfig extends IBaseSqliteDialectConfig {
+  /**
+   * db file path
+   *
+   * @default ':memory:'
+   */
+  url?: string
+  /**
+   * use `bun:sqlite` built-in statment cache
+   * @see https://bun.sh/docs/api/sqlite#query
+   */
+  cacheStatment?: boolean
+}

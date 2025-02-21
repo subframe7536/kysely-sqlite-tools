@@ -26,6 +26,10 @@
       "import": "./dist/index.mjs",
       "require": "./dist/index.js"
     },
+    "./normal": {
+      "import": "./dist/normal.mjs",
+      "require": "./dist/normal.js"
+    },
     "./worker": {
       "import": "./dist/worker.mjs",
       "require": "./dist/worker.js"
@@ -36,6 +40,9 @@
   "module": "./dist/index.mjs",
   "typesVersions": {
     "*": {
+      "normal": [
+        "./dist/normal.d.ts"
+      ],
       "worker": [
         "./dist/index.d.ts"
       ]
