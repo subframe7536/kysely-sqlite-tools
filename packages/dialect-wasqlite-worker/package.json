@@ -29,17 +29,18 @@
     "./worker-classic": "./dist/worker.js",
     "./worker-module": "./dist/worker.mjs",
     "./wasm-sync": "./node_modules/@subframe7536/sqlite-wasm/dist/wa-sqlite.wasm",
-    "./wasm-async": "./node_modules/@subframe7536/sqlite-wasm/dist/wa-sqlite-async.wasm"
+    "./wasm-async": "./node_modules/@subframe7536/sqlite-wasm/dist/wa-sqlite-async.wasm",
+    "./package.json": "./package.json"
   },
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
   "typesVersions": {
     "*": {
-      "./worker-classic": [
+      "worker-classic": [
         "./dist/worker.d.ts"
       ],
-      "./worker-module": [
-        "./dist/worker.d.mts"
+      "worker-module": [
+        "./dist/worker.d.ts"
       ]
     }
   },

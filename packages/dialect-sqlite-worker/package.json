@@ -28,13 +28,14 @@
     "./worker": {
       "import": "./dist/worker.mjs",
       "require": "./dist/worker.js"
-    }
+    },
+    "./package.json": "./package.json"
   },
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
   "typesVersions": {
     "*": {
-      "./worker": [
+      "worker": [
         "./dist/index.d.ts"
       ]
     }

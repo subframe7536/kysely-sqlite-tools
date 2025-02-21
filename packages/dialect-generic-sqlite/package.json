@@ -37,20 +37,21 @@
     "./worker-helper-web": {
       "import": "./dist/worker-helper-web.js",
       "require": "./dist/worker-helper-web.cjs"
-    }
+    },
+    "./package.json": "./package.json"
   },
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "typesVersions": {
     "*": {
-      "./worker": [
+      "worker": [
         "./dist/worker.d.ts"
       ],
-      "./worker-helper-node": [
+      "worker-helper-node": [
         "./dist/worker-helper-node.d.ts"
       ],
-      "./worker-helper-web": [
+      "worker-helper-web": [
         "./dist/worker-helper-web.d.ts"
       ]
     }
