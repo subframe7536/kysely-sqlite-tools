@@ -42,7 +42,7 @@ createOnMessageCallback(
 In v1.1.0, you can use `BunSqliteDialect` to run SQLs in main thread
 
 ```ts
-import { BunSqliteDialect } from 'kysely-bun-worker'
+import { BunSqliteDialect } from 'kysely-bun-worker/normal'
 
 const dialect = new BunSqliteDialect({
   // default
