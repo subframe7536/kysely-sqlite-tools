@@ -3,7 +3,7 @@ import type { BunSqliteDialectConfig } from './type'
 import Database from 'bun:sqlite'
 import { GenericSqliteDialect } from 'kysely-generic-sqlite'
 
-import { createSqliteExecutor } from './worker/utils'
+import { createSqliteExecutor } from './executor'
 
 export class BunSqliteDialect extends GenericSqliteDialect {
   constructor(config?: BunSqliteDialectConfig) {
