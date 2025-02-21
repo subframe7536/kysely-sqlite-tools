@@ -3,8 +3,8 @@ var constant = require("@subframe7536/sqlite-wasm/constant");
 var kyselyGenericSqlite = require("kysely-generic-sqlite");
 var workerHelperWeb = require("kysely-generic-sqlite/worker-helper-web");
 var defaultCreateDatabaseFn = async ({ fileName, url, useOPFS }) => {
-  return (await import("./index-BNJIAT0e.js")).initSQLiteCore(
-    (useOPFS ? (await import("./opfs-h8ikAyMk.js")).useOpfsStorage : (await import("./idb-BBYDpfql.js")).useIdbStorage)(
+  return (await import("./index-z2fEYO5s.js")).initSQLiteCore(
+    (useOPFS ? (await import("./opfs-QFru_9Tg.js")).useOpfsStorage : (await import("./idb-CxboeKLJ.js")).useIdbStorage)(
       fileName,
       { url }
     )

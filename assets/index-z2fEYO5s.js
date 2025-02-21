@@ -1,4 +1,4 @@
-import { S as SQLITE_OPEN_READONLY, a as SQLITE_OPEN_READWRITE, b as SQLITE_OPEN_CREATE, c as SQLITE_OK, d as SQLITE_NOTICE, e as SQLITE_RANGE, f as SQLITE_TEXT, g as SQLITE_NULL, h as SQLITE_INTEGER, i as SQLITE_FLOAT, j as SQLITE_BLOB, k as SQLITE_ROW, l as SQLITE_MISUSE, m as SQLITE_DONE } from "./chunk-KLVLXXJW-BpBtG7ZF.js";
+import { S as SQLITE_OK, a as SQLITE_NOTICE, b as SQLITE_RANGE, c as SQLITE_TEXT, d as SQLITE_NULL, e as SQLITE_INTEGER, f as SQLITE_FLOAT, g as SQLITE_BLOB, h as SQLITE_ROW, i as SQLITE_OPEN_READONLY, j as SQLITE_OPEN_READWRITE, k as SQLITE_OPEN_CREATE, l as SQLITE_MISUSE, m as SQLITE_DONE } from "./chunk-E6QX2S3Z-CWBrUHUL.js";
 var MAX_INT64 = 0x7fffffffffffffffn;
 var MIN_INT64 = -0x8000000000000000n;
 var AsyncFunction = Object.getPrototypeOf(async function() {
@@ -747,6 +747,9 @@ function decl(s) {
   result.push(args);
   return result;
 }
+function parseOpenV2Flag(readonly) {
+  return readonly ? SQLITE_OPEN_READONLY : SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE;
+}
 async function initSQLiteCore(options) {
   const { path, sqliteModule, vfsFn, vfsOptions, readonly, beforeOpen } = await options;
   const sqlite = Factory(sqliteModule);
@@ -755,7 +758,7 @@ async function initSQLiteCore(options) {
   await beforeOpen?.(vfs, path);
   const pointer = await sqlite.open_v2(
     path,
-    readonly ? SQLITE_OPEN_READONLY : SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE
+    parseOpenV2Flag(readonly)
   );
   return {
     db: pointer,
@@ -767,5 +770,6 @@ async function initSQLiteCore(options) {
   };
 }
 export {
-  initSQLiteCore
+  initSQLiteCore,
+  parseOpenV2Flag
 };

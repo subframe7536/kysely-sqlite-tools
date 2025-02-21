@@ -6091,9 +6091,9 @@ const database = new Promise((resolve, reject) => {
   request.onerror = () => reject(request.error);
 });
 async function loadFile(fileName) {
-  const db = await database;
+  const db2 = await database;
   const file = await new Promise((resolve, reject) => {
-    const store = db.transaction("files", "readonly").objectStore("files");
+    const store = db2.transaction("files", "readonly").objectStore("files");
     const request = store.get(fileName);
     request.onsuccess = () => resolve(request.result);
     request.onerror = () => reject(request.error);
@@ -6109,18 +6109,18 @@ async function loadFile(fileName) {
   }
 }
 async function syncFile(fileName, data) {
-  const db = await database;
+  const db2 = await database;
   await new Promise((resolve, reject) => {
-    const store = db.transaction("files", "readwrite").objectStore("files");
+    const store = db2.transaction("files", "readwrite").objectStore("files");
     const request = store.put({ name: fileName, data });
     request.onsuccess = () => resolve(true);
     request.onerror = () => reject(request.error);
   });
 }
 async function deleteFile(fileName) {
-  const db = await database;
+  const db2 = await database;
   await new Promise((resolve, reject) => {
-    const store = db.transaction("files", "readwrite").objectStore("files");
+    const store = db2.transaction("files", "readwrite").objectStore("files");
     const request = store.delete(fileName);
     request.onsuccess = () => resolve(true);
     request.onerror = () => reject(request.error);
@@ -17446,11 +17446,11 @@ class ConnectionBuilder {
   async execute(callback) {
     return __privateGet(this, _props39).executor.provideConnection(async (connection) => {
       const executor = __privateGet(this, _props39).executor.withConnectionProvider(new SingleConnectionProvider(connection));
-      const db = new Kysely({
+      const db2 = new Kysely({
         ...__privateGet(this, _props39),
         executor
       });
-      return await callback(db);
+      return await callback(db2);
     });
   }
 }
@@ -19077,10 +19077,10 @@ const DEFAULT_MIGRATION_TABLE = "kysely_migration";
 const DEFAULT_MIGRATION_LOCK_TABLE = "kysely_migration_lock";
 freeze({ __noMigrations__: true });
 class SqliteIntrospector {
-  constructor(db) {
+  constructor(db2) {
     __privateAdd(this, _SqliteIntrospector_instances);
     __privateAdd(this, _db);
-    __privateSet(this, _db, db);
+    __privateSet(this, _db, db2);
   }
   async getSchemas() {
     return [];
@@ -19102,10 +19102,10 @@ class SqliteIntrospector {
 _db = new WeakMap();
 _SqliteIntrospector_instances = new WeakSet();
 getTableMetadata_fn = async function(table) {
-  const db = __privateGet(this, _db);
-  const tableDefinition = await db.selectFrom("sqlite_master").where("name", "=", table).select(["sql", "type"]).$castTo().executeTakeFirstOrThrow();
+  const db2 = __privateGet(this, _db);
+  const tableDefinition = await db2.selectFrom("sqlite_master").where("name", "=", table).select(["sql", "type"]).$castTo().executeTakeFirstOrThrow();
   const autoIncrementCol = tableDefinition.sql?.split(/[\(\),]/)?.find((it) => it.toLowerCase().includes("autoincrement"))?.trimStart()?.split(/\s+/)?.[0]?.replace(/["`]/g, "");
-  const columns = await db.selectFrom(sql`pragma_table_info(${table})`.as("table_info")).select(["name", "type", "notnull", "dflt_value"]).orderBy("cid").execute();
+  const columns = await db2.selectFrom(sql`pragma_table_info(${table})`.as("table_info")).select(["name", "type", "notnull", "dflt_value"]).orderBy("cid").execute();
   return {
     name: table,
     isView: tableDefinition.type === "view",
@@ -19146,8 +19146,8 @@ var BaseSqliteDialect = class {
   createAdapter() {
     return new SqliteAdapter();
   }
-  createIntrospector(db) {
-    return new SqliteIntrospector(db);
+  createIntrospector(db2) {
+    return new SqliteIntrospector(db2);
   }
 };
 var ConnectionMutex = class {
@@ -19219,8 +19219,8 @@ var GenericSqliteDriver = class extends BaseSqliteDriver {
   }
 };
 var GenericSqliteConnection = class {
-  constructor(db) {
-    this.db = db;
+  constructor(db2) {
+    this.db = db2;
   }
   async *streamQuery({ parameters, query, sql: sql2 }) {
     if (!this.db.iterator) {
@@ -19258,17 +19258,17 @@ var SqlJsDialect = class extends GenericSqliteDialect {
   constructor(config) {
     super(
       async () => {
-        const db = await accessDB(config.database);
+        const db2 = await accessDB(config.database);
         return {
-          db,
-          close: () => db.close(),
+          db: db2,
+          close: () => db2.close(),
           query: buildQueryFn({
             run: () => ({
-              insertId: BigInt(db.exec("SELECT last_insert_rowid()")[0].values[0][0]),
-              numAffectedRows: BigInt(db.getRowsModified())
+              insertId: BigInt(db2.exec("SELECT last_insert_rowid()")[0].values[0][0]),
+              numAffectedRows: BigInt(db2.getRowsModified())
             }),
             all: (sql2, parameters) => {
-              const stmt = db.prepare(sql2);
+              const stmt = db2.prepare(sql2);
               try {
                 if (parameters?.length) {
                   stmt.bind(parameters);
@@ -19933,10 +19933,10 @@ function requireSqlWasm() {
               G(`invalid type for setValue: ${b}`);
           }
         }
-        var db = "undefined" != typeof TextDecoder ? new TextDecoder() : void 0, L = (a, b, c) => {
+        var db2 = "undefined" != typeof TextDecoder ? new TextDecoder() : void 0, L = (a, b, c) => {
           var d = b + c;
           for (c = b; a[c] && !(c >= d); ) ++c;
-          if (16 < c - b && a.buffer && db) return db.decode(a.subarray(b, c));
+          if (16 < c - b && a.buffer && db2) return db2.decode(a.subarray(b, c));
           for (d = ""; b < c; ) {
             var e = a[b++];
             if (e & 128) {
@@ -21437,6 +21437,9 @@ var SerializeParametersTransformer = class extends OperationNodeTransformer {
   }
 };
 var dateRegex = /^\d{4}-\d{2}-\d{2}[T ]\d{2}:\d{2}:\d{2}(?:\.\d+)?Z?$/;
+function maybeJson(parameter) {
+  return parameter.startsWith("{") && parameter.endsWith("}") || parameter.startsWith("[") && parameter.endsWith("]");
+}
 function skipTransform$1(parameter) {
   return parameter === void 0 || parameter === null || typeof parameter === "bigint" || typeof parameter === "number" || typeof parameter === "object" && "buffer" in parameter;
 }
@@ -21444,7 +21447,7 @@ var BaseSerializePlugin = class {
   /**
    * Base class for {@link SerializePlugin}, without default options
    */
-  constructor({ deserializer, serializer, skipNodeKind }) {
+  constructor(serializer, deserializer, skipNodeKind) {
     __publicField(this, "transformer");
     __publicField(this, "deserializer");
     __publicField(this, "skipNodeSet");
@@ -21469,6 +21472,9 @@ var BaseSerializePlugin = class {
   parseRows(rows) {
     const result = [];
     for (const row of rows) {
+      if (!row) {
+        continue;
+      }
       const parsedRow = {};
       for (const [key, value] of Object.entries(row)) {
         parsedRow[key] = this.deserializer(value);
@@ -21484,19 +21490,19 @@ async function executeSQL(kysely, data, parameters) {
   }
   return await kysely.executeQuery(data);
 }
-async function checkIntegrity(db) {
-  const { rows } = await executeSQL(db, "PRAGMA integrity_check");
+async function checkIntegrity(db2) {
+  const { rows } = await executeSQL(db2, "PRAGMA integrity_check");
   if (!rows.length) {
     return false;
   }
   return rows[0].integrity_check === "ok";
 }
-async function getOrSetDBVersion(db, version2) {
+async function getOrSetDBVersion(db2, version2) {
   if (version2) {
-    await executeSQL(db, `PRAGMA user_version = ${version2}`);
+    await executeSQL(db2, `PRAGMA user_version = ${version2}`);
     return version2;
   }
-  const { rows } = await executeSQL(db, "PRAGMA user_version");
+  const { rows } = await executeSQL(db2, "PRAGMA user_version");
   if (!rows.length) {
     throw new Error("Fail to get DBVersion");
   }
@@ -21521,7 +21527,7 @@ var defaultDeserializer = (parameter) => {
   if (typeof parameter === "string") {
     if (dateRegex.test(parameter)) {
       return new Date(parameter);
-    } else if (parameter.startsWith("{") && parameter.endsWith("}") || parameter.startsWith("[") && parameter.endsWith("]")) {
+    } else if (maybeJson(parameter)) {
       try {
         return JSON.parse(parameter);
       } catch {
@@ -21575,15 +21581,15 @@ function createKyselyLogger(options = {}) {
     logger(param);
   };
 }
-async function savePoint(db, name) {
+async function savePoint(db2, name) {
   const _name = name?.toUpperCase() || `SP_${Date.now() % 1e12}_${Math.floor(Math.random() * 1e4)}`;
-  await sql`SAVEPOINT ${sql.raw(_name)}`.execute(db);
+  await sql`SAVEPOINT ${sql.raw(_name)}`.execute(db2);
   return {
     release: async () => {
-      await sql`RELEASE SAVEPOINT ${sql.raw(_name)}`.execute(db);
+      await sql`RELEASE SAVEPOINT ${sql.raw(_name)}`.execute(db2);
     },
     rollback: async () => {
-      await sql`ROLLBACK TO SAVEPOINT ${sql.raw(_name)}`.execute(db);
+      await sql`ROLLBACK TO SAVEPOINT ${sql.raw(_name)}`.execute(db2);
     }
   };
 }
@@ -21605,11 +21611,7 @@ var BaseSqliteBuilder = class {
       plugins = []
     } = options;
     this.log = logger;
-    plugins.push(new BaseSerializePlugin({
-      deserializer: defaultDeserializer,
-      serializer: defaultSerializer,
-      skipNodeKind: []
-    }));
+    plugins.push(new BaseSerializePlugin(defaultSerializer, defaultDeserializer, []));
     let log;
     if (onQuery === true) {
       log = createKyselyLogger({
@@ -21829,7 +21831,7 @@ var column = {
    */
   object: (options) => parse(DataType.object, options)
 };
-async function parseTable(db, tableName, hasAutoIncrement) {
+async function parseTable(db2, tableName, hasAutoIncrement) {
   const result = {
     columns: {},
     primary: [],
@@ -21837,7 +21839,7 @@ async function parseTable(db, tableName, hasAutoIncrement) {
     index: [],
     trigger: []
   };
-  const cols = (await sql`SELECT "name", "type", "notnull", "dflt_value", "pk" FROM PRAGMA_TABLE_INFO(${tableName})`.execute(db)).rows;
+  const cols = (await sql`SELECT "name", "type", "notnull", "dflt_value", "pk" FROM PRAGMA_TABLE_INFO(${tableName})`.execute(db2)).rows;
   for (const { dflt_value, name, notnull, pk, type } of cols) {
     result.columns[name] = {
       type,
@@ -21851,7 +21853,7 @@ async function parseTable(db, tableName, hasAutoIncrement) {
       result.primary.push(name);
     }
   }
-  const indexes = (await sql`SELECT "origin", (SELECT GROUP_CONCAT(name) FROM PRAGMA_INDEX_INFO(i.name)) as "columns" FROM PRAGMA_INDEX_LIST(${tableName}) as i WHERE "origin" != 'pk'`.execute(db)).rows;
+  const indexes = (await sql`SELECT "origin", (SELECT GROUP_CONCAT(name) FROM PRAGMA_INDEX_INFO(i.name)) as "columns" FROM PRAGMA_INDEX_LIST(${tableName}) as i WHERE "origin" != 'pk'`.execute(db2)).rows;
   for (const { columns, origin } of indexes) {
     result[origin === "u" ? "unique" : "index"].push(
       columns.split(",").map((c) => c.trim())
@@ -21859,13 +21861,13 @@ async function parseTable(db, tableName, hasAutoIncrement) {
   }
   return result;
 }
-async function parseExistSchema(db, prefix = []) {
+async function parseExistSchema(db2, prefix = []) {
   const extraColumns = prefix.length ? ` AND ${prefix.map((t) => `"name" NOT LIKE '${t}%'`).join(" AND ")}` : "";
-  const tables2 = (await sql`SELECT "type", "tbl_name" AS "table", CASE WHEN "sql" LIKE '%PRIMARY KEY AUTOINCREMENT%' THEN 1 ELSE "name" END AS "name" FROM "sqlite_master" WHERE "type" IN ('table', 'trigger') AND "name" NOT LIKE 'SQLITE_%'${sql.raw(extraColumns)} ORDER BY "type"`.execute(db)).rows;
+  const tables2 = (await sql`SELECT "type", "tbl_name" AS "table", CASE WHEN "sql" LIKE '%PRIMARY KEY AUTOINCREMENT%' THEN 1 ELSE "name" END AS "name" FROM "sqlite_master" WHERE "type" IN ('table', 'trigger') AND "name" NOT LIKE 'SQLITE_%'${sql.raw(extraColumns)} ORDER BY "type"`.execute(db2)).rows;
   const tableMap = {};
   for (const { name, table, type } of tables2) {
     if (type === "table") {
-      tableMap[table] = await parseTable(db, table, name === 1);
+      tableMap[table] = await parseTable(db2, table, name === 1);
     } else {
       tableMap[table].trigger.push(name);
     }
@@ -22041,7 +22043,7 @@ function migrateWholeTable(trx, tableName, restoreColumnList, targetTable) {
   }
   return result;
 }
-async function syncTables(db, targetSchema, options = {}, logger) {
+async function syncTables(db2, targetSchema, options = {}, logger) {
   const {
     truncateIfExists = [],
     log,
@@ -22053,20 +22055,20 @@ async function syncTables(db, targetSchema, options = {}, logger) {
   } = options;
   let oldVersion;
   if (current) {
-    oldVersion = await getOrSetDBVersion(db);
+    oldVersion = await getOrSetDBVersion(db2);
     if (skipSyncWhenSame && current === oldVersion) {
       return { ready: true };
     }
-    await getOrSetDBVersion(db, current);
+    await getOrSetDBVersion(db2, current);
   }
   const debug = (e) => log && logger?.debug(e);
   debug("Sync tables start");
-  const existSchema = await parseExistSchema(db, excludeTablePrefix);
+  const existSchema = await parseExistSchema(db2, excludeTablePrefix);
   let i = 0;
   let sqls = [];
   try {
     sqls = generateSyncTableSQL(
-      db,
+      db2,
       existSchema,
       targetSchema,
       truncateIfExists,
@@ -22078,12 +22080,12 @@ async function syncTables(db, targetSchema, options = {}, logger) {
     debug(`Sync failed, ${e}`);
     return { ready: false, error: e };
   }
-  return await db.transaction().execute(async (trx) => {
+  return await db2.transaction().execute(async (trx) => {
     for (; i < sqls.length; i++) {
       await executeSQL(trx, sqls[i]);
     }
   }).then(async () => {
-    await onSuccess?.(db, existSchema, oldVersion);
+    await onSuccess?.(db2, existSchema, oldVersion);
     debug("Sync success");
     return { ready: true };
   }).catch(async (e) => {
@@ -22093,7 +22095,7 @@ async function syncTables(db, targetSchema, options = {}, logger) {
   });
 }
 var defaultFallbackFunction = ({ target }) => target.parsedType === "TEXT" ? sql`'0'` : sql`0`;
-function generateSyncTableSQL(db, existSchema, targetSchema, truncateIfExists = [], debug = () => {
+function generateSyncTableSQL(db2, existSchema, targetSchema, truncateIfExists = [], debug = () => {
 }, fallback = defaultFallbackFunction) {
   const existTableMap = new Map(Object.entries(existSchema));
   const targetSchemaMap = new Map(Object.entries(targetSchema));
@@ -22107,10 +22109,10 @@ function generateSyncTableSQL(db, existSchema, targetSchema, truncateIfExists = 
       if (truncateTableSet.has(existTableName)) {
         debug(`- Update table "${existTableName}" and truncate`);
         sqls.push(dropTable(existTableName));
-        sqls.push(...createTableWithIndexAndTrigger(db, existTableName, targetTable));
+        sqls.push(...createTableWithIndexAndTrigger(db2, existTableName, targetTable));
       } else {
         debug(`- Update table "${existTableName}"`);
-        sqls.push(...updateTable(db, existTableName, existTable, targetTable, fallback));
+        sqls.push(...updateTable(db2, existTableName, existTable, targetTable, fallback));
       }
     } else {
       debug(`- Delete table "${existTableName}"`);
@@ -22120,7 +22122,7 @@ function generateSyncTableSQL(db, existSchema, targetSchema, truncateIfExists = 
   for (const [targetTableName, targetTable] of targetSchemaMap) {
     if (!existTableMap.has(targetTableName)) {
       debug(`- Create table "${targetTableName}"`);
-      sqls.push(...createTableWithIndexAndTrigger(db, targetTableName, targetTable));
+      sqls.push(...createTableWithIndexAndTrigger(db2, targetTableName, targetTable));
     }
   }
   return sqls;
@@ -22242,8 +22244,8 @@ function parseChangedList(existIndexList, targetIndexList) {
   return [addList, delList];
 }
 function useSchema(schema, options = {}) {
-  return async (db, logger) => await syncTables(
-    db,
+  return async (db2, logger) => await syncTables(
+    db2,
     schema,
     options,
     options.log ? logger : void 0
@@ -22261,23 +22263,23 @@ const tables = {
   })
 };
 async function testDB(dialect2) {
-  const db = new SqliteBuilder({
+  const db2 = new SqliteBuilder({
     dialect: dialect2
     // onQuery: true,
   });
-  const result = await db.syncDB(useSchema(tables));
+  const result = await db2.syncDB(useSchema(tables));
   if (!result.ready) {
     throw result.error;
   }
-  console.log(await db.execute(`PRAGMA table_info('test')`));
+  console.log(await db2.execute(`PRAGMA table_info('test')`));
   for (let i = 0; i < 10; i++) {
-    await db.transaction(async () => {
-      await db.transaction(async () => {
+    await db2.transaction(async () => {
+      await db2.transaction(async () => {
         if (i > 8) {
           console.log("test rollback");
           throw new Error("test rollback");
         }
-        await db.insertInto("test").values({
+        await db2.insertInto("test").values({
           name: `test at ${Date.now()}`,
           blobtest: Uint8Array.from([2, 3, 4, 5, 6, 7, 8])
         }).execute();
@@ -22285,32 +22287,27 @@ async function testDB(dialect2) {
     });
   }
   try {
-    for await (const v of db.selectFrom("test").selectAll().stream(2)) {
+    for await (const v of db2.selectFrom("test").selectAll().stream(2)) {
       console.log("Stream Query", v);
     }
   } catch (error) {
     console.warn(error);
   }
-  return db.selectFrom("test").selectAll().execute().then(async (data) => {
-    await db.destroy();
+  return db2.selectFrom("test").selectAll().execute().then(async (data) => {
+    await db2.destroy();
     console.log(data);
     return data;
   });
 }
+let db;
 const dialect = new SqlJsDialect({
   async database() {
     const SQL = await InitSqlJS({
       // locateFile: file => `https://sql.js.org/dist/${file}`,
       locateFile: () => WasmUrl
     });
-    return new SQL.Database(await loadFile("sqljs"));
-  },
-  onWrite: {
-    func(data) {
-      console.log(`[sqljs] write to indexeddb, length: ${data.length}`);
-      writeFile("sqljs", data);
-    },
-    isThrottle: true
+    db = new SQL.Database(await loadFile("sqljs"));
+    return db;
   }
 });
 function useDB() {
@@ -22318,13 +22315,14 @@ function useDB() {
   function run() {
     testDB(dialect).then((data) => {
       result.value = data;
+      writeFile("sqljs", db?.export());
     });
   }
   return { result, run };
 }
 function WorkerWrapper$1(options) {
   return new Worker(
-    "" + new URL("officialWasmWorker-BKM3Mg9d.js", import.meta.url).href,
+    "" + new URL("officialWasmWorker-G-xcDywo.js", import.meta.url).href,
     {
       type: "module",
       name: options?.name
@@ -22333,14 +22331,14 @@ function WorkerWrapper$1(options) {
 }
 function WorkerWrapper(options) {
   return new Worker(
-    "" + new URL("sqljsWorker-C5T8V34K.js", import.meta.url).href,
+    "" + new URL("sqljsWorker-D2OrVAVp.js", import.meta.url).href,
     {
       type: "module",
       name: options?.name
     }
   );
 }
-const wasmURL = "" + new URL("wa-sqlite-async-Dga2VoU6.wasm", import.meta.url).href;
+const wasmURL = "" + new URL("wa-sqlite-async-DOzpRqQg.wasm", import.meta.url).href;
 Object.getPrototypeOf(async function() {
 }).constructor;
 Object.getPrototypeOf(async function() {
@@ -22553,11 +22551,11 @@ var WaSqliteWorkerDialect = class extends GenericSqliteWorkerDialect {
           },
           worker: worker ? worker instanceof globalThis.Worker ? worker : worker(supportModule) : supportModule ? new Worker(new URL(
             /* @vite-ignore */
-            "" + new URL("worker-DOi0qhOK.js", import.meta.url).href,
+            "" + new URL("worker-DI1Y0e_i.js", import.meta.url).href,
             import.meta.url
           ), { type: "module" }) : new Worker(new URL(
             /* @vite-ignore */
-            "" + new URL("worker-BG2q47Xm.js", import.meta.url).href,
+            "" + new URL("worker-BhxyJfkp.js", import.meta.url).href,
             import.meta.url
           )),
           mitt: m,
@@ -22605,7 +22603,7 @@ const _sfc_main = /* @__PURE__ */ defineComponent({
     async function deleteDatabase() {
       try {
         const dbs = await window.indexedDB.databases();
-        dbs.forEach((db) => window.indexedDB.deleteDatabase(db.name));
+        dbs.forEach((db2) => window.indexedDB.deleteDatabase(db2.name));
       } catch {
       }
     }

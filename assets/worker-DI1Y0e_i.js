@@ -1438,13 +1438,15 @@ function decl(s) {
 }
 async function close(core) {
   await core.sqlite.close(core.pointer);
-  await core.vfs.close();
 }
 function changes(core) {
   return core.sqliteModule._sqlite3_changes(core.pointer);
 }
 function lastInsertRowId(core) {
   return core.sqliteModule._sqlite3_last_insert_rowid(core.pointer);
+}
+function parseOpenV2Flag(readonly) {
+  return readonly ? SQLITE_OPEN_READONLY : SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE;
 }
 async function initSQLiteCore(options) {
   const { path, sqliteModule, vfsFn, vfsOptions, readonly, beforeOpen } = await options;
@@ -1454,7 +1456,7 @@ async function initSQLiteCore(options) {
   await beforeOpen?.(vfs, path);
   const pointer = await sqlite.open_v2(
     path,
-    readonly ? SQLITE_OPEN_READONLY : SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE
+    parseOpenV2Flag(readonly)
   );
   return {
     db: pointer,
@@ -1470,7 +1472,8 @@ var index = /* @__PURE__ */ Object.freeze({
   changes,
   close,
   initSQLiteCore,
-  lastInsertRowId
+  lastInsertRowId,
+  parseOpenV2Flag
 });
 function parseBigInt(num) {
   return num === void 0 || num === null ? void 0 : BigInt(num);
@@ -1531,7 +1534,7 @@ var defaultCreateDatabaseFn = async ({ fileName, url, useOPFS }) => {
   return (await Promise.resolve().then(function() {
     return index;
   })).initSQLiteCore(
-    (useOPFS ? (await import("./opfs-VdSuEOXU.js")).useOpfsStorage : (await import("./idb-SrXRx2Mk.js")).useIdbStorage)(
+    (useOPFS ? (await import("./opfs-CdaycY4w.js")).useOpfsStorage : (await import("./idb-C0B4Vu5R.js")).useIdbStorage)(
       fileName,
       { url }
     )

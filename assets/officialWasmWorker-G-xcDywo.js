@@ -187,7 +187,7 @@ var sqlite3InitModule = (() => {
         }
         return f;
       }
-      return new URL("" + new URL("sqlite3-D0DavjUQ.wasm", import.meta.url).href, import.meta.url).href;
+      return new URL("" + new URL("sqlite3-WT1HU0S9.wasm", import.meta.url).href, import.meta.url).href;
     }
     var wasmBinaryFile;
     function getBinarySync(file) {
@@ -3672,8 +3672,7 @@ var sqlite3InitModule = (() => {
       }
     }
     run();
-    if (!Module.postRun) Module.postRun = [];
-    Module.postRun.push(function(Module2) {
+    Module.runSQLite3PostLoadInit = function(EmscriptenModule) {
       globalThis.sqlite3ApiBootstrap = function sqlite3ApiBootstrap(apiConfig = globalThis.sqlite3ApiConfig || sqlite3ApiBootstrap.defaultConfig) {
         if (sqlite3ApiBootstrap.sqlite3) {
           (sqlite3ApiBootstrap.sqlite3.config || console).warn(
@@ -3688,8 +3687,8 @@ var sqlite3InitModule = (() => {
             exports: void 0,
             memory: void 0,
             bigIntEnabled: (() => {
-              if ("undefined" !== typeof Module2) {
-                if (!!Module2.HEAPU64) return true;
+              if ("undefined" !== typeof Module) {
+                if (!!Module.HEAPU64) return true;
               }
               return !!globalThis.BigInt64Array;
             })(),
@@ -4275,26 +4274,6 @@ var sqlite3InitModule = (() => {
           };
         }
         capi.sqlite3_db_config = function(pDb2, op, ...args) {
-          if (!this.s) {
-            this.s = wasm.xWrap("sqlite3__wasm_db_config_s", "int", [
-              "sqlite3*",
-              "int",
-              "string:static"
-            ]);
-            this.pii = wasm.xWrap("sqlite3__wasm_db_config_pii", "int", [
-              "sqlite3*",
-              "int",
-              "*",
-              "int",
-              "int"
-            ]);
-            this.ip = wasm.xWrap("sqlite3__wasm_db_config_ip", "int", [
-              "sqlite3*",
-              "int",
-              "int",
-              "*"
-            ]);
-          }
           switch (op) {
             case capi.SQLITE_DBCONFIG_ENABLE_FKEY:
             case capi.SQLITE_DBCONFIG_ENABLE_TRIGGER:
@@ -4314,10 +4293,37 @@ var sqlite3InitModule = (() => {
             case capi.SQLITE_DBCONFIG_TRUSTED_SCHEMA:
             case capi.SQLITE_DBCONFIG_STMT_SCANSTATUS:
             case capi.SQLITE_DBCONFIG_REVERSE_SCANORDER:
+            case capi.SQLITE_DBCONFIG_ENABLE_ATTACH_CREATE:
+            case capi.SQLITE_DBCONFIG_ENABLE_ATTACH_WRITE:
+            case capi.SQLITE_DBCONFIG_ENABLE_COMMENTS:
+              if (!this.ip) {
+                this.ip = wasm.xWrap("sqlite3__wasm_db_config_ip", "int", [
+                  "sqlite3*",
+                  "int",
+                  "int",
+                  "*"
+                ]);
+              }
               return this.ip(pDb2, op, args[0], args[1] || 0);
             case capi.SQLITE_DBCONFIG_LOOKASIDE:
+              if (!this.pii) {
+                this.pii = wasm.xWrap("sqlite3__wasm_db_config_pii", "int", [
+                  "sqlite3*",
+                  "int",
+                  "*",
+                  "int",
+                  "int"
+                ]);
+              }
               return this.pii(pDb2, op, args[0], args[1], args[2]);
             case capi.SQLITE_DBCONFIG_MAINDBNAME:
+              if (!this.s) {
+                this.s = wasm.xWrap("sqlite3__wasm_db_config_s", "int", [
+                  "sqlite3*",
+                  "int",
+                  "string:static"
+                ]);
+              }
               return this.s(pDb2, op, args[0]);
             default:
               return capi.SQLITE_MISUSE;
@@ -6176,11 +6182,7 @@ var sqlite3InitModule = (() => {
               "sqlite3_context*",
               "int",
               "*",
-              new wasm.xWrap.FuncPtrAdapter({
-                name: "xDestroyAuxData",
-                signature: "v(*)",
-                contextKey: (argv, argIndex) => argv[0]
-              })
+              "*"
             ]
           ],
           ["sqlite3_shutdown", void 0],
@@ -7815,10 +7817,10 @@ var sqlite3InitModule = (() => {
       });
       globalThis.sqlite3ApiBootstrap.initializers.push(function(sqlite3) {
         sqlite3.version = {
-          libVersion: "3.48.0",
-          libVersionNumber: 3048e3,
-          sourceId: "2025-01-14 11:05:00 d2fe6b05f38d9d7cd78c5d252e99ac59f1aea071d669830c1ffe4e8966e84010",
-          downloadVersion: 348e4
+          libVersion: "3.49.1",
+          libVersionNumber: 3049001,
+          sourceId: "2025-02-18 13:38:58 873d4e274b4988d260ba8354a9718324a1c26187a4ab4c1cc0227c03d0f10e70",
+          downloadVersion: 3490100
         };
       });
       globalThis.sqlite3ApiBootstrap.initializers.push(function(sqlite3) {
@@ -11009,12 +11011,12 @@ var sqlite3InitModule = (() => {
           });
         };
       });
-      if ("undefined" !== typeof Module2) {
+      if ("undefined" !== typeof Module) {
         const SABC = Object.assign(
           /* @__PURE__ */ Object.create(null),
           {
-            exports: "undefined" === typeof wasmExports ? Module2["asm"] : wasmExports,
-            memory: Module2.wasmMemory
+            exports: "undefined" === typeof wasmExports ? Module["asm"] : wasmExports,
+            memory: Module.wasmMemory
           },
           globalThis.sqlite3ApiConfig || {}
         );
@@ -11029,7 +11031,7 @@ var sqlite3InitModule = (() => {
           delete globalThis.sqlite3ApiBootstrap;
           delete globalThis.sqlite3ApiConfig;
         }
-        Module2.sqlite3 = sqlite3;
+        Module.sqlite3 = sqlite3;
       } else {
         console.warn(
           "This is not running in an Emscripten module context, so",
@@ -11038,7 +11040,7 @@ var sqlite3InitModule = (() => {
           "It must be called manually."
         );
       }
-    });
+    };
     moduleRtn = readyPromise;
     return moduleRtn;
   };
@@ -11072,12 +11074,14 @@ const toExportForESM = function() {
   }
   globalThis.sqlite3InitModule = function ff(...args) {
     return originalInit(...args).then((EmscriptenModule) => {
+      EmscriptenModule.runSQLite3PostLoadInit(EmscriptenModule);
       const s = EmscriptenModule.sqlite3;
       s.scriptInfo = initModuleState;
       if (ff.__isUnderTest) s.__isUnderTest = true;
       const f = s.asyncPostInit;
       delete s.asyncPostInit;
-      return f();
+      const rv = f();
+      return rv;
     }).catch((e) => {
       console.error("Exception loading sqlite3 module:", e);
       throw e;
@@ -11206,7 +11210,7 @@ globalThis.sqlite3Worker1Promiser.defaultConfig = {
     return new Worker(
       new URL(
         /* @vite-ignore */
-        "" + new URL("sqlite3-worker1-bundler-friendly-C58Z0GEA.js", import.meta.url).href,
+        "" + new URL("sqlite3-worker1-bundler-friendly-Czv2wTZj.js", import.meta.url).href,
         import.meta.url
       ),
       {
@@ -24464,6 +24468,9 @@ var SerializeParametersTransformer = class extends OperationNodeTransformer {
   }
 };
 var dateRegex = /^\d{4}-\d{2}-\d{2}[T ]\d{2}:\d{2}:\d{2}(?:\.\d+)?Z?$/;
+function maybeJson(parameter) {
+  return parameter.startsWith("{") && parameter.endsWith("}") || parameter.startsWith("[") && parameter.endsWith("]");
+}
 function skipTransform$1(parameter) {
   return parameter === void 0 || parameter === null || typeof parameter === "bigint" || typeof parameter === "number" || typeof parameter === "object" && "buffer" in parameter;
 }
@@ -24471,7 +24478,7 @@ var BaseSerializePlugin = class {
   /**
    * Base class for {@link SerializePlugin}, without default options
    */
-  constructor({ deserializer, serializer, skipNodeKind }) {
+  constructor(serializer, deserializer, skipNodeKind) {
     __publicField(this, "transformer");
     __publicField(this, "deserializer");
     __publicField(this, "skipNodeSet");
@@ -24496,6 +24503,9 @@ var BaseSerializePlugin = class {
   parseRows(rows) {
     const result = [];
     for (const row of rows) {
+      if (!row) {
+        continue;
+      }
       const parsedRow = {};
       for (const [key, value] of Object.entries(row)) {
         parsedRow[key] = this.deserializer(value);
@@ -24548,7 +24558,7 @@ var defaultDeserializer = (parameter) => {
   if (typeof parameter === "string") {
     if (dateRegex.test(parameter)) {
       return new Date(parameter);
-    } else if (parameter.startsWith("{") && parameter.endsWith("}") || parameter.startsWith("[") && parameter.endsWith("]")) {
+    } else if (maybeJson(parameter)) {
       try {
         return JSON.parse(parameter);
       } catch {
@@ -24632,11 +24642,7 @@ var BaseSqliteBuilder = class {
       plugins = []
     } = options;
     this.log = logger;
-    plugins.push(new BaseSerializePlugin({
-      deserializer: defaultDeserializer,
-      serializer: defaultSerializer,
-      skipNodeKind: []
-    }));
+    plugins.push(new BaseSerializePlugin(defaultSerializer, defaultDeserializer, []));
     let log;
     if (onQuery === true) {
       log = createKyselyLogger({
