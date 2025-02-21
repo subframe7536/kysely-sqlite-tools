@@ -5,6 +5,8 @@ import { GenericSqliteDialect } from 'kysely-generic-sqlite'
 
 import { createSqliteExecutor } from './executor'
 
+export type { BunSqliteDialectConfig } from './type'
+
 export class BunSqliteDialect extends GenericSqliteDialect {
   constructor(config?: BunSqliteDialectConfig) {
     const {
