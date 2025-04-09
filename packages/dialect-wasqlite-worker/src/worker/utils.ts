@@ -59,8 +59,7 @@ async function queryData(
   }
 
   const mapRow = createRowMapper(core.sqlite, stmt)
-  // eslint-disable-next-line unicorn/no-new-array
-  const result = new Array(size)
+  const result = []
   let idx = 0
   while (await core.sqlite.step(stmt) === SQLITE_ROW) {
     result[idx++] = mapRow(core.sqlite.row(stmt))
