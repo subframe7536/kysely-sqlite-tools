@@ -38,7 +38,7 @@ jobs:
 
       - run: npx changelogithub
         env:
-          GITHUB_TOKEN: ${{secrets.TOKEN}}
+          GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
 
       - name: Publish to NPM
         run: nr publish
