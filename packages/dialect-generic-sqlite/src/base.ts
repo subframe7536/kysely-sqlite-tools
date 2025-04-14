@@ -11,6 +11,9 @@ import type {
 
 import {
   CompiledQuery,
+  createQueryId,
+  IdentifierNode,
+  RawNode,
   SqliteAdapter,
   SqliteIntrospector,
   SqliteQueryCompiler,
@@ -64,6 +67,13 @@ class ConnectionMutex {
   }
 }
 
+export function parseSavepointCommand(command: string, savepointName: string) {
+  return RawNode.createWithChildren([
+    RawNode.createWithSql(`${command} `),
+    IdentifierNode.create(savepointName), // ensures savepointName gets sanitized
+  ])
+}
+
 export abstract class BaseSqliteDriver implements Driver {
   private mutex = new ConnectionMutex()
   public conn?: DatabaseConnection
@@ -95,6 +105,30 @@ export abstract class BaseSqliteDriver implements Driver {
 
   async rollbackTransaction(connection: DatabaseConnection): Promise<void> {
     await connection.executeQuery(CompiledQuery.raw('rollback'))
+  }
+
+  async savepoint(
+    connection: DatabaseConnection,
+    savepointName: string,
+    compileQuery: QueryCompiler['compileQuery'],
+  ): Promise<void> {
+    await connection.executeQuery(compileQuery(parseSavepointCommand('savepoint', savepointName), createQueryId()))
+  }
+
+  async rollbackToSavepoint(
+    connection: DatabaseConnection,
+    savepointName: string,
+    compileQuery: QueryCompiler['compileQuery'],
+  ): Promise<void> {
+    await connection.executeQuery(compileQuery(parseSavepointCommand('rollback to', savepointName), createQueryId()))
+  }
+
+  async releaseSavepoint(
+    connection: DatabaseConnection,
+    savepointName: string,
+    compileQuery: QueryCompiler['compileQuery'],
+  ): Promise<void> {
+    await connection.executeQuery(compileQuery(parseSavepointCommand('release', savepointName), createQueryId()))
   }
 
   async releaseConnection(): Promise<void> {
