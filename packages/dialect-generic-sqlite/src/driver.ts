@@ -28,7 +28,7 @@ export class GenericSqliteConnection implements DatabaseConnection {
     private db: IGenericSqlite,
   ) { }
 
-  async *streamQuery<R>(
+  async* streamQuery<R>(
     { parameters, query, sql }: CompiledQuery,
   ): AsyncIterableIterator<QueryResult<R>> {
     if (!this.db.iterator) {

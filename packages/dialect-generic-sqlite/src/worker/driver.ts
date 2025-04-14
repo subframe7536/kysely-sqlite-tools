@@ -81,7 +81,7 @@ class GenericSqliteWorkerConnection implements DatabaseConnection {
     readonly mitt: IGenericEventEmitter,
   ) { }
 
-  async *streamQuery<R>(
+  async* streamQuery<R>(
     { parameters, sql, query }: CompiledQuery,
   ): AsyncIterableIterator<QueryResult<R>> {
     this.worker.postMessage([
