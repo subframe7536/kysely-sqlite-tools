@@ -9,7 +9,7 @@ var __privateGet = (obj, member, getter) => (__accessCheck(obj, member, "read fr
 var __privateAdd = (obj, member, value) => member.has(obj) ? __typeError("Cannot add the same private member more than once") : member instanceof WeakSet ? member.add(obj) : member.set(obj, value);
 var __privateSet = (obj, member, value, setter) => (__accessCheck(obj, member, "write to private field"), setter ? setter.call(obj, value) : member.set(obj, value), value);
 var __privateMethod = (obj, member, method) => (__accessCheck(obj, member, "access private method"), method);
-var _dynamicReference, _props, _props2, _props3, _props4, _props5, _props6, _props7, _props8, _props9, _queryId, _transformers, _schema, _schemableIds, _ctes, _WithSchemaTransformer_instances, isRootOperationNode_fn, collectSchemableIds_fn, collectCTEs_fn, collectSchemableIdsFromTableExpr_fn, collectSchemableId_fn, collectCTEIds_fn, _transformer, _promise, _resolve, _reject, _plugins, _QueryExecutorBase_instances, transformResult_fn, _props10, _props11, _WheneableMergeQueryBuilder_instances, whenMatched_fn, whenNotMatched_fn, _props12, _props13, _props14, _node, _expr, _alias, _node2, _node3, _props15, _queryBuilder, _alias2, _props16, _aggregateFunctionBuilder, _alias3, _props17, _props18, _props19, _props20, _node4, _JSONPathBuilder_instances, createBuilderWithPathLeg_fn, _node5, _jsonPath, _alias4, _node6, _node7, _column, _alterColumnNode, _props21, _props22, _props23, _props24, _node8, _props25, _props26, _props27, _props28, _props29, _props30, _props31, _props32, _transformer2, _props33, _props34, _props35, _props36, _executor, _driver, _compiler, _adapter, _connectionProvider, _driver2, _log, _initPromise, _initDone, _destroyPromise, _connections, _RuntimeDriver_instances, needsLogging_fn, addLogging_fn, logError_fn, logQuery_fn, calculateDurationMillis_fn, _connection, _runningPromise, _SingleConnectionProvider_instances, run_fn, _levels, _logger, _props37, _props38, _props39, _props40, _props41, _RawBuilderImpl_instances, getExecutor_fn, toOperationNode_fn, compile_fn, _rawBuilder, _alias5, _visitors, _sql, _parameters, _db, _SqliteIntrospector_instances, getTableMetadata_fn;
+var _dynamicReference, _props, _props2, _props3, _props4, _props5, _props6, _props7, _props8, _DeleteQueryBuilder_instances, join_fn, _props9, _UpdateQueryBuilder_instances, join_fn2, _props10, _queryId, _transformers, _schema, _schemableIds, _ctes, _WithSchemaTransformer_instances, transformTableArgsWithoutSchemas_fn, isRootOperationNode_fn, collectSchemableIds_fn, collectCTEs_fn, collectSchemableIdsFromTableExpr_fn, collectSchemableId_fn, collectCTEIds_fn, _transformer, _promise, _resolve, _reject, _plugins, _QueryExecutorBase_instances, transformResult_fn, _props11, _props12, _WheneableMergeQueryBuilder_instances, whenMatched_fn, whenNotMatched_fn, _props13, _props14, _props15, _node, _expr, _alias, _node2, _node3, _props16, _SelectQueryBuilderImpl_instances, join_fn3, _queryBuilder, _alias2, _props17, _aggregateFunctionBuilder, _alias3, _props18, _props19, _props20, _props21, _node4, _JSONPathBuilder_instances, createBuilderWithPathLeg_fn, _node5, _jsonPath, _alias4, _node6, _node7, _column, _alterColumnNode, _props22, _props23, _props24, _props25, _node8, _node9, _node10, _props26, _props27, _props28, _props29, _props30, _props31, _props32, _props33, _transformer2, _props34, _props35, _props36, _props37, _props38, _executor, _driver, _compiler, _adapter, _connectionProvider, _driver2, _log, _initPromise, _initDone, _destroyPromise, _connections, _RuntimeDriver_instances, needsLogging_fn, addLogging_fn, logError_fn, logQuery_fn, calculateDurationMillis_fn, _connection, _runningPromise, _SingleConnectionProvider_instances, run_fn, _levels, _logger, _props39, _props40, _props41, _props42, _props43, _props44, _compileQuery, _state, _cb, _executor2, _state2, _props45, _RawBuilderImpl_instances, getExecutor_fn, toOperationNode_fn, compile_fn, _rawBuilder, _alias5, _visitors, _sql, _parameters, _db, _SqliteIntrospector_instances, tablesQuery_fn, getTableMetadata_fn;
 var sqlite3InitModule = (() => {
   var _scriptName = import.meta.url;
   return function(moduleArg = {}) {
@@ -11784,6 +11784,12 @@ const OrderByItemNode = freeze({
       orderBy,
       direction
     });
+  },
+  cloneWith(node, props) {
+    return freeze({
+      ...node,
+      ...props
+    });
   }
 });
 const RawNode = freeze({
@@ -11807,6 +11813,94 @@ const RawNode = freeze({
     return RawNode.create(new Array(children.length + 1).fill(""), children);
   }
 });
+const CollateNode = {
+  is(node) {
+    return node.kind === "CollateNode";
+  },
+  create(collation) {
+    return freeze({
+      kind: "CollateNode",
+      collation: IdentifierNode.create(collation)
+    });
+  }
+};
+const _OrderByItemBuilder = class _OrderByItemBuilder {
+  constructor(props) {
+    __privateAdd(this, _props);
+    __privateSet(this, _props, freeze(props));
+  }
+  /**
+   * Adds `desc` to the `order by` item.
+   *
+   * See {@link asc} for the opposite.
+   */
+  desc() {
+    return new _OrderByItemBuilder({
+      node: OrderByItemNode.cloneWith(__privateGet(this, _props).node, {
+        direction: RawNode.createWithSql("desc")
+      })
+    });
+  }
+  /**
+   * Adds `asc` to the `order by` item.
+   *
+   * See {@link desc} for the opposite.
+   */
+  asc() {
+    return new _OrderByItemBuilder({
+      node: OrderByItemNode.cloneWith(__privateGet(this, _props).node, {
+        direction: RawNode.createWithSql("asc")
+      })
+    });
+  }
+  /**
+   * Adds `nulls last` to the `order by` item.
+   *
+   * This is only supported by some dialects like PostgreSQL and SQLite.
+   *
+   * See {@link nullsFirst} for the opposite.
+   */
+  nullsLast() {
+    return new _OrderByItemBuilder({
+      node: OrderByItemNode.cloneWith(__privateGet(this, _props).node, { nulls: "last" })
+    });
+  }
+  /**
+   * Adds `nulls first` to the `order by` item.
+   *
+   * This is only supported by some dialects like PostgreSQL and SQLite.
+   *
+   * See {@link nullsLast} for the opposite.
+   */
+  nullsFirst() {
+    return new _OrderByItemBuilder({
+      node: OrderByItemNode.cloneWith(__privateGet(this, _props).node, { nulls: "first" })
+    });
+  }
+  /**
+   * Adds `collate <collationName>` to the `order by` item.
+   */
+  collate(collation) {
+    return new _OrderByItemBuilder({
+      node: OrderByItemNode.cloneWith(__privateGet(this, _props).node, {
+        collation: CollateNode.create(collation)
+      })
+    });
+  }
+  toOperationNode() {
+    return __privateGet(this, _props).node;
+  }
+};
+_props = new WeakMap();
+let OrderByItemBuilder = _OrderByItemBuilder;
+const LOGGED_MESSAGES = /* @__PURE__ */ new Set();
+function logOnce(message) {
+  if (LOGGED_MESSAGES.has(message)) {
+    return;
+  }
+  LOGGED_MESSAGES.add(message);
+  console.log(message);
+}
 function isOrderByDirection(thing) {
   return thing === "asc" || thing === "desc";
 }
@@ -11817,21 +11911,22 @@ function parseOrderBy(args) {
   if (args.length === 1) {
     const [orderBy] = args;
     if (Array.isArray(orderBy)) {
+      logOnce("orderBy(array) is deprecated, use multiple orderBy calls instead.");
       return orderBy.map((item) => parseOrderByItem(item));
     }
     return [parseOrderByItem(orderBy)];
   }
   throw new Error(`Invalid number of arguments at order by! expected 1-2, received ${args.length}`);
 }
-function parseOrderByItem(ref, direction) {
-  const parsedRef = parseOrderByExpression(ref);
+function parseOrderByItem(expr, modifiers) {
+  const parsedRef = parseOrderByExpression(expr);
   if (OrderByItemNode.is(parsedRef)) {
-    if (direction) {
+    if (modifiers) {
       throw new Error("Cannot specify direction twice!");
     }
     return parsedRef;
   }
-  return OrderByItemNode.create(parsedRef, parseOrderByDirectionExpression(direction));
+  return parseOrderByWithModifiers(parsedRef, modifiers);
 }
 function parseOrderByExpression(expr) {
   if (isExpressionOrFactory(expr)) {
@@ -11842,21 +11937,27 @@ function parseOrderByExpression(expr) {
   }
   const [ref, direction] = expr.split(" ");
   if (direction) {
-    if (!isOrderByDirection(direction)) {
-      throw new Error(`Invalid order by direction: ${direction}`);
-    }
-    return OrderByItemNode.create(parseStringReference(ref), parseOrderByDirectionExpression(direction));
+    logOnce("`orderBy('column asc')` is deprecated. Use `orderBy('column', 'asc')` instead.");
+    return parseOrderByWithModifiers(parseStringReference(ref), direction);
   }
   return parseStringReference(expr);
 }
-function parseOrderByDirectionExpression(expr) {
-  if (!expr) {
-    return void 0;
+function parseOrderByWithModifiers(expr, modifiers) {
+  if (typeof modifiers === "string") {
+    if (!isOrderByDirection(modifiers)) {
+      throw new Error(`Invalid order by direction: ${modifiers}`);
+    }
+    return OrderByItemNode.create(expr, RawNode.createWithSql(modifiers));
   }
-  if (expr === "asc" || expr === "desc") {
-    return RawNode.createWithSql(expr);
+  if (isExpression(modifiers)) {
+    logOnce("`orderBy(..., expr)` is deprecated. Use `orderBy(..., 'asc')` or `orderBy(..., (ob) => ...)` instead.");
+    return OrderByItemNode.create(expr, modifiers.toOperationNode());
   }
-  return expr.toOperationNode();
+  const node = OrderByItemNode.create(expr);
+  if (!modifiers) {
+    return node;
+  }
+  return modifiers(new OrderByItemBuilder({ node })).toOperationNode();
 }
 const JSONReferenceNode = freeze({
   is(node) {
@@ -12228,359 +12329,6 @@ const HavingNode = freeze({
     });
   }
 });
-const SelectQueryNode = freeze({
-  is(node) {
-    return node.kind === "SelectQueryNode";
-  },
-  create(withNode) {
-    return freeze({
-      kind: "SelectQueryNode",
-      ...withNode && { with: withNode }
-    });
-  },
-  createFrom(fromItems, withNode) {
-    return freeze({
-      kind: "SelectQueryNode",
-      from: FromNode.create(fromItems),
-      ...withNode && { with: withNode }
-    });
-  },
-  cloneWithSelections(select, selections) {
-    return freeze({
-      ...select,
-      selections: select.selections ? freeze([...select.selections, ...selections]) : freeze(selections)
-    });
-  },
-  cloneWithDistinctOn(select, expressions) {
-    return freeze({
-      ...select,
-      distinctOn: select.distinctOn ? freeze([...select.distinctOn, ...expressions]) : freeze(expressions)
-    });
-  },
-  cloneWithFrontModifier(select, modifier) {
-    return freeze({
-      ...select,
-      frontModifiers: select.frontModifiers ? freeze([...select.frontModifiers, modifier]) : freeze([modifier])
-    });
-  },
-  cloneWithOrderByItems(selectNode, items) {
-    return freeze({
-      ...selectNode,
-      orderBy: selectNode.orderBy ? OrderByNode.cloneWithItems(selectNode.orderBy, items) : OrderByNode.create(items)
-    });
-  },
-  cloneWithGroupByItems(selectNode, items) {
-    return freeze({
-      ...selectNode,
-      groupBy: selectNode.groupBy ? GroupByNode.cloneWithItems(selectNode.groupBy, items) : GroupByNode.create(items)
-    });
-  },
-  cloneWithLimit(selectNode, limit) {
-    return freeze({
-      ...selectNode,
-      limit
-    });
-  },
-  cloneWithOffset(selectNode, offset) {
-    return freeze({
-      ...selectNode,
-      offset
-    });
-  },
-  cloneWithFetch(selectNode, fetch2) {
-    return freeze({
-      ...selectNode,
-      fetch: fetch2
-    });
-  },
-  cloneWithHaving(selectNode, operation) {
-    return freeze({
-      ...selectNode,
-      having: selectNode.having ? HavingNode.cloneWithOperation(selectNode.having, "And", operation) : HavingNode.create(operation)
-    });
-  },
-  cloneWithSetOperations(selectNode, setOperations) {
-    return freeze({
-      ...selectNode,
-      setOperations: selectNode.setOperations ? freeze([...selectNode.setOperations, ...setOperations]) : freeze([...setOperations])
-    });
-  },
-  cloneWithoutSelections(select) {
-    return freeze({
-      ...select,
-      selections: []
-    });
-  },
-  cloneWithoutLimit(select) {
-    return freeze({
-      ...select,
-      limit: void 0
-    });
-  },
-  cloneWithoutOffset(select) {
-    return freeze({
-      ...select,
-      offset: void 0
-    });
-  },
-  cloneWithoutOrderBy(select) {
-    return freeze({
-      ...select,
-      orderBy: void 0
-    });
-  },
-  cloneWithoutGroupBy(select) {
-    return freeze({
-      ...select,
-      groupBy: void 0
-    });
-  }
-});
-function preventAwait(clazz, message) {
-  Object.defineProperties(clazz.prototype, {
-    then: {
-      enumerable: false,
-      value: () => {
-        throw new Error(message);
-      }
-    }
-  });
-}
-const _JoinBuilder = class _JoinBuilder {
-  constructor(props) {
-    __privateAdd(this, _props);
-    __privateSet(this, _props, freeze(props));
-  }
-  on(...args) {
-    return new _JoinBuilder({
-      ...__privateGet(this, _props),
-      joinNode: JoinNode.cloneWithOn(__privateGet(this, _props).joinNode, parseValueBinaryOperationOrExpression(args))
-    });
-  }
-  /**
-   * Just like {@link WhereInterface.whereRef} but adds an item to the join's
-   * `on` clause instead.
-   *
-   * See {@link WhereInterface.whereRef} for documentation and examples.
-   */
-  onRef(lhs, op, rhs) {
-    return new _JoinBuilder({
-      ...__privateGet(this, _props),
-      joinNode: JoinNode.cloneWithOn(__privateGet(this, _props).joinNode, parseReferentialBinaryOperation(lhs, op, rhs))
-    });
-  }
-  /**
-   * Adds `on true`.
-   */
-  onTrue() {
-    return new _JoinBuilder({
-      ...__privateGet(this, _props),
-      joinNode: JoinNode.cloneWithOn(__privateGet(this, _props).joinNode, RawNode.createWithSql("true"))
-    });
-  }
-  /**
-   * Simply calls the provided function passing `this` as the only argument. `$call` returns
-   * what the provided function returns.
-   */
-  $call(func) {
-    return func(this);
-  }
-  toOperationNode() {
-    return __privateGet(this, _props).joinNode;
-  }
-};
-_props = new WeakMap();
-let JoinBuilder = _JoinBuilder;
-preventAwait(JoinBuilder, "don't await JoinBuilder instances. They are never executed directly and are always just a part of a query.");
-const PartitionByItemNode = freeze({
-  is(node) {
-    return node.kind === "PartitionByItemNode";
-  },
-  create(partitionBy) {
-    return freeze({
-      kind: "PartitionByItemNode",
-      partitionBy
-    });
-  }
-});
-function parsePartitionBy(partitionBy) {
-  return parseReferenceExpressionOrList(partitionBy).map(PartitionByItemNode.create);
-}
-const _OverBuilder = class _OverBuilder {
-  constructor(props) {
-    __privateAdd(this, _props2);
-    __privateSet(this, _props2, freeze(props));
-  }
-  /**
-   * Adds an order by clause item inside the over function.
-   *
-   * ```ts
-   * const result = await db
-   *   .selectFrom('person')
-   *   .select(
-   *     (eb) => eb.fn.avg<number>('age').over(
-   *       ob => ob.orderBy('first_name', 'asc').orderBy('last_name', 'asc')
-   *     ).as('average_age')
-   *   )
-   *   .execute()
-   * ```
-   *
-   * The generated SQL (PostgreSQL):
-   *
-   * ```sql
-   * select avg("age") over(order by "first_name" asc, "last_name" asc) as "average_age"
-   * from "person"
-   * ```
-   */
-  orderBy(orderBy, direction) {
-    return new _OverBuilder({
-      overNode: OverNode.cloneWithOrderByItems(__privateGet(this, _props2).overNode, parseOrderBy([orderBy, direction]))
-    });
-  }
-  partitionBy(partitionBy) {
-    return new _OverBuilder({
-      overNode: OverNode.cloneWithPartitionByItems(__privateGet(this, _props2).overNode, parsePartitionBy(partitionBy))
-    });
-  }
-  /**
-   * Simply calls the provided function passing `this` as the only argument. `$call` returns
-   * what the provided function returns.
-   */
-  $call(func) {
-    return func(this);
-  }
-  toOperationNode() {
-    return __privateGet(this, _props2).overNode;
-  }
-};
-_props2 = new WeakMap();
-let OverBuilder = _OverBuilder;
-preventAwait(OverBuilder, "don't await OverBuilder instances. They are never executed directly and are always just a part of a query.");
-const SelectionNode = freeze({
-  is(node) {
-    return node.kind === "SelectionNode";
-  },
-  create(selection) {
-    return freeze({
-      kind: "SelectionNode",
-      selection
-    });
-  },
-  createSelectAll() {
-    return freeze({
-      kind: "SelectionNode",
-      selection: SelectAllNode.create()
-    });
-  },
-  createSelectAllFromTable(table) {
-    return freeze({
-      kind: "SelectionNode",
-      selection: ReferenceNode.createSelectAll(table)
-    });
-  }
-});
-function parseSelectArg(selection) {
-  if (isFunction(selection)) {
-    return parseSelectArg(selection(expressionBuilder()));
-  } else if (isReadonlyArray(selection)) {
-    return selection.map((it) => parseSelectExpression(it));
-  } else {
-    return [parseSelectExpression(selection)];
-  }
-}
-function parseSelectExpression(selection) {
-  if (isString(selection)) {
-    return SelectionNode.create(parseAliasedStringReference(selection));
-  } else if (isDynamicReferenceBuilder(selection)) {
-    return SelectionNode.create(selection.toOperationNode());
-  } else {
-    return SelectionNode.create(parseAliasedExpression(selection));
-  }
-}
-function parseSelectAll(table) {
-  if (!table) {
-    return [SelectionNode.createSelectAll()];
-  } else if (Array.isArray(table)) {
-    return table.map(parseSelectAllArg);
-  } else {
-    return [parseSelectAllArg(table)];
-  }
-}
-function parseSelectAllArg(table) {
-  if (isString(table)) {
-    return SelectionNode.createSelectAllFromTable(parseTable$1(table));
-  }
-  throw new Error(`invalid value selectAll expression: ${JSON.stringify(table)}`);
-}
-const ValuesNode = freeze({
-  is(node) {
-    return node.kind === "ValuesNode";
-  },
-  create(values) {
-    return freeze({
-      kind: "ValuesNode",
-      values: freeze(values)
-    });
-  }
-});
-const DefaultInsertValueNode = freeze({
-  is(node) {
-    return node.kind === "DefaultInsertValueNode";
-  },
-  create() {
-    return freeze({
-      kind: "DefaultInsertValueNode"
-    });
-  }
-});
-function parseInsertExpression(arg) {
-  const objectOrList = isFunction(arg) ? arg(expressionBuilder()) : arg;
-  const list = isReadonlyArray(objectOrList) ? objectOrList : freeze([objectOrList]);
-  return parseInsertColumnsAndValues(list);
-}
-function parseInsertColumnsAndValues(rows) {
-  const columns = parseColumnNamesAndIndexes(rows);
-  return [
-    freeze([...columns.keys()].map(ColumnNode.create)),
-    ValuesNode.create(rows.map((row) => parseRowValues(row, columns)))
-  ];
-}
-function parseColumnNamesAndIndexes(rows) {
-  const columns = /* @__PURE__ */ new Map();
-  for (const row of rows) {
-    const cols = Object.keys(row);
-    for (const col of cols) {
-      if (!columns.has(col) && row[col] !== void 0) {
-        columns.set(col, columns.size);
-      }
-    }
-  }
-  return columns;
-}
-function parseRowValues(row, columns) {
-  const rowColumns = Object.keys(row);
-  const rowValues = Array.from({
-    length: columns.size
-  });
-  let hasUndefinedOrComplexColumns = false;
-  for (const col of rowColumns) {
-    const columnIdx = columns.get(col);
-    if (isUndefined(columnIdx)) {
-      continue;
-    }
-    const value = row[col];
-    if (isUndefined(value) || isExpressionOrFactory(value)) {
-      hasUndefinedOrComplexColumns = true;
-    }
-    rowValues[columnIdx] = value;
-  }
-  const hasMissingColumns = rowColumns.length < columns.size;
-  if (hasMissingColumns || hasUndefinedOrComplexColumns) {
-    const defaultValue = DefaultInsertValueNode.create();
-    return ValueListNode.create(rowValues.map((it) => isUndefined(it) ? defaultValue : parseValueExpression(it)));
-  }
-  return PrimitiveValueListNode.create(rowValues);
-}
 const InsertQueryNode = freeze({
   is(node) {
     return node.kind === "InsertQueryNode";
@@ -12605,14 +12353,27 @@ const InsertQueryNode = freeze({
     });
   }
 });
+const ListNode = freeze({
+  is(node) {
+    return node.kind === "ListNode";
+  },
+  create(items) {
+    return freeze({
+      kind: "ListNode",
+      items: freeze(items)
+    });
+  }
+});
 const UpdateQueryNode = freeze({
   is(node) {
     return node.kind === "UpdateQueryNode";
   },
-  create(table, withNode) {
+  create(tables2, withNode) {
     return freeze({
       kind: "UpdateQueryNode",
-      table,
+      // For backwards compatibility, use the raw table node when there's only one table
+      // and don't rename the property to something like `tables`.
+      table: tables2.length === 1 ? tables2[0] : ListNode.create(tables2),
       ...withNode && { with: withNode }
     });
   },
@@ -12668,18 +12429,16 @@ const DeleteQueryNode = freeze({
       ...withNode && { with: withNode }
     });
   },
-  cloneWithOrderByItems(deleteNode, items) {
-    return freeze({
-      ...deleteNode,
-      orderBy: deleteNode.orderBy ? OrderByNode.cloneWithItems(deleteNode.orderBy, items) : OrderByNode.create(items)
-    });
-  },
-  cloneWithoutOrderBy(deleteNode) {
-    return freeze({
-      ...deleteNode,
-      orderBy: void 0
-    });
-  },
+  // TODO: remove in v0.29
+  /**
+   * @deprecated Use `QueryNode.cloneWithoutOrderBy` instead.
+   */
+  cloneWithOrderByItems: (node, items) => QueryNode.cloneWithOrderByItems(node, items),
+  // TODO: remove in v0.29
+  /**
+   * @deprecated Use `QueryNode.cloneWithoutOrderBy` instead.
+   */
+  cloneWithoutOrderBy: (node) => QueryNode.cloneWithoutOrderBy(node),
   cloneWithLimit(deleteNode, limit) {
     return freeze({
       ...deleteNode,
@@ -12869,8 +12628,345 @@ const QueryNode = freeze({
       ...node,
       output: node.output ? OutputNode.cloneWithSelections(node.output, selections) : OutputNode.create(selections)
     });
+  },
+  cloneWithOrderByItems(node, items) {
+    return freeze({
+      ...node,
+      orderBy: node.orderBy ? OrderByNode.cloneWithItems(node.orderBy, items) : OrderByNode.create(items)
+    });
+  },
+  cloneWithoutOrderBy(node) {
+    return freeze({
+      ...node,
+      orderBy: void 0
+    });
   }
 });
+const SelectQueryNode = freeze({
+  is(node) {
+    return node.kind === "SelectQueryNode";
+  },
+  create(withNode) {
+    return freeze({
+      kind: "SelectQueryNode",
+      ...withNode && { with: withNode }
+    });
+  },
+  createFrom(fromItems, withNode) {
+    return freeze({
+      kind: "SelectQueryNode",
+      from: FromNode.create(fromItems),
+      ...withNode && { with: withNode }
+    });
+  },
+  cloneWithSelections(select, selections) {
+    return freeze({
+      ...select,
+      selections: select.selections ? freeze([...select.selections, ...selections]) : freeze(selections)
+    });
+  },
+  cloneWithDistinctOn(select, expressions) {
+    return freeze({
+      ...select,
+      distinctOn: select.distinctOn ? freeze([...select.distinctOn, ...expressions]) : freeze(expressions)
+    });
+  },
+  cloneWithFrontModifier(select, modifier) {
+    return freeze({
+      ...select,
+      frontModifiers: select.frontModifiers ? freeze([...select.frontModifiers, modifier]) : freeze([modifier])
+    });
+  },
+  // TODO: remove in v0.29
+  /**
+   * @deprecated Use `QueryNode.cloneWithoutOrderBy` instead.
+   */
+  cloneWithOrderByItems: (node, items) => QueryNode.cloneWithOrderByItems(node, items),
+  cloneWithGroupByItems(selectNode, items) {
+    return freeze({
+      ...selectNode,
+      groupBy: selectNode.groupBy ? GroupByNode.cloneWithItems(selectNode.groupBy, items) : GroupByNode.create(items)
+    });
+  },
+  cloneWithLimit(selectNode, limit) {
+    return freeze({
+      ...selectNode,
+      limit
+    });
+  },
+  cloneWithOffset(selectNode, offset) {
+    return freeze({
+      ...selectNode,
+      offset
+    });
+  },
+  cloneWithFetch(selectNode, fetch2) {
+    return freeze({
+      ...selectNode,
+      fetch: fetch2
+    });
+  },
+  cloneWithHaving(selectNode, operation) {
+    return freeze({
+      ...selectNode,
+      having: selectNode.having ? HavingNode.cloneWithOperation(selectNode.having, "And", operation) : HavingNode.create(operation)
+    });
+  },
+  cloneWithSetOperations(selectNode, setOperations) {
+    return freeze({
+      ...selectNode,
+      setOperations: selectNode.setOperations ? freeze([...selectNode.setOperations, ...setOperations]) : freeze([...setOperations])
+    });
+  },
+  cloneWithoutSelections(select) {
+    return freeze({
+      ...select,
+      selections: []
+    });
+  },
+  cloneWithoutLimit(select) {
+    return freeze({
+      ...select,
+      limit: void 0
+    });
+  },
+  cloneWithoutOffset(select) {
+    return freeze({
+      ...select,
+      offset: void 0
+    });
+  },
+  // TODO: remove in v0.29
+  /**
+   * @deprecated Use `QueryNode.cloneWithoutOrderBy` instead.
+   */
+  cloneWithoutOrderBy: (node) => QueryNode.cloneWithoutOrderBy(node),
+  cloneWithoutGroupBy(select) {
+    return freeze({
+      ...select,
+      groupBy: void 0
+    });
+  }
+});
+const _JoinBuilder = class _JoinBuilder {
+  constructor(props) {
+    __privateAdd(this, _props2);
+    __privateSet(this, _props2, freeze(props));
+  }
+  on(...args) {
+    return new _JoinBuilder({
+      ...__privateGet(this, _props2),
+      joinNode: JoinNode.cloneWithOn(__privateGet(this, _props2).joinNode, parseValueBinaryOperationOrExpression(args))
+    });
+  }
+  /**
+   * Just like {@link WhereInterface.whereRef} but adds an item to the join's
+   * `on` clause instead.
+   *
+   * See {@link WhereInterface.whereRef} for documentation and examples.
+   */
+  onRef(lhs, op, rhs) {
+    return new _JoinBuilder({
+      ...__privateGet(this, _props2),
+      joinNode: JoinNode.cloneWithOn(__privateGet(this, _props2).joinNode, parseReferentialBinaryOperation(lhs, op, rhs))
+    });
+  }
+  /**
+   * Adds `on true`.
+   */
+  onTrue() {
+    return new _JoinBuilder({
+      ...__privateGet(this, _props2),
+      joinNode: JoinNode.cloneWithOn(__privateGet(this, _props2).joinNode, RawNode.createWithSql("true"))
+    });
+  }
+  /**
+   * Simply calls the provided function passing `this` as the only argument. `$call` returns
+   * what the provided function returns.
+   */
+  $call(func) {
+    return func(this);
+  }
+  toOperationNode() {
+    return __privateGet(this, _props2).joinNode;
+  }
+};
+_props2 = new WeakMap();
+let JoinBuilder = _JoinBuilder;
+const PartitionByItemNode = freeze({
+  is(node) {
+    return node.kind === "PartitionByItemNode";
+  },
+  create(partitionBy) {
+    return freeze({
+      kind: "PartitionByItemNode",
+      partitionBy
+    });
+  }
+});
+function parsePartitionBy(partitionBy) {
+  return parseReferenceExpressionOrList(partitionBy).map(PartitionByItemNode.create);
+}
+const _OverBuilder = class _OverBuilder {
+  constructor(props) {
+    __privateAdd(this, _props3);
+    __privateSet(this, _props3, freeze(props));
+  }
+  orderBy(...args) {
+    return new _OverBuilder({
+      overNode: OverNode.cloneWithOrderByItems(__privateGet(this, _props3).overNode, parseOrderBy(args))
+    });
+  }
+  clearOrderBy() {
+    return new _OverBuilder({
+      overNode: QueryNode.cloneWithoutOrderBy(__privateGet(this, _props3).overNode)
+    });
+  }
+  partitionBy(partitionBy) {
+    return new _OverBuilder({
+      overNode: OverNode.cloneWithPartitionByItems(__privateGet(this, _props3).overNode, parsePartitionBy(partitionBy))
+    });
+  }
+  /**
+   * Simply calls the provided function passing `this` as the only argument. `$call` returns
+   * what the provided function returns.
+   */
+  $call(func) {
+    return func(this);
+  }
+  toOperationNode() {
+    return __privateGet(this, _props3).overNode;
+  }
+};
+_props3 = new WeakMap();
+let OverBuilder = _OverBuilder;
+const SelectionNode = freeze({
+  is(node) {
+    return node.kind === "SelectionNode";
+  },
+  create(selection) {
+    return freeze({
+      kind: "SelectionNode",
+      selection
+    });
+  },
+  createSelectAll() {
+    return freeze({
+      kind: "SelectionNode",
+      selection: SelectAllNode.create()
+    });
+  },
+  createSelectAllFromTable(table) {
+    return freeze({
+      kind: "SelectionNode",
+      selection: ReferenceNode.createSelectAll(table)
+    });
+  }
+});
+function parseSelectArg(selection) {
+  if (isFunction(selection)) {
+    return parseSelectArg(selection(expressionBuilder()));
+  } else if (isReadonlyArray(selection)) {
+    return selection.map((it) => parseSelectExpression(it));
+  } else {
+    return [parseSelectExpression(selection)];
+  }
+}
+function parseSelectExpression(selection) {
+  if (isString(selection)) {
+    return SelectionNode.create(parseAliasedStringReference(selection));
+  } else if (isDynamicReferenceBuilder(selection)) {
+    return SelectionNode.create(selection.toOperationNode());
+  } else {
+    return SelectionNode.create(parseAliasedExpression(selection));
+  }
+}
+function parseSelectAll(table) {
+  if (!table) {
+    return [SelectionNode.createSelectAll()];
+  } else if (Array.isArray(table)) {
+    return table.map(parseSelectAllArg);
+  } else {
+    return [parseSelectAllArg(table)];
+  }
+}
+function parseSelectAllArg(table) {
+  if (isString(table)) {
+    return SelectionNode.createSelectAllFromTable(parseTable$1(table));
+  }
+  throw new Error(`invalid value selectAll expression: ${JSON.stringify(table)}`);
+}
+const ValuesNode = freeze({
+  is(node) {
+    return node.kind === "ValuesNode";
+  },
+  create(values) {
+    return freeze({
+      kind: "ValuesNode",
+      values: freeze(values)
+    });
+  }
+});
+const DefaultInsertValueNode = freeze({
+  is(node) {
+    return node.kind === "DefaultInsertValueNode";
+  },
+  create() {
+    return freeze({
+      kind: "DefaultInsertValueNode"
+    });
+  }
+});
+function parseInsertExpression(arg) {
+  const objectOrList = isFunction(arg) ? arg(expressionBuilder()) : arg;
+  const list = isReadonlyArray(objectOrList) ? objectOrList : freeze([objectOrList]);
+  return parseInsertColumnsAndValues(list);
+}
+function parseInsertColumnsAndValues(rows) {
+  const columns = parseColumnNamesAndIndexes(rows);
+  return [
+    freeze([...columns.keys()].map(ColumnNode.create)),
+    ValuesNode.create(rows.map((row) => parseRowValues(row, columns)))
+  ];
+}
+function parseColumnNamesAndIndexes(rows) {
+  const columns = /* @__PURE__ */ new Map();
+  for (const row of rows) {
+    const cols = Object.keys(row);
+    for (const col of cols) {
+      if (!columns.has(col) && row[col] !== void 0) {
+        columns.set(col, columns.size);
+      }
+    }
+  }
+  return columns;
+}
+function parseRowValues(row, columns) {
+  const rowColumns = Object.keys(row);
+  const rowValues = Array.from({
+    length: columns.size
+  });
+  let hasUndefinedOrComplexColumns = false;
+  let indexedRowColumns = rowColumns.length;
+  for (const col of rowColumns) {
+    const columnIdx = columns.get(col);
+    if (isUndefined(columnIdx)) {
+      indexedRowColumns--;
+      continue;
+    }
+    const value = row[col];
+    if (isUndefined(value) || isExpressionOrFactory(value)) {
+      hasUndefinedOrComplexColumns = true;
+    }
+    rowValues[columnIdx] = value;
+  }
+  const hasMissingColumns = indexedRowColumns < columns.size;
+  if (hasMissingColumns || hasUndefinedOrComplexColumns) {
+    const defaultValue = DefaultInsertValueNode.create();
+    return ValueListNode.create(rowValues.map((it) => isUndefined(it) ? defaultValue : parseValueExpression(it)));
+  }
+  return PrimitiveValueListNode.create(rowValues);
+}
 const ColumnUpdateNode = freeze({
   is(node) {
     return node.kind === "ColumnUpdateNode";
@@ -12996,8 +13092,8 @@ const OnConflictNode = freeze({
 });
 const _OnConflictBuilder = class _OnConflictBuilder {
   constructor(props) {
-    __privateAdd(this, _props3);
-    __privateSet(this, _props3, freeze(props));
+    __privateAdd(this, _props4);
+    __privateSet(this, _props4, freeze(props));
   }
   /**
    * Specify a single column as the conflict target.
@@ -13008,9 +13104,9 @@ const _OnConflictBuilder = class _OnConflictBuilder {
   column(column2) {
     const columnNode = ColumnNode.create(column2);
     return new _OnConflictBuilder({
-      ...__privateGet(this, _props3),
-      onConflictNode: OnConflictNode.cloneWith(__privateGet(this, _props3).onConflictNode, {
-        columns: __privateGet(this, _props3).onConflictNode.columns ? freeze([...__privateGet(this, _props3).onConflictNode.columns, columnNode]) : freeze([columnNode])
+      ...__privateGet(this, _props4),
+      onConflictNode: OnConflictNode.cloneWith(__privateGet(this, _props4).onConflictNode, {
+        columns: __privateGet(this, _props4).onConflictNode.columns ? freeze([...__privateGet(this, _props4).onConflictNode.columns, columnNode]) : freeze([columnNode])
       })
     });
   }
@@ -13023,9 +13119,9 @@ const _OnConflictBuilder = class _OnConflictBuilder {
   columns(columns) {
     const columnNodes = columns.map(ColumnNode.create);
     return new _OnConflictBuilder({
-      ...__privateGet(this, _props3),
-      onConflictNode: OnConflictNode.cloneWith(__privateGet(this, _props3).onConflictNode, {
-        columns: __privateGet(this, _props3).onConflictNode.columns ? freeze([...__privateGet(this, _props3).onConflictNode.columns, ...columnNodes]) : freeze(columnNodes)
+      ...__privateGet(this, _props4),
+      onConflictNode: OnConflictNode.cloneWith(__privateGet(this, _props4).onConflictNode, {
+        columns: __privateGet(this, _props4).onConflictNode.columns ? freeze([...__privateGet(this, _props4).onConflictNode.columns, ...columnNodes]) : freeze(columnNodes)
       })
     });
   }
@@ -13037,8 +13133,8 @@ const _OnConflictBuilder = class _OnConflictBuilder {
    */
   constraint(constraintName) {
     return new _OnConflictBuilder({
-      ...__privateGet(this, _props3),
-      onConflictNode: OnConflictNode.cloneWith(__privateGet(this, _props3).onConflictNode, {
+      ...__privateGet(this, _props4),
+      onConflictNode: OnConflictNode.cloneWith(__privateGet(this, _props4).onConflictNode, {
         constraint: IdentifierNode.create(constraintName)
       })
     });
@@ -13053,28 +13149,28 @@ const _OnConflictBuilder = class _OnConflictBuilder {
    */
   expression(expression) {
     return new _OnConflictBuilder({
-      ...__privateGet(this, _props3),
-      onConflictNode: OnConflictNode.cloneWith(__privateGet(this, _props3).onConflictNode, {
+      ...__privateGet(this, _props4),
+      onConflictNode: OnConflictNode.cloneWith(__privateGet(this, _props4).onConflictNode, {
         indexExpression: expression.toOperationNode()
       })
     });
   }
   where(...args) {
     return new _OnConflictBuilder({
-      ...__privateGet(this, _props3),
-      onConflictNode: OnConflictNode.cloneWithIndexWhere(__privateGet(this, _props3).onConflictNode, parseValueBinaryOperationOrExpression(args))
+      ...__privateGet(this, _props4),
+      onConflictNode: OnConflictNode.cloneWithIndexWhere(__privateGet(this, _props4).onConflictNode, parseValueBinaryOperationOrExpression(args))
     });
   }
   whereRef(lhs, op, rhs) {
     return new _OnConflictBuilder({
-      ...__privateGet(this, _props3),
-      onConflictNode: OnConflictNode.cloneWithIndexWhere(__privateGet(this, _props3).onConflictNode, parseReferentialBinaryOperation(lhs, op, rhs))
+      ...__privateGet(this, _props4),
+      onConflictNode: OnConflictNode.cloneWithIndexWhere(__privateGet(this, _props4).onConflictNode, parseReferentialBinaryOperation(lhs, op, rhs))
     });
   }
   clearWhere() {
     return new _OnConflictBuilder({
-      ...__privateGet(this, _props3),
-      onConflictNode: OnConflictNode.cloneWithoutIndexWhere(__privateGet(this, _props3).onConflictNode)
+      ...__privateGet(this, _props4),
+      onConflictNode: OnConflictNode.cloneWithoutIndexWhere(__privateGet(this, _props4).onConflictNode)
     });
   }
   /**
@@ -13106,8 +13202,8 @@ const _OnConflictBuilder = class _OnConflictBuilder {
    */
   doNothing() {
     return new OnConflictDoNothingBuilder({
-      ...__privateGet(this, _props3),
-      onConflictNode: OnConflictNode.cloneWith(__privateGet(this, _props3).onConflictNode, {
+      ...__privateGet(this, _props4),
+      onConflictNode: OnConflictNode.cloneWith(__privateGet(this, _props4).onConflictNode, {
         doNothing: true
       })
     });
@@ -13175,8 +13271,8 @@ const _OnConflictBuilder = class _OnConflictBuilder {
    */
   doUpdateSet(update) {
     return new OnConflictUpdateBuilder({
-      ...__privateGet(this, _props3),
-      onConflictNode: OnConflictNode.cloneWith(__privateGet(this, _props3).onConflictNode, {
+      ...__privateGet(this, _props4),
+      onConflictNode: OnConflictNode.cloneWith(__privateGet(this, _props4).onConflictNode, {
         updates: parseUpdateObjectExpression(update)
       })
     });
@@ -13189,29 +13285,27 @@ const _OnConflictBuilder = class _OnConflictBuilder {
     return func(this);
   }
 };
-_props3 = new WeakMap();
-let OnConflictBuilder = _OnConflictBuilder;
-preventAwait(OnConflictBuilder, "don't await OnConflictBuilder instances.");
-class OnConflictDoNothingBuilder {
-  constructor(props) {
-    __privateAdd(this, _props4);
-    __privateSet(this, _props4, freeze(props));
-  }
-  toOperationNode() {
-    return __privateGet(this, _props4).onConflictNode;
-  }
-}
 _props4 = new WeakMap();
-preventAwait(OnConflictDoNothingBuilder, "don't await OnConflictDoNothingBuilder instances.");
-const _OnConflictUpdateBuilder = class _OnConflictUpdateBuilder {
+let OnConflictBuilder = _OnConflictBuilder;
+class OnConflictDoNothingBuilder {
   constructor(props) {
     __privateAdd(this, _props5);
     __privateSet(this, _props5, freeze(props));
   }
+  toOperationNode() {
+    return __privateGet(this, _props5).onConflictNode;
+  }
+}
+_props5 = new WeakMap();
+const _OnConflictUpdateBuilder = class _OnConflictUpdateBuilder {
+  constructor(props) {
+    __privateAdd(this, _props6);
+    __privateSet(this, _props6, freeze(props));
+  }
   where(...args) {
     return new _OnConflictUpdateBuilder({
-      ...__privateGet(this, _props5),
-      onConflictNode: OnConflictNode.cloneWithUpdateWhere(__privateGet(this, _props5).onConflictNode, parseValueBinaryOperationOrExpression(args))
+      ...__privateGet(this, _props6),
+      onConflictNode: OnConflictNode.cloneWithUpdateWhere(__privateGet(this, _props6).onConflictNode, parseValueBinaryOperationOrExpression(args))
     });
   }
   /**
@@ -13221,14 +13315,14 @@ const _OnConflictUpdateBuilder = class _OnConflictUpdateBuilder {
    */
   whereRef(lhs, op, rhs) {
     return new _OnConflictUpdateBuilder({
-      ...__privateGet(this, _props5),
-      onConflictNode: OnConflictNode.cloneWithUpdateWhere(__privateGet(this, _props5).onConflictNode, parseReferentialBinaryOperation(lhs, op, rhs))
+      ...__privateGet(this, _props6),
+      onConflictNode: OnConflictNode.cloneWithUpdateWhere(__privateGet(this, _props6).onConflictNode, parseReferentialBinaryOperation(lhs, op, rhs))
     });
   }
   clearWhere() {
     return new _OnConflictUpdateBuilder({
-      ...__privateGet(this, _props5),
-      onConflictNode: OnConflictNode.cloneWithoutUpdateWhere(__privateGet(this, _props5).onConflictNode)
+      ...__privateGet(this, _props6),
+      onConflictNode: OnConflictNode.cloneWithoutUpdateWhere(__privateGet(this, _props6).onConflictNode)
     });
   }
   /**
@@ -13239,12 +13333,11 @@ const _OnConflictUpdateBuilder = class _OnConflictUpdateBuilder {
     return func(this);
   }
   toOperationNode() {
-    return __privateGet(this, _props5).onConflictNode;
+    return __privateGet(this, _props6).onConflictNode;
   }
 };
-_props5 = new WeakMap();
+_props6 = new WeakMap();
 let OnConflictUpdateBuilder = _OnConflictUpdateBuilder;
-preventAwait(OnConflictUpdateBuilder, "don't await OnConflictUpdateBuilder instances.");
 const TopNode = freeze({
   is(node) {
     return node.kind === "TopNode";
@@ -13269,10 +13362,21 @@ function parseTop(expression, modifiers) {
 function isTopModifiers(modifiers) {
   return modifiers === "percent" || modifiers === "with ties" || modifiers === "percent with ties";
 }
+const OrActionNode = freeze({
+  is(node) {
+    return node.kind === "OrActionNode";
+  },
+  create(action) {
+    return freeze({
+      kind: "OrActionNode",
+      action
+    });
+  }
+});
 const _InsertQueryBuilder = class _InsertQueryBuilder {
   constructor(props) {
-    __privateAdd(this, _props6);
-    __privateSet(this, _props6, freeze(props));
+    __privateAdd(this, _props7);
+    __privateSet(this, _props7, freeze(props));
   }
   /**
    * Sets the values to insert for an {@link Kysely.insertInto | insert} query.
@@ -13454,8 +13558,8 @@ const _InsertQueryBuilder = class _InsertQueryBuilder {
   values(insert) {
     const [columns, values] = parseInsertExpression(insert);
     return new _InsertQueryBuilder({
-      ...__privateGet(this, _props6),
-      queryNode: InsertQueryNode.cloneWith(__privateGet(this, _props6).queryNode, {
+      ...__privateGet(this, _props7),
+      queryNode: InsertQueryNode.cloneWith(__privateGet(this, _props7).queryNode, {
         columns,
         values
       })
@@ -13486,8 +13590,8 @@ const _InsertQueryBuilder = class _InsertQueryBuilder {
    */
   columns(columns) {
     return new _InsertQueryBuilder({
-      ...__privateGet(this, _props6),
-      queryNode: InsertQueryNode.cloneWith(__privateGet(this, _props6).queryNode, {
+      ...__privateGet(this, _props7),
+      queryNode: InsertQueryNode.cloneWith(__privateGet(this, _props7).queryNode, {
         columns: freeze(columns.map(ColumnNode.create))
       })
     });
@@ -13526,8 +13630,8 @@ const _InsertQueryBuilder = class _InsertQueryBuilder {
    */
   expression(expression) {
     return new _InsertQueryBuilder({
-      ...__privateGet(this, _props6),
-      queryNode: InsertQueryNode.cloneWith(__privateGet(this, _props6).queryNode, {
+      ...__privateGet(this, _props7),
+      queryNode: InsertQueryNode.cloneWith(__privateGet(this, _props7).queryNode, {
         values: parseExpression(expression)
       })
     });
@@ -13551,8 +13655,8 @@ const _InsertQueryBuilder = class _InsertQueryBuilder {
    */
   defaultValues() {
     return new _InsertQueryBuilder({
-      ...__privateGet(this, _props6),
-      queryNode: InsertQueryNode.cloneWith(__privateGet(this, _props6).queryNode, {
+      ...__privateGet(this, _props7),
+      queryNode: InsertQueryNode.cloneWith(__privateGet(this, _props7).queryNode, {
         defaultValues: true
       })
     });
@@ -13584,21 +13688,24 @@ const _InsertQueryBuilder = class _InsertQueryBuilder {
    */
   modifyEnd(modifier) {
     return new _InsertQueryBuilder({
-      ...__privateGet(this, _props6),
-      queryNode: QueryNode.cloneWithEndModifier(__privateGet(this, _props6).queryNode, modifier.toOperationNode())
+      ...__privateGet(this, _props7),
+      queryNode: QueryNode.cloneWithEndModifier(__privateGet(this, _props7).queryNode, modifier.toOperationNode())
     });
   }
   /**
    * Changes an `insert into` query to an `insert ignore into` query.
+   *
+   * This is only supported by some dialects like MySQL.
+   *
+   * To avoid a footgun, when invoked with the SQLite dialect, this method will
+   * be handled like {@link orIgnore}. See also, {@link orAbort}, {@link orFail},
+   * {@link orReplace}, and {@link orRollback}.
    *
    * If you use the ignore modifier, ignorable errors that occur while executing the
    * insert statement are ignored. For example, without ignore, a row that duplicates
    * an existing unique index or primary key value in the table causes a duplicate-key
    * error and the statement is aborted. With ignore, the row is discarded and no error
    * occurs.
-   *
-   * This is only supported on some dialects like MySQL. On most dialects you should
-   * use the {@link onConflict} method.
    *
    * ### Examples
    *
@@ -13616,14 +13723,201 @@ const _InsertQueryBuilder = class _InsertQueryBuilder {
    * The generated SQL (MySQL):
    *
    * ```sql
-   * insert ignore into `person` ("first_name", "last_name", "gender") values (?, ?, ?)
+   * insert ignore into `person` (`first_name`, `last_name`, `gender`) values (?, ?, ?)
+   * ```
+   *
+   * The generated SQL (SQLite):
+   *
+   * ```sql
+   * insert or ignore into "person" ("first_name", "last_name", "gender") values (?, ?, ?)
    * ```
    */
   ignore() {
     return new _InsertQueryBuilder({
-      ...__privateGet(this, _props6),
-      queryNode: InsertQueryNode.cloneWith(__privateGet(this, _props6).queryNode, {
-        ignore: true
+      ...__privateGet(this, _props7),
+      queryNode: InsertQueryNode.cloneWith(__privateGet(this, _props7).queryNode, {
+        orAction: OrActionNode.create("ignore")
+      })
+    });
+  }
+  /**
+   * Changes an `insert into` query to an `insert or ignore into` query.
+   *
+   * This is only supported by some dialects like SQLite.
+   *
+   * To avoid a footgun, when invoked with the MySQL dialect, this method will
+   * be handled like {@link ignore}.
+   *
+   * See also, {@link orAbort}, {@link orFail}, {@link orReplace}, and {@link orRollback}.
+   *
+   * ### Examples
+   *
+   * ```ts
+   * await db.insertInto('person')
+   *   .orIgnore()
+   *   .values({
+   *     first_name: 'John',
+   *     last_name: 'Doe',
+   *     gender: 'female',
+   *   })
+   *   .execute()
+   * ```
+   *
+   * The generated SQL (SQLite):
+   *
+   * ```sql
+   * insert or ignore into "person" ("first_name", "last_name", "gender") values (?, ?, ?)
+   * ```
+   *
+   * The generated SQL (MySQL):
+   *
+   * ```sql
+   * insert ignore into `person` (`first_name`, `last_name`, `gender`) values (?, ?, ?)
+   * ```
+   */
+  orIgnore() {
+    return new _InsertQueryBuilder({
+      ...__privateGet(this, _props7),
+      queryNode: InsertQueryNode.cloneWith(__privateGet(this, _props7).queryNode, {
+        orAction: OrActionNode.create("ignore")
+      })
+    });
+  }
+  /**
+   * Changes an `insert into` query to an `insert or abort into` query.
+   *
+   * This is only supported by some dialects like SQLite.
+   *
+   * See also, {@link orIgnore}, {@link orFail}, {@link orReplace}, and {@link orRollback}.
+   *
+   * ### Examples
+   *
+   * ```ts
+   * await db.insertInto('person')
+   *   .orAbort()
+   *   .values({
+   *     first_name: 'John',
+   *     last_name: 'Doe',
+   *     gender: 'female',
+   *   })
+   *   .execute()
+   * ```
+   *
+   * The generated SQL (SQLite):
+   *
+   * ```sql
+   * insert or abort into "person" ("first_name", "last_name", "gender") values (?, ?, ?)
+   * ```
+   */
+  orAbort() {
+    return new _InsertQueryBuilder({
+      ...__privateGet(this, _props7),
+      queryNode: InsertQueryNode.cloneWith(__privateGet(this, _props7).queryNode, {
+        orAction: OrActionNode.create("abort")
+      })
+    });
+  }
+  /**
+   * Changes an `insert into` query to an `insert or fail into` query.
+   *
+   * This is only supported by some dialects like SQLite.
+   *
+   * See also, {@link orIgnore}, {@link orAbort}, {@link orReplace}, and {@link orRollback}.
+   *
+   * ### Examples
+   *
+   * ```ts
+   * await db.insertInto('person')
+   *   .orFail()
+   *   .values({
+   *     first_name: 'John',
+   *     last_name: 'Doe',
+   *     gender: 'female',
+   *   })
+   *   .execute()
+   * ```
+   *
+   * The generated SQL (SQLite):
+   *
+   * ```sql
+   * insert or fail into "person" ("first_name", "last_name", "gender") values (?, ?, ?)
+   * ```
+   */
+  orFail() {
+    return new _InsertQueryBuilder({
+      ...__privateGet(this, _props7),
+      queryNode: InsertQueryNode.cloneWith(__privateGet(this, _props7).queryNode, {
+        orAction: OrActionNode.create("fail")
+      })
+    });
+  }
+  /**
+   * Changes an `insert into` query to an `insert or replace into` query.
+   *
+   * This is only supported by some dialects like SQLite.
+   *
+   * You can also use {@link Kysely.replaceInto} to achieve the same result.
+   *
+   * See also, {@link orIgnore}, {@link orAbort}, {@link orFail}, and {@link orRollback}.
+   *
+   * ### Examples
+   *
+   * ```ts
+   * await db.insertInto('person')
+   *   .orReplace()
+   *   .values({
+   *     first_name: 'John',
+   *     last_name: 'Doe',
+   *     gender: 'female',
+   *   })
+   *   .execute()
+   * ```
+   *
+   * The generated SQL (SQLite):
+   *
+   * ```sql
+   * insert or replace into "person" ("first_name", "last_name", "gender") values (?, ?, ?)
+   * ```
+   */
+  orReplace() {
+    return new _InsertQueryBuilder({
+      ...__privateGet(this, _props7),
+      queryNode: InsertQueryNode.cloneWith(__privateGet(this, _props7).queryNode, {
+        orAction: OrActionNode.create("replace")
+      })
+    });
+  }
+  /**
+   * Changes an `insert into` query to an `insert or rollback into` query.
+   *
+   * This is only supported by some dialects like SQLite.
+   *
+   * See also, {@link orIgnore}, {@link orAbort}, {@link orFail}, and {@link orReplace}.
+   *
+   * ### Examples
+   *
+   * ```ts
+   * await db.insertInto('person')
+   *   .orRollback()
+   *   .values({
+   *     first_name: 'John',
+   *     last_name: 'Doe',
+   *     gender: 'female',
+   *   })
+   *   .execute()
+   * ```
+   *
+   * The generated SQL (SQLite):
+   *
+   * ```sql
+   * insert or rollback into "person" ("first_name", "last_name", "gender") values (?, ?, ?)
+   * ```
+   */
+  orRollback() {
+    return new _InsertQueryBuilder({
+      ...__privateGet(this, _props7),
+      queryNode: InsertQueryNode.cloneWith(__privateGet(this, _props7).queryNode, {
+        orAction: OrActionNode.create("rollback")
       })
     });
   }
@@ -13676,8 +13970,8 @@ const _InsertQueryBuilder = class _InsertQueryBuilder {
    */
   top(expression, modifiers) {
     return new _InsertQueryBuilder({
-      ...__privateGet(this, _props6),
-      queryNode: QueryNode.cloneWithTop(__privateGet(this, _props6).queryNode, parseTop(expression, modifiers))
+      ...__privateGet(this, _props7),
+      queryNode: QueryNode.cloneWithTop(__privateGet(this, _props7).queryNode, parseTop(expression, modifiers))
     });
   }
   /**
@@ -13855,8 +14149,8 @@ const _InsertQueryBuilder = class _InsertQueryBuilder {
    */
   onConflict(callback) {
     return new _InsertQueryBuilder({
-      ...__privateGet(this, _props6),
-      queryNode: InsertQueryNode.cloneWith(__privateGet(this, _props6).queryNode, {
+      ...__privateGet(this, _props7),
+      queryNode: InsertQueryNode.cloneWith(__privateGet(this, _props7).queryNode, {
         onConflict: callback(new OnConflictBuilder({
           onConflictNode: OnConflictNode.create()
         })).toOperationNode()
@@ -13897,34 +14191,34 @@ const _InsertQueryBuilder = class _InsertQueryBuilder {
    */
   onDuplicateKeyUpdate(update) {
     return new _InsertQueryBuilder({
-      ...__privateGet(this, _props6),
-      queryNode: InsertQueryNode.cloneWith(__privateGet(this, _props6).queryNode, {
+      ...__privateGet(this, _props7),
+      queryNode: InsertQueryNode.cloneWith(__privateGet(this, _props7).queryNode, {
         onDuplicateKey: OnDuplicateKeyNode.create(parseUpdateObjectExpression(update))
       })
     });
   }
   returning(selection) {
     return new _InsertQueryBuilder({
-      ...__privateGet(this, _props6),
-      queryNode: QueryNode.cloneWithReturning(__privateGet(this, _props6).queryNode, parseSelectArg(selection))
+      ...__privateGet(this, _props7),
+      queryNode: QueryNode.cloneWithReturning(__privateGet(this, _props7).queryNode, parseSelectArg(selection))
     });
   }
   returningAll() {
     return new _InsertQueryBuilder({
-      ...__privateGet(this, _props6),
-      queryNode: QueryNode.cloneWithReturning(__privateGet(this, _props6).queryNode, parseSelectAll())
+      ...__privateGet(this, _props7),
+      queryNode: QueryNode.cloneWithReturning(__privateGet(this, _props7).queryNode, parseSelectAll())
     });
   }
   output(args) {
     return new _InsertQueryBuilder({
-      ...__privateGet(this, _props6),
-      queryNode: QueryNode.cloneWithOutput(__privateGet(this, _props6).queryNode, parseSelectArg(args))
+      ...__privateGet(this, _props7),
+      queryNode: QueryNode.cloneWithOutput(__privateGet(this, _props7).queryNode, parseSelectArg(args))
     });
   }
   outputAll(table) {
     return new _InsertQueryBuilder({
-      ...__privateGet(this, _props6),
-      queryNode: QueryNode.cloneWithOutput(__privateGet(this, _props6).queryNode, parseSelectAll(table))
+      ...__privateGet(this, _props7),
+      queryNode: QueryNode.cloneWithOutput(__privateGet(this, _props7).queryNode, parseSelectAll(table))
     });
   }
   /**
@@ -13948,8 +14242,8 @@ const _InsertQueryBuilder = class _InsertQueryBuilder {
    */
   clearReturning() {
     return new _InsertQueryBuilder({
-      ...__privateGet(this, _props6),
-      queryNode: QueryNode.cloneWithoutReturning(__privateGet(this, _props6).queryNode)
+      ...__privateGet(this, _props7),
+      queryNode: QueryNode.cloneWithoutReturning(__privateGet(this, _props7).queryNode)
     });
   }
   /**
@@ -14022,7 +14316,7 @@ const _InsertQueryBuilder = class _InsertQueryBuilder {
       return func(this);
     }
     return new _InsertQueryBuilder({
-      ...__privateGet(this, _props6)
+      ...__privateGet(this, _props7)
     });
   }
   /**
@@ -14032,7 +14326,7 @@ const _InsertQueryBuilder = class _InsertQueryBuilder {
    * returns a copy of this `InsertQueryBuilder` with a new output type.
    */
   $castTo() {
-    return new _InsertQueryBuilder(__privateGet(this, _props6));
+    return new _InsertQueryBuilder(__privateGet(this, _props7));
   }
   /**
    * Narrows (parts of) the output type of the query.
@@ -14093,7 +14387,7 @@ const _InsertQueryBuilder = class _InsertQueryBuilder {
    * ```
    */
   $narrowType() {
-    return new _InsertQueryBuilder(__privateGet(this, _props6));
+    return new _InsertQueryBuilder(__privateGet(this, _props7));
   }
   /**
    * Asserts that query's output row type equals the given type `T`.
@@ -14144,22 +14438,22 @@ const _InsertQueryBuilder = class _InsertQueryBuilder {
    * ```
    */
   $assertType() {
-    return new _InsertQueryBuilder(__privateGet(this, _props6));
+    return new _InsertQueryBuilder(__privateGet(this, _props7));
   }
   /**
    * Returns a copy of this InsertQueryBuilder instance with the given plugin installed.
    */
   withPlugin(plugin) {
     return new _InsertQueryBuilder({
-      ...__privateGet(this, _props6),
-      executor: __privateGet(this, _props6).executor.withPlugin(plugin)
+      ...__privateGet(this, _props7),
+      executor: __privateGet(this, _props7).executor.withPlugin(plugin)
     });
   }
   toOperationNode() {
-    return __privateGet(this, _props6).executor.transformQuery(__privateGet(this, _props6).queryNode, __privateGet(this, _props6).queryId);
+    return __privateGet(this, _props7).executor.transformQuery(__privateGet(this, _props7).queryNode, __privateGet(this, _props7).queryId);
   }
   compile() {
-    return __privateGet(this, _props6).executor.compileQuery(this.toOperationNode(), __privateGet(this, _props6).queryId);
+    return __privateGet(this, _props7).executor.compileQuery(this.toOperationNode(), __privateGet(this, _props7).queryId);
   }
   /**
    * Executes the query and returns an array of rows.
@@ -14168,18 +14462,14 @@ const _InsertQueryBuilder = class _InsertQueryBuilder {
    */
   async execute() {
     const compiledQuery = this.compile();
-    const result = await __privateGet(this, _props6).executor.executeQuery(compiledQuery, __privateGet(this, _props6).queryId);
-    const { adapter } = __privateGet(this, _props6).executor;
+    const result = await __privateGet(this, _props7).executor.executeQuery(compiledQuery, __privateGet(this, _props7).queryId);
+    const { adapter } = __privateGet(this, _props7).executor;
     const query = compiledQuery.query;
     if (query.returning && adapter.supportsReturning || query.output && adapter.supportsOutput) {
       return result.rows;
     }
     return [
-      new InsertResult(
-        result.insertId,
-        // TODO: remove numUpdatedOrDeletedRows.
-        result.numAffectedRows ?? result.numUpdatedOrDeletedRows
-      )
+      new InsertResult(result.insertId, result.numAffectedRows ?? BigInt(0))
     ];
   }
   /**
@@ -14208,22 +14498,21 @@ const _InsertQueryBuilder = class _InsertQueryBuilder {
   }
   async *stream(chunkSize = 100) {
     const compiledQuery = this.compile();
-    const stream = __privateGet(this, _props6).executor.stream(compiledQuery, chunkSize, __privateGet(this, _props6).queryId);
+    const stream = __privateGet(this, _props7).executor.stream(compiledQuery, chunkSize, __privateGet(this, _props7).queryId);
     for await (const item of stream) {
       yield* item.rows;
     }
   }
   async explain(format, options) {
     const builder = new _InsertQueryBuilder({
-      ...__privateGet(this, _props6),
-      queryNode: QueryNode.cloneWithExplain(__privateGet(this, _props6).queryNode, format, options)
+      ...__privateGet(this, _props7),
+      queryNode: QueryNode.cloneWithExplain(__privateGet(this, _props7).queryNode, format, options)
     });
     return await builder.execute();
   }
 };
-_props6 = new WeakMap();
+_props7 = new WeakMap();
 let InsertQueryBuilder = _InsertQueryBuilder;
-preventAwait(InsertQueryBuilder, "don't await InsertQueryBuilder instances directly. To execute the query you need to call `execute` or `executeTakeFirst`.");
 class DeleteResult {
   constructor(numDeletedRows) {
     __publicField(this, "numDeletedRows");
@@ -14243,25 +14532,26 @@ const LimitNode = freeze({
 });
 const _DeleteQueryBuilder = class _DeleteQueryBuilder {
   constructor(props) {
-    __privateAdd(this, _props7);
-    __privateSet(this, _props7, freeze(props));
+    __privateAdd(this, _DeleteQueryBuilder_instances);
+    __privateAdd(this, _props8);
+    __privateSet(this, _props8, freeze(props));
   }
   where(...args) {
     return new _DeleteQueryBuilder({
-      ...__privateGet(this, _props7),
-      queryNode: QueryNode.cloneWithWhere(__privateGet(this, _props7).queryNode, parseValueBinaryOperationOrExpression(args))
+      ...__privateGet(this, _props8),
+      queryNode: QueryNode.cloneWithWhere(__privateGet(this, _props8).queryNode, parseValueBinaryOperationOrExpression(args))
     });
   }
   whereRef(lhs, op, rhs) {
     return new _DeleteQueryBuilder({
-      ...__privateGet(this, _props7),
-      queryNode: QueryNode.cloneWithWhere(__privateGet(this, _props7).queryNode, parseReferentialBinaryOperation(lhs, op, rhs))
+      ...__privateGet(this, _props8),
+      queryNode: QueryNode.cloneWithWhere(__privateGet(this, _props8).queryNode, parseReferentialBinaryOperation(lhs, op, rhs))
     });
   }
   clearWhere() {
     return new _DeleteQueryBuilder({
-      ...__privateGet(this, _props7),
-      queryNode: QueryNode.cloneWithoutWhere(__privateGet(this, _props7).queryNode)
+      ...__privateGet(this, _props8),
+      queryNode: QueryNode.cloneWithoutWhere(__privateGet(this, _props8).queryNode)
     });
   }
   /**
@@ -14305,62 +14595,50 @@ const _DeleteQueryBuilder = class _DeleteQueryBuilder {
    */
   top(expression, modifiers) {
     return new _DeleteQueryBuilder({
-      ...__privateGet(this, _props7),
-      queryNode: QueryNode.cloneWithTop(__privateGet(this, _props7).queryNode, parseTop(expression, modifiers))
+      ...__privateGet(this, _props8),
+      queryNode: QueryNode.cloneWithTop(__privateGet(this, _props8).queryNode, parseTop(expression, modifiers))
     });
   }
   using(tables2) {
     return new _DeleteQueryBuilder({
-      ...__privateGet(this, _props7),
-      queryNode: DeleteQueryNode.cloneWithUsing(__privateGet(this, _props7).queryNode, parseTableExpressionOrList(tables2))
+      ...__privateGet(this, _props8),
+      queryNode: DeleteQueryNode.cloneWithUsing(__privateGet(this, _props8).queryNode, parseTableExpressionOrList(tables2))
     });
   }
   innerJoin(...args) {
-    return new _DeleteQueryBuilder({
-      ...__privateGet(this, _props7),
-      queryNode: QueryNode.cloneWithJoin(__privateGet(this, _props7).queryNode, parseJoin("InnerJoin", args))
-    });
+    return __privateMethod(this, _DeleteQueryBuilder_instances, join_fn).call(this, "InnerJoin", args);
   }
   leftJoin(...args) {
-    return new _DeleteQueryBuilder({
-      ...__privateGet(this, _props7),
-      queryNode: QueryNode.cloneWithJoin(__privateGet(this, _props7).queryNode, parseJoin("LeftJoin", args))
-    });
+    return __privateMethod(this, _DeleteQueryBuilder_instances, join_fn).call(this, "LeftJoin", args);
   }
   rightJoin(...args) {
-    return new _DeleteQueryBuilder({
-      ...__privateGet(this, _props7),
-      queryNode: QueryNode.cloneWithJoin(__privateGet(this, _props7).queryNode, parseJoin("RightJoin", args))
-    });
+    return __privateMethod(this, _DeleteQueryBuilder_instances, join_fn).call(this, "RightJoin", args);
   }
   fullJoin(...args) {
-    return new _DeleteQueryBuilder({
-      ...__privateGet(this, _props7),
-      queryNode: QueryNode.cloneWithJoin(__privateGet(this, _props7).queryNode, parseJoin("FullJoin", args))
-    });
+    return __privateMethod(this, _DeleteQueryBuilder_instances, join_fn).call(this, "FullJoin", args);
   }
   returning(selection) {
     return new _DeleteQueryBuilder({
-      ...__privateGet(this, _props7),
-      queryNode: QueryNode.cloneWithReturning(__privateGet(this, _props7).queryNode, parseSelectArg(selection))
+      ...__privateGet(this, _props8),
+      queryNode: QueryNode.cloneWithReturning(__privateGet(this, _props8).queryNode, parseSelectArg(selection))
     });
   }
   returningAll(table) {
     return new _DeleteQueryBuilder({
-      ...__privateGet(this, _props7),
-      queryNode: QueryNode.cloneWithReturning(__privateGet(this, _props7).queryNode, parseSelectAll(table))
+      ...__privateGet(this, _props8),
+      queryNode: QueryNode.cloneWithReturning(__privateGet(this, _props8).queryNode, parseSelectAll(table))
     });
   }
   output(args) {
     return new _DeleteQueryBuilder({
-      ...__privateGet(this, _props7),
-      queryNode: QueryNode.cloneWithOutput(__privateGet(this, _props7).queryNode, parseSelectArg(args))
+      ...__privateGet(this, _props8),
+      queryNode: QueryNode.cloneWithOutput(__privateGet(this, _props8).queryNode, parseSelectArg(args))
     });
   }
   outputAll(table) {
     return new _DeleteQueryBuilder({
-      ...__privateGet(this, _props7),
-      queryNode: QueryNode.cloneWithOutput(__privateGet(this, _props7).queryNode, parseSelectAll(table))
+      ...__privateGet(this, _props8),
+      queryNode: QueryNode.cloneWithOutput(__privateGet(this, _props8).queryNode, parseSelectAll(table))
     });
   }
   /**
@@ -14384,8 +14662,8 @@ const _DeleteQueryBuilder = class _DeleteQueryBuilder {
    */
   clearReturning() {
     return new _DeleteQueryBuilder({
-      ...__privateGet(this, _props7),
-      queryNode: QueryNode.cloneWithoutReturning(__privateGet(this, _props7).queryNode)
+      ...__privateGet(this, _props8),
+      queryNode: QueryNode.cloneWithoutReturning(__privateGet(this, _props8).queryNode)
     });
   }
   /**
@@ -14410,74 +14688,20 @@ const _DeleteQueryBuilder = class _DeleteQueryBuilder {
    */
   clearLimit() {
     return new _DeleteQueryBuilder({
-      ...__privateGet(this, _props7),
-      queryNode: DeleteQueryNode.cloneWithoutLimit(__privateGet(this, _props7).queryNode)
+      ...__privateGet(this, _props8),
+      queryNode: DeleteQueryNode.cloneWithoutLimit(__privateGet(this, _props8).queryNode)
     });
   }
-  /**
-   * Clears the `order by` clause from the query.
-   *
-   * ### Examples
-   *
-   * ```ts
-   * await db.deleteFrom('pet')
-   *   .returningAll()
-   *   .where('name', '=', 'Max')
-   *   .orderBy('id')
-   *   .clearOrderBy()
-   *   .execute()
-   * ```
-   *
-   * The generated SQL(PostgreSQL):
-   *
-   * ```sql
-   * delete from "pet" where "name" = "Max" returning *
-   * ```
-   */
+  orderBy(...args) {
+    return new _DeleteQueryBuilder({
+      ...__privateGet(this, _props8),
+      queryNode: QueryNode.cloneWithOrderByItems(__privateGet(this, _props8).queryNode, parseOrderBy(args))
+    });
+  }
   clearOrderBy() {
     return new _DeleteQueryBuilder({
-      ...__privateGet(this, _props7),
-      queryNode: DeleteQueryNode.cloneWithoutOrderBy(__privateGet(this, _props7).queryNode)
-    });
-  }
-  /**
-   * Adds an `order by` clause to the query.
-   *
-   * `orderBy` calls are additive. To order by multiple columns, call `orderBy`
-   * multiple times.
-   *
-   * The first argument is the expression to order by and the second is the
-   * order (`asc` or `desc`).
-   *
-   * An `order by` clause in a delete query is only supported by some dialects
-   * like MySQL.
-   *
-   * See {@link SelectQueryBuilder.orderBy} for more examples.
-   *
-   * ### Examples
-   *
-   * Delete 5 oldest items in a table:
-   *
-   * ```ts
-   * await db
-   *   .deleteFrom('pet')
-   *   .orderBy('created_at')
-   *   .limit(5)
-   *   .execute()
-   * ```
-   *
-   * The generated SQL (MySQL):
-   *
-   * ```sql
-   * delete from `pet`
-   * order by `created_at`
-   * limit ?
-   * ```
-   */
-  orderBy(orderBy, direction) {
-    return new _DeleteQueryBuilder({
-      ...__privateGet(this, _props7),
-      queryNode: DeleteQueryNode.cloneWithOrderByItems(__privateGet(this, _props7).queryNode, parseOrderBy([orderBy, direction]))
+      ...__privateGet(this, _props8),
+      queryNode: QueryNode.cloneWithoutOrderBy(__privateGet(this, _props8).queryNode)
     });
   }
   /**
@@ -14506,8 +14730,8 @@ const _DeleteQueryBuilder = class _DeleteQueryBuilder {
    */
   limit(limit) {
     return new _DeleteQueryBuilder({
-      ...__privateGet(this, _props7),
-      queryNode: DeleteQueryNode.cloneWithLimit(__privateGet(this, _props7).queryNode, LimitNode.create(parseValueExpression(limit)))
+      ...__privateGet(this, _props8),
+      queryNode: DeleteQueryNode.cloneWithLimit(__privateGet(this, _props8).queryNode, LimitNode.create(parseValueExpression(limit)))
     });
   }
   /**
@@ -14533,8 +14757,8 @@ const _DeleteQueryBuilder = class _DeleteQueryBuilder {
    */
   modifyEnd(modifier) {
     return new _DeleteQueryBuilder({
-      ...__privateGet(this, _props7),
-      queryNode: QueryNode.cloneWithEndModifier(__privateGet(this, _props7).queryNode, modifier.toOperationNode())
+      ...__privateGet(this, _props8),
+      queryNode: QueryNode.cloneWithEndModifier(__privateGet(this, _props8).queryNode, modifier.toOperationNode())
     });
   }
   /**
@@ -14604,7 +14828,7 @@ const _DeleteQueryBuilder = class _DeleteQueryBuilder {
       return func(this);
     }
     return new _DeleteQueryBuilder({
-      ...__privateGet(this, _props7)
+      ...__privateGet(this, _props8)
     });
   }
   /**
@@ -14614,7 +14838,7 @@ const _DeleteQueryBuilder = class _DeleteQueryBuilder {
    * returns a copy of this `DeleteQueryBuilder` with a new output type.
    */
   $castTo() {
-    return new _DeleteQueryBuilder(__privateGet(this, _props7));
+    return new _DeleteQueryBuilder(__privateGet(this, _props8));
   }
   /**
    * Narrows (parts of) the output type of the query.
@@ -14666,7 +14890,7 @@ const _DeleteQueryBuilder = class _DeleteQueryBuilder {
    * ```
    */
   $narrowType() {
-    return new _DeleteQueryBuilder(__privateGet(this, _props7));
+    return new _DeleteQueryBuilder(__privateGet(this, _props8));
   }
   /**
    * Asserts that query's output row type equals the given type `T`.
@@ -14714,22 +14938,22 @@ const _DeleteQueryBuilder = class _DeleteQueryBuilder {
    * ```
    */
   $assertType() {
-    return new _DeleteQueryBuilder(__privateGet(this, _props7));
+    return new _DeleteQueryBuilder(__privateGet(this, _props8));
   }
   /**
    * Returns a copy of this DeleteQueryBuilder instance with the given plugin installed.
    */
   withPlugin(plugin) {
     return new _DeleteQueryBuilder({
-      ...__privateGet(this, _props7),
-      executor: __privateGet(this, _props7).executor.withPlugin(plugin)
+      ...__privateGet(this, _props8),
+      executor: __privateGet(this, _props8).executor.withPlugin(plugin)
     });
   }
   toOperationNode() {
-    return __privateGet(this, _props7).executor.transformQuery(__privateGet(this, _props7).queryNode, __privateGet(this, _props7).queryId);
+    return __privateGet(this, _props8).executor.transformQuery(__privateGet(this, _props8).queryNode, __privateGet(this, _props8).queryId);
   }
   compile() {
-    return __privateGet(this, _props7).executor.compileQuery(this.toOperationNode(), __privateGet(this, _props7).queryId);
+    return __privateGet(this, _props8).executor.compileQuery(this.toOperationNode(), __privateGet(this, _props8).queryId);
   }
   /**
    * Executes the query and returns an array of rows.
@@ -14738,18 +14962,13 @@ const _DeleteQueryBuilder = class _DeleteQueryBuilder {
    */
   async execute() {
     const compiledQuery = this.compile();
-    const result = await __privateGet(this, _props7).executor.executeQuery(compiledQuery, __privateGet(this, _props7).queryId);
-    const { adapter } = __privateGet(this, _props7).executor;
+    const result = await __privateGet(this, _props8).executor.executeQuery(compiledQuery, __privateGet(this, _props8).queryId);
+    const { adapter } = __privateGet(this, _props8).executor;
     const query = compiledQuery.query;
     if (query.returning && adapter.supportsReturning || query.output && adapter.supportsOutput) {
       return result.rows;
     }
-    return [
-      new DeleteResult(
-        // TODO: remove numUpdatedOrDeletedRows.
-        result.numAffectedRows ?? result.numUpdatedOrDeletedRows ?? BigInt(0)
-      )
-    ];
+    return [new DeleteResult(result.numAffectedRows ?? BigInt(0))];
   }
   /**
    * Executes the query and returns the first result or undefined if
@@ -14777,22 +14996,28 @@ const _DeleteQueryBuilder = class _DeleteQueryBuilder {
   }
   async *stream(chunkSize = 100) {
     const compiledQuery = this.compile();
-    const stream = __privateGet(this, _props7).executor.stream(compiledQuery, chunkSize, __privateGet(this, _props7).queryId);
+    const stream = __privateGet(this, _props8).executor.stream(compiledQuery, chunkSize, __privateGet(this, _props8).queryId);
     for await (const item of stream) {
       yield* item.rows;
     }
   }
   async explain(format, options) {
     const builder = new _DeleteQueryBuilder({
-      ...__privateGet(this, _props7),
-      queryNode: QueryNode.cloneWithExplain(__privateGet(this, _props7).queryNode, format, options)
+      ...__privateGet(this, _props8),
+      queryNode: QueryNode.cloneWithExplain(__privateGet(this, _props8).queryNode, format, options)
     });
     return await builder.execute();
   }
 };
-_props7 = new WeakMap();
+_props8 = new WeakMap();
+_DeleteQueryBuilder_instances = new WeakSet();
+join_fn = function(joinType, args) {
+  return new _DeleteQueryBuilder({
+    ...__privateGet(this, _props8),
+    queryNode: QueryNode.cloneWithJoin(__privateGet(this, _props8).queryNode, parseJoin(joinType, args))
+  });
+};
 let DeleteQueryBuilder = _DeleteQueryBuilder;
-preventAwait(DeleteQueryBuilder, "don't await DeleteQueryBuilder instances directly. To execute the query you need to call `execute` or `executeTakeFirst`.");
 class UpdateResult {
   constructor(numUpdatedRows, numChangedRows) {
     /**
@@ -14812,25 +15037,26 @@ class UpdateResult {
 }
 const _UpdateQueryBuilder = class _UpdateQueryBuilder {
   constructor(props) {
-    __privateAdd(this, _props8);
-    __privateSet(this, _props8, freeze(props));
+    __privateAdd(this, _UpdateQueryBuilder_instances);
+    __privateAdd(this, _props9);
+    __privateSet(this, _props9, freeze(props));
   }
   where(...args) {
     return new _UpdateQueryBuilder({
-      ...__privateGet(this, _props8),
-      queryNode: QueryNode.cloneWithWhere(__privateGet(this, _props8).queryNode, parseValueBinaryOperationOrExpression(args))
+      ...__privateGet(this, _props9),
+      queryNode: QueryNode.cloneWithWhere(__privateGet(this, _props9).queryNode, parseValueBinaryOperationOrExpression(args))
     });
   }
   whereRef(lhs, op, rhs) {
     return new _UpdateQueryBuilder({
-      ...__privateGet(this, _props8),
-      queryNode: QueryNode.cloneWithWhere(__privateGet(this, _props8).queryNode, parseReferentialBinaryOperation(lhs, op, rhs))
+      ...__privateGet(this, _props9),
+      queryNode: QueryNode.cloneWithWhere(__privateGet(this, _props9).queryNode, parseReferentialBinaryOperation(lhs, op, rhs))
     });
   }
   clearWhere() {
     return new _UpdateQueryBuilder({
-      ...__privateGet(this, _props8),
-      queryNode: QueryNode.cloneWithoutWhere(__privateGet(this, _props8).queryNode)
+      ...__privateGet(this, _props9),
+      queryNode: QueryNode.cloneWithoutWhere(__privateGet(this, _props9).queryNode)
     });
   }
   /**
@@ -14874,38 +15100,38 @@ const _UpdateQueryBuilder = class _UpdateQueryBuilder {
    */
   top(expression, modifiers) {
     return new _UpdateQueryBuilder({
-      ...__privateGet(this, _props8),
-      queryNode: QueryNode.cloneWithTop(__privateGet(this, _props8).queryNode, parseTop(expression, modifiers))
+      ...__privateGet(this, _props9),
+      queryNode: QueryNode.cloneWithTop(__privateGet(this, _props9).queryNode, parseTop(expression, modifiers))
     });
   }
   from(from) {
     return new _UpdateQueryBuilder({
-      ...__privateGet(this, _props8),
-      queryNode: UpdateQueryNode.cloneWithFromItems(__privateGet(this, _props8).queryNode, parseTableExpressionOrList(from))
+      ...__privateGet(this, _props9),
+      queryNode: UpdateQueryNode.cloneWithFromItems(__privateGet(this, _props9).queryNode, parseTableExpressionOrList(from))
     });
   }
   innerJoin(...args) {
-    return new _UpdateQueryBuilder({
-      ...__privateGet(this, _props8),
-      queryNode: QueryNode.cloneWithJoin(__privateGet(this, _props8).queryNode, parseJoin("InnerJoin", args))
-    });
+    return __privateMethod(this, _UpdateQueryBuilder_instances, join_fn2).call(this, "InnerJoin", args);
   }
   leftJoin(...args) {
-    return new _UpdateQueryBuilder({
-      ...__privateGet(this, _props8),
-      queryNode: QueryNode.cloneWithJoin(__privateGet(this, _props8).queryNode, parseJoin("LeftJoin", args))
-    });
+    return __privateMethod(this, _UpdateQueryBuilder_instances, join_fn2).call(this, "LeftJoin", args);
   }
   rightJoin(...args) {
-    return new _UpdateQueryBuilder({
-      ...__privateGet(this, _props8),
-      queryNode: QueryNode.cloneWithJoin(__privateGet(this, _props8).queryNode, parseJoin("RightJoin", args))
-    });
+    return __privateMethod(this, _UpdateQueryBuilder_instances, join_fn2).call(this, "RightJoin", args);
   }
   fullJoin(...args) {
+    return __privateMethod(this, _UpdateQueryBuilder_instances, join_fn2).call(this, "FullJoin", args);
+  }
+  orderBy(...args) {
     return new _UpdateQueryBuilder({
-      ...__privateGet(this, _props8),
-      queryNode: QueryNode.cloneWithJoin(__privateGet(this, _props8).queryNode, parseJoin("FullJoin", args))
+      ...__privateGet(this, _props9),
+      queryNode: QueryNode.cloneWithOrderByItems(__privateGet(this, _props9).queryNode, parseOrderBy(args))
+    });
+  }
+  clearOrderBy() {
+    return new _UpdateQueryBuilder({
+      ...__privateGet(this, _props9),
+      queryNode: QueryNode.cloneWithoutOrderBy(__privateGet(this, _props9).queryNode)
     });
   }
   /**
@@ -14931,38 +15157,38 @@ const _UpdateQueryBuilder = class _UpdateQueryBuilder {
    */
   limit(limit) {
     return new _UpdateQueryBuilder({
-      ...__privateGet(this, _props8),
-      queryNode: UpdateQueryNode.cloneWithLimit(__privateGet(this, _props8).queryNode, LimitNode.create(parseValueExpression(limit)))
+      ...__privateGet(this, _props9),
+      queryNode: UpdateQueryNode.cloneWithLimit(__privateGet(this, _props9).queryNode, LimitNode.create(parseValueExpression(limit)))
     });
   }
   set(...args) {
     return new _UpdateQueryBuilder({
-      ...__privateGet(this, _props8),
-      queryNode: UpdateQueryNode.cloneWithUpdates(__privateGet(this, _props8).queryNode, parseUpdate(...args))
+      ...__privateGet(this, _props9),
+      queryNode: UpdateQueryNode.cloneWithUpdates(__privateGet(this, _props9).queryNode, parseUpdate(...args))
     });
   }
   returning(selection) {
     return new _UpdateQueryBuilder({
-      ...__privateGet(this, _props8),
-      queryNode: QueryNode.cloneWithReturning(__privateGet(this, _props8).queryNode, parseSelectArg(selection))
+      ...__privateGet(this, _props9),
+      queryNode: QueryNode.cloneWithReturning(__privateGet(this, _props9).queryNode, parseSelectArg(selection))
     });
   }
   returningAll(table) {
     return new _UpdateQueryBuilder({
-      ...__privateGet(this, _props8),
-      queryNode: QueryNode.cloneWithReturning(__privateGet(this, _props8).queryNode, parseSelectAll(table))
+      ...__privateGet(this, _props9),
+      queryNode: QueryNode.cloneWithReturning(__privateGet(this, _props9).queryNode, parseSelectAll(table))
     });
   }
   output(args) {
     return new _UpdateQueryBuilder({
-      ...__privateGet(this, _props8),
-      queryNode: QueryNode.cloneWithOutput(__privateGet(this, _props8).queryNode, parseSelectArg(args))
+      ...__privateGet(this, _props9),
+      queryNode: QueryNode.cloneWithOutput(__privateGet(this, _props9).queryNode, parseSelectArg(args))
     });
   }
   outputAll(table) {
     return new _UpdateQueryBuilder({
-      ...__privateGet(this, _props8),
-      queryNode: QueryNode.cloneWithOutput(__privateGet(this, _props8).queryNode, parseSelectAll(table))
+      ...__privateGet(this, _props9),
+      queryNode: QueryNode.cloneWithOutput(__privateGet(this, _props9).queryNode, parseSelectAll(table))
     });
   }
   /**
@@ -14990,8 +15216,8 @@ const _UpdateQueryBuilder = class _UpdateQueryBuilder {
    */
   modifyEnd(modifier) {
     return new _UpdateQueryBuilder({
-      ...__privateGet(this, _props8),
-      queryNode: QueryNode.cloneWithEndModifier(__privateGet(this, _props8).queryNode, modifier.toOperationNode())
+      ...__privateGet(this, _props9),
+      queryNode: QueryNode.cloneWithEndModifier(__privateGet(this, _props9).queryNode, modifier.toOperationNode())
     });
   }
   /**
@@ -15015,8 +15241,8 @@ const _UpdateQueryBuilder = class _UpdateQueryBuilder {
    */
   clearReturning() {
     return new _UpdateQueryBuilder({
-      ...__privateGet(this, _props8),
-      queryNode: QueryNode.cloneWithoutReturning(__privateGet(this, _props8).queryNode)
+      ...__privateGet(this, _props9),
+      queryNode: QueryNode.cloneWithoutReturning(__privateGet(this, _props9).queryNode)
     });
   }
   /**
@@ -15095,7 +15321,7 @@ const _UpdateQueryBuilder = class _UpdateQueryBuilder {
       return func(this);
     }
     return new _UpdateQueryBuilder({
-      ...__privateGet(this, _props8)
+      ...__privateGet(this, _props9)
     });
   }
   /**
@@ -15105,7 +15331,7 @@ const _UpdateQueryBuilder = class _UpdateQueryBuilder {
    * returns a copy of this `UpdateQueryBuilder` with a new output type.
    */
   $castTo() {
-    return new _UpdateQueryBuilder(__privateGet(this, _props8));
+    return new _UpdateQueryBuilder(__privateGet(this, _props9));
   }
   /**
    * Narrows (parts of) the output type of the query.
@@ -15166,7 +15392,7 @@ const _UpdateQueryBuilder = class _UpdateQueryBuilder {
    * ```
    */
   $narrowType() {
-    return new _UpdateQueryBuilder(__privateGet(this, _props8));
+    return new _UpdateQueryBuilder(__privateGet(this, _props9));
   }
   /**
    * Asserts that query's output row type equals the given type `T`.
@@ -15223,22 +15449,22 @@ const _UpdateQueryBuilder = class _UpdateQueryBuilder {
    * ```
    */
   $assertType() {
-    return new _UpdateQueryBuilder(__privateGet(this, _props8));
+    return new _UpdateQueryBuilder(__privateGet(this, _props9));
   }
   /**
    * Returns a copy of this UpdateQueryBuilder instance with the given plugin installed.
    */
   withPlugin(plugin) {
     return new _UpdateQueryBuilder({
-      ...__privateGet(this, _props8),
-      executor: __privateGet(this, _props8).executor.withPlugin(plugin)
+      ...__privateGet(this, _props9),
+      executor: __privateGet(this, _props9).executor.withPlugin(plugin)
     });
   }
   toOperationNode() {
-    return __privateGet(this, _props8).executor.transformQuery(__privateGet(this, _props8).queryNode, __privateGet(this, _props8).queryId);
+    return __privateGet(this, _props9).executor.transformQuery(__privateGet(this, _props9).queryNode, __privateGet(this, _props9).queryId);
   }
   compile() {
-    return __privateGet(this, _props8).executor.compileQuery(this.toOperationNode(), __privateGet(this, _props8).queryId);
+    return __privateGet(this, _props9).executor.compileQuery(this.toOperationNode(), __privateGet(this, _props9).queryId);
   }
   /**
    * Executes the query and returns an array of rows.
@@ -15247,19 +15473,14 @@ const _UpdateQueryBuilder = class _UpdateQueryBuilder {
    */
   async execute() {
     const compiledQuery = this.compile();
-    const result = await __privateGet(this, _props8).executor.executeQuery(compiledQuery, __privateGet(this, _props8).queryId);
-    const { adapter } = __privateGet(this, _props8).executor;
+    const result = await __privateGet(this, _props9).executor.executeQuery(compiledQuery, __privateGet(this, _props9).queryId);
+    const { adapter } = __privateGet(this, _props9).executor;
     const query = compiledQuery.query;
     if (query.returning && adapter.supportsReturning || query.output && adapter.supportsOutput) {
       return result.rows;
     }
     return [
-      new UpdateResult(
-        // TODO: remove numUpdatedOrDeletedRows.
-        // TODO: https://github.com/kysely-org/kysely/pull/431#discussion_r1172330899
-        result.numAffectedRows ?? result.numUpdatedOrDeletedRows ?? BigInt(0),
-        result.numChangedRows
-      )
+      new UpdateResult(result.numAffectedRows ?? BigInt(0), result.numChangedRows)
     ];
   }
   /**
@@ -15288,22 +15509,28 @@ const _UpdateQueryBuilder = class _UpdateQueryBuilder {
   }
   async *stream(chunkSize = 100) {
     const compiledQuery = this.compile();
-    const stream = __privateGet(this, _props8).executor.stream(compiledQuery, chunkSize, __privateGet(this, _props8).queryId);
+    const stream = __privateGet(this, _props9).executor.stream(compiledQuery, chunkSize, __privateGet(this, _props9).queryId);
     for await (const item of stream) {
       yield* item.rows;
     }
   }
   async explain(format, options) {
     const builder = new _UpdateQueryBuilder({
-      ...__privateGet(this, _props8),
-      queryNode: QueryNode.cloneWithExplain(__privateGet(this, _props8).queryNode, format, options)
+      ...__privateGet(this, _props9),
+      queryNode: QueryNode.cloneWithExplain(__privateGet(this, _props9).queryNode, format, options)
     });
     return await builder.execute();
   }
 };
-_props8 = new WeakMap();
+_props9 = new WeakMap();
+_UpdateQueryBuilder_instances = new WeakSet();
+join_fn2 = function(joinType, args) {
+  return new _UpdateQueryBuilder({
+    ...__privateGet(this, _props9),
+    queryNode: QueryNode.cloneWithJoin(__privateGet(this, _props9).queryNode, parseJoin(joinType, args))
+  });
+};
 let UpdateQueryBuilder = _UpdateQueryBuilder;
-preventAwait(UpdateQueryBuilder, "don't await UpdateQueryBuilder instances directly. To execute the query you need to call `execute` or `executeTakeFirst`.");
 const CommonTableExpressionNameNode = freeze({
   is(node) {
     return node.kind === "CommonTableExpressionNameNode";
@@ -15336,16 +15563,16 @@ const CommonTableExpressionNode = freeze({
 });
 const _CTEBuilder = class _CTEBuilder {
   constructor(props) {
-    __privateAdd(this, _props9);
-    __privateSet(this, _props9, freeze(props));
+    __privateAdd(this, _props10);
+    __privateSet(this, _props10, freeze(props));
   }
   /**
    * Makes the common table expression materialized.
    */
   materialized() {
     return new _CTEBuilder({
-      ...__privateGet(this, _props9),
-      node: CommonTableExpressionNode.cloneWith(__privateGet(this, _props9).node, {
+      ...__privateGet(this, _props10),
+      node: CommonTableExpressionNode.cloneWith(__privateGet(this, _props10).node, {
         materialized: true
       })
     });
@@ -15355,19 +15582,18 @@ const _CTEBuilder = class _CTEBuilder {
    */
   notMaterialized() {
     return new _CTEBuilder({
-      ...__privateGet(this, _props9),
-      node: CommonTableExpressionNode.cloneWith(__privateGet(this, _props9).node, {
+      ...__privateGet(this, _props10),
+      node: CommonTableExpressionNode.cloneWith(__privateGet(this, _props10).node, {
         materialized: false
       })
     });
   }
   toOperationNode() {
-    return __privateGet(this, _props9).node;
+    return __privateGet(this, _props10).node;
   }
 };
-_props9 = new WeakMap();
+_props10 = new WeakMap();
 let CTEBuilder = _CTEBuilder;
-preventAwait(CTEBuilder, "don't await CTEBuilder instances. They are never executed directly and are always just a part of a query.");
 function parseCommonTableExpression(nameOrBuilderCallback, expression) {
   const expressionNode = expression(createQueryCreator()).toOperationNode();
   if (isFunction(nameOrBuilderCallback)) {
@@ -15564,8 +15790,10 @@ class OperationNodeTransformer {
       ModifyColumnNode: this.transformModifyColumn.bind(this),
       AddConstraintNode: this.transformAddConstraint.bind(this),
       DropConstraintNode: this.transformDropConstraint.bind(this),
+      RenameConstraintNode: this.transformRenameConstraint.bind(this),
       ForeignKeyConstraintNode: this.transformForeignKeyConstraint.bind(this),
       CreateViewNode: this.transformCreateView.bind(this),
+      RefreshMaterializedViewNode: this.transformRefreshMaterializedView.bind(this),
       DropViewNode: this.transformDropView.bind(this),
       GeneratedNode: this.transformGenerated.bind(this),
       DefaultValueNode: this.transformDefaultValue.bind(this),
@@ -15598,750 +15826,786 @@ class OperationNodeTransformer {
       CastNode: this.transformCast.bind(this),
       FetchNode: this.transformFetch.bind(this),
       TopNode: this.transformTop.bind(this),
-      OutputNode: this.transformOutput.bind(this)
+      OutputNode: this.transformOutput.bind(this),
+      OrActionNode: this.transformOrAction.bind(this),
+      CollateNode: this.transformCollate.bind(this)
     }));
   }
-  transformNode(node) {
+  transformNode(node, queryId) {
     if (!node) {
       return node;
     }
     this.nodeStack.push(node);
-    const out = this.transformNodeImpl(node);
+    const out = this.transformNodeImpl(node, queryId);
     this.nodeStack.pop();
     return freeze(out);
   }
-  transformNodeImpl(node) {
-    return __privateGet(this, _transformers)[node.kind](node);
+  transformNodeImpl(node, queryId) {
+    return __privateGet(this, _transformers)[node.kind](node, queryId);
   }
-  transformNodeList(list) {
+  transformNodeList(list, queryId) {
     if (!list) {
       return list;
     }
-    return freeze(list.map((node) => this.transformNode(node)));
+    return freeze(list.map((node) => this.transformNode(node, queryId)));
   }
-  transformSelectQuery(node) {
+  transformSelectQuery(node, queryId) {
     return requireAllProps({
       kind: "SelectQueryNode",
-      from: this.transformNode(node.from),
-      selections: this.transformNodeList(node.selections),
-      distinctOn: this.transformNodeList(node.distinctOn),
-      joins: this.transformNodeList(node.joins),
-      groupBy: this.transformNode(node.groupBy),
-      orderBy: this.transformNode(node.orderBy),
-      where: this.transformNode(node.where),
-      frontModifiers: this.transformNodeList(node.frontModifiers),
-      endModifiers: this.transformNodeList(node.endModifiers),
-      limit: this.transformNode(node.limit),
-      offset: this.transformNode(node.offset),
-      with: this.transformNode(node.with),
-      having: this.transformNode(node.having),
-      explain: this.transformNode(node.explain),
-      setOperations: this.transformNodeList(node.setOperations),
-      fetch: this.transformNode(node.fetch),
-      top: this.transformNode(node.top)
+      from: this.transformNode(node.from, queryId),
+      selections: this.transformNodeList(node.selections, queryId),
+      distinctOn: this.transformNodeList(node.distinctOn, queryId),
+      joins: this.transformNodeList(node.joins, queryId),
+      groupBy: this.transformNode(node.groupBy, queryId),
+      orderBy: this.transformNode(node.orderBy, queryId),
+      where: this.transformNode(node.where, queryId),
+      frontModifiers: this.transformNodeList(node.frontModifiers, queryId),
+      endModifiers: this.transformNodeList(node.endModifiers, queryId),
+      limit: this.transformNode(node.limit, queryId),
+      offset: this.transformNode(node.offset, queryId),
+      with: this.transformNode(node.with, queryId),
+      having: this.transformNode(node.having, queryId),
+      explain: this.transformNode(node.explain, queryId),
+      setOperations: this.transformNodeList(node.setOperations, queryId),
+      fetch: this.transformNode(node.fetch, queryId),
+      top: this.transformNode(node.top, queryId)
     });
   }
-  transformSelection(node) {
+  transformSelection(node, queryId) {
     return requireAllProps({
       kind: "SelectionNode",
-      selection: this.transformNode(node.selection)
+      selection: this.transformNode(node.selection, queryId)
     });
   }
-  transformColumn(node) {
+  transformColumn(node, queryId) {
     return requireAllProps({
       kind: "ColumnNode",
-      column: this.transformNode(node.column)
+      column: this.transformNode(node.column, queryId)
     });
   }
-  transformAlias(node) {
+  transformAlias(node, queryId) {
     return requireAllProps({
       kind: "AliasNode",
-      node: this.transformNode(node.node),
-      alias: this.transformNode(node.alias)
+      node: this.transformNode(node.node, queryId),
+      alias: this.transformNode(node.alias, queryId)
     });
   }
-  transformTable(node) {
+  transformTable(node, queryId) {
     return requireAllProps({
       kind: "TableNode",
-      table: this.transformNode(node.table)
+      table: this.transformNode(node.table, queryId)
     });
   }
-  transformFrom(node) {
+  transformFrom(node, queryId) {
     return requireAllProps({
       kind: "FromNode",
-      froms: this.transformNodeList(node.froms)
+      froms: this.transformNodeList(node.froms, queryId)
     });
   }
-  transformReference(node) {
+  transformReference(node, queryId) {
     return requireAllProps({
       kind: "ReferenceNode",
-      column: this.transformNode(node.column),
-      table: this.transformNode(node.table)
+      column: this.transformNode(node.column, queryId),
+      table: this.transformNode(node.table, queryId)
     });
   }
-  transformAnd(node) {
+  transformAnd(node, queryId) {
     return requireAllProps({
       kind: "AndNode",
-      left: this.transformNode(node.left),
-      right: this.transformNode(node.right)
+      left: this.transformNode(node.left, queryId),
+      right: this.transformNode(node.right, queryId)
     });
   }
-  transformOr(node) {
+  transformOr(node, queryId) {
     return requireAllProps({
       kind: "OrNode",
-      left: this.transformNode(node.left),
-      right: this.transformNode(node.right)
+      left: this.transformNode(node.left, queryId),
+      right: this.transformNode(node.right, queryId)
     });
   }
-  transformValueList(node) {
+  transformValueList(node, queryId) {
     return requireAllProps({
       kind: "ValueListNode",
-      values: this.transformNodeList(node.values)
+      values: this.transformNodeList(node.values, queryId)
     });
   }
-  transformParens(node) {
+  transformParens(node, queryId) {
     return requireAllProps({
       kind: "ParensNode",
-      node: this.transformNode(node.node)
+      node: this.transformNode(node.node, queryId)
     });
   }
-  transformJoin(node) {
+  transformJoin(node, queryId) {
     return requireAllProps({
       kind: "JoinNode",
       joinType: node.joinType,
-      table: this.transformNode(node.table),
-      on: this.transformNode(node.on)
+      table: this.transformNode(node.table, queryId),
+      on: this.transformNode(node.on, queryId)
     });
   }
-  transformRaw(node) {
+  transformRaw(node, queryId) {
     return requireAllProps({
       kind: "RawNode",
       sqlFragments: freeze([...node.sqlFragments]),
-      parameters: this.transformNodeList(node.parameters)
+      parameters: this.transformNodeList(node.parameters, queryId)
     });
   }
-  transformWhere(node) {
+  transformWhere(node, queryId) {
     return requireAllProps({
       kind: "WhereNode",
-      where: this.transformNode(node.where)
+      where: this.transformNode(node.where, queryId)
     });
   }
-  transformInsertQuery(node) {
+  transformInsertQuery(node, queryId) {
     return requireAllProps({
       kind: "InsertQueryNode",
-      into: this.transformNode(node.into),
-      columns: this.transformNodeList(node.columns),
-      values: this.transformNode(node.values),
-      returning: this.transformNode(node.returning),
-      onConflict: this.transformNode(node.onConflict),
-      onDuplicateKey: this.transformNode(node.onDuplicateKey),
-      endModifiers: this.transformNodeList(node.endModifiers),
-      with: this.transformNode(node.with),
+      into: this.transformNode(node.into, queryId),
+      columns: this.transformNodeList(node.columns, queryId),
+      values: this.transformNode(node.values, queryId),
+      returning: this.transformNode(node.returning, queryId),
+      onConflict: this.transformNode(node.onConflict, queryId),
+      onDuplicateKey: this.transformNode(node.onDuplicateKey, queryId),
+      endModifiers: this.transformNodeList(node.endModifiers, queryId),
+      with: this.transformNode(node.with, queryId),
       ignore: node.ignore,
+      orAction: this.transformNode(node.orAction, queryId),
       replace: node.replace,
-      explain: this.transformNode(node.explain),
+      explain: this.transformNode(node.explain, queryId),
       defaultValues: node.defaultValues,
-      top: this.transformNode(node.top),
-      output: this.transformNode(node.output)
+      top: this.transformNode(node.top, queryId),
+      output: this.transformNode(node.output, queryId)
     });
   }
-  transformValues(node) {
+  transformValues(node, queryId) {
     return requireAllProps({
       kind: "ValuesNode",
-      values: this.transformNodeList(node.values)
+      values: this.transformNodeList(node.values, queryId)
     });
   }
-  transformDeleteQuery(node) {
+  transformDeleteQuery(node, queryId) {
     return requireAllProps({
       kind: "DeleteQueryNode",
-      from: this.transformNode(node.from),
-      using: this.transformNode(node.using),
-      joins: this.transformNodeList(node.joins),
-      where: this.transformNode(node.where),
-      returning: this.transformNode(node.returning),
-      endModifiers: this.transformNodeList(node.endModifiers),
-      with: this.transformNode(node.with),
-      orderBy: this.transformNode(node.orderBy),
-      limit: this.transformNode(node.limit),
-      explain: this.transformNode(node.explain),
-      top: this.transformNode(node.top),
-      output: this.transformNode(node.output)
+      from: this.transformNode(node.from, queryId),
+      using: this.transformNode(node.using, queryId),
+      joins: this.transformNodeList(node.joins, queryId),
+      where: this.transformNode(node.where, queryId),
+      returning: this.transformNode(node.returning, queryId),
+      endModifiers: this.transformNodeList(node.endModifiers, queryId),
+      with: this.transformNode(node.with, queryId),
+      orderBy: this.transformNode(node.orderBy, queryId),
+      limit: this.transformNode(node.limit, queryId),
+      explain: this.transformNode(node.explain, queryId),
+      top: this.transformNode(node.top, queryId),
+      output: this.transformNode(node.output, queryId)
     });
   }
-  transformReturning(node) {
+  transformReturning(node, queryId) {
     return requireAllProps({
       kind: "ReturningNode",
-      selections: this.transformNodeList(node.selections)
+      selections: this.transformNodeList(node.selections, queryId)
     });
   }
-  transformCreateTable(node) {
+  transformCreateTable(node, queryId) {
     return requireAllProps({
       kind: "CreateTableNode",
-      table: this.transformNode(node.table),
-      columns: this.transformNodeList(node.columns),
-      constraints: this.transformNodeList(node.constraints),
+      table: this.transformNode(node.table, queryId),
+      columns: this.transformNodeList(node.columns, queryId),
+      constraints: this.transformNodeList(node.constraints, queryId),
       temporary: node.temporary,
       ifNotExists: node.ifNotExists,
       onCommit: node.onCommit,
-      frontModifiers: this.transformNodeList(node.frontModifiers),
-      endModifiers: this.transformNodeList(node.endModifiers),
-      selectQuery: this.transformNode(node.selectQuery)
+      frontModifiers: this.transformNodeList(node.frontModifiers, queryId),
+      endModifiers: this.transformNodeList(node.endModifiers, queryId),
+      selectQuery: this.transformNode(node.selectQuery, queryId)
     });
   }
-  transformColumnDefinition(node) {
+  transformColumnDefinition(node, queryId) {
     return requireAllProps({
       kind: "ColumnDefinitionNode",
-      column: this.transformNode(node.column),
-      dataType: this.transformNode(node.dataType),
-      references: this.transformNode(node.references),
+      column: this.transformNode(node.column, queryId),
+      dataType: this.transformNode(node.dataType, queryId),
+      references: this.transformNode(node.references, queryId),
       primaryKey: node.primaryKey,
       autoIncrement: node.autoIncrement,
       unique: node.unique,
       notNull: node.notNull,
       unsigned: node.unsigned,
-      defaultTo: this.transformNode(node.defaultTo),
-      check: this.transformNode(node.check),
-      generated: this.transformNode(node.generated),
-      frontModifiers: this.transformNodeList(node.frontModifiers),
-      endModifiers: this.transformNodeList(node.endModifiers),
+      defaultTo: this.transformNode(node.defaultTo, queryId),
+      check: this.transformNode(node.check, queryId),
+      generated: this.transformNode(node.generated, queryId),
+      frontModifiers: this.transformNodeList(node.frontModifiers, queryId),
+      endModifiers: this.transformNodeList(node.endModifiers, queryId),
       nullsNotDistinct: node.nullsNotDistinct,
       identity: node.identity,
       ifNotExists: node.ifNotExists
     });
   }
-  transformAddColumn(node) {
+  transformAddColumn(node, queryId) {
     return requireAllProps({
       kind: "AddColumnNode",
-      column: this.transformNode(node.column)
+      column: this.transformNode(node.column, queryId)
     });
   }
-  transformDropTable(node) {
+  transformDropTable(node, queryId) {
     return requireAllProps({
       kind: "DropTableNode",
-      table: this.transformNode(node.table),
+      table: this.transformNode(node.table, queryId),
       ifExists: node.ifExists,
       cascade: node.cascade
     });
   }
-  transformOrderBy(node) {
+  transformOrderBy(node, queryId) {
     return requireAllProps({
       kind: "OrderByNode",
-      items: this.transformNodeList(node.items)
+      items: this.transformNodeList(node.items, queryId)
     });
   }
-  transformOrderByItem(node) {
+  transformOrderByItem(node, queryId) {
     return requireAllProps({
       kind: "OrderByItemNode",
-      orderBy: this.transformNode(node.orderBy),
-      direction: this.transformNode(node.direction)
+      orderBy: this.transformNode(node.orderBy, queryId),
+      direction: this.transformNode(node.direction, queryId),
+      collation: this.transformNode(node.collation, queryId),
+      nulls: node.nulls
     });
   }
-  transformGroupBy(node) {
+  transformGroupBy(node, queryId) {
     return requireAllProps({
       kind: "GroupByNode",
-      items: this.transformNodeList(node.items)
+      items: this.transformNodeList(node.items, queryId)
     });
   }
-  transformGroupByItem(node) {
+  transformGroupByItem(node, queryId) {
     return requireAllProps({
       kind: "GroupByItemNode",
-      groupBy: this.transformNode(node.groupBy)
+      groupBy: this.transformNode(node.groupBy, queryId)
     });
   }
-  transformUpdateQuery(node) {
+  transformUpdateQuery(node, queryId) {
     return requireAllProps({
       kind: "UpdateQueryNode",
-      table: this.transformNode(node.table),
-      from: this.transformNode(node.from),
-      joins: this.transformNodeList(node.joins),
-      where: this.transformNode(node.where),
-      updates: this.transformNodeList(node.updates),
-      returning: this.transformNode(node.returning),
-      endModifiers: this.transformNodeList(node.endModifiers),
-      with: this.transformNode(node.with),
-      explain: this.transformNode(node.explain),
-      limit: this.transformNode(node.limit),
-      top: this.transformNode(node.top),
-      output: this.transformNode(node.output)
+      table: this.transformNode(node.table, queryId),
+      from: this.transformNode(node.from, queryId),
+      joins: this.transformNodeList(node.joins, queryId),
+      where: this.transformNode(node.where, queryId),
+      updates: this.transformNodeList(node.updates, queryId),
+      returning: this.transformNode(node.returning, queryId),
+      endModifiers: this.transformNodeList(node.endModifiers, queryId),
+      with: this.transformNode(node.with, queryId),
+      explain: this.transformNode(node.explain, queryId),
+      limit: this.transformNode(node.limit, queryId),
+      top: this.transformNode(node.top, queryId),
+      output: this.transformNode(node.output, queryId),
+      orderBy: this.transformNode(node.orderBy, queryId)
     });
   }
-  transformColumnUpdate(node) {
+  transformColumnUpdate(node, queryId) {
     return requireAllProps({
       kind: "ColumnUpdateNode",
-      column: this.transformNode(node.column),
-      value: this.transformNode(node.value)
+      column: this.transformNode(node.column, queryId),
+      value: this.transformNode(node.value, queryId)
     });
   }
-  transformLimit(node) {
+  transformLimit(node, queryId) {
     return requireAllProps({
       kind: "LimitNode",
-      limit: this.transformNode(node.limit)
+      limit: this.transformNode(node.limit, queryId)
     });
   }
-  transformOffset(node) {
+  transformOffset(node, queryId) {
     return requireAllProps({
       kind: "OffsetNode",
-      offset: this.transformNode(node.offset)
+      offset: this.transformNode(node.offset, queryId)
     });
   }
-  transformOnConflict(node) {
+  transformOnConflict(node, queryId) {
     return requireAllProps({
       kind: "OnConflictNode",
-      columns: this.transformNodeList(node.columns),
-      constraint: this.transformNode(node.constraint),
-      indexExpression: this.transformNode(node.indexExpression),
-      indexWhere: this.transformNode(node.indexWhere),
-      updates: this.transformNodeList(node.updates),
-      updateWhere: this.transformNode(node.updateWhere),
+      columns: this.transformNodeList(node.columns, queryId),
+      constraint: this.transformNode(node.constraint, queryId),
+      indexExpression: this.transformNode(node.indexExpression, queryId),
+      indexWhere: this.transformNode(node.indexWhere, queryId),
+      updates: this.transformNodeList(node.updates, queryId),
+      updateWhere: this.transformNode(node.updateWhere, queryId),
       doNothing: node.doNothing
     });
   }
-  transformOnDuplicateKey(node) {
+  transformOnDuplicateKey(node, queryId) {
     return requireAllProps({
       kind: "OnDuplicateKeyNode",
-      updates: this.transformNodeList(node.updates)
+      updates: this.transformNodeList(node.updates, queryId)
     });
   }
-  transformCreateIndex(node) {
+  transformCreateIndex(node, queryId) {
     return requireAllProps({
       kind: "CreateIndexNode",
-      name: this.transformNode(node.name),
-      table: this.transformNode(node.table),
-      columns: this.transformNodeList(node.columns),
+      name: this.transformNode(node.name, queryId),
+      table: this.transformNode(node.table, queryId),
+      columns: this.transformNodeList(node.columns, queryId),
       unique: node.unique,
-      using: this.transformNode(node.using),
+      using: this.transformNode(node.using, queryId),
       ifNotExists: node.ifNotExists,
-      where: this.transformNode(node.where),
+      where: this.transformNode(node.where, queryId),
       nullsNotDistinct: node.nullsNotDistinct
     });
   }
-  transformList(node) {
+  transformList(node, queryId) {
     return requireAllProps({
       kind: "ListNode",
-      items: this.transformNodeList(node.items)
+      items: this.transformNodeList(node.items, queryId)
     });
   }
-  transformDropIndex(node) {
+  transformDropIndex(node, queryId) {
     return requireAllProps({
       kind: "DropIndexNode",
-      name: this.transformNode(node.name),
-      table: this.transformNode(node.table),
+      name: this.transformNode(node.name, queryId),
+      table: this.transformNode(node.table, queryId),
       ifExists: node.ifExists,
       cascade: node.cascade
     });
   }
-  transformPrimaryKeyConstraint(node) {
+  transformPrimaryKeyConstraint(node, queryId) {
     return requireAllProps({
       kind: "PrimaryKeyConstraintNode",
-      columns: this.transformNodeList(node.columns),
-      name: this.transformNode(node.name)
+      columns: this.transformNodeList(node.columns, queryId),
+      name: this.transformNode(node.name, queryId),
+      deferrable: node.deferrable,
+      initiallyDeferred: node.initiallyDeferred
     });
   }
-  transformUniqueConstraint(node) {
+  transformUniqueConstraint(node, queryId) {
     return requireAllProps({
       kind: "UniqueConstraintNode",
-      columns: this.transformNodeList(node.columns),
-      name: this.transformNode(node.name),
-      nullsNotDistinct: node.nullsNotDistinct
+      columns: this.transformNodeList(node.columns, queryId),
+      name: this.transformNode(node.name, queryId),
+      nullsNotDistinct: node.nullsNotDistinct,
+      deferrable: node.deferrable,
+      initiallyDeferred: node.initiallyDeferred
     });
   }
-  transformForeignKeyConstraint(node) {
+  transformForeignKeyConstraint(node, queryId) {
     return requireAllProps({
       kind: "ForeignKeyConstraintNode",
-      columns: this.transformNodeList(node.columns),
-      references: this.transformNode(node.references),
-      name: this.transformNode(node.name),
+      columns: this.transformNodeList(node.columns, queryId),
+      references: this.transformNode(node.references, queryId),
+      name: this.transformNode(node.name, queryId),
       onDelete: node.onDelete,
-      onUpdate: node.onUpdate
+      onUpdate: node.onUpdate,
+      deferrable: node.deferrable,
+      initiallyDeferred: node.initiallyDeferred
     });
   }
-  transformSetOperation(node) {
+  transformSetOperation(node, queryId) {
     return requireAllProps({
       kind: "SetOperationNode",
       operator: node.operator,
-      expression: this.transformNode(node.expression),
+      expression: this.transformNode(node.expression, queryId),
       all: node.all
     });
   }
-  transformReferences(node) {
+  transformReferences(node, queryId) {
     return requireAllProps({
       kind: "ReferencesNode",
-      table: this.transformNode(node.table),
-      columns: this.transformNodeList(node.columns),
+      table: this.transformNode(node.table, queryId),
+      columns: this.transformNodeList(node.columns, queryId),
       onDelete: node.onDelete,
       onUpdate: node.onUpdate
     });
   }
-  transformCheckConstraint(node) {
+  transformCheckConstraint(node, queryId) {
     return requireAllProps({
       kind: "CheckConstraintNode",
-      expression: this.transformNode(node.expression),
-      name: this.transformNode(node.name)
+      expression: this.transformNode(node.expression, queryId),
+      name: this.transformNode(node.name, queryId)
     });
   }
-  transformWith(node) {
+  transformWith(node, queryId) {
     return requireAllProps({
       kind: "WithNode",
-      expressions: this.transformNodeList(node.expressions),
+      expressions: this.transformNodeList(node.expressions, queryId),
       recursive: node.recursive
     });
   }
-  transformCommonTableExpression(node) {
+  transformCommonTableExpression(node, queryId) {
     return requireAllProps({
       kind: "CommonTableExpressionNode",
-      name: this.transformNode(node.name),
+      name: this.transformNode(node.name, queryId),
       materialized: node.materialized,
-      expression: this.transformNode(node.expression)
+      expression: this.transformNode(node.expression, queryId)
     });
   }
-  transformCommonTableExpressionName(node) {
+  transformCommonTableExpressionName(node, queryId) {
     return requireAllProps({
       kind: "CommonTableExpressionNameNode",
-      table: this.transformNode(node.table),
-      columns: this.transformNodeList(node.columns)
+      table: this.transformNode(node.table, queryId),
+      columns: this.transformNodeList(node.columns, queryId)
     });
   }
-  transformHaving(node) {
+  transformHaving(node, queryId) {
     return requireAllProps({
       kind: "HavingNode",
-      having: this.transformNode(node.having)
+      having: this.transformNode(node.having, queryId)
     });
   }
-  transformCreateSchema(node) {
+  transformCreateSchema(node, queryId) {
     return requireAllProps({
       kind: "CreateSchemaNode",
-      schema: this.transformNode(node.schema),
+      schema: this.transformNode(node.schema, queryId),
       ifNotExists: node.ifNotExists
     });
   }
-  transformDropSchema(node) {
+  transformDropSchema(node, queryId) {
     return requireAllProps({
       kind: "DropSchemaNode",
-      schema: this.transformNode(node.schema),
+      schema: this.transformNode(node.schema, queryId),
       ifExists: node.ifExists,
       cascade: node.cascade
     });
   }
-  transformAlterTable(node) {
+  transformAlterTable(node, queryId) {
     return requireAllProps({
       kind: "AlterTableNode",
-      table: this.transformNode(node.table),
-      renameTo: this.transformNode(node.renameTo),
-      setSchema: this.transformNode(node.setSchema),
-      columnAlterations: this.transformNodeList(node.columnAlterations),
-      addConstraint: this.transformNode(node.addConstraint),
-      dropConstraint: this.transformNode(node.dropConstraint),
-      addIndex: this.transformNode(node.addIndex),
-      dropIndex: this.transformNode(node.dropIndex)
+      table: this.transformNode(node.table, queryId),
+      renameTo: this.transformNode(node.renameTo, queryId),
+      setSchema: this.transformNode(node.setSchema, queryId),
+      columnAlterations: this.transformNodeList(node.columnAlterations, queryId),
+      addConstraint: this.transformNode(node.addConstraint, queryId),
+      dropConstraint: this.transformNode(node.dropConstraint, queryId),
+      renameConstraint: this.transformNode(node.renameConstraint, queryId),
+      addIndex: this.transformNode(node.addIndex, queryId),
+      dropIndex: this.transformNode(node.dropIndex, queryId)
     });
   }
-  transformDropColumn(node) {
+  transformDropColumn(node, queryId) {
     return requireAllProps({
       kind: "DropColumnNode",
-      column: this.transformNode(node.column)
+      column: this.transformNode(node.column, queryId)
     });
   }
-  transformRenameColumn(node) {
+  transformRenameColumn(node, queryId) {
     return requireAllProps({
       kind: "RenameColumnNode",
-      column: this.transformNode(node.column),
-      renameTo: this.transformNode(node.renameTo)
+      column: this.transformNode(node.column, queryId),
+      renameTo: this.transformNode(node.renameTo, queryId)
     });
   }
-  transformAlterColumn(node) {
+  transformAlterColumn(node, queryId) {
     return requireAllProps({
       kind: "AlterColumnNode",
-      column: this.transformNode(node.column),
-      dataType: this.transformNode(node.dataType),
-      dataTypeExpression: this.transformNode(node.dataTypeExpression),
-      setDefault: this.transformNode(node.setDefault),
+      column: this.transformNode(node.column, queryId),
+      dataType: this.transformNode(node.dataType, queryId),
+      dataTypeExpression: this.transformNode(node.dataTypeExpression, queryId),
+      setDefault: this.transformNode(node.setDefault, queryId),
       dropDefault: node.dropDefault,
       setNotNull: node.setNotNull,
       dropNotNull: node.dropNotNull
     });
   }
-  transformModifyColumn(node) {
+  transformModifyColumn(node, queryId) {
     return requireAllProps({
       kind: "ModifyColumnNode",
-      column: this.transformNode(node.column)
+      column: this.transformNode(node.column, queryId)
     });
   }
-  transformAddConstraint(node) {
+  transformAddConstraint(node, queryId) {
     return requireAllProps({
       kind: "AddConstraintNode",
-      constraint: this.transformNode(node.constraint)
+      constraint: this.transformNode(node.constraint, queryId)
     });
   }
-  transformDropConstraint(node) {
+  transformDropConstraint(node, queryId) {
     return requireAllProps({
       kind: "DropConstraintNode",
-      constraintName: this.transformNode(node.constraintName),
+      constraintName: this.transformNode(node.constraintName, queryId),
       ifExists: node.ifExists,
       modifier: node.modifier
     });
   }
-  transformCreateView(node) {
+  transformRenameConstraint(node, queryId) {
+    return requireAllProps({
+      kind: "RenameConstraintNode",
+      oldName: this.transformNode(node.oldName, queryId),
+      newName: this.transformNode(node.newName, queryId)
+    });
+  }
+  transformCreateView(node, queryId) {
     return requireAllProps({
       kind: "CreateViewNode",
-      name: this.transformNode(node.name),
+      name: this.transformNode(node.name, queryId),
       temporary: node.temporary,
       orReplace: node.orReplace,
       ifNotExists: node.ifNotExists,
       materialized: node.materialized,
-      columns: this.transformNodeList(node.columns),
-      as: this.transformNode(node.as)
+      columns: this.transformNodeList(node.columns, queryId),
+      as: this.transformNode(node.as, queryId)
     });
   }
-  transformDropView(node) {
+  transformRefreshMaterializedView(node, queryId) {
+    return requireAllProps({
+      kind: "RefreshMaterializedViewNode",
+      name: this.transformNode(node.name, queryId),
+      concurrently: node.concurrently,
+      withNoData: node.withNoData
+    });
+  }
+  transformDropView(node, queryId) {
     return requireAllProps({
       kind: "DropViewNode",
-      name: this.transformNode(node.name),
+      name: this.transformNode(node.name, queryId),
       ifExists: node.ifExists,
       materialized: node.materialized,
       cascade: node.cascade
     });
   }
-  transformGenerated(node) {
+  transformGenerated(node, queryId) {
     return requireAllProps({
       kind: "GeneratedNode",
       byDefault: node.byDefault,
       always: node.always,
       identity: node.identity,
       stored: node.stored,
-      expression: this.transformNode(node.expression)
+      expression: this.transformNode(node.expression, queryId)
     });
   }
-  transformDefaultValue(node) {
+  transformDefaultValue(node, queryId) {
     return requireAllProps({
       kind: "DefaultValueNode",
-      defaultValue: this.transformNode(node.defaultValue)
+      defaultValue: this.transformNode(node.defaultValue, queryId)
     });
   }
-  transformOn(node) {
+  transformOn(node, queryId) {
     return requireAllProps({
       kind: "OnNode",
-      on: this.transformNode(node.on)
+      on: this.transformNode(node.on, queryId)
     });
   }
-  transformSelectModifier(node) {
+  transformSelectModifier(node, queryId) {
     return requireAllProps({
       kind: "SelectModifierNode",
       modifier: node.modifier,
-      rawModifier: this.transformNode(node.rawModifier),
-      of: this.transformNodeList(node.of)
+      rawModifier: this.transformNode(node.rawModifier, queryId),
+      of: this.transformNodeList(node.of, queryId)
     });
   }
-  transformCreateType(node) {
+  transformCreateType(node, queryId) {
     return requireAllProps({
       kind: "CreateTypeNode",
-      name: this.transformNode(node.name),
-      enum: this.transformNode(node.enum)
+      name: this.transformNode(node.name, queryId),
+      enum: this.transformNode(node.enum, queryId)
     });
   }
-  transformDropType(node) {
+  transformDropType(node, queryId) {
     return requireAllProps({
       kind: "DropTypeNode",
-      name: this.transformNode(node.name),
+      name: this.transformNode(node.name, queryId),
       ifExists: node.ifExists
     });
   }
-  transformExplain(node) {
+  transformExplain(node, queryId) {
     return requireAllProps({
       kind: "ExplainNode",
       format: node.format,
-      options: this.transformNode(node.options)
+      options: this.transformNode(node.options, queryId)
     });
   }
-  transformSchemableIdentifier(node) {
+  transformSchemableIdentifier(node, queryId) {
     return requireAllProps({
       kind: "SchemableIdentifierNode",
-      schema: this.transformNode(node.schema),
-      identifier: this.transformNode(node.identifier)
+      schema: this.transformNode(node.schema, queryId),
+      identifier: this.transformNode(node.identifier, queryId)
     });
   }
-  transformAggregateFunction(node) {
+  transformAggregateFunction(node, queryId) {
     return requireAllProps({
       kind: "AggregateFunctionNode",
-      aggregated: this.transformNodeList(node.aggregated),
-      distinct: node.distinct,
-      orderBy: this.transformNode(node.orderBy),
-      filter: this.transformNode(node.filter),
       func: node.func,
-      over: this.transformNode(node.over)
+      aggregated: this.transformNodeList(node.aggregated, queryId),
+      distinct: node.distinct,
+      orderBy: this.transformNode(node.orderBy, queryId),
+      withinGroup: this.transformNode(node.withinGroup, queryId),
+      filter: this.transformNode(node.filter, queryId),
+      over: this.transformNode(node.over, queryId)
     });
   }
-  transformOver(node) {
+  transformOver(node, queryId) {
     return requireAllProps({
       kind: "OverNode",
-      orderBy: this.transformNode(node.orderBy),
-      partitionBy: this.transformNode(node.partitionBy)
+      orderBy: this.transformNode(node.orderBy, queryId),
+      partitionBy: this.transformNode(node.partitionBy, queryId)
     });
   }
-  transformPartitionBy(node) {
+  transformPartitionBy(node, queryId) {
     return requireAllProps({
       kind: "PartitionByNode",
-      items: this.transformNodeList(node.items)
+      items: this.transformNodeList(node.items, queryId)
     });
   }
-  transformPartitionByItem(node) {
+  transformPartitionByItem(node, queryId) {
     return requireAllProps({
       kind: "PartitionByItemNode",
-      partitionBy: this.transformNode(node.partitionBy)
+      partitionBy: this.transformNode(node.partitionBy, queryId)
     });
   }
-  transformBinaryOperation(node) {
+  transformBinaryOperation(node, queryId) {
     return requireAllProps({
       kind: "BinaryOperationNode",
-      leftOperand: this.transformNode(node.leftOperand),
-      operator: this.transformNode(node.operator),
-      rightOperand: this.transformNode(node.rightOperand)
+      leftOperand: this.transformNode(node.leftOperand, queryId),
+      operator: this.transformNode(node.operator, queryId),
+      rightOperand: this.transformNode(node.rightOperand, queryId)
     });
   }
-  transformUnaryOperation(node) {
+  transformUnaryOperation(node, queryId) {
     return requireAllProps({
       kind: "UnaryOperationNode",
-      operator: this.transformNode(node.operator),
-      operand: this.transformNode(node.operand)
+      operator: this.transformNode(node.operator, queryId),
+      operand: this.transformNode(node.operand, queryId)
     });
   }
-  transformUsing(node) {
+  transformUsing(node, queryId) {
     return requireAllProps({
       kind: "UsingNode",
-      tables: this.transformNodeList(node.tables)
+      tables: this.transformNodeList(node.tables, queryId)
     });
   }
-  transformFunction(node) {
+  transformFunction(node, queryId) {
     return requireAllProps({
       kind: "FunctionNode",
       func: node.func,
-      arguments: this.transformNodeList(node.arguments)
+      arguments: this.transformNodeList(node.arguments, queryId)
     });
   }
-  transformCase(node) {
+  transformCase(node, queryId) {
     return requireAllProps({
       kind: "CaseNode",
-      value: this.transformNode(node.value),
-      when: this.transformNodeList(node.when),
-      else: this.transformNode(node.else),
+      value: this.transformNode(node.value, queryId),
+      when: this.transformNodeList(node.when, queryId),
+      else: this.transformNode(node.else, queryId),
       isStatement: node.isStatement
     });
   }
-  transformWhen(node) {
+  transformWhen(node, queryId) {
     return requireAllProps({
       kind: "WhenNode",
-      condition: this.transformNode(node.condition),
-      result: this.transformNode(node.result)
+      condition: this.transformNode(node.condition, queryId),
+      result: this.transformNode(node.result, queryId)
     });
   }
-  transformJSONReference(node) {
+  transformJSONReference(node, queryId) {
     return requireAllProps({
       kind: "JSONReferenceNode",
-      reference: this.transformNode(node.reference),
-      traversal: this.transformNode(node.traversal)
+      reference: this.transformNode(node.reference, queryId),
+      traversal: this.transformNode(node.traversal, queryId)
     });
   }
-  transformJSONPath(node) {
+  transformJSONPath(node, queryId) {
     return requireAllProps({
       kind: "JSONPathNode",
-      inOperator: this.transformNode(node.inOperator),
-      pathLegs: this.transformNodeList(node.pathLegs)
+      inOperator: this.transformNode(node.inOperator, queryId),
+      pathLegs: this.transformNodeList(node.pathLegs, queryId)
     });
   }
-  transformJSONPathLeg(node) {
+  transformJSONPathLeg(node, _queryId2) {
     return requireAllProps({
       kind: "JSONPathLegNode",
       type: node.type,
       value: node.value
     });
   }
-  transformJSONOperatorChain(node) {
+  transformJSONOperatorChain(node, queryId) {
     return requireAllProps({
       kind: "JSONOperatorChainNode",
-      operator: this.transformNode(node.operator),
-      values: this.transformNodeList(node.values)
+      operator: this.transformNode(node.operator, queryId),
+      values: this.transformNodeList(node.values, queryId)
     });
   }
-  transformTuple(node) {
+  transformTuple(node, queryId) {
     return requireAllProps({
       kind: "TupleNode",
-      values: this.transformNodeList(node.values)
+      values: this.transformNodeList(node.values, queryId)
     });
   }
-  transformMergeQuery(node) {
+  transformMergeQuery(node, queryId) {
     return requireAllProps({
       kind: "MergeQueryNode",
-      into: this.transformNode(node.into),
-      using: this.transformNode(node.using),
-      whens: this.transformNodeList(node.whens),
-      with: this.transformNode(node.with),
-      top: this.transformNode(node.top),
-      endModifiers: this.transformNodeList(node.endModifiers),
-      output: this.transformNode(node.output)
+      into: this.transformNode(node.into, queryId),
+      using: this.transformNode(node.using, queryId),
+      whens: this.transformNodeList(node.whens, queryId),
+      with: this.transformNode(node.with, queryId),
+      top: this.transformNode(node.top, queryId),
+      endModifiers: this.transformNodeList(node.endModifiers, queryId),
+      output: this.transformNode(node.output, queryId),
+      returning: this.transformNode(node.returning, queryId)
     });
   }
-  transformMatched(node) {
+  transformMatched(node, _queryId2) {
     return requireAllProps({
       kind: "MatchedNode",
       not: node.not,
       bySource: node.bySource
     });
   }
-  transformAddIndex(node) {
+  transformAddIndex(node, queryId) {
     return requireAllProps({
       kind: "AddIndexNode",
-      name: this.transformNode(node.name),
-      columns: this.transformNodeList(node.columns),
+      name: this.transformNode(node.name, queryId),
+      columns: this.transformNodeList(node.columns, queryId),
       unique: node.unique,
-      using: this.transformNode(node.using),
+      using: this.transformNode(node.using, queryId),
       ifNotExists: node.ifNotExists
     });
   }
-  transformCast(node) {
+  transformCast(node, queryId) {
     return requireAllProps({
       kind: "CastNode",
-      expression: this.transformNode(node.expression),
-      dataType: this.transformNode(node.dataType)
+      expression: this.transformNode(node.expression, queryId),
+      dataType: this.transformNode(node.dataType, queryId)
     });
   }
-  transformFetch(node) {
+  transformFetch(node, queryId) {
     return requireAllProps({
       kind: "FetchNode",
-      rowCount: this.transformNode(node.rowCount),
+      rowCount: this.transformNode(node.rowCount, queryId),
       modifier: node.modifier
     });
   }
-  transformTop(node) {
+  transformTop(node, _queryId2) {
     return requireAllProps({
       kind: "TopNode",
       expression: node.expression,
       modifiers: node.modifiers
     });
   }
-  transformOutput(node) {
+  transformOutput(node, queryId) {
     return requireAllProps({
       kind: "OutputNode",
-      selections: this.transformNodeList(node.selections)
+      selections: this.transformNodeList(node.selections, queryId)
     });
   }
-  transformDataType(node) {
+  transformDataType(node, _queryId2) {
     return node;
   }
-  transformSelectAll(node) {
+  transformSelectAll(node, _queryId2) {
     return node;
   }
-  transformIdentifier(node) {
+  transformIdentifier(node, _queryId2) {
     return node;
   }
-  transformValue(node) {
+  transformValue(node, _queryId2) {
     return node;
   }
-  transformPrimitiveValueList(node) {
+  transformPrimitiveValueList(node, _queryId2) {
     return node;
   }
-  transformOperator(node) {
+  transformOperator(node, _queryId2) {
     return node;
   }
-  transformDefaultInsertValue(node) {
+  transformDefaultInsertValue(node, _queryId2) {
+    return node;
+  }
+  transformOrAction(node, _queryId2) {
+    return node;
+  }
+  transformCollate(node, _queryId2) {
     return node;
   }
 }
@@ -16353,6 +16617,7 @@ const ROOT_OPERATION_NODES = freeze({
   CreateTableNode: true,
   CreateTypeNode: true,
   CreateViewNode: true,
+  RefreshMaterializedViewNode: true,
   DeleteQueryNode: true,
   DropIndexNode: true,
   DropSchemaNode: true,
@@ -16365,6 +16630,10 @@ const ROOT_OPERATION_NODES = freeze({
   UpdateQueryNode: true,
   MergeQueryNode: true
 });
+const SCHEMALESS_FUNCTIONS = {
+  json_agg: true,
+  to_json: true
+};
 class WithSchemaTransformer extends OperationNodeTransformer {
   constructor(schema) {
     super();
@@ -16374,9 +16643,9 @@ class WithSchemaTransformer extends OperationNodeTransformer {
     __privateAdd(this, _ctes, /* @__PURE__ */ new Set());
     __privateSet(this, _schema, schema);
   }
-  transformNodeImpl(node) {
+  transformNodeImpl(node, queryId) {
     if (!__privateMethod(this, _WithSchemaTransformer_instances, isRootOperationNode_fn).call(this, node)) {
-      return super.transformNodeImpl(node);
+      return super.transformNodeImpl(node, queryId);
     }
     const ctes = __privateMethod(this, _WithSchemaTransformer_instances, collectCTEs_fn).call(this, node);
     for (const cte of ctes) {
@@ -16386,7 +16655,7 @@ class WithSchemaTransformer extends OperationNodeTransformer {
     for (const table of tables2) {
       __privateGet(this, _schemableIds).add(table);
     }
-    const transformed = super.transformNodeImpl(node);
+    const transformed = super.transformNodeImpl(node, queryId);
     for (const table of tables2) {
       __privateGet(this, _schemableIds).delete(table);
     }
@@ -16395,8 +16664,8 @@ class WithSchemaTransformer extends OperationNodeTransformer {
     }
     return transformed;
   }
-  transformSchemableIdentifier(node) {
-    const transformed = super.transformSchemableIdentifier(node);
+  transformSchemableIdentifier(node, queryId) {
+    const transformed = super.transformSchemableIdentifier(node, queryId);
     if (transformed.schema || !__privateGet(this, _schemableIds).has(node.identifier.name)) {
       return transformed;
     }
@@ -16405,8 +16674,8 @@ class WithSchemaTransformer extends OperationNodeTransformer {
       schema: IdentifierNode.create(__privateGet(this, _schema))
     };
   }
-  transformReferences(node) {
-    const transformed = super.transformReferences(node);
+  transformReferences(node, queryId) {
+    const transformed = super.transformReferences(node, queryId);
     if (transformed.table.table.schema) {
       return transformed;
     }
@@ -16415,11 +16684,29 @@ class WithSchemaTransformer extends OperationNodeTransformer {
       table: TableNode.createWithSchema(__privateGet(this, _schema), transformed.table.table.identifier.name)
     };
   }
+  transformAggregateFunction(node, queryId) {
+    return {
+      ...super.transformAggregateFunction({ ...node, aggregated: [] }, queryId),
+      aggregated: __privateMethod(this, _WithSchemaTransformer_instances, transformTableArgsWithoutSchemas_fn).call(this, node, queryId, "aggregated")
+    };
+  }
+  transformFunction(node, queryId) {
+    return {
+      ...super.transformFunction({ ...node, arguments: [] }, queryId),
+      arguments: __privateMethod(this, _WithSchemaTransformer_instances, transformTableArgsWithoutSchemas_fn).call(this, node, queryId, "arguments")
+    };
+  }
 }
 _schema = new WeakMap();
 _schemableIds = new WeakMap();
 _ctes = new WeakMap();
 _WithSchemaTransformer_instances = new WeakSet();
+transformTableArgsWithoutSchemas_fn = function(node, queryId, argsKey) {
+  return SCHEMALESS_FUNCTIONS[node.func] ? node[argsKey].map((arg) => !TableNode.is(arg) || arg.table.schema ? this.transformNode(arg, queryId) : {
+    ...arg,
+    table: this.transformIdentifier(arg.table.identifier, queryId)
+  }) : this.transformNodeList(node[argsKey], queryId);
+};
 isRootOperationNode_fn = function(node) {
   return node.kind in ROOT_OPERATION_NODES;
 };
@@ -16457,9 +16744,14 @@ collectCTEs_fn = function(node) {
   return ctes;
 };
 collectSchemableIdsFromTableExpr_fn = function(node, schemableIds) {
-  const table = TableNode.is(node) ? node : AliasNode.is(node) && TableNode.is(node.node) ? node.node : null;
-  if (table) {
-    __privateMethod(this, _WithSchemaTransformer_instances, collectSchemableId_fn).call(this, table.table, schemableIds);
+  if (TableNode.is(node)) {
+    __privateMethod(this, _WithSchemaTransformer_instances, collectSchemableId_fn).call(this, node.table, schemableIds);
+  } else if (AliasNode.is(node) && TableNode.is(node.node)) {
+    __privateMethod(this, _WithSchemaTransformer_instances, collectSchemableId_fn).call(this, node.node.table, schemableIds);
+  } else if (ListNode.is(node)) {
+    for (const table of node.items) {
+      __privateMethod(this, _WithSchemaTransformer_instances, collectSchemableIdsFromTableExpr_fn).call(this, table, schemableIds);
+    }
   }
 };
 collectSchemableId_fn = function(node, schemableIds) {
@@ -16482,7 +16774,7 @@ class WithSchemaPlugin {
     __privateSet(this, _transformer, new WithSchemaTransformer(schema));
   }
   transformQuery(args) {
-    return __privateGet(this, _transformer).transformNode(args.node);
+    return __privateGet(this, _transformer).transformNode(args.node, args.queryId);
   }
   async transformResult(args) {
     return args.result;
@@ -16545,13 +16837,17 @@ class Deferred {
 _promise = new WeakMap();
 _resolve = new WeakMap();
 _reject = new WeakMap();
-const LOGGED_MESSAGES = /* @__PURE__ */ new Set();
-function logOnce(message) {
-  if (LOGGED_MESSAGES.has(message)) {
-    return;
-  }
-  LOGGED_MESSAGES.add(message);
-  console.log(message);
+async function provideControlledConnection(connectionProvider) {
+  const connectionDefer = new Deferred();
+  const connectionReleaseDefer = new Deferred();
+  connectionProvider.provideConnection(async (connection) => {
+    connectionDefer.resolve(connection);
+    return await connectionReleaseDefer.promise;
+  }).catch((ex) => connectionDefer.reject(ex));
+  return freeze({
+    connection: await connectionDefer.promise,
+    release: connectionReleaseDefer.resolve
+  });
 }
 const NO_PLUGINS = freeze([]);
 class QueryExecutorBase {
@@ -16582,25 +16878,20 @@ class QueryExecutorBase {
   async executeQuery(compiledQuery, queryId) {
     return await this.provideConnection(async (connection) => {
       const result = await connection.executeQuery(compiledQuery);
-      const transformedResult = await __privateMethod(this, _QueryExecutorBase_instances, transformResult_fn).call(this, result, queryId);
-      warnOfOutdatedDriverOrPlugins(result, transformedResult);
-      return transformedResult;
+      if ("numUpdatedOrDeletedRows" in result) {
+        logOnce("kysely:warning: outdated driver/plugin detected! `QueryResult.numUpdatedOrDeletedRows` has been replaced with `QueryResult.numAffectedRows`.");
+      }
+      return await __privateMethod(this, _QueryExecutorBase_instances, transformResult_fn).call(this, result, queryId);
     });
   }
   async *stream(compiledQuery, chunkSize, queryId) {
-    const connectionDefer = new Deferred();
-    const connectionReleaseDefer = new Deferred();
-    this.provideConnection(async (connection2) => {
-      connectionDefer.resolve(connection2);
-      return await connectionReleaseDefer.promise;
-    }).catch((ex) => connectionDefer.reject(ex));
-    const connection = await connectionDefer.promise;
+    const { connection, release } = await provideControlledConnection(this);
     try {
       for await (const result of connection.streamQuery(compiledQuery, chunkSize)) {
         yield await __privateMethod(this, _QueryExecutorBase_instances, transformResult_fn).call(this, result, queryId);
       }
     } finally {
-      connectionReleaseDefer.resolve();
+      release();
     }
   }
 }
@@ -16612,13 +16903,6 @@ transformResult_fn = async function(result, queryId) {
   }
   return result;
 };
-function warnOfOutdatedDriverOrPlugins(result, transformedResult) {
-  const { numAffectedRows } = result;
-  if (numAffectedRows === void 0 && result.numUpdatedOrDeletedRows === void 0 || numAffectedRows !== void 0 && transformedResult.numAffectedRows !== void 0) {
-    return;
-  }
-  logOnce("kysely:warning: outdated driver/plugin detected! QueryResult.numUpdatedOrDeletedRows is deprecated and will be removed in a future release.");
-}
 class NoopQueryExecutor extends QueryExecutorBase {
   get adapter() {
     throw new Error("this query cannot be compiled to SQL");
@@ -16654,8 +16938,8 @@ class MergeResult {
 }
 const _MergeQueryBuilder = class _MergeQueryBuilder {
   constructor(props) {
-    __privateAdd(this, _props10);
-    __privateSet(this, _props10, freeze(props));
+    __privateAdd(this, _props11);
+    __privateSet(this, _props11, freeze(props));
   }
   /**
    * This can be used to add any additional SQL to the end of the query.
@@ -16682,8 +16966,8 @@ const _MergeQueryBuilder = class _MergeQueryBuilder {
    */
   modifyEnd(modifier) {
     return new _MergeQueryBuilder({
-      ...__privateGet(this, _props10),
-      queryNode: QueryNode.cloneWithEndModifier(__privateGet(this, _props10).queryNode, modifier.toOperationNode())
+      ...__privateGet(this, _props11),
+      queryNode: QueryNode.cloneWithEndModifier(__privateGet(this, _props11).queryNode, modifier.toOperationNode())
     });
   }
   /**
@@ -16735,37 +17019,48 @@ const _MergeQueryBuilder = class _MergeQueryBuilder {
    */
   top(expression, modifiers) {
     return new _MergeQueryBuilder({
-      ...__privateGet(this, _props10),
-      queryNode: QueryNode.cloneWithTop(__privateGet(this, _props10).queryNode, parseTop(expression, modifiers))
+      ...__privateGet(this, _props11),
+      queryNode: QueryNode.cloneWithTop(__privateGet(this, _props11).queryNode, parseTop(expression, modifiers))
     });
   }
   using(...args) {
     return new WheneableMergeQueryBuilder({
-      ...__privateGet(this, _props10),
-      queryNode: MergeQueryNode.cloneWithUsing(__privateGet(this, _props10).queryNode, parseJoin("Using", args))
+      ...__privateGet(this, _props11),
+      queryNode: MergeQueryNode.cloneWithUsing(__privateGet(this, _props11).queryNode, parseJoin("Using", args))
+    });
+  }
+  returning(args) {
+    return new _MergeQueryBuilder({
+      ...__privateGet(this, _props11),
+      queryNode: QueryNode.cloneWithReturning(__privateGet(this, _props11).queryNode, parseSelectArg(args))
+    });
+  }
+  returningAll(table) {
+    return new _MergeQueryBuilder({
+      ...__privateGet(this, _props11),
+      queryNode: QueryNode.cloneWithReturning(__privateGet(this, _props11).queryNode, parseSelectAll(table))
     });
   }
   output(args) {
     return new _MergeQueryBuilder({
-      ...__privateGet(this, _props10),
-      queryNode: QueryNode.cloneWithOutput(__privateGet(this, _props10).queryNode, parseSelectArg(args))
+      ...__privateGet(this, _props11),
+      queryNode: QueryNode.cloneWithOutput(__privateGet(this, _props11).queryNode, parseSelectArg(args))
     });
   }
   outputAll(table) {
     return new _MergeQueryBuilder({
-      ...__privateGet(this, _props10),
-      queryNode: QueryNode.cloneWithOutput(__privateGet(this, _props10).queryNode, parseSelectAll(table))
+      ...__privateGet(this, _props11),
+      queryNode: QueryNode.cloneWithOutput(__privateGet(this, _props11).queryNode, parseSelectAll(table))
     });
   }
 };
-_props10 = new WeakMap();
+_props11 = new WeakMap();
 let MergeQueryBuilder = _MergeQueryBuilder;
-preventAwait(MergeQueryBuilder, "don't await MergeQueryBuilder instances directly. To execute the query you need to call `execute` when available.");
 const _WheneableMergeQueryBuilder = class _WheneableMergeQueryBuilder {
   constructor(props) {
     __privateAdd(this, _WheneableMergeQueryBuilder_instances);
-    __privateAdd(this, _props11);
-    __privateSet(this, _props11, freeze(props));
+    __privateAdd(this, _props12);
+    __privateSet(this, _props12, freeze(props));
   }
   /**
    * This can be used to add any additional SQL to the end of the query.
@@ -16792,8 +17087,8 @@ const _WheneableMergeQueryBuilder = class _WheneableMergeQueryBuilder {
    */
   modifyEnd(modifier) {
     return new _WheneableMergeQueryBuilder({
-      ...__privateGet(this, _props11),
-      queryNode: QueryNode.cloneWithEndModifier(__privateGet(this, _props11).queryNode, modifier.toOperationNode())
+      ...__privateGet(this, _props12),
+      queryNode: QueryNode.cloneWithEndModifier(__privateGet(this, _props12).queryNode, modifier.toOperationNode())
     });
   }
   /**
@@ -16801,8 +17096,8 @@ const _WheneableMergeQueryBuilder = class _WheneableMergeQueryBuilder {
    */
   top(expression, modifiers) {
     return new _WheneableMergeQueryBuilder({
-      ...__privateGet(this, _props11),
-      queryNode: QueryNode.cloneWithTop(__privateGet(this, _props11).queryNode, parseTop(expression, modifiers))
+      ...__privateGet(this, _props12),
+      queryNode: QueryNode.cloneWithTop(__privateGet(this, _props12).queryNode, parseTop(expression, modifiers))
     });
   }
   /**
@@ -16920,16 +17215,28 @@ const _WheneableMergeQueryBuilder = class _WheneableMergeQueryBuilder {
   whenNotMatchedBySourceAndRef(lhs, op, rhs) {
     return __privateMethod(this, _WheneableMergeQueryBuilder_instances, whenNotMatched_fn).call(this, [lhs, op, rhs], true, true);
   }
+  returning(args) {
+    return new _WheneableMergeQueryBuilder({
+      ...__privateGet(this, _props12),
+      queryNode: QueryNode.cloneWithReturning(__privateGet(this, _props12).queryNode, parseSelectArg(args))
+    });
+  }
+  returningAll(table) {
+    return new _WheneableMergeQueryBuilder({
+      ...__privateGet(this, _props12),
+      queryNode: QueryNode.cloneWithReturning(__privateGet(this, _props12).queryNode, parseSelectAll(table))
+    });
+  }
   output(args) {
     return new _WheneableMergeQueryBuilder({
-      ...__privateGet(this, _props11),
-      queryNode: QueryNode.cloneWithOutput(__privateGet(this, _props11).queryNode, parseSelectArg(args))
+      ...__privateGet(this, _props12),
+      queryNode: QueryNode.cloneWithOutput(__privateGet(this, _props12).queryNode, parseSelectArg(args))
     });
   }
   outputAll(table) {
     return new _WheneableMergeQueryBuilder({
-      ...__privateGet(this, _props11),
-      queryNode: QueryNode.cloneWithOutput(__privateGet(this, _props11).queryNode, parseSelectAll(table))
+      ...__privateGet(this, _props12),
+      queryNode: QueryNode.cloneWithOutput(__privateGet(this, _props12).queryNode, parseSelectAll(table))
     });
   }
   /**
@@ -17003,14 +17310,14 @@ const _WheneableMergeQueryBuilder = class _WheneableMergeQueryBuilder {
       return func(this);
     }
     return new _WheneableMergeQueryBuilder({
-      ...__privateGet(this, _props11)
+      ...__privateGet(this, _props12)
     });
   }
   toOperationNode() {
-    return __privateGet(this, _props11).executor.transformQuery(__privateGet(this, _props11).queryNode, __privateGet(this, _props11).queryId);
+    return __privateGet(this, _props12).executor.transformQuery(__privateGet(this, _props12).queryNode, __privateGet(this, _props12).queryId);
   }
   compile() {
-    return __privateGet(this, _props11).executor.compileQuery(this.toOperationNode(), __privateGet(this, _props11).queryId);
+    return __privateGet(this, _props12).executor.compileQuery(this.toOperationNode(), __privateGet(this, _props12).queryId);
   }
   /**
    * Executes the query and returns an array of rows.
@@ -17019,8 +17326,10 @@ const _WheneableMergeQueryBuilder = class _WheneableMergeQueryBuilder {
    */
   async execute() {
     const compiledQuery = this.compile();
-    const result = await __privateGet(this, _props11).executor.executeQuery(compiledQuery, __privateGet(this, _props11).queryId);
-    if (compiledQuery.query.output && __privateGet(this, _props11).executor.adapter.supportsOutput) {
+    const result = await __privateGet(this, _props12).executor.executeQuery(compiledQuery, __privateGet(this, _props12).queryId);
+    const { adapter } = __privateGet(this, _props12).executor;
+    const query = compiledQuery.query;
+    if (query.returning && adapter.supportsReturning || query.output && adapter.supportsOutput) {
       return result.rows;
     }
     return [new MergeResult(result.numAffectedRows)];
@@ -17050,28 +17359,27 @@ const _WheneableMergeQueryBuilder = class _WheneableMergeQueryBuilder {
     return result;
   }
 };
-_props11 = new WeakMap();
+_props12 = new WeakMap();
 _WheneableMergeQueryBuilder_instances = new WeakSet();
 whenMatched_fn = function(args, refRight) {
   return new MatchedThenableMergeQueryBuilder({
-    ...__privateGet(this, _props11),
-    queryNode: MergeQueryNode.cloneWithWhen(__privateGet(this, _props11).queryNode, parseMergeWhen({ isMatched: true }, args, refRight))
+    ...__privateGet(this, _props12),
+    queryNode: MergeQueryNode.cloneWithWhen(__privateGet(this, _props12).queryNode, parseMergeWhen({ isMatched: true }, args, refRight))
   });
 };
 whenNotMatched_fn = function(args, refRight = false, bySource = false) {
   const props = {
-    ...__privateGet(this, _props11),
-    queryNode: MergeQueryNode.cloneWithWhen(__privateGet(this, _props11).queryNode, parseMergeWhen({ isMatched: false, bySource }, args, refRight))
+    ...__privateGet(this, _props12),
+    queryNode: MergeQueryNode.cloneWithWhen(__privateGet(this, _props12).queryNode, parseMergeWhen({ isMatched: false, bySource }, args, refRight))
   };
   const Builder = bySource ? MatchedThenableMergeQueryBuilder : NotMatchedThenableMergeQueryBuilder;
   return new Builder(props);
 };
 let WheneableMergeQueryBuilder = _WheneableMergeQueryBuilder;
-preventAwait(WheneableMergeQueryBuilder, "don't await WheneableMergeQueryBuilder instances directly. To execute the query you need to call `execute`.");
 class MatchedThenableMergeQueryBuilder {
   constructor(props) {
-    __privateAdd(this, _props12);
-    __privateSet(this, _props12, freeze(props));
+    __privateAdd(this, _props13);
+    __privateSet(this, _props13, freeze(props));
   }
   /**
    * Performs the `delete` action.
@@ -17101,8 +17409,8 @@ class MatchedThenableMergeQueryBuilder {
    */
   thenDelete() {
     return new WheneableMergeQueryBuilder({
-      ...__privateGet(this, _props12),
-      queryNode: MergeQueryNode.cloneWithThen(__privateGet(this, _props12).queryNode, parseMergeThen("delete"))
+      ...__privateGet(this, _props13),
+      queryNode: MergeQueryNode.cloneWithThen(__privateGet(this, _props13).queryNode, parseMergeThen("delete"))
     });
   }
   /**
@@ -17135,8 +17443,8 @@ class MatchedThenableMergeQueryBuilder {
    */
   thenDoNothing() {
     return new WheneableMergeQueryBuilder({
-      ...__privateGet(this, _props12),
-      queryNode: MergeQueryNode.cloneWithThen(__privateGet(this, _props12).queryNode, parseMergeThen("do nothing"))
+      ...__privateGet(this, _props13),
+      queryNode: MergeQueryNode.cloneWithThen(__privateGet(this, _props13).queryNode, parseMergeThen("do nothing"))
     });
   }
   /**
@@ -17177,9 +17485,9 @@ class MatchedThenableMergeQueryBuilder {
    */
   thenUpdate(set) {
     return new WheneableMergeQueryBuilder({
-      ...__privateGet(this, _props12),
-      queryNode: MergeQueryNode.cloneWithThen(__privateGet(this, _props12).queryNode, parseMergeThen(set(new UpdateQueryBuilder({
-        queryId: __privateGet(this, _props12).queryId,
+      ...__privateGet(this, _props13),
+      queryNode: MergeQueryNode.cloneWithThen(__privateGet(this, _props13).queryNode, parseMergeThen(set(new UpdateQueryBuilder({
+        queryId: __privateGet(this, _props13).queryId,
         executor: NOOP_QUERY_EXECUTOR,
         queryNode: UpdateQueryNode.createWithoutTable()
       }))))
@@ -17189,12 +17497,11 @@ class MatchedThenableMergeQueryBuilder {
     return this.thenUpdate((ub) => ub.set(...args));
   }
 }
-_props12 = new WeakMap();
-preventAwait(MatchedThenableMergeQueryBuilder, "don't await MatchedThenableMergeQueryBuilder instances directly. To execute the query you need to call `execute` when available.");
+_props13 = new WeakMap();
 class NotMatchedThenableMergeQueryBuilder {
   constructor(props) {
-    __privateAdd(this, _props13);
-    __privateSet(this, _props13, freeze(props));
+    __privateAdd(this, _props14);
+    __privateSet(this, _props14, freeze(props));
   }
   /**
    * Performs the `do nothing` action.
@@ -17224,40 +17531,146 @@ class NotMatchedThenableMergeQueryBuilder {
    */
   thenDoNothing() {
     return new WheneableMergeQueryBuilder({
-      ...__privateGet(this, _props13),
-      queryNode: MergeQueryNode.cloneWithThen(__privateGet(this, _props13).queryNode, parseMergeThen("do nothing"))
+      ...__privateGet(this, _props14),
+      queryNode: MergeQueryNode.cloneWithThen(__privateGet(this, _props14).queryNode, parseMergeThen("do nothing"))
     });
   }
   thenInsertValues(insert) {
     const [columns, values] = parseInsertExpression(insert);
     return new WheneableMergeQueryBuilder({
-      ...__privateGet(this, _props13),
-      queryNode: MergeQueryNode.cloneWithThen(__privateGet(this, _props13).queryNode, parseMergeThen(InsertQueryNode.cloneWith(InsertQueryNode.createWithoutInto(), {
+      ...__privateGet(this, _props14),
+      queryNode: MergeQueryNode.cloneWithThen(__privateGet(this, _props14).queryNode, parseMergeThen(InsertQueryNode.cloneWith(InsertQueryNode.createWithoutInto(), {
         columns,
         values
       })))
     });
   }
 }
-_props13 = new WeakMap();
-preventAwait(NotMatchedThenableMergeQueryBuilder, "don't await NotMatchedThenableMergeQueryBuilder instances directly. To execute the query you need to call `execute` when available.");
+_props14 = new WeakMap();
 const _QueryCreator = class _QueryCreator {
   constructor(props) {
-    __privateAdd(this, _props14);
-    __privateSet(this, _props14, freeze(props));
+    __privateAdd(this, _props15);
+    __privateSet(this, _props15, freeze(props));
   }
+  /**
+   * Creates a `select` query builder for the given table or tables.
+   *
+   * The tables passed to this method are built as the query's `from` clause.
+   *
+   * ### Examples
+   *
+   * Create a select query for one table:
+   *
+   * ```ts
+   * db.selectFrom('person').selectAll()
+   * ```
+   *
+   * The generated SQL (PostgreSQL):
+   *
+   * ```sql
+   * select * from "person"
+   * ```
+   *
+   * Create a select query for one table with an alias:
+   *
+   * ```ts
+   * const persons = await db.selectFrom('person as p')
+   *   .select(['p.id', 'first_name'])
+   *   .execute()
+   *
+   * console.log(persons[0].id)
+   * ```
+   *
+   * The generated SQL (PostgreSQL):
+   *
+   * ```sql
+   * select "p"."id", "first_name" from "person" as "p"
+   * ```
+   *
+   * Create a select query from a subquery:
+   *
+   * ```ts
+   * const persons = await db.selectFrom(
+   *     (eb) => eb.selectFrom('person').select('person.id as identifier').as('p')
+   *   )
+   *   .select('p.identifier')
+   *   .execute()
+   *
+   * console.log(persons[0].identifier)
+   * ```
+   *
+   * The generated SQL (PostgreSQL):
+   *
+   * ```sql
+   * select "p"."identifier",
+   * from (
+   *   select "person"."id" as "identifier" from "person"
+   * ) as p
+   * ```
+   *
+   * Create a select query from raw sql:
+   *
+   * ```ts
+   * import { sql } from 'kysely'
+   *
+   * const items = await db
+   *   .selectFrom(sql<{ one: number }>`(select 1 as one)`.as('q'))
+   *   .select('q.one')
+   *   .execute()
+   *
+   * console.log(items[0].one)
+   * ```
+   *
+   * The generated SQL (PostgreSQL):
+   *
+   * ```sql
+   * select "q"."one",
+   * from (
+   *   select 1 as one
+   * ) as q
+   * ```
+   *
+   * When you use the `sql` tag you need to also provide the result type of the
+   * raw snippet / query so that Kysely can figure out what columns are
+   * available for the rest of the query.
+   *
+   * The `selectFrom` method also accepts an array for multiple tables. All
+   * the above examples can also be used in an array.
+   *
+   * ```ts
+   * import { sql } from 'kysely'
+   *
+   * const items = await db.selectFrom([
+   *     'person as p',
+   *     db.selectFrom('pet').select('pet.species').as('a'),
+   *     sql<{ one: number }>`(select 1 as one)`.as('q')
+   *   ])
+   *   .select(['p.id', 'a.species', 'q.one'])
+   *   .execute()
+   * ```
+   *
+   * The generated SQL (PostgreSQL):
+   *
+   * ```sql
+   * select "p".id, "a"."species", "q"."one"
+   * from
+   *   "person" as "p",
+   *   (select "pet"."species" from "pet") as a,
+   *   (select 1 as one) as "q"
+   * ```
+   */
   selectFrom(from) {
     return createSelectQueryBuilder({
       queryId: createQueryId(),
-      executor: __privateGet(this, _props14).executor,
-      queryNode: SelectQueryNode.createFrom(parseTableExpressionOrList(from), __privateGet(this, _props14).withNode)
+      executor: __privateGet(this, _props15).executor,
+      queryNode: SelectQueryNode.createFrom(parseTableExpressionOrList(from), __privateGet(this, _props15).withNode)
     });
   }
   selectNoFrom(selection) {
     return createSelectQueryBuilder({
       queryId: createQueryId(),
-      executor: __privateGet(this, _props14).executor,
-      queryNode: SelectQueryNode.cloneWithSelections(SelectQueryNode.create(__privateGet(this, _props14).withNode), parseSelectArg(selection))
+      executor: __privateGet(this, _props15).executor,
+      queryNode: SelectQueryNode.cloneWithSelections(SelectQueryNode.create(__privateGet(this, _props15).withNode), parseSelectArg(selection))
     });
   }
   /**
@@ -17301,15 +17714,19 @@ const _QueryCreator = class _QueryCreator {
   insertInto(table) {
     return new InsertQueryBuilder({
       queryId: createQueryId(),
-      executor: __privateGet(this, _props14).executor,
-      queryNode: InsertQueryNode.create(parseTable$1(table), __privateGet(this, _props14).withNode)
+      executor: __privateGet(this, _props15).executor,
+      queryNode: InsertQueryNode.create(parseTable$1(table), __privateGet(this, _props15).withNode)
     });
   }
   /**
-   * Creates a replace query.
+   * Creates a "replace into" query.
    *
-   * A MySQL-only statement similar to {@link InsertQueryBuilder.onDuplicateKeyUpdate}
-   * that deletes and inserts values on collision instead of updating existing rows.
+   * This is only supported by some dialects like MySQL or SQLite.
+   *
+   * Similar to MySQL's {@link InsertQueryBuilder.onDuplicateKeyUpdate} that deletes
+   * and inserts values on collision instead of updating existing rows.
+   *
+   * An alias of SQLite's {@link InsertQueryBuilder.orReplace}.
    *
    * The return value of this query is an instance of {@link InsertResult}. {@link InsertResult}
    * has the {@link InsertResult.insertId | insertId} field that holds the auto incremented id of
@@ -17326,37 +17743,198 @@ const _QueryCreator = class _QueryCreator {
    *     first_name: 'Jennifer',
    *     last_name: 'Aniston'
    *   })
-   *   .executeTakeFirst()
+   *   .executeTakeFirstOrThrow()
    *
    * console.log(result.insertId)
+   * ```
+   *
+   * The generated SQL (MySQL):
+   *
+   * ```sql
+   * replace into `person` (`first_name`, `last_name`) values (?, ?)
    * ```
    */
   replaceInto(table) {
     return new InsertQueryBuilder({
       queryId: createQueryId(),
-      executor: __privateGet(this, _props14).executor,
-      queryNode: InsertQueryNode.create(parseTable$1(table), __privateGet(this, _props14).withNode, true)
+      executor: __privateGet(this, _props15).executor,
+      queryNode: InsertQueryNode.create(parseTable$1(table), __privateGet(this, _props15).withNode, true)
     });
   }
-  deleteFrom(tables2) {
+  /**
+   * Creates a delete query.
+   *
+   * See the {@link DeleteQueryBuilder.where} method for examples on how to specify
+   * a where clause for the delete operation.
+   *
+   * The return value of the query is an instance of {@link DeleteResult}.
+   *
+   * ### Examples
+   *
+   * <!-- siteExample("delete", "Single row", 10) -->
+   *
+   * Delete a single row:
+   *
+   * ```ts
+   * const result = await db
+   *   .deleteFrom('person')
+   *   .where('person.id', '=', 1)
+   *   .executeTakeFirst()
+   *
+   * console.log(result.numDeletedRows)
+   * ```
+   *
+   * The generated SQL (PostgreSQL):
+   *
+   * ```sql
+   * delete from "person" where "person"."id" = $1
+   * ```
+   *
+   * Some databases such as MySQL support deleting from multiple tables:
+   *
+   * ```ts
+   * const result = await db
+   *   .deleteFrom(['person', 'pet'])
+   *   .using('person')
+   *   .innerJoin('pet', 'pet.owner_id', 'person.id')
+   *   .where('person.id', '=', 1)
+   *   .executeTakeFirst()
+   * ```
+   *
+   * The generated SQL (MySQL):
+   *
+   * ```sql
+   * delete from `person`, `pet`
+   * using `person`
+   * inner join `pet` on `pet`.`owner_id` = `person`.`id`
+   * where `person`.`id` = ?
+   * ```
+   */
+  deleteFrom(from) {
     return new DeleteQueryBuilder({
       queryId: createQueryId(),
-      executor: __privateGet(this, _props14).executor,
-      queryNode: DeleteQueryNode.create(parseTableExpressionOrList(tables2), __privateGet(this, _props14).withNode)
+      executor: __privateGet(this, _props15).executor,
+      queryNode: DeleteQueryNode.create(parseTableExpressionOrList(from), __privateGet(this, _props15).withNode)
     });
   }
-  updateTable(table) {
+  /**
+   * Creates an update query.
+   *
+   * See the {@link UpdateQueryBuilder.where} method for examples on how to specify
+   * a where clause for the update operation.
+   *
+   * See the {@link UpdateQueryBuilder.set} method for examples on how to
+   * specify the updates.
+   *
+   * The return value of the query is an {@link UpdateResult}.
+   *
+   * ### Examples
+   *
+   * ```ts
+   * const result = await db
+   *   .updateTable('person')
+   *   .set({ first_name: 'Jennifer' })
+   *   .where('person.id', '=', 1)
+   *   .executeTakeFirst()
+   *
+   * console.log(result.numUpdatedRows)
+   * ```
+   */
+  updateTable(tables2) {
     return new UpdateQueryBuilder({
       queryId: createQueryId(),
-      executor: __privateGet(this, _props14).executor,
-      queryNode: UpdateQueryNode.create(parseTableExpression(table), __privateGet(this, _props14).withNode)
+      executor: __privateGet(this, _props15).executor,
+      queryNode: UpdateQueryNode.create(parseTableExpressionOrList(tables2), __privateGet(this, _props15).withNode)
     });
   }
+  /**
+   * Creates a merge query.
+   *
+   * The return value of the query is a {@link MergeResult}.
+   *
+   * See the {@link MergeQueryBuilder.using} method for examples on how to specify
+   * the other table.
+   *
+   * ### Examples
+   *
+   * <!-- siteExample("merge", "Source row existence", 10) -->
+   *
+   * Update a target column based on the existence of a source row:
+   *
+   * ```ts
+   * const result = await db
+   *   .mergeInto('person as target')
+   *   .using('pet as source', 'source.owner_id', 'target.id')
+   *   .whenMatchedAnd('target.has_pets', '!=', 'Y')
+   *   .thenUpdateSet({ has_pets: 'Y' })
+   *   .whenNotMatchedBySourceAnd('target.has_pets', '=', 'Y')
+   *   .thenUpdateSet({ has_pets: 'N' })
+   *   .executeTakeFirstOrThrow()
+   *
+   * console.log(result.numChangedRows)
+   * ```
+   *
+   * The generated SQL (PostgreSQL):
+   *
+   * ```sql
+   * merge into "person"
+   * using "pet"
+   * on "pet"."owner_id" = "person"."id"
+   * when matched and "has_pets" != $1
+   * then update set "has_pets" = $2
+   * when not matched by source and "has_pets" = $3
+   * then update set "has_pets" = $4
+   * ```
+   *
+   * <!-- siteExample("merge", "Temporary changes table", 20) -->
+   *
+   * Merge new entries from a temporary changes table:
+   *
+   * ```ts
+   * const result = await db
+   *   .mergeInto('wine as target')
+   *   .using(
+   *     'wine_stock_change as source',
+   *     'source.wine_name',
+   *     'target.name',
+   *   )
+   *   .whenNotMatchedAnd('source.stock_delta', '>', 0)
+   *   .thenInsertValues(({ ref }) => ({
+   *     name: ref('source.wine_name'),
+   *     stock: ref('source.stock_delta'),
+   *   }))
+   *   .whenMatchedAnd(
+   *     (eb) => eb('target.stock', '+', eb.ref('source.stock_delta')),
+   *     '>',
+   *     0,
+   *   )
+   *   .thenUpdateSet('stock', (eb) =>
+   *     eb('target.stock', '+', eb.ref('source.stock_delta')),
+   *   )
+   *   .whenMatched()
+   *   .thenDelete()
+   *   .executeTakeFirstOrThrow()
+   * ```
+   *
+   * The generated SQL (PostgreSQL):
+   *
+   * ```sql
+   * merge into "wine" as "target"
+   * using "wine_stock_change" as "source"
+   * on "source"."wine_name" = "target"."name"
+   * when not matched and "source"."stock_delta" > $1
+   * then insert ("name", "stock") values ("source"."wine_name", "source"."stock_delta")
+   * when matched and "target"."stock" + "source"."stock_delta" > $2
+   * then update set "stock" = "target"."stock" + "source"."stock_delta"
+   * when matched
+   * then delete
+   * ```
+   */
   mergeInto(targetTable) {
     return new MergeQueryBuilder({
       queryId: createQueryId(),
-      executor: __privateGet(this, _props14).executor,
-      queryNode: MergeQueryNode.create(parseAliasedTable(targetTable), __privateGet(this, _props14).withNode)
+      executor: __privateGet(this, _props15).executor,
+      queryNode: MergeQueryNode.create(parseAliasedTable(targetTable), __privateGet(this, _props15).withNode)
     });
   }
   /**
@@ -17473,8 +18051,8 @@ const _QueryCreator = class _QueryCreator {
   with(nameOrBuilder, expression) {
     const cte = parseCommonTableExpression(nameOrBuilder, expression);
     return new _QueryCreator({
-      ...__privateGet(this, _props14),
-      withNode: __privateGet(this, _props14).withNode ? WithNode.cloneWithExpression(__privateGet(this, _props14).withNode, cte) : WithNode.create(cte)
+      ...__privateGet(this, _props15),
+      withNode: __privateGet(this, _props15).withNode ? WithNode.cloneWithExpression(__privateGet(this, _props15).withNode, cte) : WithNode.create(cte)
     });
   }
   /**
@@ -17490,8 +18068,8 @@ const _QueryCreator = class _QueryCreator {
   withRecursive(nameOrBuilder, expression) {
     const cte = parseCommonTableExpression(nameOrBuilder, expression);
     return new _QueryCreator({
-      ...__privateGet(this, _props14),
-      withNode: __privateGet(this, _props14).withNode ? WithNode.cloneWithExpression(__privateGet(this, _props14).withNode, cte) : WithNode.create(cte, { recursive: true })
+      ...__privateGet(this, _props15),
+      withNode: __privateGet(this, _props15).withNode ? WithNode.cloneWithExpression(__privateGet(this, _props15).withNode, cte) : WithNode.create(cte, { recursive: true })
     });
   }
   /**
@@ -17499,8 +18077,8 @@ const _QueryCreator = class _QueryCreator {
    */
   withPlugin(plugin) {
     return new _QueryCreator({
-      ...__privateGet(this, _props14),
-      executor: __privateGet(this, _props14).executor.withPlugin(plugin)
+      ...__privateGet(this, _props15),
+      executor: __privateGet(this, _props15).executor.withPlugin(plugin)
     });
   }
   /**
@@ -17508,8 +18086,8 @@ const _QueryCreator = class _QueryCreator {
    */
   withoutPlugins() {
     return new _QueryCreator({
-      ...__privateGet(this, _props14),
-      executor: __privateGet(this, _props14).executor.withoutPlugins()
+      ...__privateGet(this, _props15),
+      executor: __privateGet(this, _props15).executor.withoutPlugins()
     });
   }
   /**
@@ -17561,12 +18139,12 @@ const _QueryCreator = class _QueryCreator {
    */
   withSchema(schema) {
     return new _QueryCreator({
-      ...__privateGet(this, _props14),
-      executor: __privateGet(this, _props14).executor.withPluginAtFront(new WithSchemaPlugin(schema))
+      ...__privateGet(this, _props15),
+      executor: __privateGet(this, _props15).executor.withPluginAtFront(new WithSchemaPlugin(schema))
     });
   }
 };
-_props14 = new WeakMap();
+_props15 = new WeakMap();
 let QueryCreator = _QueryCreator;
 function createQueryCreator() {
   return new QueryCreator({
@@ -17588,6 +18166,8 @@ function parseJoin(joinType, args) {
     return parseSingleOnJoin(joinType, args[0], args[1], args[2]);
   } else if (args.length === 2) {
     return parseCallbackJoin(joinType, args[0], args[1]);
+  } else if (args.length === 1) {
+    return parseOnlessJoin(joinType, args[0]);
   } else {
     throw new Error("not implemented");
   }
@@ -17597,6 +18177,9 @@ function parseCallbackJoin(joinType, from, callback) {
 }
 function parseSingleOnJoin(joinType, from, lhsColumn, rhsColumn) {
   return JoinNode.createWithOn(joinType, parseTableExpression(from), parseReferentialBinaryOperation(lhsColumn, "=", rhsColumn));
+}
+function parseOnlessJoin(joinType, from) {
+  return JoinNode.create(joinType, parseTableExpression(from));
 }
 const OffsetNode = freeze({
   is(node) {
@@ -17798,8 +18381,9 @@ function isFetchModifier(value) {
 }
 const _SelectQueryBuilderImpl = class _SelectQueryBuilderImpl {
   constructor(props) {
-    __privateAdd(this, _props15);
-    __privateSet(this, _props15, freeze(props));
+    __privateAdd(this, _SelectQueryBuilderImpl_instances);
+    __privateAdd(this, _props16);
+    __privateSet(this, _props16, freeze(props));
   }
   get expressionType() {
     return void 0;
@@ -17809,206 +18393,200 @@ const _SelectQueryBuilderImpl = class _SelectQueryBuilderImpl {
   }
   where(...args) {
     return new _SelectQueryBuilderImpl({
-      ...__privateGet(this, _props15),
-      queryNode: QueryNode.cloneWithWhere(__privateGet(this, _props15).queryNode, parseValueBinaryOperationOrExpression(args))
+      ...__privateGet(this, _props16),
+      queryNode: QueryNode.cloneWithWhere(__privateGet(this, _props16).queryNode, parseValueBinaryOperationOrExpression(args))
     });
   }
   whereRef(lhs, op, rhs) {
     return new _SelectQueryBuilderImpl({
-      ...__privateGet(this, _props15),
-      queryNode: QueryNode.cloneWithWhere(__privateGet(this, _props15).queryNode, parseReferentialBinaryOperation(lhs, op, rhs))
+      ...__privateGet(this, _props16),
+      queryNode: QueryNode.cloneWithWhere(__privateGet(this, _props16).queryNode, parseReferentialBinaryOperation(lhs, op, rhs))
     });
   }
   having(...args) {
     return new _SelectQueryBuilderImpl({
-      ...__privateGet(this, _props15),
-      queryNode: SelectQueryNode.cloneWithHaving(__privateGet(this, _props15).queryNode, parseValueBinaryOperationOrExpression(args))
+      ...__privateGet(this, _props16),
+      queryNode: SelectQueryNode.cloneWithHaving(__privateGet(this, _props16).queryNode, parseValueBinaryOperationOrExpression(args))
     });
   }
   havingRef(lhs, op, rhs) {
     return new _SelectQueryBuilderImpl({
-      ...__privateGet(this, _props15),
-      queryNode: SelectQueryNode.cloneWithHaving(__privateGet(this, _props15).queryNode, parseReferentialBinaryOperation(lhs, op, rhs))
+      ...__privateGet(this, _props16),
+      queryNode: SelectQueryNode.cloneWithHaving(__privateGet(this, _props16).queryNode, parseReferentialBinaryOperation(lhs, op, rhs))
     });
   }
   select(selection) {
     return new _SelectQueryBuilderImpl({
-      ...__privateGet(this, _props15),
-      queryNode: SelectQueryNode.cloneWithSelections(__privateGet(this, _props15).queryNode, parseSelectArg(selection))
+      ...__privateGet(this, _props16),
+      queryNode: SelectQueryNode.cloneWithSelections(__privateGet(this, _props16).queryNode, parseSelectArg(selection))
     });
   }
   distinctOn(selection) {
     return new _SelectQueryBuilderImpl({
-      ...__privateGet(this, _props15),
-      queryNode: SelectQueryNode.cloneWithDistinctOn(__privateGet(this, _props15).queryNode, parseReferenceExpressionOrList(selection))
+      ...__privateGet(this, _props16),
+      queryNode: SelectQueryNode.cloneWithDistinctOn(__privateGet(this, _props16).queryNode, parseReferenceExpressionOrList(selection))
     });
   }
   modifyFront(modifier) {
     return new _SelectQueryBuilderImpl({
-      ...__privateGet(this, _props15),
-      queryNode: SelectQueryNode.cloneWithFrontModifier(__privateGet(this, _props15).queryNode, SelectModifierNode.createWithExpression(modifier.toOperationNode()))
+      ...__privateGet(this, _props16),
+      queryNode: SelectQueryNode.cloneWithFrontModifier(__privateGet(this, _props16).queryNode, SelectModifierNode.createWithExpression(modifier.toOperationNode()))
     });
   }
   modifyEnd(modifier) {
     return new _SelectQueryBuilderImpl({
-      ...__privateGet(this, _props15),
-      queryNode: QueryNode.cloneWithEndModifier(__privateGet(this, _props15).queryNode, SelectModifierNode.createWithExpression(modifier.toOperationNode()))
+      ...__privateGet(this, _props16),
+      queryNode: QueryNode.cloneWithEndModifier(__privateGet(this, _props16).queryNode, SelectModifierNode.createWithExpression(modifier.toOperationNode()))
     });
   }
   distinct() {
     return new _SelectQueryBuilderImpl({
-      ...__privateGet(this, _props15),
-      queryNode: SelectQueryNode.cloneWithFrontModifier(__privateGet(this, _props15).queryNode, SelectModifierNode.create("Distinct"))
+      ...__privateGet(this, _props16),
+      queryNode: SelectQueryNode.cloneWithFrontModifier(__privateGet(this, _props16).queryNode, SelectModifierNode.create("Distinct"))
     });
   }
   forUpdate(of) {
     return new _SelectQueryBuilderImpl({
-      ...__privateGet(this, _props15),
-      queryNode: QueryNode.cloneWithEndModifier(__privateGet(this, _props15).queryNode, SelectModifierNode.create("ForUpdate", of ? asArray$1(of).map(parseTable$1) : void 0))
+      ...__privateGet(this, _props16),
+      queryNode: QueryNode.cloneWithEndModifier(__privateGet(this, _props16).queryNode, SelectModifierNode.create("ForUpdate", of ? asArray$1(of).map(parseTable$1) : void 0))
     });
   }
   forShare(of) {
     return new _SelectQueryBuilderImpl({
-      ...__privateGet(this, _props15),
-      queryNode: QueryNode.cloneWithEndModifier(__privateGet(this, _props15).queryNode, SelectModifierNode.create("ForShare", of ? asArray$1(of).map(parseTable$1) : void 0))
+      ...__privateGet(this, _props16),
+      queryNode: QueryNode.cloneWithEndModifier(__privateGet(this, _props16).queryNode, SelectModifierNode.create("ForShare", of ? asArray$1(of).map(parseTable$1) : void 0))
     });
   }
   forKeyShare(of) {
     return new _SelectQueryBuilderImpl({
-      ...__privateGet(this, _props15),
-      queryNode: QueryNode.cloneWithEndModifier(__privateGet(this, _props15).queryNode, SelectModifierNode.create("ForKeyShare", of ? asArray$1(of).map(parseTable$1) : void 0))
+      ...__privateGet(this, _props16),
+      queryNode: QueryNode.cloneWithEndModifier(__privateGet(this, _props16).queryNode, SelectModifierNode.create("ForKeyShare", of ? asArray$1(of).map(parseTable$1) : void 0))
     });
   }
   forNoKeyUpdate(of) {
     return new _SelectQueryBuilderImpl({
-      ...__privateGet(this, _props15),
-      queryNode: QueryNode.cloneWithEndModifier(__privateGet(this, _props15).queryNode, SelectModifierNode.create("ForNoKeyUpdate", of ? asArray$1(of).map(parseTable$1) : void 0))
+      ...__privateGet(this, _props16),
+      queryNode: QueryNode.cloneWithEndModifier(__privateGet(this, _props16).queryNode, SelectModifierNode.create("ForNoKeyUpdate", of ? asArray$1(of).map(parseTable$1) : void 0))
     });
   }
   skipLocked() {
     return new _SelectQueryBuilderImpl({
-      ...__privateGet(this, _props15),
-      queryNode: QueryNode.cloneWithEndModifier(__privateGet(this, _props15).queryNode, SelectModifierNode.create("SkipLocked"))
+      ...__privateGet(this, _props16),
+      queryNode: QueryNode.cloneWithEndModifier(__privateGet(this, _props16).queryNode, SelectModifierNode.create("SkipLocked"))
     });
   }
   noWait() {
     return new _SelectQueryBuilderImpl({
-      ...__privateGet(this, _props15),
-      queryNode: QueryNode.cloneWithEndModifier(__privateGet(this, _props15).queryNode, SelectModifierNode.create("NoWait"))
+      ...__privateGet(this, _props16),
+      queryNode: QueryNode.cloneWithEndModifier(__privateGet(this, _props16).queryNode, SelectModifierNode.create("NoWait"))
     });
   }
   selectAll(table) {
     return new _SelectQueryBuilderImpl({
-      ...__privateGet(this, _props15),
-      queryNode: SelectQueryNode.cloneWithSelections(__privateGet(this, _props15).queryNode, parseSelectAll(table))
+      ...__privateGet(this, _props16),
+      queryNode: SelectQueryNode.cloneWithSelections(__privateGet(this, _props16).queryNode, parseSelectAll(table))
     });
   }
   innerJoin(...args) {
-    return new _SelectQueryBuilderImpl({
-      ...__privateGet(this, _props15),
-      queryNode: QueryNode.cloneWithJoin(__privateGet(this, _props15).queryNode, parseJoin("InnerJoin", args))
-    });
+    return __privateMethod(this, _SelectQueryBuilderImpl_instances, join_fn3).call(this, "InnerJoin", args);
   }
   leftJoin(...args) {
-    return new _SelectQueryBuilderImpl({
-      ...__privateGet(this, _props15),
-      queryNode: QueryNode.cloneWithJoin(__privateGet(this, _props15).queryNode, parseJoin("LeftJoin", args))
-    });
+    return __privateMethod(this, _SelectQueryBuilderImpl_instances, join_fn3).call(this, "LeftJoin", args);
   }
   rightJoin(...args) {
-    return new _SelectQueryBuilderImpl({
-      ...__privateGet(this, _props15),
-      queryNode: QueryNode.cloneWithJoin(__privateGet(this, _props15).queryNode, parseJoin("RightJoin", args))
-    });
+    return __privateMethod(this, _SelectQueryBuilderImpl_instances, join_fn3).call(this, "RightJoin", args);
   }
   fullJoin(...args) {
-    return new _SelectQueryBuilderImpl({
-      ...__privateGet(this, _props15),
-      queryNode: QueryNode.cloneWithJoin(__privateGet(this, _props15).queryNode, parseJoin("FullJoin", args))
-    });
+    return __privateMethod(this, _SelectQueryBuilderImpl_instances, join_fn3).call(this, "FullJoin", args);
+  }
+  crossJoin(...args) {
+    return __privateMethod(this, _SelectQueryBuilderImpl_instances, join_fn3).call(this, "CrossJoin", args);
   }
   innerJoinLateral(...args) {
-    return new _SelectQueryBuilderImpl({
-      ...__privateGet(this, _props15),
-      queryNode: QueryNode.cloneWithJoin(__privateGet(this, _props15).queryNode, parseJoin("LateralInnerJoin", args))
-    });
+    return __privateMethod(this, _SelectQueryBuilderImpl_instances, join_fn3).call(this, "LateralInnerJoin", args);
   }
   leftJoinLateral(...args) {
-    return new _SelectQueryBuilderImpl({
-      ...__privateGet(this, _props15),
-      queryNode: QueryNode.cloneWithJoin(__privateGet(this, _props15).queryNode, parseJoin("LateralLeftJoin", args))
-    });
+    return __privateMethod(this, _SelectQueryBuilderImpl_instances, join_fn3).call(this, "LateralLeftJoin", args);
+  }
+  crossJoinLateral(...args) {
+    return __privateMethod(this, _SelectQueryBuilderImpl_instances, join_fn3).call(this, "LateralCrossJoin", args);
+  }
+  crossApply(...args) {
+    return __privateMethod(this, _SelectQueryBuilderImpl_instances, join_fn3).call(this, "CrossApply", args);
+  }
+  outerApply(...args) {
+    return __privateMethod(this, _SelectQueryBuilderImpl_instances, join_fn3).call(this, "OuterApply", args);
   }
   orderBy(...args) {
     return new _SelectQueryBuilderImpl({
-      ...__privateGet(this, _props15),
-      queryNode: SelectQueryNode.cloneWithOrderByItems(__privateGet(this, _props15).queryNode, parseOrderBy(args))
+      ...__privateGet(this, _props16),
+      queryNode: QueryNode.cloneWithOrderByItems(__privateGet(this, _props16).queryNode, parseOrderBy(args))
     });
   }
   groupBy(groupBy) {
     return new _SelectQueryBuilderImpl({
-      ...__privateGet(this, _props15),
-      queryNode: SelectQueryNode.cloneWithGroupByItems(__privateGet(this, _props15).queryNode, parseGroupBy(groupBy))
+      ...__privateGet(this, _props16),
+      queryNode: SelectQueryNode.cloneWithGroupByItems(__privateGet(this, _props16).queryNode, parseGroupBy(groupBy))
     });
   }
   limit(limit) {
     return new _SelectQueryBuilderImpl({
-      ...__privateGet(this, _props15),
-      queryNode: SelectQueryNode.cloneWithLimit(__privateGet(this, _props15).queryNode, LimitNode.create(parseValueExpression(limit)))
+      ...__privateGet(this, _props16),
+      queryNode: SelectQueryNode.cloneWithLimit(__privateGet(this, _props16).queryNode, LimitNode.create(parseValueExpression(limit)))
     });
   }
   offset(offset) {
     return new _SelectQueryBuilderImpl({
-      ...__privateGet(this, _props15),
-      queryNode: SelectQueryNode.cloneWithOffset(__privateGet(this, _props15).queryNode, OffsetNode.create(parseValueExpression(offset)))
+      ...__privateGet(this, _props16),
+      queryNode: SelectQueryNode.cloneWithOffset(__privateGet(this, _props16).queryNode, OffsetNode.create(parseValueExpression(offset)))
     });
   }
   fetch(rowCount, modifier = "only") {
     return new _SelectQueryBuilderImpl({
-      ...__privateGet(this, _props15),
-      queryNode: SelectQueryNode.cloneWithFetch(__privateGet(this, _props15).queryNode, parseFetch(rowCount, modifier))
+      ...__privateGet(this, _props16),
+      queryNode: SelectQueryNode.cloneWithFetch(__privateGet(this, _props16).queryNode, parseFetch(rowCount, modifier))
     });
   }
   top(expression, modifiers) {
     return new _SelectQueryBuilderImpl({
-      ...__privateGet(this, _props15),
-      queryNode: QueryNode.cloneWithTop(__privateGet(this, _props15).queryNode, parseTop(expression, modifiers))
+      ...__privateGet(this, _props16),
+      queryNode: QueryNode.cloneWithTop(__privateGet(this, _props16).queryNode, parseTop(expression, modifiers))
     });
   }
   union(expression) {
     return new _SelectQueryBuilderImpl({
-      ...__privateGet(this, _props15),
-      queryNode: SelectQueryNode.cloneWithSetOperations(__privateGet(this, _props15).queryNode, parseSetOperations("union", expression, false))
+      ...__privateGet(this, _props16),
+      queryNode: SelectQueryNode.cloneWithSetOperations(__privateGet(this, _props16).queryNode, parseSetOperations("union", expression, false))
     });
   }
   unionAll(expression) {
     return new _SelectQueryBuilderImpl({
-      ...__privateGet(this, _props15),
-      queryNode: SelectQueryNode.cloneWithSetOperations(__privateGet(this, _props15).queryNode, parseSetOperations("union", expression, true))
+      ...__privateGet(this, _props16),
+      queryNode: SelectQueryNode.cloneWithSetOperations(__privateGet(this, _props16).queryNode, parseSetOperations("union", expression, true))
     });
   }
   intersect(expression) {
     return new _SelectQueryBuilderImpl({
-      ...__privateGet(this, _props15),
-      queryNode: SelectQueryNode.cloneWithSetOperations(__privateGet(this, _props15).queryNode, parseSetOperations("intersect", expression, false))
+      ...__privateGet(this, _props16),
+      queryNode: SelectQueryNode.cloneWithSetOperations(__privateGet(this, _props16).queryNode, parseSetOperations("intersect", expression, false))
     });
   }
   intersectAll(expression) {
     return new _SelectQueryBuilderImpl({
-      ...__privateGet(this, _props15),
-      queryNode: SelectQueryNode.cloneWithSetOperations(__privateGet(this, _props15).queryNode, parseSetOperations("intersect", expression, true))
+      ...__privateGet(this, _props16),
+      queryNode: SelectQueryNode.cloneWithSetOperations(__privateGet(this, _props16).queryNode, parseSetOperations("intersect", expression, true))
     });
   }
   except(expression) {
     return new _SelectQueryBuilderImpl({
-      ...__privateGet(this, _props15),
-      queryNode: SelectQueryNode.cloneWithSetOperations(__privateGet(this, _props15).queryNode, parseSetOperations("except", expression, false))
+      ...__privateGet(this, _props16),
+      queryNode: SelectQueryNode.cloneWithSetOperations(__privateGet(this, _props16).queryNode, parseSetOperations("except", expression, false))
     });
   }
   exceptAll(expression) {
     return new _SelectQueryBuilderImpl({
-      ...__privateGet(this, _props15),
-      queryNode: SelectQueryNode.cloneWithSetOperations(__privateGet(this, _props15).queryNode, parseSetOperations("except", expression, true))
+      ...__privateGet(this, _props16),
+      queryNode: SelectQueryNode.cloneWithSetOperations(__privateGet(this, _props16).queryNode, parseSetOperations("except", expression, true))
     });
   }
   as(alias) {
@@ -18016,38 +18594,38 @@ const _SelectQueryBuilderImpl = class _SelectQueryBuilderImpl {
   }
   clearSelect() {
     return new _SelectQueryBuilderImpl({
-      ...__privateGet(this, _props15),
-      queryNode: SelectQueryNode.cloneWithoutSelections(__privateGet(this, _props15).queryNode)
+      ...__privateGet(this, _props16),
+      queryNode: SelectQueryNode.cloneWithoutSelections(__privateGet(this, _props16).queryNode)
     });
   }
   clearWhere() {
     return new _SelectQueryBuilderImpl({
-      ...__privateGet(this, _props15),
-      queryNode: QueryNode.cloneWithoutWhere(__privateGet(this, _props15).queryNode)
+      ...__privateGet(this, _props16),
+      queryNode: QueryNode.cloneWithoutWhere(__privateGet(this, _props16).queryNode)
     });
   }
   clearLimit() {
     return new _SelectQueryBuilderImpl({
-      ...__privateGet(this, _props15),
-      queryNode: SelectQueryNode.cloneWithoutLimit(__privateGet(this, _props15).queryNode)
+      ...__privateGet(this, _props16),
+      queryNode: SelectQueryNode.cloneWithoutLimit(__privateGet(this, _props16).queryNode)
     });
   }
   clearOffset() {
     return new _SelectQueryBuilderImpl({
-      ...__privateGet(this, _props15),
-      queryNode: SelectQueryNode.cloneWithoutOffset(__privateGet(this, _props15).queryNode)
+      ...__privateGet(this, _props16),
+      queryNode: SelectQueryNode.cloneWithoutOffset(__privateGet(this, _props16).queryNode)
     });
   }
   clearOrderBy() {
     return new _SelectQueryBuilderImpl({
-      ...__privateGet(this, _props15),
-      queryNode: SelectQueryNode.cloneWithoutOrderBy(__privateGet(this, _props15).queryNode)
+      ...__privateGet(this, _props16),
+      queryNode: QueryNode.cloneWithoutOrderBy(__privateGet(this, _props16).queryNode)
     });
   }
   clearGroupBy() {
     return new _SelectQueryBuilderImpl({
-      ...__privateGet(this, _props15),
-      queryNode: SelectQueryNode.cloneWithoutGroupBy(__privateGet(this, _props15).queryNode)
+      ...__privateGet(this, _props16),
+      queryNode: SelectQueryNode.cloneWithoutGroupBy(__privateGet(this, _props16).queryNode)
     });
   }
   $call(func) {
@@ -18058,36 +18636,39 @@ const _SelectQueryBuilderImpl = class _SelectQueryBuilderImpl {
       return func(this);
     }
     return new _SelectQueryBuilderImpl({
-      ...__privateGet(this, _props15)
+      ...__privateGet(this, _props16)
     });
   }
   $castTo() {
-    return new _SelectQueryBuilderImpl(__privateGet(this, _props15));
+    return new _SelectQueryBuilderImpl(__privateGet(this, _props16));
   }
   $narrowType() {
-    return new _SelectQueryBuilderImpl(__privateGet(this, _props15));
+    return new _SelectQueryBuilderImpl(__privateGet(this, _props16));
   }
   $assertType() {
-    return new _SelectQueryBuilderImpl(__privateGet(this, _props15));
+    return new _SelectQueryBuilderImpl(__privateGet(this, _props16));
   }
   $asTuple() {
     return new ExpressionWrapper(this.toOperationNode());
   }
+  $asScalar() {
+    return new ExpressionWrapper(this.toOperationNode());
+  }
   withPlugin(plugin) {
     return new _SelectQueryBuilderImpl({
-      ...__privateGet(this, _props15),
-      executor: __privateGet(this, _props15).executor.withPlugin(plugin)
+      ...__privateGet(this, _props16),
+      executor: __privateGet(this, _props16).executor.withPlugin(plugin)
     });
   }
   toOperationNode() {
-    return __privateGet(this, _props15).executor.transformQuery(__privateGet(this, _props15).queryNode, __privateGet(this, _props15).queryId);
+    return __privateGet(this, _props16).executor.transformQuery(__privateGet(this, _props16).queryNode, __privateGet(this, _props16).queryId);
   }
   compile() {
-    return __privateGet(this, _props15).executor.compileQuery(this.toOperationNode(), __privateGet(this, _props15).queryId);
+    return __privateGet(this, _props16).executor.compileQuery(this.toOperationNode(), __privateGet(this, _props16).queryId);
   }
   async execute() {
     const compiledQuery = this.compile();
-    const result = await __privateGet(this, _props15).executor.executeQuery(compiledQuery, __privateGet(this, _props15).queryId);
+    const result = await __privateGet(this, _props16).executor.executeQuery(compiledQuery, __privateGet(this, _props16).queryId);
     return result.rows;
   }
   async executeTakeFirst() {
@@ -18104,22 +18685,28 @@ const _SelectQueryBuilderImpl = class _SelectQueryBuilderImpl {
   }
   async *stream(chunkSize = 100) {
     const compiledQuery = this.compile();
-    const stream = __privateGet(this, _props15).executor.stream(compiledQuery, chunkSize, __privateGet(this, _props15).queryId);
+    const stream = __privateGet(this, _props16).executor.stream(compiledQuery, chunkSize, __privateGet(this, _props16).queryId);
     for await (const item of stream) {
       yield* item.rows;
     }
   }
   async explain(format, options) {
     const builder = new _SelectQueryBuilderImpl({
-      ...__privateGet(this, _props15),
-      queryNode: QueryNode.cloneWithExplain(__privateGet(this, _props15).queryNode, format, options)
+      ...__privateGet(this, _props16),
+      queryNode: QueryNode.cloneWithExplain(__privateGet(this, _props16).queryNode, format, options)
     });
     return await builder.execute();
   }
 };
-_props15 = new WeakMap();
+_props16 = new WeakMap();
+_SelectQueryBuilderImpl_instances = new WeakSet();
+join_fn3 = function(joinType, args) {
+  return new _SelectQueryBuilderImpl({
+    ...__privateGet(this, _props16),
+    queryNode: QueryNode.cloneWithJoin(__privateGet(this, _props16).queryNode, parseJoin(joinType, args))
+  });
+};
 let SelectQueryBuilderImpl = _SelectQueryBuilderImpl;
-preventAwait(SelectQueryBuilderImpl, "don't await SelectQueryBuilder instances directly. To execute the query you need to call `execute` or `executeTakeFirst`.");
 function createSelectQueryBuilder(props) {
   return new SelectQueryBuilderImpl(props);
 }
@@ -18145,7 +18732,6 @@ class AliasedSelectQueryBuilderImpl {
 }
 _queryBuilder = new WeakMap();
 _alias2 = new WeakMap();
-preventAwait(AliasedSelectQueryBuilderImpl, "don't await AliasedSelectQueryBuilder instances directly. AliasedSelectQueryBuilder should never be executed directly since it's always a part of another query.");
 const AggregateFunctionNode = freeze({
   is(node) {
     return node.kind === "AggregateFunctionNode";
@@ -18163,10 +18749,11 @@ const AggregateFunctionNode = freeze({
       distinct: true
     });
   },
-  cloneWithOrderBy(aggregateFunctionNode, orderItems) {
+  cloneWithOrderBy(aggregateFunctionNode, orderItems, withinGroup = false) {
+    const prop = withinGroup ? "withinGroup" : "orderBy";
     return freeze({
       ...aggregateFunctionNode,
-      orderBy: aggregateFunctionNode.orderBy ? OrderByNode.cloneWithItems(aggregateFunctionNode.orderBy, orderItems) : OrderByNode.create(orderItems)
+      [prop]: aggregateFunctionNode[prop] ? OrderByNode.cloneWithItems(aggregateFunctionNode[prop], orderItems) : OrderByNode.create(orderItems)
     });
   },
   cloneWithFilter(aggregateFunctionNode, filter) {
@@ -18202,8 +18789,8 @@ const FunctionNode = freeze({
 });
 const _AggregateFunctionBuilder = class _AggregateFunctionBuilder {
   constructor(props) {
-    __privateAdd(this, _props16);
-    __privateSet(this, _props16, freeze(props));
+    __privateAdd(this, _props17);
+    __privateSet(this, _props17, freeze(props));
   }
   /** @private */
   get expressionType() {
@@ -18260,43 +18847,32 @@ const _AggregateFunctionBuilder = class _AggregateFunctionBuilder {
    */
   distinct() {
     return new _AggregateFunctionBuilder({
-      ...__privateGet(this, _props16),
-      aggregateFunctionNode: AggregateFunctionNode.cloneWithDistinct(__privateGet(this, _props16).aggregateFunctionNode)
+      ...__privateGet(this, _props17),
+      aggregateFunctionNode: AggregateFunctionNode.cloneWithDistinct(__privateGet(this, _props17).aggregateFunctionNode)
     });
   }
-  /**
-   * Adds an `order by` clause inside the aggregate function.
-   *
-   * ### Examples
-   *
-   * ```ts
-   * const result = await db
-   *   .selectFrom('person')
-   *   .innerJoin('pet', 'pet.owner_id', 'person.id')
-   *   .select((eb) =>
-   *     eb.fn.jsonAgg('pet').orderBy('pet.name').as('person_pets')
-   *   )
-   *   .executeTakeFirstOrThrow()
-   * ```
-   *
-   * The generated SQL (PostgreSQL):
-   *
-   * ```sql
-   * select json_agg("pet" order by "pet"."name") as "person_pets"
-   * from "person"
-   * inner join "pet" ON "pet"."owner_id" = "person"."id"
-   * ```
-   */
-  orderBy(orderBy, direction) {
+  orderBy(...args) {
     return new _AggregateFunctionBuilder({
-      ...__privateGet(this, _props16),
-      aggregateFunctionNode: AggregateFunctionNode.cloneWithOrderBy(__privateGet(this, _props16).aggregateFunctionNode, parseOrderBy([orderBy, direction]))
+      ...__privateGet(this, _props17),
+      aggregateFunctionNode: QueryNode.cloneWithOrderByItems(__privateGet(this, _props17).aggregateFunctionNode, parseOrderBy(args))
+    });
+  }
+  clearOrderBy() {
+    return new _AggregateFunctionBuilder({
+      ...__privateGet(this, _props17),
+      aggregateFunctionNode: QueryNode.cloneWithoutOrderBy(__privateGet(this, _props17).aggregateFunctionNode)
+    });
+  }
+  withinGroupOrderBy(...args) {
+    return new _AggregateFunctionBuilder({
+      ...__privateGet(this, _props17),
+      aggregateFunctionNode: AggregateFunctionNode.cloneWithOrderBy(__privateGet(this, _props17).aggregateFunctionNode, parseOrderBy(args), true)
     });
   }
   filterWhere(...args) {
     return new _AggregateFunctionBuilder({
-      ...__privateGet(this, _props16),
-      aggregateFunctionNode: AggregateFunctionNode.cloneWithFilter(__privateGet(this, _props16).aggregateFunctionNode, parseValueBinaryOperationOrExpression(args))
+      ...__privateGet(this, _props17),
+      aggregateFunctionNode: AggregateFunctionNode.cloneWithFilter(__privateGet(this, _props17).aggregateFunctionNode, parseValueBinaryOperationOrExpression(args))
     });
   }
   /**
@@ -18333,8 +18909,8 @@ const _AggregateFunctionBuilder = class _AggregateFunctionBuilder {
    */
   filterWhereRef(lhs, op, rhs) {
     return new _AggregateFunctionBuilder({
-      ...__privateGet(this, _props16),
-      aggregateFunctionNode: AggregateFunctionNode.cloneWithFilter(__privateGet(this, _props16).aggregateFunctionNode, parseReferentialBinaryOperation(lhs, op, rhs))
+      ...__privateGet(this, _props17),
+      aggregateFunctionNode: AggregateFunctionNode.cloneWithFilter(__privateGet(this, _props17).aggregateFunctionNode, parseReferentialBinaryOperation(lhs, op, rhs))
     });
   }
   /**
@@ -18382,8 +18958,8 @@ const _AggregateFunctionBuilder = class _AggregateFunctionBuilder {
   over(over) {
     const builder = createOverBuilder();
     return new _AggregateFunctionBuilder({
-      ...__privateGet(this, _props16),
-      aggregateFunctionNode: AggregateFunctionNode.cloneWithOver(__privateGet(this, _props16).aggregateFunctionNode, (over ? over(builder) : builder).toOperationNode())
+      ...__privateGet(this, _props17),
+      aggregateFunctionNode: AggregateFunctionNode.cloneWithOver(__privateGet(this, _props17).aggregateFunctionNode, (over ? over(builder) : builder).toOperationNode())
     });
   }
   /**
@@ -18400,7 +18976,7 @@ const _AggregateFunctionBuilder = class _AggregateFunctionBuilder {
    * returns a copy of this `AggregateFunctionBuilder` with a new output type.
    */
   $castTo() {
-    return new _AggregateFunctionBuilder(__privateGet(this, _props16));
+    return new _AggregateFunctionBuilder(__privateGet(this, _props17));
   }
   /**
    * Omit null from the expression's type.
@@ -18412,15 +18988,14 @@ const _AggregateFunctionBuilder = class _AggregateFunctionBuilder {
    * returns a copy of `this` with a new output type.
    */
   $notNull() {
-    return new _AggregateFunctionBuilder(__privateGet(this, _props16));
+    return new _AggregateFunctionBuilder(__privateGet(this, _props17));
   }
   toOperationNode() {
-    return __privateGet(this, _props16).aggregateFunctionNode;
+    return __privateGet(this, _props17).aggregateFunctionNode;
   }
 };
-_props16 = new WeakMap();
+_props17 = new WeakMap();
 let AggregateFunctionBuilder = _AggregateFunctionBuilder;
-preventAwait(AggregateFunctionBuilder, "don't await AggregateFunctionBuilder instances. They are never executed directly and are always just a part of a query.");
 class AliasedAggregateFunctionBuilder {
   constructor(aggregateFunctionBuilder, alias) {
     __privateAdd(this, _aggregateFunctionBuilder);
@@ -18542,61 +19117,48 @@ const CaseNode = freeze({
 });
 class CaseBuilder {
   constructor(props) {
-    __privateAdd(this, _props17);
-    __privateSet(this, _props17, freeze(props));
-  }
-  when(...args) {
-    return new CaseThenBuilder({
-      ...__privateGet(this, _props17),
-      node: CaseNode.cloneWithWhen(__privateGet(this, _props17).node, WhenNode.create(parseValueBinaryOperationOrExpression(args)))
-    });
-  }
-}
-_props17 = new WeakMap();
-class CaseThenBuilder {
-  constructor(props) {
     __privateAdd(this, _props18);
     __privateSet(this, _props18, freeze(props));
   }
-  then(valueExpression) {
-    return new CaseWhenBuilder({
+  when(...args) {
+    return new CaseThenBuilder({
       ...__privateGet(this, _props18),
-      node: CaseNode.cloneWithThen(__privateGet(this, _props18).node, isSafeImmediateValue(valueExpression) ? parseSafeImmediateValue(valueExpression) : parseValueExpression(valueExpression))
+      node: CaseNode.cloneWithWhen(__privateGet(this, _props18).node, WhenNode.create(parseValueBinaryOperationOrExpression(args)))
     });
   }
 }
 _props18 = new WeakMap();
-class CaseWhenBuilder {
+class CaseThenBuilder {
   constructor(props) {
     __privateAdd(this, _props19);
     __privateSet(this, _props19, freeze(props));
   }
+  then(valueExpression) {
+    return new CaseWhenBuilder({
+      ...__privateGet(this, _props19),
+      node: CaseNode.cloneWithThen(__privateGet(this, _props19).node, isSafeImmediateValue(valueExpression) ? parseSafeImmediateValue(valueExpression) : parseValueExpression(valueExpression))
+    });
+  }
+}
+_props19 = new WeakMap();
+class CaseWhenBuilder {
+  constructor(props) {
+    __privateAdd(this, _props20);
+    __privateSet(this, _props20, freeze(props));
+  }
   when(...args) {
     return new CaseThenBuilder({
-      ...__privateGet(this, _props19),
-      node: CaseNode.cloneWithWhen(__privateGet(this, _props19).node, WhenNode.create(parseValueBinaryOperationOrExpression(args)))
+      ...__privateGet(this, _props20),
+      node: CaseNode.cloneWithWhen(__privateGet(this, _props20).node, WhenNode.create(parseValueBinaryOperationOrExpression(args)))
     });
   }
   else(valueExpression) {
     return new CaseEndBuilder({
-      ...__privateGet(this, _props19),
-      node: CaseNode.cloneWith(__privateGet(this, _props19).node, {
+      ...__privateGet(this, _props20),
+      node: CaseNode.cloneWith(__privateGet(this, _props20).node, {
         else: isSafeImmediateValue(valueExpression) ? parseSafeImmediateValue(valueExpression) : parseValueExpression(valueExpression)
       })
     });
-  }
-  end() {
-    return new ExpressionWrapper(CaseNode.cloneWith(__privateGet(this, _props19).node, { isStatement: false }));
-  }
-  endCase() {
-    return new ExpressionWrapper(CaseNode.cloneWith(__privateGet(this, _props19).node, { isStatement: true }));
-  }
-}
-_props19 = new WeakMap();
-class CaseEndBuilder {
-  constructor(props) {
-    __privateAdd(this, _props20);
-    __privateSet(this, _props20, freeze(props));
   }
   end() {
     return new ExpressionWrapper(CaseNode.cloneWith(__privateGet(this, _props20).node, { isStatement: false }));
@@ -18606,6 +19168,19 @@ class CaseEndBuilder {
   }
 }
 _props20 = new WeakMap();
+class CaseEndBuilder {
+  constructor(props) {
+    __privateAdd(this, _props21);
+    __privateSet(this, _props21, freeze(props));
+  }
+  end() {
+    return new ExpressionWrapper(CaseNode.cloneWith(__privateGet(this, _props21).node, { isStatement: false }));
+  }
+  endCase() {
+    return new ExpressionWrapper(CaseNode.cloneWith(__privateGet(this, _props21).node, { isStatement: true }));
+  }
+}
+_props21 = new WeakMap();
 const JSONPathLegNode = freeze({
   is(node) {
     return node.kind === "JSONPathLegNode";
@@ -19807,7 +20382,6 @@ const _ColumnDefinitionBuilder = class _ColumnDefinitionBuilder {
 };
 _node6 = new WeakMap();
 let ColumnDefinitionBuilder = _ColumnDefinitionBuilder;
-preventAwait(ColumnDefinitionBuilder, "don't await ColumnDefinitionBuilder instances directly.");
 const ModifyColumnNode = freeze({
   is(node) {
     return node.kind === "ModifyColumnNode";
@@ -19853,6 +20427,22 @@ const _ForeignKeyConstraintBuilder = class _ForeignKeyConstraintBuilder {
       onUpdate: parseOnModifyForeignAction(onUpdate)
     }));
   }
+  deferrable() {
+    return new _ForeignKeyConstraintBuilder(ForeignKeyConstraintNode.cloneWith(__privateGet(this, _node7), { deferrable: true }));
+  }
+  notDeferrable() {
+    return new _ForeignKeyConstraintBuilder(ForeignKeyConstraintNode.cloneWith(__privateGet(this, _node7), { deferrable: false }));
+  }
+  initiallyDeferred() {
+    return new _ForeignKeyConstraintBuilder(ForeignKeyConstraintNode.cloneWith(__privateGet(this, _node7), {
+      initiallyDeferred: true
+    }));
+  }
+  initiallyImmediate() {
+    return new _ForeignKeyConstraintBuilder(ForeignKeyConstraintNode.cloneWith(__privateGet(this, _node7), {
+      initiallyDeferred: false
+    }));
+  }
   /**
    * Simply calls the provided function passing `this` as the only argument. `$call` returns
    * what the provided function returns.
@@ -19866,7 +20456,6 @@ const _ForeignKeyConstraintBuilder = class _ForeignKeyConstraintBuilder {
 };
 _node7 = new WeakMap();
 let ForeignKeyConstraintBuilder = _ForeignKeyConstraintBuilder;
-preventAwait(ForeignKeyConstraintBuilder, "don't await ForeignKeyConstraintBuilder instances directly.");
 const AddConstraintNode = freeze({
   is(node) {
     return node.kind === "AddConstraintNode";
@@ -19955,7 +20544,6 @@ class AlterColumnBuilder {
   }
 }
 _column = new WeakMap();
-preventAwait(AlterColumnBuilder, "don't await AlterColumnBuilder instances");
 class AlteredColumnBuilder {
   constructor(alterColumnNode) {
     __privateAdd(this, _alterColumnNode);
@@ -19966,39 +20554,61 @@ class AlteredColumnBuilder {
   }
 }
 _alterColumnNode = new WeakMap();
-preventAwait(AlteredColumnBuilder, "don't await AlteredColumnBuilder instances");
 class AlterTableExecutor {
-  constructor(props) {
-    __privateAdd(this, _props21);
-    __privateSet(this, _props21, freeze(props));
-  }
-  toOperationNode() {
-    return __privateGet(this, _props21).executor.transformQuery(__privateGet(this, _props21).node, __privateGet(this, _props21).queryId);
-  }
-  compile() {
-    return __privateGet(this, _props21).executor.compileQuery(this.toOperationNode(), __privateGet(this, _props21).queryId);
-  }
-  async execute() {
-    await __privateGet(this, _props21).executor.executeQuery(this.compile(), __privateGet(this, _props21).queryId);
-  }
-}
-_props21 = new WeakMap();
-preventAwait(AlterTableExecutor, "don't await AlterTableExecutor instances directly. To execute the query you need to call `execute`");
-const _AlterTableAddForeignKeyConstraintBuilder = class _AlterTableAddForeignKeyConstraintBuilder {
   constructor(props) {
     __privateAdd(this, _props22);
     __privateSet(this, _props22, freeze(props));
   }
+  toOperationNode() {
+    return __privateGet(this, _props22).executor.transformQuery(__privateGet(this, _props22).node, __privateGet(this, _props22).queryId);
+  }
+  compile() {
+    return __privateGet(this, _props22).executor.compileQuery(this.toOperationNode(), __privateGet(this, _props22).queryId);
+  }
+  async execute() {
+    await __privateGet(this, _props22).executor.executeQuery(this.compile(), __privateGet(this, _props22).queryId);
+  }
+}
+_props22 = new WeakMap();
+const _AlterTableAddForeignKeyConstraintBuilder = class _AlterTableAddForeignKeyConstraintBuilder {
+  constructor(props) {
+    __privateAdd(this, _props23);
+    __privateSet(this, _props23, freeze(props));
+  }
   onDelete(onDelete) {
     return new _AlterTableAddForeignKeyConstraintBuilder({
-      ...__privateGet(this, _props22),
-      constraintBuilder: __privateGet(this, _props22).constraintBuilder.onDelete(onDelete)
+      ...__privateGet(this, _props23),
+      constraintBuilder: __privateGet(this, _props23).constraintBuilder.onDelete(onDelete)
     });
   }
   onUpdate(onUpdate) {
     return new _AlterTableAddForeignKeyConstraintBuilder({
-      ...__privateGet(this, _props22),
-      constraintBuilder: __privateGet(this, _props22).constraintBuilder.onUpdate(onUpdate)
+      ...__privateGet(this, _props23),
+      constraintBuilder: __privateGet(this, _props23).constraintBuilder.onUpdate(onUpdate)
+    });
+  }
+  deferrable() {
+    return new _AlterTableAddForeignKeyConstraintBuilder({
+      ...__privateGet(this, _props23),
+      constraintBuilder: __privateGet(this, _props23).constraintBuilder.deferrable()
+    });
+  }
+  notDeferrable() {
+    return new _AlterTableAddForeignKeyConstraintBuilder({
+      ...__privateGet(this, _props23),
+      constraintBuilder: __privateGet(this, _props23).constraintBuilder.notDeferrable()
+    });
+  }
+  initiallyDeferred() {
+    return new _AlterTableAddForeignKeyConstraintBuilder({
+      ...__privateGet(this, _props23),
+      constraintBuilder: __privateGet(this, _props23).constraintBuilder.initiallyDeferred()
+    });
+  }
+  initiallyImmediate() {
+    return new _AlterTableAddForeignKeyConstraintBuilder({
+      ...__privateGet(this, _props23),
+      constraintBuilder: __privateGet(this, _props23).constraintBuilder.initiallyImmediate()
     });
   }
   /**
@@ -20009,30 +20619,29 @@ const _AlterTableAddForeignKeyConstraintBuilder = class _AlterTableAddForeignKey
     return func(this);
   }
   toOperationNode() {
-    return __privateGet(this, _props22).executor.transformQuery(AlterTableNode.cloneWithTableProps(__privateGet(this, _props22).node, {
-      addConstraint: AddConstraintNode.create(__privateGet(this, _props22).constraintBuilder.toOperationNode())
-    }), __privateGet(this, _props22).queryId);
+    return __privateGet(this, _props23).executor.transformQuery(AlterTableNode.cloneWithTableProps(__privateGet(this, _props23).node, {
+      addConstraint: AddConstraintNode.create(__privateGet(this, _props23).constraintBuilder.toOperationNode())
+    }), __privateGet(this, _props23).queryId);
   }
   compile() {
-    return __privateGet(this, _props22).executor.compileQuery(this.toOperationNode(), __privateGet(this, _props22).queryId);
+    return __privateGet(this, _props23).executor.compileQuery(this.toOperationNode(), __privateGet(this, _props23).queryId);
   }
   async execute() {
-    await __privateGet(this, _props22).executor.executeQuery(this.compile(), __privateGet(this, _props22).queryId);
+    await __privateGet(this, _props23).executor.executeQuery(this.compile(), __privateGet(this, _props23).queryId);
   }
 };
-_props22 = new WeakMap();
+_props23 = new WeakMap();
 let AlterTableAddForeignKeyConstraintBuilder = _AlterTableAddForeignKeyConstraintBuilder;
-preventAwait(AlterTableAddForeignKeyConstraintBuilder, "don't await AlterTableAddForeignKeyConstraintBuilder instances directly. To execute the query you need to call `execute`");
 const _AlterTableDropConstraintBuilder = class _AlterTableDropConstraintBuilder {
   constructor(props) {
-    __privateAdd(this, _props23);
-    __privateSet(this, _props23, freeze(props));
+    __privateAdd(this, _props24);
+    __privateSet(this, _props24, freeze(props));
   }
   ifExists() {
     return new _AlterTableDropConstraintBuilder({
-      ...__privateGet(this, _props23),
-      node: AlterTableNode.cloneWithTableProps(__privateGet(this, _props23).node, {
-        dropConstraint: DropConstraintNode.cloneWith(__privateGet(this, _props23).node.dropConstraint, {
+      ...__privateGet(this, _props24),
+      node: AlterTableNode.cloneWithTableProps(__privateGet(this, _props24).node, {
+        dropConstraint: DropConstraintNode.cloneWith(__privateGet(this, _props24).node.dropConstraint, {
           ifExists: true
         })
       })
@@ -20040,9 +20649,9 @@ const _AlterTableDropConstraintBuilder = class _AlterTableDropConstraintBuilder 
   }
   cascade() {
     return new _AlterTableDropConstraintBuilder({
-      ...__privateGet(this, _props23),
-      node: AlterTableNode.cloneWithTableProps(__privateGet(this, _props23).node, {
-        dropConstraint: DropConstraintNode.cloneWith(__privateGet(this, _props23).node.dropConstraint, {
+      ...__privateGet(this, _props24),
+      node: AlterTableNode.cloneWithTableProps(__privateGet(this, _props24).node, {
+        dropConstraint: DropConstraintNode.cloneWith(__privateGet(this, _props24).node.dropConstraint, {
           modifier: "cascade"
         })
       })
@@ -20050,9 +20659,9 @@ const _AlterTableDropConstraintBuilder = class _AlterTableDropConstraintBuilder 
   }
   restrict() {
     return new _AlterTableDropConstraintBuilder({
-      ...__privateGet(this, _props23),
-      node: AlterTableNode.cloneWithTableProps(__privateGet(this, _props23).node, {
-        dropConstraint: DropConstraintNode.cloneWith(__privateGet(this, _props23).node.dropConstraint, {
+      ...__privateGet(this, _props24),
+      node: AlterTableNode.cloneWithTableProps(__privateGet(this, _props24).node, {
+        dropConstraint: DropConstraintNode.cloneWith(__privateGet(this, _props24).node.dropConstraint, {
           modifier: "restrict"
         })
       })
@@ -20066,19 +20675,18 @@ const _AlterTableDropConstraintBuilder = class _AlterTableDropConstraintBuilder 
     return func(this);
   }
   toOperationNode() {
-    return __privateGet(this, _props23).executor.transformQuery(__privateGet(this, _props23).node, __privateGet(this, _props23).queryId);
+    return __privateGet(this, _props24).executor.transformQuery(__privateGet(this, _props24).node, __privateGet(this, _props24).queryId);
   }
   compile() {
-    return __privateGet(this, _props23).executor.compileQuery(this.toOperationNode(), __privateGet(this, _props23).queryId);
+    return __privateGet(this, _props24).executor.compileQuery(this.toOperationNode(), __privateGet(this, _props24).queryId);
   }
   async execute() {
-    await __privateGet(this, _props23).executor.executeQuery(this.compile(), __privateGet(this, _props23).queryId);
+    await __privateGet(this, _props24).executor.executeQuery(this.compile(), __privateGet(this, _props24).queryId);
   }
 };
-_props23 = new WeakMap();
+_props24 = new WeakMap();
 let AlterTableDropConstraintBuilder = _AlterTableDropConstraintBuilder;
-preventAwait(AlterTableDropConstraintBuilder, "don't await AlterTableDropConstraintBuilder instances directly. To execute the query you need to call `execute`");
-const PrimaryConstraintNode = freeze({
+const PrimaryKeyConstraintNode = freeze({
   is(node) {
     return node.kind === "PrimaryKeyConstraintNode";
   },
@@ -20088,6 +20696,9 @@ const PrimaryConstraintNode = freeze({
       columns: freeze(columns.map(ColumnNode.create)),
       name: constraintName ? IdentifierNode.create(constraintName) : void 0
     });
+  },
+  cloneWith(node, props) {
+    return freeze({ ...node, ...props });
   }
 });
 const AddIndexNode = freeze({
@@ -20115,8 +20726,8 @@ const AddIndexNode = freeze({
 });
 const _AlterTableAddIndexBuilder = class _AlterTableAddIndexBuilder {
   constructor(props) {
-    __privateAdd(this, _props24);
-    __privateSet(this, _props24, freeze(props));
+    __privateAdd(this, _props25);
+    __privateSet(this, _props25, freeze(props));
   }
   /**
    * Makes the index unique.
@@ -20140,9 +20751,9 @@ const _AlterTableAddIndexBuilder = class _AlterTableAddIndexBuilder {
    */
   unique() {
     return new _AlterTableAddIndexBuilder({
-      ...__privateGet(this, _props24),
-      node: AlterTableNode.cloneWithTableProps(__privateGet(this, _props24).node, {
-        addIndex: AddIndexNode.cloneWith(__privateGet(this, _props24).node.addIndex, {
+      ...__privateGet(this, _props25),
+      node: AlterTableNode.cloneWithTableProps(__privateGet(this, _props25).node, {
+        addIndex: AddIndexNode.cloneWith(__privateGet(this, _props25).node.addIndex, {
           unique: true
         })
       })
@@ -20173,9 +20784,9 @@ const _AlterTableAddIndexBuilder = class _AlterTableAddIndexBuilder {
    */
   column(column2) {
     return new _AlterTableAddIndexBuilder({
-      ...__privateGet(this, _props24),
-      node: AlterTableNode.cloneWithTableProps(__privateGet(this, _props24).node, {
-        addIndex: AddIndexNode.cloneWithColumns(__privateGet(this, _props24).node.addIndex, [
+      ...__privateGet(this, _props25),
+      node: AlterTableNode.cloneWithTableProps(__privateGet(this, _props25).node, {
+        addIndex: AddIndexNode.cloneWithColumns(__privateGet(this, _props25).node.addIndex, [
           parseOrderedColumnName(column2)
         ])
       })
@@ -20205,9 +20816,9 @@ const _AlterTableAddIndexBuilder = class _AlterTableAddIndexBuilder {
    */
   columns(columns) {
     return new _AlterTableAddIndexBuilder({
-      ...__privateGet(this, _props24),
-      node: AlterTableNode.cloneWithTableProps(__privateGet(this, _props24).node, {
-        addIndex: AddIndexNode.cloneWithColumns(__privateGet(this, _props24).node.addIndex, columns.map(parseOrderedColumnName))
+      ...__privateGet(this, _props25),
+      node: AlterTableNode.cloneWithTableProps(__privateGet(this, _props25).node, {
+        addIndex: AddIndexNode.cloneWithColumns(__privateGet(this, _props25).node.addIndex, columns.map(parseOrderedColumnName))
       })
     });
   }
@@ -20234,9 +20845,9 @@ const _AlterTableAddIndexBuilder = class _AlterTableAddIndexBuilder {
    */
   expression(expression) {
     return new _AlterTableAddIndexBuilder({
-      ...__privateGet(this, _props24),
-      node: AlterTableNode.cloneWithTableProps(__privateGet(this, _props24).node, {
-        addIndex: AddIndexNode.cloneWithColumns(__privateGet(this, _props24).node.addIndex, [
+      ...__privateGet(this, _props25),
+      node: AlterTableNode.cloneWithTableProps(__privateGet(this, _props25).node, {
+        addIndex: AddIndexNode.cloneWithColumns(__privateGet(this, _props25).node.addIndex, [
           expression.toOperationNode()
         ])
       })
@@ -20244,9 +20855,9 @@ const _AlterTableAddIndexBuilder = class _AlterTableAddIndexBuilder {
   }
   using(indexType) {
     return new _AlterTableAddIndexBuilder({
-      ...__privateGet(this, _props24),
-      node: AlterTableNode.cloneWithTableProps(__privateGet(this, _props24).node, {
-        addIndex: AddIndexNode.cloneWith(__privateGet(this, _props24).node.addIndex, {
+      ...__privateGet(this, _props25),
+      node: AlterTableNode.cloneWithTableProps(__privateGet(this, _props25).node, {
+        addIndex: AddIndexNode.cloneWith(__privateGet(this, _props25).node.addIndex, {
           using: RawNode.createWithSql(indexType)
         })
       })
@@ -20260,25 +20871,21 @@ const _AlterTableAddIndexBuilder = class _AlterTableAddIndexBuilder {
     return func(this);
   }
   toOperationNode() {
-    return __privateGet(this, _props24).executor.transformQuery(__privateGet(this, _props24).node, __privateGet(this, _props24).queryId);
+    return __privateGet(this, _props25).executor.transformQuery(__privateGet(this, _props25).node, __privateGet(this, _props25).queryId);
   }
   compile() {
-    return __privateGet(this, _props24).executor.compileQuery(this.toOperationNode(), __privateGet(this, _props24).queryId);
+    return __privateGet(this, _props25).executor.compileQuery(this.toOperationNode(), __privateGet(this, _props25).queryId);
   }
   async execute() {
-    await __privateGet(this, _props24).executor.executeQuery(this.compile(), __privateGet(this, _props24).queryId);
+    await __privateGet(this, _props25).executor.executeQuery(this.compile(), __privateGet(this, _props25).queryId);
   }
 };
-_props24 = new WeakMap();
+_props25 = new WeakMap();
 let AlterTableAddIndexBuilder = _AlterTableAddIndexBuilder;
-preventAwait(AlterTableAddIndexBuilder, "don't await AlterTableAddIndexBuilder instances directly. To execute the query you need to call `execute`");
 const _UniqueConstraintNodeBuilder = class _UniqueConstraintNodeBuilder {
   constructor(node) {
     __privateAdd(this, _node8);
     __privateSet(this, _node8, node);
-  }
-  toOperationNode() {
-    return __privateGet(this, _node8);
   }
   /**
    * Adds `nulls not distinct` to the unique constraint definition
@@ -20288,27 +20895,115 @@ const _UniqueConstraintNodeBuilder = class _UniqueConstraintNodeBuilder {
   nullsNotDistinct() {
     return new _UniqueConstraintNodeBuilder(UniqueConstraintNode.cloneWith(__privateGet(this, _node8), { nullsNotDistinct: true }));
   }
+  deferrable() {
+    return new _UniqueConstraintNodeBuilder(UniqueConstraintNode.cloneWith(__privateGet(this, _node8), { deferrable: true }));
+  }
+  notDeferrable() {
+    return new _UniqueConstraintNodeBuilder(UniqueConstraintNode.cloneWith(__privateGet(this, _node8), { deferrable: false }));
+  }
+  initiallyDeferred() {
+    return new _UniqueConstraintNodeBuilder(UniqueConstraintNode.cloneWith(__privateGet(this, _node8), {
+      initiallyDeferred: true
+    }));
+  }
+  initiallyImmediate() {
+    return new _UniqueConstraintNodeBuilder(UniqueConstraintNode.cloneWith(__privateGet(this, _node8), {
+      initiallyDeferred: false
+    }));
+  }
+  /**
+   * Simply calls the provided function passing `this` as the only argument. `$call` returns
+   * what the provided function returns.
+   */
+  $call(func) {
+    return func(this);
+  }
+  toOperationNode() {
+    return __privateGet(this, _node8);
+  }
 };
 _node8 = new WeakMap();
 let UniqueConstraintNodeBuilder = _UniqueConstraintNodeBuilder;
-preventAwait(UniqueConstraintNodeBuilder, "don't await UniqueConstraintNodeBuilder instances directly.");
+const _PrimaryKeyConstraintBuilder = class _PrimaryKeyConstraintBuilder {
+  constructor(node) {
+    __privateAdd(this, _node9);
+    __privateSet(this, _node9, node);
+  }
+  deferrable() {
+    return new _PrimaryKeyConstraintBuilder(PrimaryKeyConstraintNode.cloneWith(__privateGet(this, _node9), { deferrable: true }));
+  }
+  notDeferrable() {
+    return new _PrimaryKeyConstraintBuilder(PrimaryKeyConstraintNode.cloneWith(__privateGet(this, _node9), { deferrable: false }));
+  }
+  initiallyDeferred() {
+    return new _PrimaryKeyConstraintBuilder(PrimaryKeyConstraintNode.cloneWith(__privateGet(this, _node9), {
+      initiallyDeferred: true
+    }));
+  }
+  initiallyImmediate() {
+    return new _PrimaryKeyConstraintBuilder(PrimaryKeyConstraintNode.cloneWith(__privateGet(this, _node9), {
+      initiallyDeferred: false
+    }));
+  }
+  /**
+   * Simply calls the provided function passing `this` as the only argument. `$call` returns
+   * what the provided function returns.
+   */
+  $call(func) {
+    return func(this);
+  }
+  toOperationNode() {
+    return __privateGet(this, _node9);
+  }
+};
+_node9 = new WeakMap();
+let PrimaryKeyConstraintBuilder = _PrimaryKeyConstraintBuilder;
+class CheckConstraintBuilder {
+  constructor(node) {
+    __privateAdd(this, _node10);
+    __privateSet(this, _node10, node);
+  }
+  /**
+   * Simply calls the provided function passing `this` as the only argument. `$call` returns
+   * what the provided function returns.
+   */
+  $call(func) {
+    return func(this);
+  }
+  toOperationNode() {
+    return __privateGet(this, _node10);
+  }
+}
+_node10 = new WeakMap();
+const RenameConstraintNode = freeze({
+  is(node) {
+    return node.kind === "RenameConstraintNode";
+  },
+  create(oldName, newName) {
+    return freeze({
+      kind: "RenameConstraintNode",
+      oldName: IdentifierNode.create(oldName),
+      newName: IdentifierNode.create(newName)
+    });
+  }
+});
 class AlterTableBuilder {
   constructor(props) {
-    __privateAdd(this, _props25);
-    __privateSet(this, _props25, freeze(props));
+    __privateAdd(this, _props26);
+    __privateSet(this, _props26, freeze(props));
   }
   renameTo(newTableName) {
     return new AlterTableExecutor({
-      ...__privateGet(this, _props25),
-      node: AlterTableNode.cloneWithTableProps(__privateGet(this, _props25).node, {
+      ...__privateGet(this, _props26),
+      node: AlterTableNode.cloneWithTableProps(__privateGet(this, _props26).node, {
         renameTo: parseTable$1(newTableName)
       })
     });
   }
   setSchema(newSchema) {
     return new AlterTableExecutor({
-      ...__privateGet(this, _props25),
-      node: AlterTableNode.cloneWithTableProps(__privateGet(this, _props25).node, {
+      ...__privateGet(this, _props26),
+      node: AlterTableNode.cloneWithTableProps(__privateGet(this, _props26).node, {
         setSchema: IdentifierNode.create(newSchema)
       })
     });
@@ -20316,34 +21011,34 @@ class AlterTableBuilder {
   alterColumn(column2, alteration) {
     const builder = alteration(new AlterColumnBuilder(column2));
     return new AlterTableColumnAlteringBuilder({
-      ...__privateGet(this, _props25),
-      node: AlterTableNode.cloneWithColumnAlteration(__privateGet(this, _props25).node, builder.toOperationNode())
+      ...__privateGet(this, _props26),
+      node: AlterTableNode.cloneWithColumnAlteration(__privateGet(this, _props26).node, builder.toOperationNode())
     });
   }
   dropColumn(column2) {
     return new AlterTableColumnAlteringBuilder({
-      ...__privateGet(this, _props25),
-      node: AlterTableNode.cloneWithColumnAlteration(__privateGet(this, _props25).node, DropColumnNode.create(column2))
+      ...__privateGet(this, _props26),
+      node: AlterTableNode.cloneWithColumnAlteration(__privateGet(this, _props26).node, DropColumnNode.create(column2))
     });
   }
   renameColumn(column2, newColumn) {
     return new AlterTableColumnAlteringBuilder({
-      ...__privateGet(this, _props25),
-      node: AlterTableNode.cloneWithColumnAlteration(__privateGet(this, _props25).node, RenameColumnNode.create(column2, newColumn))
+      ...__privateGet(this, _props26),
+      node: AlterTableNode.cloneWithColumnAlteration(__privateGet(this, _props26).node, RenameColumnNode.create(column2, newColumn))
     });
   }
   addColumn(columnName, dataType, build = noop) {
     const builder = build(new ColumnDefinitionBuilder(ColumnDefinitionNode.create(columnName, parseDataTypeExpression(dataType))));
     return new AlterTableColumnAlteringBuilder({
-      ...__privateGet(this, _props25),
-      node: AlterTableNode.cloneWithColumnAlteration(__privateGet(this, _props25).node, AddColumnNode.create(builder.toOperationNode()))
+      ...__privateGet(this, _props26),
+      node: AlterTableNode.cloneWithColumnAlteration(__privateGet(this, _props26).node, AddColumnNode.create(builder.toOperationNode()))
     });
   }
   modifyColumn(columnName, dataType, build = noop) {
     const builder = build(new ColumnDefinitionBuilder(ColumnDefinitionNode.create(columnName, parseDataTypeExpression(dataType))));
     return new AlterTableColumnAlteringBuilder({
-      ...__privateGet(this, _props25),
-      node: AlterTableNode.cloneWithColumnAlteration(__privateGet(this, _props25).node, ModifyColumnNode.create(builder.toOperationNode()))
+      ...__privateGet(this, _props26),
+      node: AlterTableNode.cloneWithColumnAlteration(__privateGet(this, _props26).node, ModifyColumnNode.create(builder.toOperationNode()))
     });
   }
   /**
@@ -20352,8 +21047,8 @@ class AlterTableBuilder {
   addUniqueConstraint(constraintName, columns, build = noop) {
     const uniqueConstraintBuilder = build(new UniqueConstraintNodeBuilder(UniqueConstraintNode.create(columns, constraintName)));
     return new AlterTableExecutor({
-      ...__privateGet(this, _props25),
-      node: AlterTableNode.cloneWithTableProps(__privateGet(this, _props25).node, {
+      ...__privateGet(this, _props26),
+      node: AlterTableNode.cloneWithTableProps(__privateGet(this, _props26).node, {
         addConstraint: AddConstraintNode.create(uniqueConstraintBuilder.toOperationNode())
       })
     });
@@ -20361,11 +21056,12 @@ class AlterTableBuilder {
   /**
    * See {@link CreateTableBuilder.addCheckConstraint}
    */
-  addCheckConstraint(constraintName, checkExpression) {
+  addCheckConstraint(constraintName, checkExpression, build = noop) {
+    const constraintBuilder = build(new CheckConstraintBuilder(CheckConstraintNode.create(checkExpression.toOperationNode(), constraintName)));
     return new AlterTableExecutor({
-      ...__privateGet(this, _props25),
-      node: AlterTableNode.cloneWithTableProps(__privateGet(this, _props25).node, {
-        addConstraint: AddConstraintNode.create(CheckConstraintNode.create(checkExpression.toOperationNode(), constraintName))
+      ...__privateGet(this, _props26),
+      node: AlterTableNode.cloneWithTableProps(__privateGet(this, _props26).node, {
+        addConstraint: AddConstraintNode.create(constraintBuilder.toOperationNode())
       })
     });
   }
@@ -20376,28 +21072,38 @@ class AlterTableBuilder {
    * the constraint builder and doesn't take a callback as the last argument. This
    * is because you can only add one column per `ALTER TABLE` query.
    */
-  addForeignKeyConstraint(constraintName, columns, targetTable, targetColumns) {
+  addForeignKeyConstraint(constraintName, columns, targetTable, targetColumns, build = noop) {
+    const constraintBuilder = build(new ForeignKeyConstraintBuilder(ForeignKeyConstraintNode.create(columns.map(ColumnNode.create), parseTable$1(targetTable), targetColumns.map(ColumnNode.create), constraintName)));
     return new AlterTableAddForeignKeyConstraintBuilder({
-      ...__privateGet(this, _props25),
-      constraintBuilder: new ForeignKeyConstraintBuilder(ForeignKeyConstraintNode.create(columns.map(ColumnNode.create), parseTable$1(targetTable), targetColumns.map(ColumnNode.create), constraintName))
+      ...__privateGet(this, _props26),
+      constraintBuilder
     });
   }
   /**
    * See {@link CreateTableBuilder.addPrimaryKeyConstraint}
    */
-  addPrimaryKeyConstraint(constraintName, columns) {
+  addPrimaryKeyConstraint(constraintName, columns, build = noop) {
+    const constraintBuilder = build(new PrimaryKeyConstraintBuilder(PrimaryKeyConstraintNode.create(columns, constraintName)));
     return new AlterTableExecutor({
-      ...__privateGet(this, _props25),
-      node: AlterTableNode.cloneWithTableProps(__privateGet(this, _props25).node, {
-        addConstraint: AddConstraintNode.create(PrimaryConstraintNode.create(columns, constraintName))
+      ...__privateGet(this, _props26),
+      node: AlterTableNode.cloneWithTableProps(__privateGet(this, _props26).node, {
+        addConstraint: AddConstraintNode.create(constraintBuilder.toOperationNode())
       })
     });
   }
   dropConstraint(constraintName) {
     return new AlterTableDropConstraintBuilder({
-      ...__privateGet(this, _props25),
-      node: AlterTableNode.cloneWithTableProps(__privateGet(this, _props25).node, {
+      ...__privateGet(this, _props26),
+      node: AlterTableNode.cloneWithTableProps(__privateGet(this, _props26).node, {
         dropConstraint: DropConstraintNode.create(constraintName)
+      })
+    });
+  }
+  renameConstraint(oldName, newName) {
+    return new AlterTableDropConstraintBuilder({
+      ...__privateGet(this, _props26),
+      node: AlterTableNode.cloneWithTableProps(__privateGet(this, _props26).node, {
+        renameConstraint: RenameConstraintNode.create(oldName, newName)
       })
     });
   }
@@ -20422,8 +21128,8 @@ class AlterTableBuilder {
    */
   addIndex(indexName) {
     return new AlterTableAddIndexBuilder({
-      ...__privateGet(this, _props25),
-      node: AlterTableNode.cloneWithTableProps(__privateGet(this, _props25).node, {
+      ...__privateGet(this, _props26),
+      node: AlterTableNode.cloneWithTableProps(__privateGet(this, _props26).node, {
         addIndex: AddIndexNode.create(indexName)
       })
     });
@@ -20447,8 +21153,8 @@ class AlterTableBuilder {
    */
   dropIndex(indexName) {
     return new AlterTableExecutor({
-      ...__privateGet(this, _props25),
-      node: AlterTableNode.cloneWithTableProps(__privateGet(this, _props25).node, {
+      ...__privateGet(this, _props26),
+      node: AlterTableNode.cloneWithTableProps(__privateGet(this, _props26).node, {
         dropIndex: DropIndexNode.create(indexName)
       })
     });
@@ -20462,71 +21168,69 @@ class AlterTableBuilder {
     return func(this);
   }
 }
-_props25 = new WeakMap();
-preventAwait(AlterTableBuilder, "don't await AlterTableBuilder instances");
+_props26 = new WeakMap();
 const _AlterTableColumnAlteringBuilder = class _AlterTableColumnAlteringBuilder {
   constructor(props) {
-    __privateAdd(this, _props26);
-    __privateSet(this, _props26, freeze(props));
+    __privateAdd(this, _props27);
+    __privateSet(this, _props27, freeze(props));
   }
   alterColumn(column2, alteration) {
     const builder = alteration(new AlterColumnBuilder(column2));
     return new _AlterTableColumnAlteringBuilder({
-      ...__privateGet(this, _props26),
-      node: AlterTableNode.cloneWithColumnAlteration(__privateGet(this, _props26).node, builder.toOperationNode())
+      ...__privateGet(this, _props27),
+      node: AlterTableNode.cloneWithColumnAlteration(__privateGet(this, _props27).node, builder.toOperationNode())
     });
   }
   dropColumn(column2) {
     return new _AlterTableColumnAlteringBuilder({
-      ...__privateGet(this, _props26),
-      node: AlterTableNode.cloneWithColumnAlteration(__privateGet(this, _props26).node, DropColumnNode.create(column2))
+      ...__privateGet(this, _props27),
+      node: AlterTableNode.cloneWithColumnAlteration(__privateGet(this, _props27).node, DropColumnNode.create(column2))
     });
   }
   renameColumn(column2, newColumn) {
     return new _AlterTableColumnAlteringBuilder({
-      ...__privateGet(this, _props26),
-      node: AlterTableNode.cloneWithColumnAlteration(__privateGet(this, _props26).node, RenameColumnNode.create(column2, newColumn))
+      ...__privateGet(this, _props27),
+      node: AlterTableNode.cloneWithColumnAlteration(__privateGet(this, _props27).node, RenameColumnNode.create(column2, newColumn))
     });
   }
   addColumn(columnName, dataType, build = noop) {
     const builder = build(new ColumnDefinitionBuilder(ColumnDefinitionNode.create(columnName, parseDataTypeExpression(dataType))));
     return new _AlterTableColumnAlteringBuilder({
-      ...__privateGet(this, _props26),
-      node: AlterTableNode.cloneWithColumnAlteration(__privateGet(this, _props26).node, AddColumnNode.create(builder.toOperationNode()))
+      ...__privateGet(this, _props27),
+      node: AlterTableNode.cloneWithColumnAlteration(__privateGet(this, _props27).node, AddColumnNode.create(builder.toOperationNode()))
     });
   }
   modifyColumn(columnName, dataType, build = noop) {
     const builder = build(new ColumnDefinitionBuilder(ColumnDefinitionNode.create(columnName, parseDataTypeExpression(dataType))));
     return new _AlterTableColumnAlteringBuilder({
-      ...__privateGet(this, _props26),
-      node: AlterTableNode.cloneWithColumnAlteration(__privateGet(this, _props26).node, ModifyColumnNode.create(builder.toOperationNode()))
+      ...__privateGet(this, _props27),
+      node: AlterTableNode.cloneWithColumnAlteration(__privateGet(this, _props27).node, ModifyColumnNode.create(builder.toOperationNode()))
     });
   }
   toOperationNode() {
-    return __privateGet(this, _props26).executor.transformQuery(__privateGet(this, _props26).node, __privateGet(this, _props26).queryId);
+    return __privateGet(this, _props27).executor.transformQuery(__privateGet(this, _props27).node, __privateGet(this, _props27).queryId);
   }
   compile() {
-    return __privateGet(this, _props26).executor.compileQuery(this.toOperationNode(), __privateGet(this, _props26).queryId);
+    return __privateGet(this, _props27).executor.compileQuery(this.toOperationNode(), __privateGet(this, _props27).queryId);
   }
   async execute() {
-    await __privateGet(this, _props26).executor.executeQuery(this.compile(), __privateGet(this, _props26).queryId);
+    await __privateGet(this, _props27).executor.executeQuery(this.compile(), __privateGet(this, _props27).queryId);
   }
 };
-_props26 = new WeakMap();
+_props27 = new WeakMap();
 let AlterTableColumnAlteringBuilder = _AlterTableColumnAlteringBuilder;
-preventAwait(AlterTableColumnAlteringBuilder, "don't await AlterTableColumnAlteringBuilder instances directly. To execute the query you need to call `execute`");
 class ImmediateValueTransformer extends OperationNodeTransformer {
+  transformPrimitiveValueList(node) {
+    return ValueListNode.create(node.values.map(ValueNode.createImmediate));
+  }
   transformValue(node) {
-    return {
-      ...super.transformValue(node),
-      immediate: true
-    };
+    return ValueNode.createImmediate(node.value);
   }
 }
 const _CreateIndexBuilder = class _CreateIndexBuilder {
   constructor(props) {
-    __privateAdd(this, _props27);
-    __privateSet(this, _props27, freeze(props));
+    __privateAdd(this, _props28);
+    __privateSet(this, _props28, freeze(props));
   }
   /**
    * Adds the "if not exists" modifier.
@@ -20535,8 +21239,8 @@ const _CreateIndexBuilder = class _CreateIndexBuilder {
    */
   ifNotExists() {
     return new _CreateIndexBuilder({
-      ...__privateGet(this, _props27),
-      node: CreateIndexNode.cloneWith(__privateGet(this, _props27).node, {
+      ...__privateGet(this, _props28),
+      node: CreateIndexNode.cloneWith(__privateGet(this, _props28).node, {
         ifNotExists: true
       })
     });
@@ -20546,8 +21250,8 @@ const _CreateIndexBuilder = class _CreateIndexBuilder {
    */
   unique() {
     return new _CreateIndexBuilder({
-      ...__privateGet(this, _props27),
-      node: CreateIndexNode.cloneWith(__privateGet(this, _props27).node, {
+      ...__privateGet(this, _props28),
+      node: CreateIndexNode.cloneWith(__privateGet(this, _props28).node, {
         unique: true
       })
     });
@@ -20576,8 +21280,8 @@ const _CreateIndexBuilder = class _CreateIndexBuilder {
    */
   nullsNotDistinct() {
     return new _CreateIndexBuilder({
-      ...__privateGet(this, _props27),
-      node: CreateIndexNode.cloneWith(__privateGet(this, _props27).node, {
+      ...__privateGet(this, _props28),
+      node: CreateIndexNode.cloneWith(__privateGet(this, _props28).node, {
         nullsNotDistinct: true
       })
     });
@@ -20587,8 +21291,8 @@ const _CreateIndexBuilder = class _CreateIndexBuilder {
    */
   on(table) {
     return new _CreateIndexBuilder({
-      ...__privateGet(this, _props27),
-      node: CreateIndexNode.cloneWith(__privateGet(this, _props27).node, {
+      ...__privateGet(this, _props28),
+      node: CreateIndexNode.cloneWith(__privateGet(this, _props28).node, {
         table: parseTable$1(table)
       })
     });
@@ -20618,8 +21322,8 @@ const _CreateIndexBuilder = class _CreateIndexBuilder {
    */
   column(column2) {
     return new _CreateIndexBuilder({
-      ...__privateGet(this, _props27),
-      node: CreateIndexNode.cloneWithColumns(__privateGet(this, _props27).node, [
+      ...__privateGet(this, _props28),
+      node: CreateIndexNode.cloneWithColumns(__privateGet(this, _props28).node, [
         parseOrderedColumnName(column2)
       ])
     });
@@ -20648,8 +21352,8 @@ const _CreateIndexBuilder = class _CreateIndexBuilder {
    */
   columns(columns) {
     return new _CreateIndexBuilder({
-      ...__privateGet(this, _props27),
-      node: CreateIndexNode.cloneWithColumns(__privateGet(this, _props27).node, columns.map(parseOrderedColumnName))
+      ...__privateGet(this, _props28),
+      node: CreateIndexNode.cloneWithColumns(__privateGet(this, _props28).node, columns.map(parseOrderedColumnName))
     });
   }
   /**
@@ -20675,16 +21379,16 @@ const _CreateIndexBuilder = class _CreateIndexBuilder {
    */
   expression(expression) {
     return new _CreateIndexBuilder({
-      ...__privateGet(this, _props27),
-      node: CreateIndexNode.cloneWithColumns(__privateGet(this, _props27).node, [
+      ...__privateGet(this, _props28),
+      node: CreateIndexNode.cloneWithColumns(__privateGet(this, _props28).node, [
         expression.toOperationNode()
       ])
     });
   }
   using(indexType) {
     return new _CreateIndexBuilder({
-      ...__privateGet(this, _props27),
-      node: CreateIndexNode.cloneWith(__privateGet(this, _props27).node, {
+      ...__privateGet(this, _props28),
+      node: CreateIndexNode.cloneWith(__privateGet(this, _props28).node, {
         using: RawNode.createWithSql(indexType)
       })
     });
@@ -20692,39 +21396,8 @@ const _CreateIndexBuilder = class _CreateIndexBuilder {
   where(...args) {
     const transformer = new ImmediateValueTransformer();
     return new _CreateIndexBuilder({
-      ...__privateGet(this, _props27),
-      node: QueryNode.cloneWithWhere(__privateGet(this, _props27).node, transformer.transformNode(parseValueBinaryOperationOrExpression(args)))
-    });
-  }
-  /**
-   * Simply calls the provided function passing `this` as the only argument. `$call` returns
-   * what the provided function returns.
-   */
-  $call(func) {
-    return func(this);
-  }
-  toOperationNode() {
-    return __privateGet(this, _props27).executor.transformQuery(__privateGet(this, _props27).node, __privateGet(this, _props27).queryId);
-  }
-  compile() {
-    return __privateGet(this, _props27).executor.compileQuery(this.toOperationNode(), __privateGet(this, _props27).queryId);
-  }
-  async execute() {
-    await __privateGet(this, _props27).executor.executeQuery(this.compile(), __privateGet(this, _props27).queryId);
-  }
-};
-_props27 = new WeakMap();
-let CreateIndexBuilder = _CreateIndexBuilder;
-preventAwait(CreateIndexBuilder, "don't await CreateIndexBuilder instances directly. To execute the query you need to call `execute`");
-const _CreateSchemaBuilder = class _CreateSchemaBuilder {
-  constructor(props) {
-    __privateAdd(this, _props28);
-    __privateSet(this, _props28, freeze(props));
-  }
-  ifNotExists() {
-    return new _CreateSchemaBuilder({
       ...__privateGet(this, _props28),
-      node: CreateSchemaNode.cloneWith(__privateGet(this, _props28).node, { ifNotExists: true })
+      node: QueryNode.cloneWithWhere(__privateGet(this, _props28).node, transformer.transformNode(parseValueBinaryOperationOrExpression(args), __privateGet(this, _props28).queryId))
     });
   }
   /**
@@ -20745,8 +21418,37 @@ const _CreateSchemaBuilder = class _CreateSchemaBuilder {
   }
 };
 _props28 = new WeakMap();
+let CreateIndexBuilder = _CreateIndexBuilder;
+const _CreateSchemaBuilder = class _CreateSchemaBuilder {
+  constructor(props) {
+    __privateAdd(this, _props29);
+    __privateSet(this, _props29, freeze(props));
+  }
+  ifNotExists() {
+    return new _CreateSchemaBuilder({
+      ...__privateGet(this, _props29),
+      node: CreateSchemaNode.cloneWith(__privateGet(this, _props29).node, { ifNotExists: true })
+    });
+  }
+  /**
+   * Simply calls the provided function passing `this` as the only argument. `$call` returns
+   * what the provided function returns.
+   */
+  $call(func) {
+    return func(this);
+  }
+  toOperationNode() {
+    return __privateGet(this, _props29).executor.transformQuery(__privateGet(this, _props29).node, __privateGet(this, _props29).queryId);
+  }
+  compile() {
+    return __privateGet(this, _props29).executor.compileQuery(this.toOperationNode(), __privateGet(this, _props29).queryId);
+  }
+  async execute() {
+    await __privateGet(this, _props29).executor.executeQuery(this.compile(), __privateGet(this, _props29).queryId);
+  }
+};
+_props29 = new WeakMap();
 let CreateSchemaBuilder = _CreateSchemaBuilder;
-preventAwait(CreateSchemaBuilder, "don't await CreateSchemaBuilder instances directly. To execute the query you need to call `execute`");
 function parseOnCommitAction(action) {
   if (ON_COMMIT_ACTIONS.includes(action)) {
     return action;
@@ -20755,8 +21457,8 @@ function parseOnCommitAction(action) {
 }
 const _CreateTableBuilder = class _CreateTableBuilder {
   constructor(props) {
-    __privateAdd(this, _props29);
-    __privateSet(this, _props29, freeze(props));
+    __privateAdd(this, _props30);
+    __privateSet(this, _props30, freeze(props));
   }
   /**
    * Adds the "temporary" modifier.
@@ -20765,8 +21467,8 @@ const _CreateTableBuilder = class _CreateTableBuilder {
    */
   temporary() {
     return new _CreateTableBuilder({
-      ...__privateGet(this, _props29),
-      node: CreateTableNode.cloneWith(__privateGet(this, _props29).node, {
+      ...__privateGet(this, _props30),
+      node: CreateTableNode.cloneWith(__privateGet(this, _props30).node, {
         temporary: true
       })
     });
@@ -20779,8 +21481,8 @@ const _CreateTableBuilder = class _CreateTableBuilder {
    */
   onCommit(onCommit) {
     return new _CreateTableBuilder({
-      ...__privateGet(this, _props29),
-      node: CreateTableNode.cloneWith(__privateGet(this, _props29).node, {
+      ...__privateGet(this, _props30),
+      node: CreateTableNode.cloneWith(__privateGet(this, _props30).node, {
         onCommit: parseOnCommitAction(onCommit)
       })
     });
@@ -20792,8 +21494,8 @@ const _CreateTableBuilder = class _CreateTableBuilder {
    */
   ifNotExists() {
     return new _CreateTableBuilder({
-      ...__privateGet(this, _props29),
-      node: CreateTableNode.cloneWith(__privateGet(this, _props29).node, {
+      ...__privateGet(this, _props30),
+      node: CreateTableNode.cloneWith(__privateGet(this, _props30).node, {
         ifNotExists: true
       })
     });
@@ -20855,8 +21557,8 @@ const _CreateTableBuilder = class _CreateTableBuilder {
   addColumn(columnName, dataType, build = noop) {
     const columnBuilder = build(new ColumnDefinitionBuilder(ColumnDefinitionNode.create(columnName, parseDataTypeExpression(dataType))));
     return new _CreateTableBuilder({
-      ...__privateGet(this, _props29),
-      node: CreateTableNode.cloneWithColumn(__privateGet(this, _props29).node, columnBuilder.toOperationNode())
+      ...__privateGet(this, _props30),
+      node: CreateTableNode.cloneWithColumn(__privateGet(this, _props30).node, columnBuilder.toOperationNode())
     });
   }
   /**
@@ -20876,10 +21578,11 @@ const _CreateTableBuilder = class _CreateTableBuilder {
    *   .execute()
    * ```
    */
-  addPrimaryKeyConstraint(constraintName, columns) {
+  addPrimaryKeyConstraint(constraintName, columns, build = noop) {
+    const constraintBuilder = build(new PrimaryKeyConstraintBuilder(PrimaryKeyConstraintNode.create(columns, constraintName)));
     return new _CreateTableBuilder({
-      ...__privateGet(this, _props29),
-      node: CreateTableNode.cloneWithConstraint(__privateGet(this, _props29).node, PrimaryConstraintNode.create(columns, constraintName))
+      ...__privateGet(this, _props30),
+      node: CreateTableNode.cloneWithConstraint(__privateGet(this, _props30).node, constraintBuilder.toOperationNode())
     });
   }
   /**
@@ -20920,8 +21623,8 @@ const _CreateTableBuilder = class _CreateTableBuilder {
   addUniqueConstraint(constraintName, columns, build = noop) {
     const uniqueConstraintBuilder = build(new UniqueConstraintNodeBuilder(UniqueConstraintNode.create(columns, constraintName)));
     return new _CreateTableBuilder({
-      ...__privateGet(this, _props29),
-      node: CreateTableNode.cloneWithConstraint(__privateGet(this, _props29).node, uniqueConstraintBuilder.toOperationNode())
+      ...__privateGet(this, _props30),
+      node: CreateTableNode.cloneWithConstraint(__privateGet(this, _props30).node, uniqueConstraintBuilder.toOperationNode())
     });
   }
   /**
@@ -20942,10 +21645,11 @@ const _CreateTableBuilder = class _CreateTableBuilder {
    *   .execute()
    * ```
    */
-  addCheckConstraint(constraintName, checkExpression) {
+  addCheckConstraint(constraintName, checkExpression, build = noop) {
+    const constraintBuilder = build(new CheckConstraintBuilder(CheckConstraintNode.create(checkExpression.toOperationNode(), constraintName)));
     return new _CreateTableBuilder({
-      ...__privateGet(this, _props29),
-      node: CreateTableNode.cloneWithConstraint(__privateGet(this, _props29).node, CheckConstraintNode.create(checkExpression.toOperationNode(), constraintName))
+      ...__privateGet(this, _props30),
+      node: CreateTableNode.cloneWithConstraint(__privateGet(this, _props30).node, constraintBuilder.toOperationNode())
     });
   }
   /**
@@ -20989,8 +21693,8 @@ const _CreateTableBuilder = class _CreateTableBuilder {
   addForeignKeyConstraint(constraintName, columns, targetTable, targetColumns, build = noop) {
     const builder = build(new ForeignKeyConstraintBuilder(ForeignKeyConstraintNode.create(columns.map(ColumnNode.create), parseTable$1(targetTable), targetColumns.map(ColumnNode.create), constraintName)));
     return new _CreateTableBuilder({
-      ...__privateGet(this, _props29),
-      node: CreateTableNode.cloneWithConstraint(__privateGet(this, _props29).node, builder.toOperationNode())
+      ...__privateGet(this, _props30),
+      node: CreateTableNode.cloneWithConstraint(__privateGet(this, _props30).node, builder.toOperationNode())
     });
   }
   /**
@@ -21024,8 +21728,8 @@ const _CreateTableBuilder = class _CreateTableBuilder {
    */
   modifyFront(modifier) {
     return new _CreateTableBuilder({
-      ...__privateGet(this, _props29),
-      node: CreateTableNode.cloneWithFrontModifier(__privateGet(this, _props29).node, modifier.toOperationNode())
+      ...__privateGet(this, _props30),
+      node: CreateTableNode.cloneWithFrontModifier(__privateGet(this, _props30).node, modifier.toOperationNode())
     });
   }
   /**
@@ -21059,8 +21763,8 @@ const _CreateTableBuilder = class _CreateTableBuilder {
    */
   modifyEnd(modifier) {
     return new _CreateTableBuilder({
-      ...__privateGet(this, _props29),
-      node: CreateTableNode.cloneWithEndModifier(__privateGet(this, _props29).node, modifier.toOperationNode())
+      ...__privateGet(this, _props30),
+      node: CreateTableNode.cloneWithEndModifier(__privateGet(this, _props30).node, modifier.toOperationNode())
     });
   }
   /**
@@ -21085,8 +21789,8 @@ const _CreateTableBuilder = class _CreateTableBuilder {
    */
   as(expression) {
     return new _CreateTableBuilder({
-      ...__privateGet(this, _props29),
-      node: CreateTableNode.cloneWith(__privateGet(this, _props29).node, {
+      ...__privateGet(this, _props30),
+      node: CreateTableNode.cloneWith(__privateGet(this, _props30).node, {
         selectQuery: parseExpression(expression)
       })
     });
@@ -21129,59 +21833,6 @@ const _CreateTableBuilder = class _CreateTableBuilder {
     return func(this);
   }
   toOperationNode() {
-    return __privateGet(this, _props29).executor.transformQuery(__privateGet(this, _props29).node, __privateGet(this, _props29).queryId);
-  }
-  compile() {
-    return __privateGet(this, _props29).executor.compileQuery(this.toOperationNode(), __privateGet(this, _props29).queryId);
-  }
-  async execute() {
-    await __privateGet(this, _props29).executor.executeQuery(this.compile(), __privateGet(this, _props29).queryId);
-  }
-};
-_props29 = new WeakMap();
-let CreateTableBuilder = _CreateTableBuilder;
-preventAwait(CreateTableBuilder, "don't await CreateTableBuilder instances directly. To execute the query you need to call `execute`");
-const _DropIndexBuilder = class _DropIndexBuilder {
-  constructor(props) {
-    __privateAdd(this, _props30);
-    __privateSet(this, _props30, freeze(props));
-  }
-  /**
-   * Specifies the table the index was created for. This is not needed
-   * in all dialects.
-   */
-  on(table) {
-    return new _DropIndexBuilder({
-      ...__privateGet(this, _props30),
-      node: DropIndexNode.cloneWith(__privateGet(this, _props30).node, {
-        table: parseTable$1(table)
-      })
-    });
-  }
-  ifExists() {
-    return new _DropIndexBuilder({
-      ...__privateGet(this, _props30),
-      node: DropIndexNode.cloneWith(__privateGet(this, _props30).node, {
-        ifExists: true
-      })
-    });
-  }
-  cascade() {
-    return new _DropIndexBuilder({
-      ...__privateGet(this, _props30),
-      node: DropIndexNode.cloneWith(__privateGet(this, _props30).node, {
-        cascade: true
-      })
-    });
-  }
-  /**
-   * Simply calls the provided function passing `this` as the only argument. `$call` returns
-   * what the provided function returns.
-   */
-  $call(func) {
-    return func(this);
-  }
-  toOperationNode() {
     return __privateGet(this, _props30).executor.transformQuery(__privateGet(this, _props30).node, __privateGet(this, _props30).queryId);
   }
   compile() {
@@ -21192,25 +21843,36 @@ const _DropIndexBuilder = class _DropIndexBuilder {
   }
 };
 _props30 = new WeakMap();
-let DropIndexBuilder = _DropIndexBuilder;
-preventAwait(DropIndexBuilder, "don't await DropIndexBuilder instances directly. To execute the query you need to call `execute`");
-const _DropSchemaBuilder = class _DropSchemaBuilder {
+let CreateTableBuilder = _CreateTableBuilder;
+const _DropIndexBuilder = class _DropIndexBuilder {
   constructor(props) {
     __privateAdd(this, _props31);
     __privateSet(this, _props31, freeze(props));
   }
-  ifExists() {
-    return new _DropSchemaBuilder({
+  /**
+   * Specifies the table the index was created for. This is not needed
+   * in all dialects.
+   */
+  on(table) {
+    return new _DropIndexBuilder({
       ...__privateGet(this, _props31),
-      node: DropSchemaNode.cloneWith(__privateGet(this, _props31).node, {
+      node: DropIndexNode.cloneWith(__privateGet(this, _props31).node, {
+        table: parseTable$1(table)
+      })
+    });
+  }
+  ifExists() {
+    return new _DropIndexBuilder({
+      ...__privateGet(this, _props31),
+      node: DropIndexNode.cloneWith(__privateGet(this, _props31).node, {
         ifExists: true
       })
     });
   }
   cascade() {
-    return new _DropSchemaBuilder({
+    return new _DropIndexBuilder({
       ...__privateGet(this, _props31),
-      node: DropSchemaNode.cloneWith(__privateGet(this, _props31).node, {
+      node: DropIndexNode.cloneWith(__privateGet(this, _props31).node, {
         cascade: true
       })
     });
@@ -21233,25 +21895,24 @@ const _DropSchemaBuilder = class _DropSchemaBuilder {
   }
 };
 _props31 = new WeakMap();
-let DropSchemaBuilder = _DropSchemaBuilder;
-preventAwait(DropSchemaBuilder, "don't await DropSchemaBuilder instances directly. To execute the query you need to call `execute`");
-const _DropTableBuilder = class _DropTableBuilder {
+let DropIndexBuilder = _DropIndexBuilder;
+const _DropSchemaBuilder = class _DropSchemaBuilder {
   constructor(props) {
     __privateAdd(this, _props32);
     __privateSet(this, _props32, freeze(props));
   }
   ifExists() {
-    return new _DropTableBuilder({
+    return new _DropSchemaBuilder({
       ...__privateGet(this, _props32),
-      node: DropTableNode.cloneWith(__privateGet(this, _props32).node, {
+      node: DropSchemaNode.cloneWith(__privateGet(this, _props32).node, {
         ifExists: true
       })
     });
   }
   cascade() {
-    return new _DropTableBuilder({
+    return new _DropSchemaBuilder({
       ...__privateGet(this, _props32),
-      node: DropTableNode.cloneWith(__privateGet(this, _props32).node, {
+      node: DropSchemaNode.cloneWith(__privateGet(this, _props32).node, {
         cascade: true
       })
     });
@@ -21274,8 +21935,47 @@ const _DropTableBuilder = class _DropTableBuilder {
   }
 };
 _props32 = new WeakMap();
+let DropSchemaBuilder = _DropSchemaBuilder;
+const _DropTableBuilder = class _DropTableBuilder {
+  constructor(props) {
+    __privateAdd(this, _props33);
+    __privateSet(this, _props33, freeze(props));
+  }
+  ifExists() {
+    return new _DropTableBuilder({
+      ...__privateGet(this, _props33),
+      node: DropTableNode.cloneWith(__privateGet(this, _props33).node, {
+        ifExists: true
+      })
+    });
+  }
+  cascade() {
+    return new _DropTableBuilder({
+      ...__privateGet(this, _props33),
+      node: DropTableNode.cloneWith(__privateGet(this, _props33).node, {
+        cascade: true
+      })
+    });
+  }
+  /**
+   * Simply calls the provided function passing `this` as the only argument. `$call` returns
+   * what the provided function returns.
+   */
+  $call(func) {
+    return func(this);
+  }
+  toOperationNode() {
+    return __privateGet(this, _props33).executor.transformQuery(__privateGet(this, _props33).node, __privateGet(this, _props33).queryId);
+  }
+  compile() {
+    return __privateGet(this, _props33).executor.compileQuery(this.toOperationNode(), __privateGet(this, _props33).queryId);
+  }
+  async execute() {
+    await __privateGet(this, _props33).executor.executeQuery(this.compile(), __privateGet(this, _props33).queryId);
+  }
+};
+_props33 = new WeakMap();
 let DropTableBuilder = _DropTableBuilder;
-preventAwait(DropTableBuilder, "don't await DropTableBuilder instances directly. To execute the query you need to call `execute`");
 const CreateViewNode = freeze({
   is(node) {
     return node.kind === "CreateViewNode";
@@ -21298,7 +21998,7 @@ class ImmediateValuePlugin {
     __privateAdd(this, _transformer2, new ImmediateValueTransformer());
   }
   transformQuery(args) {
-    return __privateGet(this, _transformer2).transformNode(args.node);
+    return __privateGet(this, _transformer2).transformNode(args.node, args.queryId);
   }
   transformResult(args) {
     return Promise.resolve(args.result);
@@ -21307,8 +22007,8 @@ class ImmediateValuePlugin {
 _transformer2 = new WeakMap();
 const _CreateViewBuilder = class _CreateViewBuilder {
   constructor(props) {
-    __privateAdd(this, _props33);
-    __privateSet(this, _props33, freeze(props));
+    __privateAdd(this, _props34);
+    __privateSet(this, _props34, freeze(props));
   }
   /**
    * Adds the "temporary" modifier.
@@ -21317,16 +22017,16 @@ const _CreateViewBuilder = class _CreateViewBuilder {
    */
   temporary() {
     return new _CreateViewBuilder({
-      ...__privateGet(this, _props33),
-      node: CreateViewNode.cloneWith(__privateGet(this, _props33).node, {
+      ...__privateGet(this, _props34),
+      node: CreateViewNode.cloneWith(__privateGet(this, _props34).node, {
         temporary: true
       })
     });
   }
   materialized() {
     return new _CreateViewBuilder({
-      ...__privateGet(this, _props33),
-      node: CreateViewNode.cloneWith(__privateGet(this, _props33).node, {
+      ...__privateGet(this, _props34),
+      node: CreateViewNode.cloneWith(__privateGet(this, _props34).node, {
         materialized: true
       })
     });
@@ -21336,24 +22036,24 @@ const _CreateViewBuilder = class _CreateViewBuilder {
    */
   ifNotExists() {
     return new _CreateViewBuilder({
-      ...__privateGet(this, _props33),
-      node: CreateViewNode.cloneWith(__privateGet(this, _props33).node, {
+      ...__privateGet(this, _props34),
+      node: CreateViewNode.cloneWith(__privateGet(this, _props34).node, {
         ifNotExists: true
       })
     });
   }
   orReplace() {
     return new _CreateViewBuilder({
-      ...__privateGet(this, _props33),
-      node: CreateViewNode.cloneWith(__privateGet(this, _props33).node, {
+      ...__privateGet(this, _props34),
+      node: CreateViewNode.cloneWith(__privateGet(this, _props34).node, {
         orReplace: true
       })
     });
   }
   columns(columns) {
     return new _CreateViewBuilder({
-      ...__privateGet(this, _props33),
-      node: CreateViewNode.cloneWith(__privateGet(this, _props33).node, {
+      ...__privateGet(this, _props34),
+      node: CreateViewNode.cloneWith(__privateGet(this, _props34).node, {
         columns: columns.map(parseColumnName)
       })
     });
@@ -21370,75 +22070,9 @@ const _CreateViewBuilder = class _CreateViewBuilder {
   as(query) {
     const queryNode = query.withPlugin(new ImmediateValuePlugin()).toOperationNode();
     return new _CreateViewBuilder({
-      ...__privateGet(this, _props33),
-      node: CreateViewNode.cloneWith(__privateGet(this, _props33).node, {
+      ...__privateGet(this, _props34),
+      node: CreateViewNode.cloneWith(__privateGet(this, _props34).node, {
         as: queryNode
-      })
-    });
-  }
-  /**
-   * Simply calls the provided function passing `this` as the only argument. `$call` returns
-   * what the provided function returns.
-   */
-  $call(func) {
-    return func(this);
-  }
-  toOperationNode() {
-    return __privateGet(this, _props33).executor.transformQuery(__privateGet(this, _props33).node, __privateGet(this, _props33).queryId);
-  }
-  compile() {
-    return __privateGet(this, _props33).executor.compileQuery(this.toOperationNode(), __privateGet(this, _props33).queryId);
-  }
-  async execute() {
-    await __privateGet(this, _props33).executor.executeQuery(this.compile(), __privateGet(this, _props33).queryId);
-  }
-};
-_props33 = new WeakMap();
-let CreateViewBuilder = _CreateViewBuilder;
-preventAwait(CreateViewBuilder, "don't await CreateViewBuilder instances directly. To execute the query you need to call `execute`");
-const DropViewNode = freeze({
-  is(node) {
-    return node.kind === "DropViewNode";
-  },
-  create(name) {
-    return freeze({
-      kind: "DropViewNode",
-      name: SchemableIdentifierNode.create(name)
-    });
-  },
-  cloneWith(dropView, params) {
-    return freeze({
-      ...dropView,
-      ...params
-    });
-  }
-});
-const _DropViewBuilder = class _DropViewBuilder {
-  constructor(props) {
-    __privateAdd(this, _props34);
-    __privateSet(this, _props34, freeze(props));
-  }
-  materialized() {
-    return new _DropViewBuilder({
-      ...__privateGet(this, _props34),
-      node: DropViewNode.cloneWith(__privateGet(this, _props34).node, {
-        materialized: true
-      })
-    });
-  }
-  ifExists() {
-    return new _DropViewBuilder({
-      ...__privateGet(this, _props34),
-      node: DropViewNode.cloneWith(__privateGet(this, _props34).node, {
-        ifExists: true
-      })
-    });
-  }
-  cascade() {
-    return new _DropViewBuilder({
-      ...__privateGet(this, _props34),
-      node: DropViewNode.cloneWith(__privateGet(this, _props34).node, {
-        cascade: true
       })
     });
   }
@@ -21460,8 +22094,72 @@ const _DropViewBuilder = class _DropViewBuilder {
   }
 };
 _props34 = new WeakMap();
+let CreateViewBuilder = _CreateViewBuilder;
+const DropViewNode = freeze({
+  is(node) {
+    return node.kind === "DropViewNode";
+  },
+  create(name) {
+    return freeze({
+      kind: "DropViewNode",
+      name: SchemableIdentifierNode.create(name)
+    });
+  },
+  cloneWith(dropView, params) {
+    return freeze({
+      ...dropView,
+      ...params
+    });
+  }
+});
+const _DropViewBuilder = class _DropViewBuilder {
+  constructor(props) {
+    __privateAdd(this, _props35);
+    __privateSet(this, _props35, freeze(props));
+  }
+  materialized() {
+    return new _DropViewBuilder({
+      ...__privateGet(this, _props35),
+      node: DropViewNode.cloneWith(__privateGet(this, _props35).node, {
+        materialized: true
+      })
+    });
+  }
+  ifExists() {
+    return new _DropViewBuilder({
+      ...__privateGet(this, _props35),
+      node: DropViewNode.cloneWith(__privateGet(this, _props35).node, {
+        ifExists: true
+      })
+    });
+  }
+  cascade() {
+    return new _DropViewBuilder({
+      ...__privateGet(this, _props35),
+      node: DropViewNode.cloneWith(__privateGet(this, _props35).node, {
+        cascade: true
+      })
+    });
+  }
+  /**
+   * Simply calls the provided function passing `this` as the only argument. `$call` returns
+   * what the provided function returns.
+   */
+  $call(func) {
+    return func(this);
+  }
+  toOperationNode() {
+    return __privateGet(this, _props35).executor.transformQuery(__privateGet(this, _props35).node, __privateGet(this, _props35).queryId);
+  }
+  compile() {
+    return __privateGet(this, _props35).executor.compileQuery(this.toOperationNode(), __privateGet(this, _props35).queryId);
+  }
+  async execute() {
+    await __privateGet(this, _props35).executor.executeQuery(this.compile(), __privateGet(this, _props35).queryId);
+  }
+};
+_props35 = new WeakMap();
 let DropViewBuilder = _DropViewBuilder;
-preventAwait(DropViewBuilder, "don't await DropViewBuilder instances directly. To execute the query you need to call `execute`");
 const CreateTypeNode = freeze({
   is(node) {
     return node.kind === "CreateTypeNode";
@@ -21475,17 +22173,17 @@ const CreateTypeNode = freeze({
   cloneWithEnum(createType, values) {
     return freeze({
       ...createType,
-      enum: ValueListNode.create(values.map((value) => ValueNode.createImmediate(value)))
+      enum: ValueListNode.create(values.map(ValueNode.createImmediate))
     });
   }
 });
 const _CreateTypeBuilder = class _CreateTypeBuilder {
   constructor(props) {
-    __privateAdd(this, _props35);
-    __privateSet(this, _props35, freeze(props));
+    __privateAdd(this, _props36);
+    __privateSet(this, _props36, freeze(props));
   }
   toOperationNode() {
-    return __privateGet(this, _props35).executor.transformQuery(__privateGet(this, _props35).node, __privateGet(this, _props35).queryId);
+    return __privateGet(this, _props36).executor.transformQuery(__privateGet(this, _props36).node, __privateGet(this, _props36).queryId);
   }
   /**
    * Creates an anum type.
@@ -21498,8 +22196,8 @@ const _CreateTypeBuilder = class _CreateTypeBuilder {
    */
   asEnum(values) {
     return new _CreateTypeBuilder({
-      ...__privateGet(this, _props35),
-      node: CreateTypeNode.cloneWithEnum(__privateGet(this, _props35).node, values)
+      ...__privateGet(this, _props36),
+      node: CreateTypeNode.cloneWithEnum(__privateGet(this, _props36).node, values)
     });
   }
   /**
@@ -21510,15 +22208,14 @@ const _CreateTypeBuilder = class _CreateTypeBuilder {
     return func(this);
   }
   compile() {
-    return __privateGet(this, _props35).executor.compileQuery(this.toOperationNode(), __privateGet(this, _props35).queryId);
+    return __privateGet(this, _props36).executor.compileQuery(this.toOperationNode(), __privateGet(this, _props36).queryId);
   }
   async execute() {
-    await __privateGet(this, _props35).executor.executeQuery(this.compile(), __privateGet(this, _props35).queryId);
+    await __privateGet(this, _props36).executor.executeQuery(this.compile(), __privateGet(this, _props36).queryId);
   }
 };
-_props35 = new WeakMap();
+_props36 = new WeakMap();
 let CreateTypeBuilder = _CreateTypeBuilder;
-preventAwait(CreateTypeBuilder, "don't await CreateTypeBuilder instances directly. To execute the query you need to call `execute`");
 const DropTypeNode = freeze({
   is(node) {
     return node.kind === "DropTypeNode";
@@ -21538,13 +22235,13 @@ const DropTypeNode = freeze({
 });
 const _DropTypeBuilder = class _DropTypeBuilder {
   constructor(props) {
-    __privateAdd(this, _props36);
-    __privateSet(this, _props36, freeze(props));
+    __privateAdd(this, _props37);
+    __privateSet(this, _props37, freeze(props));
   }
   ifExists() {
     return new _DropTypeBuilder({
-      ...__privateGet(this, _props36),
-      node: DropTypeNode.cloneWith(__privateGet(this, _props36).node, {
+      ...__privateGet(this, _props37),
+      node: DropTypeNode.cloneWith(__privateGet(this, _props37).node, {
         ifExists: true
       })
     });
@@ -21557,18 +22254,17 @@ const _DropTypeBuilder = class _DropTypeBuilder {
     return func(this);
   }
   toOperationNode() {
-    return __privateGet(this, _props36).executor.transformQuery(__privateGet(this, _props36).node, __privateGet(this, _props36).queryId);
+    return __privateGet(this, _props37).executor.transformQuery(__privateGet(this, _props37).node, __privateGet(this, _props37).queryId);
   }
   compile() {
-    return __privateGet(this, _props36).executor.compileQuery(this.toOperationNode(), __privateGet(this, _props36).queryId);
+    return __privateGet(this, _props37).executor.compileQuery(this.toOperationNode(), __privateGet(this, _props37).queryId);
   }
   async execute() {
-    await __privateGet(this, _props36).executor.executeQuery(this.compile(), __privateGet(this, _props36).queryId);
+    await __privateGet(this, _props37).executor.executeQuery(this.compile(), __privateGet(this, _props37).queryId);
   }
 };
-_props36 = new WeakMap();
+_props37 = new WeakMap();
 let DropTypeBuilder = _DropTypeBuilder;
-preventAwait(DropTypeBuilder, "don't await DropTypeBuilder instances directly. To execute the query you need to call `execute`");
 function parseSchemableIdentifier(id) {
   const SCHEMA_SEPARATOR = ".";
   if (id.includes(SCHEMA_SEPARATOR)) {
@@ -21585,6 +22281,94 @@ function parseSchemableIdentifier(id) {
 function trim(str) {
   return str.trim();
 }
+const RefreshMaterializedViewNode = freeze({
+  is(node) {
+    return node.kind === "RefreshMaterializedViewNode";
+  },
+  create(name) {
+    return freeze({
+      kind: "RefreshMaterializedViewNode",
+      name: SchemableIdentifierNode.create(name)
+    });
+  },
+  cloneWith(createView, params) {
+    return freeze({
+      ...createView,
+      ...params
+    });
+  }
+});
+const _RefreshMaterializedViewBuilder = class _RefreshMaterializedViewBuilder {
+  constructor(props) {
+    __privateAdd(this, _props38);
+    __privateSet(this, _props38, freeze(props));
+  }
+  /**
+   * Adds the "concurrently" modifier.
+   *
+   * Use this to refresh the view without locking out concurrent selects on the materialized view.
+   *
+   * WARNING!
+   * This cannot be used with the "with no data" modifier.
+   */
+  concurrently() {
+    return new _RefreshMaterializedViewBuilder({
+      ...__privateGet(this, _props38),
+      node: RefreshMaterializedViewNode.cloneWith(__privateGet(this, _props38).node, {
+        concurrently: true,
+        withNoData: false
+      })
+    });
+  }
+  /**
+   * Adds the "with data" modifier.
+   *
+   * If specified (or defaults) the backing query is executed to provide the new data, and the materialized view is left in a scannable state
+   */
+  withData() {
+    return new _RefreshMaterializedViewBuilder({
+      ...__privateGet(this, _props38),
+      node: RefreshMaterializedViewNode.cloneWith(__privateGet(this, _props38).node, {
+        withNoData: false
+      })
+    });
+  }
+  /**
+   * Adds the "with no data" modifier.
+   *
+   * If specified, no new data is generated and the materialized view is left in an unscannable state.
+   *
+   * WARNING!
+   * This cannot be used with the "concurrently" modifier.
+   */
+  withNoData() {
+    return new _RefreshMaterializedViewBuilder({
+      ...__privateGet(this, _props38),
+      node: RefreshMaterializedViewNode.cloneWith(__privateGet(this, _props38).node, {
+        withNoData: true,
+        concurrently: false
+      })
+    });
+  }
+  /**
+   * Simply calls the provided function passing `this` as the only argument. `$call` returns
+   * what the provided function returns.
+   */
+  $call(func) {
+    return func(this);
+  }
+  toOperationNode() {
+    return __privateGet(this, _props38).executor.transformQuery(__privateGet(this, _props38).node, __privateGet(this, _props38).queryId);
+  }
+  compile() {
+    return __privateGet(this, _props38).executor.compileQuery(this.toOperationNode(), __privateGet(this, _props38).queryId);
+  }
+  async execute() {
+    await __privateGet(this, _props38).executor.executeQuery(this.compile(), __privateGet(this, _props38).queryId);
+  }
+};
+_props38 = new WeakMap();
+let RefreshMaterializedViewBuilder = _RefreshMaterializedViewBuilder;
 const _SchemaModule = class _SchemaModule {
   constructor(executor) {
     __privateAdd(this, _executor);
@@ -21777,6 +22561,25 @@ const _SchemaModule = class _SchemaModule {
       queryId: createQueryId(),
       executor: __privateGet(this, _executor),
       node: CreateViewNode.create(viewName)
+    });
+  }
+  /**
+   * Refresh a materialized view.
+   *
+   * ### Examples
+   *
+   * ```ts
+   * await db.schema
+   *   .refreshMaterializedView('my_view')
+   *   .concurrently()
+   *   .execute()
+   * ```
+   */
+  refreshMaterializedView(viewName) {
+    return new RefreshMaterializedViewBuilder({
+      queryId: createQueryId(),
+      executor: __privateGet(this, _executor),
+      node: RefreshMaterializedViewNode.create(viewName)
     });
   }
   /**
@@ -21979,8 +22782,8 @@ const _DefaultQueryExecutor = class _DefaultQueryExecutor extends QueryExecutorB
   get adapter() {
     return __privateGet(this, _adapter);
   }
-  compileQuery(node) {
-    return __privateGet(this, _compiler).compileQuery(node);
+  compileQuery(node, queryId) {
+    return __privateGet(this, _compiler).compileQuery(node, queryId);
   }
   provideConnection(consumer) {
     return __privateGet(this, _connectionProvider).provideConnection(consumer);
@@ -22067,6 +22870,24 @@ class RuntimeDriver {
   rollbackTransaction(connection) {
     return __privateGet(this, _driver2).rollbackTransaction(connection);
   }
+  savepoint(connection, savepointName, compileQuery) {
+    if (__privateGet(this, _driver2).savepoint) {
+      return __privateGet(this, _driver2).savepoint(connection, savepointName, compileQuery);
+    }
+    throw new Error("The `savepoint` method is not supported by this driver");
+  }
+  rollbackToSavepoint(connection, savepointName, compileQuery) {
+    if (__privateGet(this, _driver2).rollbackToSavepoint) {
+      return __privateGet(this, _driver2).rollbackToSavepoint(connection, savepointName, compileQuery);
+    }
+    throw new Error("The `rollbackToSavepoint` method is not supported by this driver");
+  }
+  releaseSavepoint(connection, savepointName, compileQuery) {
+    if (__privateGet(this, _driver2).releaseSavepoint) {
+      return __privateGet(this, _driver2).releaseSavepoint(connection, savepointName, compileQuery);
+    }
+    throw new Error("The `releaseSavepoint` method is not supported by this driver");
+  }
   async destroy() {
     if (!__privateGet(this, _initPromise)) {
       return;
@@ -22096,18 +22917,39 @@ needsLogging_fn = function() {
 // the best option in this case.
 addLogging_fn = function(connection) {
   const executeQuery = connection.executeQuery;
+  const streamQuery = connection.streamQuery;
+  const dis = this;
   connection.executeQuery = async (compiledQuery) => {
+    var _a, _b;
     let caughtError;
     const startTime = performanceNow();
     try {
       return await executeQuery.call(connection, compiledQuery);
     } catch (error) {
       caughtError = error;
-      await __privateMethod(this, _RuntimeDriver_instances, logError_fn).call(this, error, compiledQuery, startTime);
+      await __privateMethod(_a = dis, _RuntimeDriver_instances, logError_fn).call(_a, error, compiledQuery, startTime);
       throw error;
     } finally {
       if (!caughtError) {
-        await __privateMethod(this, _RuntimeDriver_instances, logQuery_fn).call(this, compiledQuery, startTime);
+        await __privateMethod(_b = dis, _RuntimeDriver_instances, logQuery_fn).call(_b, compiledQuery, startTime);
+      }
+    }
+  };
+  connection.streamQuery = async function* (compiledQuery, chunkSize) {
+    var _a, _b;
+    let caughtError;
+    const startTime = performanceNow();
+    try {
+      for await (const result of streamQuery.call(connection, compiledQuery, chunkSize)) {
+        yield result;
+      }
+    } catch (error) {
+      caughtError = error;
+      await __privateMethod(_a = dis, _RuntimeDriver_instances, logError_fn).call(_a, error, compiledQuery, startTime);
+      throw error;
+    } finally {
+      if (!caughtError) {
+        await __privateMethod(_b = dis, _RuntimeDriver_instances, logQuery_fn).call(_b, compiledQuery, startTime, true);
       }
     }
   };
@@ -22120,9 +22962,10 @@ logError_fn = async function(error, compiledQuery, startTime) {
     queryDurationMillis: __privateMethod(this, _RuntimeDriver_instances, calculateDurationMillis_fn).call(this, startTime)
   }));
 };
-logQuery_fn = async function(compiledQuery, startTime) {
+logQuery_fn = async function(compiledQuery, startTime, isStream = false) {
   await __privateGet(this, _log).query(() => ({
     level: "query",
+    isStream,
     query: compiledQuery,
     queryDurationMillis: __privateMethod(this, _RuntimeDriver_instances, calculateDurationMillis_fn).call(this, startTime)
   }));
@@ -22155,6 +22998,7 @@ _SingleConnectionProvider_instances = new WeakSet();
 run_fn = async function(runner) {
   return await runner(__privateGet(this, _connection));
 };
+const TRANSACTION_ACCESS_MODES = ["read only", "read write"];
 const TRANSACTION_ISOLATION_LEVELS = [
   "read uncommitted",
   "read committed",
@@ -22162,6 +23006,14 @@ const TRANSACTION_ISOLATION_LEVELS = [
   "serializable",
   "snapshot"
 ];
+function validateTransactionSettings(settings) {
+  if (settings.accessMode && !TRANSACTION_ACCESS_MODES.includes(settings.accessMode)) {
+    throw new Error(`invalid transaction access mode ${settings.accessMode}`);
+  }
+  if (settings.isolationLevel && !TRANSACTION_ISOLATION_LEVELS.includes(settings.isolationLevel)) {
+    throw new Error(`invalid transaction isolation level ${settings.isolationLevel}`);
+  }
+}
 freeze(["query", "error"]);
 class Log {
   constructor(config) {
@@ -22199,8 +23051,9 @@ _levels = new WeakMap();
 _logger = new WeakMap();
 function defaultLogger(event) {
   if (event.level === "query") {
-    console.log(`kysely:query: ${event.query.sql}`);
-    console.log(`kysely:query: duration: ${event.queryDurationMillis.toFixed(1)}ms`);
+    const prefix = `kysely:query:${event.isStream ? "stream:" : ""}`;
+    console.log(`${prefix} ${event.query.sql}`);
+    console.log(`${prefix} duration: ${event.queryDurationMillis.toFixed(1)}ms`);
   } else if (event.level === "error") {
     if (event.error instanceof Error) {
       console.error(`kysely:error: ${event.error.stack ?? event.error.message}`);
@@ -22216,6 +23069,7 @@ function defaultLogger(event) {
 function isCompilable(value) {
   return isObject(value) && isFunction(value.compile);
 }
+Symbol.asyncDispose ?? (Symbol.asyncDispose = Symbol("Symbol.asyncDispose"));
 const _Kysely = class _Kysely extends QueryCreator {
   constructor(args) {
     let superProps;
@@ -22241,14 +23095,14 @@ const _Kysely = class _Kysely extends QueryCreator {
       };
     }
     super(superProps);
-    __privateAdd(this, _props37);
-    __privateSet(this, _props37, freeze(props));
+    __privateAdd(this, _props39);
+    __privateSet(this, _props39, freeze(props));
   }
   /**
    * Returns the {@link SchemaModule} module for building database schema.
    */
   get schema() {
-    return new SchemaModule(__privateGet(this, _props37).executor);
+    return new SchemaModule(__privateGet(this, _props39).executor);
   }
   /**
    * Returns a the {@link DynamicModule} module.
@@ -22263,7 +23117,7 @@ const _Kysely = class _Kysely extends QueryCreator {
    * Returns a {@link DatabaseIntrospector | database introspector}.
    */
   get introspection() {
-    return __privateGet(this, _props37).dialect.createIntrospector(this.withoutPlugins());
+    return __privateGet(this, _props39).dialect.createIntrospector(this.withoutPlugins());
   }
   case(value) {
     return new CaseBuilder({
@@ -22338,6 +23192,9 @@ const _Kysely = class _Kysely extends QueryCreator {
    * of type {@link Transaction} which inherits {@link Kysely}. Any query
    * started through the transaction object is executed inside the transaction.
    *
+   * To run a controlled transaction, allowing you to commit and rollback manually,
+   * use {@link startTransaction} instead.
+   *
    * ### Examples
    *
    * <!-- siteExample("transactions", "Simple transaction", 10) -->
@@ -22390,7 +23247,121 @@ const _Kysely = class _Kysely extends QueryCreator {
    * ```
    */
   transaction() {
-    return new TransactionBuilder({ ...__privateGet(this, _props37) });
+    return new TransactionBuilder({ ...__privateGet(this, _props39) });
+  }
+  /**
+   * Creates a {@link ControlledTransactionBuilder} that can be used to run queries inside a controlled transaction.
+   *
+   * The returned {@link ControlledTransactionBuilder} can be used to configure the transaction.
+   * The {@link ControlledTransactionBuilder.execute} method can then be called
+   * to start the transaction and return a {@link ControlledTransaction}.
+   *
+   * A {@link ControlledTransaction} allows you to commit and rollback manually,
+   * execute savepoint commands. It extends {@link Transaction} which extends {@link Kysely},
+   * so you can run queries inside the transaction. Once the transaction is committed,
+   * or rolled back, it can't be used anymore - all queries will throw an error.
+   * This is to prevent accidentally running queries outside the transaction - where
+   * atomicity is not guaranteed anymore.
+   *
+   * ### Examples
+   *
+   * <!-- siteExample("transactions", "Controlled transaction", 11) -->
+   *
+   * A controlled transaction allows you to commit and rollback manually, execute
+   * savepoint commands, and queries in general.
+   *
+   * In this example we start a transaction, use it to insert two rows and then commit
+   * the transaction. If an error is thrown, we catch it and rollback the transaction.
+   *
+   * ```ts
+   * const trx = await db.startTransaction().execute()
+   *
+   * try {
+   *   const jennifer = await trx.insertInto('person')
+   *     .values({
+   *       first_name: 'Jennifer',
+   *       last_name: 'Aniston',
+   *       age: 40,
+   *     })
+   *     .returning('id')
+   *     .executeTakeFirstOrThrow()
+   *
+   *   const catto = await trx.insertInto('pet')
+   *     .values({
+   *       owner_id: jennifer.id,
+   *       name: 'Catto',
+   *       species: 'cat',
+   *       is_favorite: false,
+   *     })
+   *     .returningAll()
+   *     .executeTakeFirstOrThrow()
+   *
+   *   await trx.commit().execute()
+   *
+   *   // ...
+   * } catch (error) {
+   *   await trx.rollback().execute()
+   * }
+   * ```
+   *
+   * <!-- siteExample("transactions", "Controlled transaction /w savepoints", 12) -->
+   *
+   * A controlled transaction allows you to commit and rollback manually, execute
+   * savepoint commands, and queries in general.
+   *
+   * In this example we start a transaction, insert a person, create a savepoint,
+   * try inserting a toy and a pet, and if an error is thrown, we rollback to the
+   * savepoint. Eventually we release the savepoint, insert an audit record and
+   * commit the transaction. If an error is thrown, we catch it and rollback the
+   * transaction.
+   *
+   * ```ts
+   * const trx = await db.startTransaction().execute()
+   *
+   * try {
+   *   const jennifer = await trx
+   *     .insertInto('person')
+   *     .values({
+   *       first_name: 'Jennifer',
+   *       last_name: 'Aniston',
+   *       age: 40,
+   *     })
+   *     .returning('id')
+   *     .executeTakeFirstOrThrow()
+   *
+   *   const trxAfterJennifer = await trx.savepoint('after_jennifer').execute()
+   *
+   *   try {
+   *     const catto = await trxAfterJennifer
+   *       .insertInto('pet')
+   *       .values({
+   *         owner_id: jennifer.id,
+   *         name: 'Catto',
+   *         species: 'cat',
+   *       })
+   *       .returning('id')
+   *       .executeTakeFirstOrThrow()
+   *
+   *     await trxAfterJennifer
+   *       .insertInto('toy')
+   *       .values({ name: 'Bone', price: 1.99, pet_id: catto.id })
+   *       .execute()
+   *   } catch (error) {
+   *     await trxAfterJennifer.rollbackToSavepoint('after_jennifer').execute()
+   *   }
+   *
+   *   await trxAfterJennifer.releaseSavepoint('after_jennifer').execute()
+   *
+   *   await trx.insertInto('audit').values({ action: 'added Jennifer' }).execute()
+   *
+   *   await trx.commit().execute()
+   * } catch (error) {
+   *   await trx.rollback().execute()
+   * }
+   * ```
+   */
+  startTransaction() {
+    return new ControlledTransactionBuilder({ ...__privateGet(this, _props39) });
   }
   /**
    * Provides a kysely instance bound to a single database connection.
@@ -22413,15 +23384,15 @@ const _Kysely = class _Kysely extends QueryCreator {
    * ```
    */
   connection() {
-    return new ConnectionBuilder({ ...__privateGet(this, _props37) });
+    return new ConnectionBuilder({ ...__privateGet(this, _props39) });
   }
   /**
    * Returns a copy of this Kysely instance with the given plugin installed.
    */
   withPlugin(plugin) {
     return new _Kysely({
-      ...__privateGet(this, _props37),
-      executor: __privateGet(this, _props37).executor.withPlugin(plugin)
+      ...__privateGet(this, _props39),
+      executor: __privateGet(this, _props39).executor.withPlugin(plugin)
     });
   }
   /**
@@ -22429,8 +23400,8 @@ const _Kysely = class _Kysely extends QueryCreator {
    */
   withoutPlugins() {
     return new _Kysely({
-      ...__privateGet(this, _props37),
-      executor: __privateGet(this, _props37).executor.withoutPlugins()
+      ...__privateGet(this, _props39),
+      executor: __privateGet(this, _props39).executor.withoutPlugins()
     });
   }
   /**
@@ -22438,8 +23409,8 @@ const _Kysely = class _Kysely extends QueryCreator {
    */
   withSchema(schema) {
     return new _Kysely({
-      ...__privateGet(this, _props37),
-      executor: __privateGet(this, _props37).executor.withPluginAtFront(new WithSchemaPlugin(schema))
+      ...__privateGet(this, _props39),
+      executor: __privateGet(this, _props39).executor.withPluginAtFront(new WithSchemaPlugin(schema))
     });
   }
   /**
@@ -22473,7 +23444,7 @@ const _Kysely = class _Kysely extends QueryCreator {
    * ```
    */
   withTables() {
-    return new _Kysely({ ...__privateGet(this, _props37) });
+    return new _Kysely({ ...__privateGet(this, _props39) });
   }
   /**
    * Releases all resources and disconnects from the database.
@@ -22481,7 +23452,7 @@ const _Kysely = class _Kysely extends QueryCreator {
    * You need to call this when you are done using the `Kysely` instance.
    */
   async destroy() {
-    await __privateGet(this, _props37).driver.destroy();
+    await __privateGet(this, _props39).driver.destroy();
   }
   /**
    * Returns true if this `Kysely` instance is a transaction.
@@ -22496,7 +23467,7 @@ const _Kysely = class _Kysely extends QueryCreator {
    * @private
    */
   getExecutor() {
-    return __privateGet(this, _props37).executor;
+    return __privateGet(this, _props39).executor;
   }
   /**
    * Executes a given compiled query or query builder.
@@ -22507,14 +23478,17 @@ const _Kysely = class _Kysely extends QueryCreator {
     const compiledQuery = isCompilable(query) ? query.compile() : query;
     return this.getExecutor().executeQuery(compiledQuery, queryId);
   }
+  async [Symbol.asyncDispose]() {
+    await this.destroy();
+  }
 };
-_props37 = new WeakMap();
+_props39 = new WeakMap();
 let Kysely = _Kysely;
 const _Transaction = class _Transaction extends Kysely {
   constructor(props) {
     super(props);
-    __privateAdd(this, _props38);
-    __privateSet(this, _props38, props);
+    __privateAdd(this, _props40);
+    __privateSet(this, _props40, props);
   }
   // The return type is `true` instead of `boolean` to make Kysely<DB>
   // unassignable to Transaction<DB> while allowing assignment the
@@ -22533,95 +23507,428 @@ const _Transaction = class _Transaction extends Kysely {
   }
   withPlugin(plugin) {
     return new _Transaction({
-      ...__privateGet(this, _props38),
-      executor: __privateGet(this, _props38).executor.withPlugin(plugin)
+      ...__privateGet(this, _props40),
+      executor: __privateGet(this, _props40).executor.withPlugin(plugin)
     });
   }
   withoutPlugins() {
     return new _Transaction({
-      ...__privateGet(this, _props38),
-      executor: __privateGet(this, _props38).executor.withoutPlugins()
+      ...__privateGet(this, _props40),
+      executor: __privateGet(this, _props40).executor.withoutPlugins()
     });
   }
   withSchema(schema) {
     return new _Transaction({
-      ...__privateGet(this, _props38),
-      executor: __privateGet(this, _props38).executor.withPluginAtFront(new WithSchemaPlugin(schema))
+      ...__privateGet(this, _props40),
+      executor: __privateGet(this, _props40).executor.withPluginAtFront(new WithSchemaPlugin(schema))
     });
   }
   withTables() {
-    return new _Transaction({ ...__privateGet(this, _props38) });
+    return new _Transaction({ ...__privateGet(this, _props40) });
   }
 };
-_props38 = new WeakMap();
+_props40 = new WeakMap();
 let Transaction = _Transaction;
 function isKyselyProps(obj) {
   return isObject(obj) && isObject(obj.config) && isObject(obj.driver) && isObject(obj.executor) && isObject(obj.dialect);
 }
 class ConnectionBuilder {
   constructor(props) {
-    __privateAdd(this, _props39);
-    __privateSet(this, _props39, freeze(props));
+    __privateAdd(this, _props41);
+    __privateSet(this, _props41, freeze(props));
   }
   async execute(callback) {
-    return __privateGet(this, _props39).executor.provideConnection(async (connection) => {
-      const executor = __privateGet(this, _props39).executor.withConnectionProvider(new SingleConnectionProvider(connection));
+    return __privateGet(this, _props41).executor.provideConnection(async (connection) => {
+      const executor = __privateGet(this, _props41).executor.withConnectionProvider(new SingleConnectionProvider(connection));
       const db = new Kysely({
-        ...__privateGet(this, _props39),
+        ...__privateGet(this, _props41),
         executor
       });
       return await callback(db);
     });
   }
 }
-_props39 = new WeakMap();
-preventAwait(ConnectionBuilder, "don't await ConnectionBuilder instances directly. To execute the query you need to call the `execute` method");
+_props41 = new WeakMap();
 const _TransactionBuilder = class _TransactionBuilder {
   constructor(props) {
-    __privateAdd(this, _props40);
-    __privateSet(this, _props40, freeze(props));
+    __privateAdd(this, _props42);
+    __privateSet(this, _props42, freeze(props));
+  }
+  setAccessMode(accessMode) {
+    return new _TransactionBuilder({
+      ...__privateGet(this, _props42),
+      accessMode
+    });
   }
   setIsolationLevel(isolationLevel) {
     return new _TransactionBuilder({
-      ...__privateGet(this, _props40),
+      ...__privateGet(this, _props42),
       isolationLevel
     });
   }
   async execute(callback) {
-    const { isolationLevel, ...kyselyProps } = __privateGet(this, _props40);
-    const settings = { isolationLevel };
+    const { isolationLevel, accessMode, ...kyselyProps } = __privateGet(this, _props42);
+    const settings = { isolationLevel, accessMode };
     validateTransactionSettings(settings);
-    return __privateGet(this, _props40).executor.provideConnection(async (connection) => {
-      const executor = __privateGet(this, _props40).executor.withConnectionProvider(new SingleConnectionProvider(connection));
+    return __privateGet(this, _props42).executor.provideConnection(async (connection) => {
+      const executor = __privateGet(this, _props42).executor.withConnectionProvider(new SingleConnectionProvider(connection));
       const transaction = new Transaction({
         ...kyselyProps,
         executor
       });
       try {
-        await __privateGet(this, _props40).driver.beginTransaction(connection, settings);
+        await __privateGet(this, _props42).driver.beginTransaction(connection, settings);
         const result = await callback(transaction);
-        await __privateGet(this, _props40).driver.commitTransaction(connection);
+        await __privateGet(this, _props42).driver.commitTransaction(connection);
         return result;
       } catch (error) {
-        await __privateGet(this, _props40).driver.rollbackTransaction(connection);
+        await __privateGet(this, _props42).driver.rollbackTransaction(connection);
         throw error;
       }
     });
   }
 };
-_props40 = new WeakMap();
+_props42 = new WeakMap();
 let TransactionBuilder = _TransactionBuilder;
-preventAwait(TransactionBuilder, "don't await TransactionBuilder instances directly. To execute the transaction you need to call the `execute` method");
-function validateTransactionSettings(settings) {
-  if (settings.isolationLevel && !TRANSACTION_ISOLATION_LEVELS.includes(settings.isolationLevel)) {
-    throw new Error(`invalid transaction isolation level ${settings.isolationLevel}`);
+const _ControlledTransactionBuilder = class _ControlledTransactionBuilder {
+  constructor(props) {
+    __privateAdd(this, _props43);
+    __privateSet(this, _props43, freeze(props));
+  }
+  setAccessMode(accessMode) {
+    return new _ControlledTransactionBuilder({
+      ...__privateGet(this, _props43),
+      accessMode
+    });
+  }
+  setIsolationLevel(isolationLevel) {
+    return new _ControlledTransactionBuilder({
+      ...__privateGet(this, _props43),
+      isolationLevel
+    });
+  }
+  async execute() {
+    const { isolationLevel, accessMode, ...props } = __privateGet(this, _props43);
+    const settings = { isolationLevel, accessMode };
+    validateTransactionSettings(settings);
+    const connection = await provideControlledConnection(__privateGet(this, _props43).executor);
+    await __privateGet(this, _props43).driver.beginTransaction(connection.connection, settings);
+    return new ControlledTransaction({
+      ...props,
+      connection,
+      executor: __privateGet(this, _props43).executor.withConnectionProvider(new SingleConnectionProvider(connection.connection))
+    });
+  }
+};
+_props43 = new WeakMap();
+let ControlledTransactionBuilder = _ControlledTransactionBuilder;
+const _ControlledTransaction = class _ControlledTransaction extends Transaction {
+  constructor(props) {
+    const state = { isCommitted: false, isRolledBack: false };
+    props = {
+      ...props,
+      executor: new NotCommittedOrRolledBackAssertingExecutor(props.executor, state)
+    };
+    const { connection, ...transactionProps } = props;
+    super(transactionProps);
+    __privateAdd(this, _props44);
+    __privateAdd(this, _compileQuery);
+    __privateAdd(this, _state);
+    __privateSet(this, _props44, freeze(props));
+    __privateSet(this, _state, state);
+    const queryId = createQueryId();
+    __privateSet(this, _compileQuery, (node) => props.executor.compileQuery(node, queryId));
+  }
+  get isCommitted() {
+    return __privateGet(this, _state).isCommitted;
+  }
+  get isRolledBack() {
+    return __privateGet(this, _state).isRolledBack;
+  }
+  /**
+   * Commits the transaction.
+   *
+   * See {@link rollback}.
+   *
+   * ### Examples
+   *
+   * ```ts
+   * import type { Kysely } from 'kysely'
+   * import type { Database } from 'type-editor' // imaginary module
+   *
+   * const trx = await db.startTransaction().execute()
+   *
+   * try {
+   *   await doSomething(trx)
+   *
+   *   await trx.commit().execute()
+   * } catch (error) {
+   *   await trx.rollback().execute()
+   * }
+   *
+   * async function doSomething(kysely: Kysely<Database>) {}
+   * ```
+   */
+  commit() {
+    assertNotCommittedOrRolledBack(__privateGet(this, _state));
+    return new Command(async () => {
+      await __privateGet(this, _props44).driver.commitTransaction(__privateGet(this, _props44).connection.connection);
+      __privateGet(this, _state).isCommitted = true;
+      __privateGet(this, _props44).connection.release();
+    });
+  }
+  /**
+   * Rolls back the transaction.
+   *
+   * See {@link commit} and {@link rollbackToSavepoint}.
+   *
+   * ### Examples
+   *
+   * ```ts
+   * import type { Kysely } from 'kysely'
+   * import type { Database } from 'type-editor' // imaginary module
+   *
+   * const trx = await db.startTransaction().execute()
+   *
+   * try {
+   *   await doSomething(trx)
+   *
+   *   await trx.commit().execute()
+   * } catch (error) {
+   *   await trx.rollback().execute()
+   * }
+   *
+   * async function doSomething(kysely: Kysely<Database>) {}
+   * ```
+   */
+  rollback() {
+    assertNotCommittedOrRolledBack(__privateGet(this, _state));
+    return new Command(async () => {
+      await __privateGet(this, _props44).driver.rollbackTransaction(__privateGet(this, _props44).connection.connection);
+      __privateGet(this, _state).isRolledBack = true;
+      __privateGet(this, _props44).connection.release();
+    });
+  }
+  /**
+   * Creates a savepoint with a given name.
+   *
+   * See {@link rollbackToSavepoint} and {@link releaseSavepoint}.
+   *
+   * For a type-safe experience, you should use the returned instance from now on.
+   *
+   * ### Examples
+   *
+   * ```ts
+   * import type { Kysely } from 'kysely'
+   * import type { Database } from 'type-editor' // imaginary module
+   *
+   * const trx = await db.startTransaction().execute()
+   *
+   * await insertJennifer(trx)
+   *
+   * const trxAfterJennifer = await trx.savepoint('after_jennifer').execute()
+   *
+   * try {
+   *   await doSomething(trxAfterJennifer)
+   * } catch (error) {
+   *   await trxAfterJennifer.rollbackToSavepoint('after_jennifer').execute()
+   * }
+   *
+   * async function insertJennifer(kysely: Kysely<Database>) {}
+   * async function doSomething(kysely: Kysely<Database>) {}
+   * ```
+   */
+  savepoint(savepointName) {
+    assertNotCommittedOrRolledBack(__privateGet(this, _state));
+    return new Command(async () => {
+      await __privateGet(this, _props44).driver.savepoint?.(__privateGet(this, _props44).connection.connection, savepointName, __privateGet(this, _compileQuery));
+      return new _ControlledTransaction({ ...__privateGet(this, _props44) });
+    });
+  }
+  /**
+   * Rolls back to a savepoint with a given name.
+   *
+   * See {@link savepoint} and {@link releaseSavepoint}.
+   *
+   * You must use the same instance returned by {@link savepoint}, or
+   * escape the type-check by using `as any`.
+   *
+   * ### Examples
+   *
+   * ```ts
+   * import type { Kysely } from 'kysely'
+   * import type { Database } from 'type-editor' // imaginary module
+   *
+   * const trx = await db.startTransaction().execute()
+   *
+   * await insertJennifer(trx)
+   *
+   * const trxAfterJennifer = await trx.savepoint('after_jennifer').execute()
+   *
+   * try {
+   *   await doSomething(trxAfterJennifer)
+   * } catch (error) {
+   *   await trxAfterJennifer.rollbackToSavepoint('after_jennifer').execute()
+   * }
+   *
+   * async function insertJennifer(kysely: Kysely<Database>) {}
+   * async function doSomething(kysely: Kysely<Database>) {}
+   * ```
+   */
+  rollbackToSavepoint(savepointName) {
+    assertNotCommittedOrRolledBack(__privateGet(this, _state));
+    return new Command(async () => {
+      await __privateGet(this, _props44).driver.rollbackToSavepoint?.(__privateGet(this, _props44).connection.connection, savepointName, __privateGet(this, _compileQuery));
+      return new _ControlledTransaction({ ...__privateGet(this, _props44) });
+    });
+  }
+  /**
+   * Releases a savepoint with a given name.
+   *
+   * See {@link savepoint} and {@link rollbackToSavepoint}.
+   *
+   * You must use the same instance returned by {@link savepoint}, or
+   * escape the type-check by using `as any`.
+   *
+   * ### Examples
+   *
+   * ```ts
+   * import type { Kysely } from 'kysely'
+   * import type { Database } from 'type-editor' // imaginary module
+   *
+   * const trx = await db.startTransaction().execute()
+   *
+   * await insertJennifer(trx)
+   *
+   * const trxAfterJennifer = await trx.savepoint('after_jennifer').execute()
+   *
+   * try {
+   *   await doSomething(trxAfterJennifer)
+   * } catch (error) {
+   *   await trxAfterJennifer.rollbackToSavepoint('after_jennifer').execute()
+   * }
+   *
+   * await trxAfterJennifer.releaseSavepoint('after_jennifer').execute()
+   *
+   * await doSomethingElse(trx)
+   *
+   * async function insertJennifer(kysely: Kysely<Database>) {}
+   * async function doSomething(kysely: Kysely<Database>) {}
+   * async function doSomethingElse(kysely: Kysely<Database>) {}
+   * ```
+   */
+  releaseSavepoint(savepointName) {
+    assertNotCommittedOrRolledBack(__privateGet(this, _state));
+    return new Command(async () => {
+      await __privateGet(this, _props44).driver.releaseSavepoint?.(__privateGet(this, _props44).connection.connection, savepointName, __privateGet(this, _compileQuery));
+      return new _ControlledTransaction({ ...__privateGet(this, _props44) });
+    });
+  }
+  withPlugin(plugin) {
+    return new _ControlledTransaction({
+      ...__privateGet(this, _props44),
+      executor: __privateGet(this, _props44).executor.withPlugin(plugin)
+    });
+  }
+  withoutPlugins() {
+    return new _ControlledTransaction({
+      ...__privateGet(this, _props44),
+      executor: __privateGet(this, _props44).executor.withoutPlugins()
+    });
+  }
+  withSchema(schema) {
+    return new _ControlledTransaction({
+      ...__privateGet(this, _props44),
+      executor: __privateGet(this, _props44).executor.withPluginAtFront(new WithSchemaPlugin(schema))
+    });
+  }
+  withTables() {
+    return new _ControlledTransaction({ ...__privateGet(this, _props44) });
+  }
+};
+_props44 = new WeakMap();
+_compileQuery = new WeakMap();
+_state = new WeakMap();
+let ControlledTransaction = _ControlledTransaction;
+class Command {
+  constructor(cb) {
+    __privateAdd(this, _cb);
+    __privateSet(this, _cb, cb);
+  }
+  /**
+   * Executes the command.
+   */
+  async execute() {
+    return await __privateGet(this, _cb).call(this);
   }
 }
+_cb = new WeakMap();
+function assertNotCommittedOrRolledBack(state) {
+  if (state.isCommitted) {
+    throw new Error("Transaction is already committed");
+  }
+  if (state.isRolledBack) {
+    throw new Error("Transaction is already rolled back");
+  }
+}
+const _NotCommittedOrRolledBackAssertingExecutor = class _NotCommittedOrRolledBackAssertingExecutor {
+  constructor(executor, state) {
+    __privateAdd(this, _executor2);
+    __privateAdd(this, _state2);
+    if (executor instanceof _NotCommittedOrRolledBackAssertingExecutor) {
+      __privateSet(this, _executor2, __privateGet(executor, _executor2));
+    } else {
+      __privateSet(this, _executor2, executor);
+    }
+    __privateSet(this, _state2, state);
+  }
+  get adapter() {
+    return __privateGet(this, _executor2).adapter;
+  }
+  get plugins() {
+    return __privateGet(this, _executor2).plugins;
+  }
+  transformQuery(node, queryId) {
+    return __privateGet(this, _executor2).transformQuery(node, queryId);
+  }
+  compileQuery(node, queryId) {
+    return __privateGet(this, _executor2).compileQuery(node, queryId);
+  }
+  provideConnection(consumer) {
+    return __privateGet(this, _executor2).provideConnection(consumer);
+  }
+  executeQuery(compiledQuery, queryId) {
+    assertNotCommittedOrRolledBack(__privateGet(this, _state2));
+    return __privateGet(this, _executor2).executeQuery(compiledQuery, queryId);
+  }
+  stream(compiledQuery, chunkSize, queryId) {
+    assertNotCommittedOrRolledBack(__privateGet(this, _state2));
+    return __privateGet(this, _executor2).stream(compiledQuery, chunkSize, queryId);
+  }
+  withConnectionProvider(connectionProvider) {
+    return new _NotCommittedOrRolledBackAssertingExecutor(__privateGet(this, _executor2).withConnectionProvider(connectionProvider), __privateGet(this, _state2));
+  }
+  withPlugin(plugin) {
+    return new _NotCommittedOrRolledBackAssertingExecutor(__privateGet(this, _executor2).withPlugin(plugin), __privateGet(this, _state2));
+  }
+  withPlugins(plugins) {
+    return new _NotCommittedOrRolledBackAssertingExecutor(__privateGet(this, _executor2).withPlugins(plugins), __privateGet(this, _state2));
+  }
+  withPluginAtFront(plugin) {
+    return new _NotCommittedOrRolledBackAssertingExecutor(__privateGet(this, _executor2).withPluginAtFront(plugin), __privateGet(this, _state2));
+  }
+  withoutPlugins() {
+    return new _NotCommittedOrRolledBackAssertingExecutor(__privateGet(this, _executor2).withoutPlugins(), __privateGet(this, _state2));
+  }
+};
+_executor2 = new WeakMap();
+_state2 = new WeakMap();
+let NotCommittedOrRolledBackAssertingExecutor = _NotCommittedOrRolledBackAssertingExecutor;
 const _RawBuilderImpl = class _RawBuilderImpl {
   constructor(props) {
     __privateAdd(this, _RawBuilderImpl_instances);
-    __privateAdd(this, _props41);
-    __privateSet(this, _props41, freeze(props));
+    __privateAdd(this, _props45);
+    __privateSet(this, _props45, freeze(props));
   }
   get expressionType() {
     return void 0;
@@ -22633,15 +23940,15 @@ const _RawBuilderImpl = class _RawBuilderImpl {
     return new AliasedRawBuilderImpl(this, alias);
   }
   $castTo() {
-    return new _RawBuilderImpl({ ...__privateGet(this, _props41) });
+    return new _RawBuilderImpl({ ...__privateGet(this, _props45) });
   }
   $notNull() {
-    return new _RawBuilderImpl(__privateGet(this, _props41));
+    return new _RawBuilderImpl(__privateGet(this, _props45));
   }
   withPlugin(plugin) {
     return new _RawBuilderImpl({
-      ...__privateGet(this, _props41),
-      plugins: __privateGet(this, _props41).plugins !== void 0 ? freeze([...__privateGet(this, _props41).plugins, plugin]) : freeze([plugin])
+      ...__privateGet(this, _props45),
+      plugins: __privateGet(this, _props45).plugins !== void 0 ? freeze([...__privateGet(this, _props45).plugins, plugin]) : freeze([plugin])
     });
   }
   toOperationNode() {
@@ -22652,26 +23959,25 @@ const _RawBuilderImpl = class _RawBuilderImpl {
   }
   async execute(executorProvider) {
     const executor = __privateMethod(this, _RawBuilderImpl_instances, getExecutor_fn).call(this, executorProvider);
-    return executor.executeQuery(__privateMethod(this, _RawBuilderImpl_instances, compile_fn).call(this, executor), __privateGet(this, _props41).queryId);
+    return executor.executeQuery(__privateMethod(this, _RawBuilderImpl_instances, compile_fn).call(this, executor), __privateGet(this, _props45).queryId);
   }
 };
-_props41 = new WeakMap();
+_props45 = new WeakMap();
 _RawBuilderImpl_instances = new WeakSet();
 getExecutor_fn = function(executorProvider) {
   const executor = executorProvider !== void 0 ? executorProvider.getExecutor() : NOOP_QUERY_EXECUTOR;
-  return __privateGet(this, _props41).plugins !== void 0 ? executor.withPlugins(__privateGet(this, _props41).plugins) : executor;
+  return __privateGet(this, _props45).plugins !== void 0 ? executor.withPlugins(__privateGet(this, _props45).plugins) : executor;
 };
 toOperationNode_fn = function(executor) {
-  return executor.transformQuery(__privateGet(this, _props41).rawNode, __privateGet(this, _props41).queryId);
+  return executor.transformQuery(__privateGet(this, _props45).rawNode, __privateGet(this, _props45).queryId);
 };
 compile_fn = function(executor) {
-  return executor.compileQuery(__privateMethod(this, _RawBuilderImpl_instances, toOperationNode_fn).call(this, executor), __privateGet(this, _props41).queryId);
+  return executor.compileQuery(__privateMethod(this, _RawBuilderImpl_instances, toOperationNode_fn).call(this, executor), __privateGet(this, _props45).queryId);
 };
 let RawBuilderImpl = _RawBuilderImpl;
 function createRawBuilder(props) {
   return new RawBuilderImpl(props);
 }
-preventAwait(RawBuilderImpl, "don't await RawBuilder instances directly. To execute the query you need to call `execute`");
 class AliasedRawBuilderImpl {
   constructor(rawBuilder, alias) {
     __privateAdd(this, _rawBuilder);
@@ -22694,7 +24000,6 @@ class AliasedRawBuilderImpl {
 }
 _rawBuilder = new WeakMap();
 _alias5 = new WeakMap();
-preventAwait(AliasedRawBuilderImpl, "don't await AliasedRawBuilder instances directly. AliasedRawBuilder should never be executed directly since it's always a part of another query.");
 const sql = Object.assign((sqlFragments, ...parameters) => {
   return createRawBuilder({
     queryId: createQueryId(),
@@ -22747,7 +24052,7 @@ const sql = Object.assign((sqlFragments, ...parameters) => {
     });
   },
   join(array, separator = sql`, `) {
-    const nodes = new Array(2 * array.length - 1);
+    const nodes = new Array(Math.max(2 * array.length - 1, 0));
     const sep = separator.toOperationNode();
     for (let i = 0; i < array.length; ++i) {
       nodes[2 * i] = parseParameter(array[i]);
@@ -22829,8 +24134,10 @@ class OperationNodeVisitor {
       ModifyColumnNode: this.visitModifyColumn.bind(this),
       AddConstraintNode: this.visitAddConstraint.bind(this),
       DropConstraintNode: this.visitDropConstraint.bind(this),
+      RenameConstraintNode: this.visitRenameConstraint.bind(this),
       ForeignKeyConstraintNode: this.visitForeignKeyConstraint.bind(this),
       CreateViewNode: this.visitCreateView.bind(this),
+      RefreshMaterializedViewNode: this.visitRefreshMaterializedView.bind(this),
       DropViewNode: this.visitDropView.bind(this),
       GeneratedNode: this.visitGenerated.bind(this),
       DefaultValueNode: this.visitDefaultValue.bind(this),
@@ -22863,7 +24170,9 @@ class OperationNodeVisitor {
       CastNode: this.visitCast.bind(this),
       FetchNode: this.visitFetch.bind(this),
       TopNode: this.visitTop.bind(this),
-      OutputNode: this.visitOutput.bind(this)
+      OutputNode: this.visitOutput.bind(this),
+      OrActionNode: this.visitOrAction.bind(this),
+      CollateNode: this.visitCollate.bind(this)
     }));
     __publicField(this, "visitNode", (node) => {
       this.nodeStack.push(node);
@@ -22876,6 +24185,7 @@ class OperationNodeVisitor {
   }
 }
 _visitors = new WeakMap();
+const LIT_WRAP_REGEX = /'/g;
 class DefaultQueryCompiler extends OperationNodeVisitor {
   constructor() {
     super(...arguments);
@@ -22885,13 +24195,14 @@ class DefaultQueryCompiler extends OperationNodeVisitor {
   get numParameters() {
     return __privateGet(this, _parameters).length;
   }
-  compileQuery(node) {
+  compileQuery(node, queryId) {
     __privateSet(this, _sql, "");
     __privateSet(this, _parameters, []);
     this.nodeStack.splice(0, this.nodeStack.length);
     this.visitNode(node);
     return freeze({
       query: node,
+      queryId,
       sql: this.getSql(),
       parameters: [...__privateGet(this, _parameters)]
     });
@@ -23025,7 +24336,12 @@ class DefaultQueryCompiler extends OperationNodeVisitor {
     }
     this.append(node.replace ? "replace" : "insert");
     if (node.ignore) {
+      logOnce("`InsertQueryNode.ignore` is deprecated. Use `InsertQueryNode.orAction` instead.");
       this.append(" ignore");
+    }
+    if (node.orAction) {
+      this.append(" ");
+      this.visitNode(node.orAction);
     }
     if (node.top) {
       this.append(" ");
@@ -23361,9 +24677,17 @@ class DefaultQueryCompiler extends OperationNodeVisitor {
   }
   visitOrderByItem(node) {
     this.visitNode(node.orderBy);
+    if (node.collation) {
+      this.append(" ");
+      this.visitNode(node.collation);
+    }
     if (node.direction) {
       this.append(" ");
       this.visitNode(node.direction);
+    }
+    if (node.nulls) {
+      this.append(" nulls ");
+      this.append(node.nulls);
     }
   }
   visitGroupBy(node) {
@@ -23409,12 +24733,19 @@ class DefaultQueryCompiler extends OperationNodeVisitor {
       this.visitNode(node.from);
     }
     if (node.joins) {
+      if (!node.from) {
+        throw new Error("Joins in an update query are only supported as a part of a PostgreSQL 'update set from join' query. If you want to create a MySQL 'update join set' query, see https://kysely.dev/docs/examples/update/my-sql-joins");
+      }
       this.append(" ");
       this.compileList(node.joins, " ");
     }
     if (node.where) {
       this.append(" ");
       this.visitNode(node.where);
+    }
+    if (node.orderBy) {
+      this.append(" ");
+      this.visitNode(node.orderBy);
     }
     if (node.limit) {
       this.append(" ");
@@ -23549,6 +24880,23 @@ class DefaultQueryCompiler extends OperationNodeVisitor {
     this.append("primary key (");
     this.compileList(node.columns);
     this.append(")");
+    this.buildDeferrable(node);
+  }
+  buildDeferrable(node) {
+    if (node.deferrable !== void 0) {
+      if (node.deferrable) {
+        this.append(" deferrable");
+      } else {
+        this.append(" not deferrable");
+      }
+    }
+    if (node.initiallyDeferred !== void 0) {
+      if (node.initiallyDeferred) {
+        this.append(" initially deferred");
+      } else {
+        this.append(" initially immediate");
+      }
+    }
   }
   visitUniqueConstraint(node) {
     if (node.name) {
@@ -23563,6 +24911,7 @@ class DefaultQueryCompiler extends OperationNodeVisitor {
     this.append(" (");
     this.compileList(node.columns);
     this.append(")");
+    this.buildDeferrable(node);
   }
   visitCheckConstraint(node) {
     if (node.name) {
@@ -23592,6 +24941,7 @@ class DefaultQueryCompiler extends OperationNodeVisitor {
       this.append(" on update ");
       this.append(node.onUpdate);
     }
+    this.buildDeferrable(node);
   }
   visitList(node) {
     this.compileList(node.items);
@@ -23639,6 +24989,9 @@ class DefaultQueryCompiler extends OperationNodeVisitor {
     }
     if (node.dropConstraint) {
       this.visitNode(node.dropConstraint);
+    }
+    if (node.renameConstraint) {
+      this.visitNode(node.renameConstraint);
     }
     if (node.columnAlterations) {
       this.compileColumnAlterations(node.columnAlterations);
@@ -23712,6 +25065,12 @@ class DefaultQueryCompiler extends OperationNodeVisitor {
       this.append(" restrict");
     }
   }
+  visitRenameConstraint(node) {
+    this.append("rename constraint ");
+    this.visitNode(node.oldName);
+    this.append(" to ");
+    this.visitNode(node.newName);
+  }
   visitSetOperation(node) {
     this.append(node.operator);
     this.append(" ");
@@ -23745,6 +25104,18 @@ class DefaultQueryCompiler extends OperationNodeVisitor {
     if (node.as) {
       this.append("as ");
       this.visitNode(node.as);
+    }
+  }
+  visitRefreshMaterializedView(node) {
+    this.append("refresh materialized view ");
+    if (node.concurrently) {
+      this.append("concurrently ");
+    }
+    this.visitNode(node.name);
+    if (node.withNoData) {
+      this.append(" with no data");
+    } else {
+      this.append(" with data");
     }
   }
   visitDropView(node) {
@@ -23846,6 +25217,11 @@ class DefaultQueryCompiler extends OperationNodeVisitor {
       this.visitNode(node.orderBy);
     }
     this.append(")");
+    if (node.withinGroup) {
+      this.append(" within group (");
+      this.visitNode(node.withinGroup);
+      this.append(")");
+    }
     if (node.filter) {
       this.append(" filter(");
       this.visitNode(node.filter);
@@ -23982,6 +25358,10 @@ class DefaultQueryCompiler extends OperationNodeVisitor {
       this.append(" ");
       this.compileList(node.whens, " ");
     }
+    if (node.returning) {
+      this.append(" ");
+      this.visitNode(node.returning);
+    }
     if (node.output) {
       this.append(" ");
       this.visitNode(node.output);
@@ -24039,6 +25419,13 @@ class DefaultQueryCompiler extends OperationNodeVisitor {
       this.append(` ${node.modifiers}`);
     }
   }
+  visitOrAction(node) {
+    this.append(node.action);
+  }
+  visitCollate(node) {
+    this.append("collate ");
+    this.visitNode(node.collation);
+  }
   append(str) {
     __privateSet(this, _sql, __privateGet(this, _sql) + str);
   }
@@ -24081,12 +25468,15 @@ class DefaultQueryCompiler extends OperationNodeVisitor {
     }
     return sanitized;
   }
+  sanitizeStringLiteral(value) {
+    return value.replace(LIT_WRAP_REGEX, "''");
+  }
   addParameter(parameter) {
     __privateGet(this, _parameters).push(parameter);
   }
   appendImmediateValue(value) {
     if (isString(value)) {
-      this.append(`'${value}'`);
+      this.appendStringLiteral(value);
     } else if (isNumber(value) || isBoolean(value)) {
       this.append(value.toString());
     } else if (isNull(value)) {
@@ -24098,6 +25488,11 @@ class DefaultQueryCompiler extends OperationNodeVisitor {
     } else {
       throw new Error(`invalid immediate value ${value}`);
     }
+  }
+  appendStringLiteral(value) {
+    this.append("'");
+    this.append(this.sanitizeStringLiteral(value));
+    this.append("'");
   }
   sortSelectModifiers(arr) {
     arr.sort((left, right) => left.modifier && right.modifier ? SELECT_MODIFIER_PRIORITY[left.modifier] - SELECT_MODIFIER_PRIORITY[right.modifier] : 1);
@@ -24139,8 +25534,12 @@ const JOIN_TYPE_SQL = freeze({
   LeftJoin: "left join",
   RightJoin: "right join",
   FullJoin: "full join",
+  CrossJoin: "cross join",
   LateralInnerJoin: "inner join lateral",
   LateralLeftJoin: "left join lateral",
+  LateralCrossJoin: "cross join lateral",
+  OuterApply: "outer apply",
+  CrossApply: "cross apply",
   Using: "using"
 });
 const CompiledQuery = freeze({
@@ -24148,7 +25547,8 @@ const CompiledQuery = freeze({
     return freeze({
       sql: sql2,
       query: RawNode.createWithSql(sql2),
-      parameters: freeze(parameters)
+      parameters: freeze(parameters),
+      queryId: createQueryId()
     });
   }
 });
@@ -24168,6 +25568,10 @@ class DialectAdapterBase {
 }
 const ID_WRAP_REGEX = /"/g;
 class SqliteQueryCompiler extends DefaultQueryCompiler {
+  visitOrAction(node) {
+    this.append("or ");
+    this.append(node.action);
+  }
   getCurrentParameterPlaceholder() {
     return "?";
   }
@@ -24206,12 +25610,7 @@ class SqliteIntrospector {
     return [];
   }
   async getTables(options = { withInternalKyselyTables: false }) {
-    let query = __privateGet(this, _db).selectFrom("sqlite_master").where("type", "in", ["table", "view"]).where("name", "not like", "sqlite_%").select("name").orderBy("name").$castTo();
-    if (!options.withInternalKyselyTables) {
-      query = query.where("name", "!=", DEFAULT_MIGRATION_TABLE).where("name", "!=", DEFAULT_MIGRATION_LOCK_TABLE);
-    }
-    const tables2 = await query.execute();
-    return Promise.all(tables2.map(({ name }) => __privateMethod(this, _SqliteIntrospector_instances, getTableMetadata_fn).call(this, name)));
+    return await __privateMethod(this, _SqliteIntrospector_instances, getTableMetadata_fn).call(this, options);
   }
   async getMetadata(options) {
     return {
@@ -24221,23 +25620,55 @@ class SqliteIntrospector {
 }
 _db = new WeakMap();
 _SqliteIntrospector_instances = new WeakSet();
-getTableMetadata_fn = async function(table) {
-  const db = __privateGet(this, _db);
-  const tableDefinition = await db.selectFrom("sqlite_master").where("name", "=", table).select(["sql", "type"]).$castTo().executeTakeFirstOrThrow();
-  const autoIncrementCol = tableDefinition.sql?.split(/[\(\),]/)?.find((it) => it.toLowerCase().includes("autoincrement"))?.trimStart()?.split(/\s+/)?.[0]?.replace(/["`]/g, "");
-  const columns = await db.selectFrom(sql`pragma_table_info(${table})`.as("table_info")).select(["name", "type", "notnull", "dflt_value"]).orderBy("cid").execute();
-  return {
-    name: table,
-    isView: tableDefinition.type === "view",
-    columns: columns.map((col) => ({
-      name: col.name,
-      dataType: col.type,
-      isNullable: !col.notnull,
-      isAutoIncrementing: col.name === autoIncrementCol,
-      hasDefaultValue: col.dflt_value != null,
-      comment: void 0
-    }))
-  };
+tablesQuery_fn = function(qb, options) {
+  let tablesQuery = qb.selectFrom("sqlite_master").where("type", "in", ["table", "view"]).where("name", "not like", "sqlite_%").select(["name", "sql", "type"]).orderBy("name");
+  if (!options.withInternalKyselyTables) {
+    tablesQuery = tablesQuery.where("name", "!=", DEFAULT_MIGRATION_TABLE).where("name", "!=", DEFAULT_MIGRATION_LOCK_TABLE);
+  }
+  return tablesQuery;
+};
+getTableMetadata_fn = async function(options) {
+  var _a;
+  const tablesResult = await __privateMethod(this, _SqliteIntrospector_instances, tablesQuery_fn).call(this, __privateGet(this, _db), options).execute();
+  const tableMetadata = await __privateGet(this, _db).with("table_list", (qb) => __privateMethod(this, _SqliteIntrospector_instances, tablesQuery_fn).call(this, qb, options)).selectFrom([
+    "table_list as tl",
+    sql`pragma_table_info(tl.name)`.as("p")
+  ]).select([
+    "tl.name as table",
+    "p.cid",
+    "p.name",
+    "p.type",
+    "p.notnull",
+    "p.dflt_value",
+    "p.pk"
+  ]).orderBy(["tl.name", "p.cid"]).execute();
+  const columnsByTable = {};
+  for (const row of tableMetadata) {
+    columnsByTable[_a = row.table] ?? (columnsByTable[_a] = []);
+    columnsByTable[row.table].push(row);
+  }
+  return tablesResult.map(({ name, sql: sql2, type }) => {
+    let autoIncrementCol = sql2?.split(/[\(\),]/)?.find((it) => it.toLowerCase().includes("autoincrement"))?.trimStart()?.split(/\s+/)?.[0]?.replace(/["`]/g, "");
+    const columns = columnsByTable[name] ?? [];
+    if (!autoIncrementCol) {
+      const pkCols = columns.filter((r) => r.pk > 0);
+      if (pkCols.length === 1 && pkCols[0].type.toLowerCase() === "integer") {
+        autoIncrementCol = pkCols[0].name;
+      }
+    }
+    return {
+      name,
+      isView: type === "view",
+      columns: columns.map((col) => ({
+        name: col.name,
+        dataType: col.type,
+        isNullable: !col.notnull,
+        isAutoIncrementing: col.name === autoIncrementCol,
+        hasDefaultValue: col.dflt_value != null,
+        comment: void 0
+      }))
+    };
+  });
 };
 class SqliteAdapter extends DialectAdapterBase {
   get supportsTransactionalDdl() {
@@ -24290,6 +25721,13 @@ var ConnectionMutex = class {
     resolve?.();
   }
 };
+function parseSavepointCommand(command, savepointName) {
+  return RawNode.createWithChildren([
+    RawNode.createWithSql(`${command} `),
+    IdentifierNode.create(savepointName)
+    // ensures savepointName gets sanitized
+  ]);
+}
 var BaseSqliteDriver = class {
   /**
    * Base abstract class that implements {@link Driver}
@@ -24314,6 +25752,15 @@ var BaseSqliteDriver = class {
   }
   async rollbackTransaction(connection) {
     await connection.executeQuery(CompiledQuery.raw("rollback"));
+  }
+  async savepoint(connection, savepointName, compileQuery) {
+    await connection.executeQuery(compileQuery(parseSavepointCommand("savepoint", savepointName), createQueryId()));
+  }
+  async rollbackToSavepoint(connection, savepointName, compileQuery) {
+    await connection.executeQuery(compileQuery(parseSavepointCommand("rollback to", savepointName), createQueryId()));
+  }
+  async releaseSavepoint(connection, savepointName, compileQuery) {
+    await connection.executeQuery(compileQuery(parseSavepointCommand("release", savepointName), createQueryId()));
   }
   async releaseConnection() {
     this.mutex.unlock();
@@ -24612,18 +26059,6 @@ function createKyselyLogger(options = {}) {
     logger(param);
   };
 }
-async function savePoint(db, name) {
-  const _name = name?.toUpperCase() || `SP_${Date.now() % 1e12}_${Math.floor(Math.random() * 1e4)}`;
-  await sql`SAVEPOINT ${sql.raw(_name)}`.execute(db);
-  return {
-    release: async () => {
-      await sql`RELEASE SAVEPOINT ${sql.raw(_name)}`.execute(db);
-    },
-    rollback: async () => {
-      await sql`ROLLBACK TO SAVEPOINT ${sql.raw(_name)}`.execute(db);
-    }
-  };
-}
 var IntegrityError = class extends Error {
   constructor() {
     super("DB file maybe corrupted");
@@ -24706,40 +26141,47 @@ var BaseSqliteBuilder = class {
    *   // or
    *   await trx.insertInto('test').values({ person: { name: 'test' }, gender: true }).execute()
    *   db.transaction(async () => {
-   *     // nest transaction, use savepoint
+   *     // nest transaction, using savepoint
    *     await db.selectFrom('test').where('gender', '=', true).execute()
    *   })
    * })
    */
   async transaction(fn, options = {}) {
     if (!this.trx) {
-      return await this.ky.transaction().execute(async (trx) => {
-        this.trx = trx;
-        this.log?.debug("Run in transaction");
-        return await fn(trx);
-      }).then(async (result) => {
+      const trx = await this.ky.startTransaction().execute();
+      this.log?.debug("Run in transaction");
+      this.trx = trx;
+      try {
+        const result = await fn(trx);
+        await trx.commit().execute();
         await options.onCommit?.(result);
         return result;
-      }).catch(async (e) => {
-        await options.onRollback?.(e);
+      } catch (e) {
+        await trx.rollback().execute();
         this.logError(e, options.errorMsg);
+        await options.onRollback?.(e);
         return void 0;
-      }).finally(() => this.trx = void 0);
+      } finally {
+        this.trx = void 0;
+      }
     }
     this.trxCount++;
-    const sp = `SP_${this.trxCount}`;
-    this.log?.debug(`Run in savepoint: ${sp}`);
-    const { release, rollback } = await savePoint(this.kysely, sp);
-    return await fn(this.kysely).then(async (result) => {
-      await release();
+    const spName = `SP_${this.trxCount}`;
+    this.log?.debug(`Run in savepoint: ${spName}`);
+    const sp = await this.trx.savepoint(spName).execute();
+    try {
+      const result = await fn(this.kysely);
+      await sp.releaseSavepoint(spName).execute();
       await options.onCommit?.(result);
       return result;
-    }).catch(async (e) => {
-      await rollback();
+    } catch (e) {
+      await sp.rollbackToSavepoint(spName).execute();
       await options.onRollback?.(e);
       this.logError(e, options.errorMsg);
       return void 0;
-    }).finally(() => this.trxCount--);
+    } finally {
+      this.trxCount--;
+    }
   }
   async execute(data, parameters) {
     if (data.as) {
@@ -24763,35 +26205,6 @@ var SqliteBuilder = class extends BaseSqliteBuilder {
     __publicField(this, "replaceInto", (tb) => this.kysely.replaceInto(tb));
     __publicField(this, "selectFrom", (tb) => this.kysely.selectFrom(tb));
     __publicField(this, "updateTable", (tb) => this.kysely.updateTable(tb));
-    /**
-     * Creates a delete query.
-     *
-     * See the {@link DeleteQueryBuilder.where} method for examples on how to specify
-     * a where clause for the delete operation.
-     *
-     * The return value of the query is an instance of {@link DeleteResult}.
-     *
-     * ### Examples
-     *
-     * <!-- siteExample("delete", "Single row", 10) -->
-     *
-     * Delete a single row:
-     *
-     * ```ts
-     * const result = await db
-     *   .deleteFrom('person')
-     *   .where('person.id', '=', '1')
-     *   .executeTakeFirst()
-     *
-     * console.log(result.numDeletedRows)
-     * ```
-     *
-     * The generated SQL (SQLite):
-     *
-     * ```sql
-     * delete from "person" where "person"."id" = $1
-     * ```
-     */
     __publicField(this, "deleteFrom", (tb) => this.kysely.deleteFrom(tb));
   }
 };

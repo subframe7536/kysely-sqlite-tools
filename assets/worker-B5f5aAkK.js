@@ -1534,7 +1534,7 @@ var defaultCreateDatabaseFn = async ({ fileName, url, useOPFS }) => {
   return (await Promise.resolve().then(function() {
     return index;
   })).initSQLiteCore(
-    (useOPFS ? (await import("./opfs-CdaycY4w.js")).useOpfsStorage : (await import("./idb-C0B4Vu5R.js")).useIdbStorage)(
+    (useOPFS ? (await import("./opfs-D9o4fmaZ.js")).useOpfsStorage : (await import("./idb-fBYvcYe2.js")).useIdbStorage)(
       fileName,
       { url }
     )
@@ -1559,7 +1559,7 @@ async function queryData(core, sql, parameters) {
     };
   }
   const mapRow = createRowMapper(core.sqlite, stmt);
-  const result = new Array(size);
+  const result = [];
   let idx = 0;
   while (await core.sqlite.step(stmt) === SQLITE_ROW) {
     result[idx++] = mapRow(core.sqlite.row(stmt));

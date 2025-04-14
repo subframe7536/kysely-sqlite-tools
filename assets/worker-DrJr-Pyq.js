@@ -29,7 +29,7 @@ async function queryData(core, sql, parameters) {
     };
   }
   const mapRow = createRowMapper(core.sqlite, stmt);
-  const result = new Array(size);
+  const result = [];
   let idx = 0;
   while (await core.sqlite.step(stmt) === constant.SQLITE_ROW) {
     result[idx++] = mapRow(core.sqlite.row(stmt));
