@@ -40,7 +40,7 @@
   },
   "peerDependencies": {
     "@tauri-apps/plugin-sql": "^2.0.0",
-    "kysely": ">=0.26"
+    "kysely": ">=0.28"
   },
   "dependencies": {
     "kysely-generic-sqlite": "workspace:*"

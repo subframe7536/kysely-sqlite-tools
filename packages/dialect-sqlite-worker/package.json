@@ -52,7 +52,7 @@
   },
   "peerDependencies": {
     "better-sqlite3": "*",
-    "kysely": ">=0.26"
+    "kysely": ">=0.28"
   },
   "dependencies": {
     "kysely-generic-sqlite": "workspace:*"
