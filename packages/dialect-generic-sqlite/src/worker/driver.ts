@@ -60,17 +60,15 @@ export class GenericSqliteWorkerDriver<
       return
     }
     this.worker.postMessage([closeEvent] satisfies CloseMsg)
-    return new Promise<void>((resolve, reject) => {
-      this.mitt?.once(closeEvent, (_, err) => {
-        if (err) {
-          reject(err)
-        } else {
-          this.worker?.terminate()
-          this.mitt?.off()
-          this.mitt = this.worker = undefined
-          resolve()
-        }
-      })
+    return new Promise<void>(
+      (resolve, reject) => this.mitt?.once(
+        closeEvent,
+        (_, err) => err ? reject(err) : resolve(),
+      ),
+    ).finally(() => {
+      this.worker?.terminate()
+      this.mitt?.off()
+      this.mitt = this.worker = undefined
     })
   }
 }
