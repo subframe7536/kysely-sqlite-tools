@@ -9,7 +9,7 @@ var __privateGet = (obj, member, getter) => (__accessCheck(obj, member, "read fr
 var __privateAdd = (obj, member, value) => member.has(obj) ? __typeError("Cannot add the same private member more than once") : member instanceof WeakSet ? member.add(obj) : member.set(obj, value);
 var __privateSet = (obj, member, value, setter) => (__accessCheck(obj, member, "write to private field"), setter ? setter.call(obj, value) : member.set(obj, value), value);
 var __privateMethod = (obj, member, method) => (__accessCheck(obj, member, "access private method"), method);
-var _dynamicReference, _props, _props2, _props3, _props4, _props5, _props6, _props7, _props8, _DeleteQueryBuilder_instances, join_fn, _props9, _UpdateQueryBuilder_instances, join_fn2, _props10, _queryId, _transformers, _schema, _schemableIds, _ctes, _WithSchemaTransformer_instances, transformTableArgsWithoutSchemas_fn, isRootOperationNode_fn, collectSchemableIds_fn, collectCTEs_fn, collectSchemableIdsFromTableExpr_fn, collectSchemableId_fn, collectCTEIds_fn, _transformer, _promise, _resolve, _reject, _plugins, _QueryExecutorBase_instances, transformResult_fn, _props11, _props12, _WheneableMergeQueryBuilder_instances, whenMatched_fn, whenNotMatched_fn, _props13, _props14, _props15, _node, _expr, _alias, _node2, _node3, _props16, _SelectQueryBuilderImpl_instances, join_fn3, _queryBuilder, _alias2, _props17, _aggregateFunctionBuilder, _alias3, _props18, _props19, _props20, _props21, _node4, _JSONPathBuilder_instances, createBuilderWithPathLeg_fn, _node5, _jsonPath, _alias4, _node6, _node7, _column, _alterColumnNode, _props22, _props23, _props24, _props25, _node8, _node9, _node10, _props26, _props27, _props28, _props29, _props30, _props31, _props32, _props33, _transformer2, _props34, _props35, _props36, _props37, _props38, _executor, _driver, _compiler, _adapter, _connectionProvider, _driver2, _log, _initPromise, _initDone, _destroyPromise, _connections, _RuntimeDriver_instances, needsLogging_fn, addLogging_fn, logError_fn, logQuery_fn, calculateDurationMillis_fn, _connection, _runningPromise, _SingleConnectionProvider_instances, run_fn, _levels, _logger, _props39, _props40, _props41, _props42, _props43, _props44, _compileQuery, _state, _cb, _executor2, _state2, _props45, _RawBuilderImpl_instances, getExecutor_fn, toOperationNode_fn, compile_fn, _rawBuilder, _alias5, _visitors, _sql, _parameters, _db, _SqliteIntrospector_instances, tablesQuery_fn, getTableMetadata_fn;
+var _dynamicReference, _props, _props2, _props3, _props4, _props5, _props6, _props7, _props8, _DeleteQueryBuilder_instances, join_fn, _props9, _UpdateQueryBuilder_instances, join_fn2, _props10, _queryId, _transformers, _schema, _schemableIds, _ctes, _WithSchemaTransformer_instances, transformTableArgsWithoutSchemas_fn, isRootOperationNode_fn, collectSchemableIds_fn, collectCTEs_fn, collectSchemableIdsFromTableExpr_fn, collectSchemableId_fn, collectCTEIds_fn, _transformer, _promise, _resolve, _reject, _plugins, _QueryExecutorBase_instances, transformResult_fn, _props11, _props12, _WheneableMergeQueryBuilder_instances, whenMatched_fn, whenNotMatched_fn, _props13, _props14, _props15, _node, _expr, _alias, _node2, _node3, _props16, _SelectQueryBuilderImpl_instances, join_fn3, _queryBuilder, _alias2, _props17, _aggregateFunctionBuilder, _alias3, _props18, _props19, _props20, _props21, _node4, _JSONPathBuilder_instances, createBuilderWithPathLeg_fn, _node5, _jsonPath, _alias4, _table, _table2, _alias5, _node6, _node7, _column, _alterColumnNode, _props22, _props23, _props24, _props25, _node8, _node9, _node10, _props26, _props27, _props28, _props29, _props30, _props31, _props32, _props33, _transformer2, _props34, _props35, _props36, _props37, _props38, _executor, _driver, _compiler, _adapter, _connectionProvider, _driver2, _log, _initPromise, _initDone, _destroyPromise, _connections, _RuntimeDriver_instances, needsLogging_fn, addLogging_fn, logError_fn, logQuery_fn, calculateDurationMillis_fn, _connection, _runningPromise, _SingleConnectionProvider_instances, run_fn, _levels, _logger, _props39, _props40, _props41, _props42, _props43, _props44, _compileQuery, _state, _cb, _executor2, _state2, _props45, _RawBuilderImpl_instances, getExecutor_fn, toOperationNode_fn, compile_fn, _rawBuilder, _alias6, _visitors, _sql, _parameters, _db, _SqliteIntrospector_instances, tablesQuery_fn, getTableMetadata_fn;
 var sqlite3InitModule = (() => {
   var _scriptName = import.meta.url;
   return function(moduleArg = {}) {
@@ -19266,8 +19266,8 @@ class JSONPathBuilder {
    * select "nicknames"->>'$[#-1]' as `last_nickname` from `person`
    * ```
    */
-  at(index) {
-    return __privateMethod(this, _JSONPathBuilder_instances, createBuilderWithPathLeg_fn).call(this, "ArrayLocation", index);
+  at(index2) {
+    return __privateMethod(this, _JSONPathBuilder_instances, createBuilderWithPathLeg_fn).call(this, "ArrayLocation", index2);
   }
   /**
    * Access a property of a JSON object.
@@ -19607,6 +19607,41 @@ function parseAliasedExpression(exp) {
 function isExpressionOrFactory(obj) {
   return isExpression(obj) || isAliasedExpression(obj) || isFunction(obj);
 }
+class DynamicTableBuilder {
+  constructor(table) {
+    __privateAdd(this, _table);
+    __privateSet(this, _table, table);
+  }
+  get table() {
+    return __privateGet(this, _table);
+  }
+  as(alias) {
+    return new AliasedDynamicTableBuilder(__privateGet(this, _table), alias);
+  }
+}
+_table = new WeakMap();
+class AliasedDynamicTableBuilder {
+  constructor(table, alias) {
+    __privateAdd(this, _table2);
+    __privateAdd(this, _alias5);
+    __privateSet(this, _table2, table);
+    __privateSet(this, _alias5, alias);
+  }
+  get table() {
+    return __privateGet(this, _table2);
+  }
+  get alias() {
+    return __privateGet(this, _alias5);
+  }
+  toOperationNode() {
+    return AliasNode.create(parseTable$1(__privateGet(this, _table2)), IdentifierNode.create(__privateGet(this, _alias5)));
+  }
+}
+_table2 = new WeakMap();
+_alias5 = new WeakMap();
+function isAliasedDynamicTableBuilder(obj) {
+  return isObject(obj) && isOperationNodeSource(obj) && isString(obj.table) && isString(obj.alias);
+}
 function parseTableExpressionOrList(table) {
   if (isReadonlyArray(table)) {
     return table.map((it) => parseTableExpression(it));
@@ -19617,6 +19652,8 @@ function parseTableExpressionOrList(table) {
 function parseTableExpression(table) {
   if (isString(table)) {
     return parseAliasedTable(table);
+  } else if (isAliasedDynamicTableBuilder(table)) {
+    return table.toOperationNode();
   } else {
     return parseAliasedExpression(table);
   }
@@ -22753,6 +22790,42 @@ class DynamicModule {
   ref(reference) {
     return new DynamicReferenceBuilder(reference);
   }
+  /**
+   * Creates a table reference to a table that's not fully known at compile time.
+   *
+   * The type `T` is allowed to be a union of multiple tables.
+   *
+   * <!-- siteExample("select", "Generic find query", 130) -->
+   *
+   * A generic type-safe helper function for finding a row by a column value:
+   *
+   * ```ts
+   * import { SelectType } from 'kysely'
+   * import { Database } from 'type-editor'
+   *
+   * async function getRowByColumn<
+   *   T extends keyof Database,
+   *   C extends keyof Database[T] & string,
+   *   V extends SelectType<Database[T][C]>,
+   * >(t: T, c: C, v: V) {
+   *   // We need to use the dynamic module since the table name
+   *   // is not known at compile time.
+   *   const { table, ref } = db.dynamic
+   *
+   *   return await db
+   *     .selectFrom(table(t).as('t'))
+   *     .selectAll()
+   *     .where(ref(c), '=', v)
+   *     .orderBy('t.id')
+   *     .executeTakeFirstOrThrow()
+   * }
+   *
+   * const person = await getRowByColumn('person', 'first_name', 'Arnold')
+   * ```
+   */
+  table(table) {
+    return new DynamicTableBuilder(table);
+  }
 }
 class DefaultConnectionProvider {
   constructor(driver) {
@@ -23981,25 +24054,25 @@ function createRawBuilder(props) {
 class AliasedRawBuilderImpl {
   constructor(rawBuilder, alias) {
     __privateAdd(this, _rawBuilder);
-    __privateAdd(this, _alias5);
+    __privateAdd(this, _alias6);
     __privateSet(this, _rawBuilder, rawBuilder);
-    __privateSet(this, _alias5, alias);
+    __privateSet(this, _alias6, alias);
   }
   get expression() {
     return __privateGet(this, _rawBuilder);
   }
   get alias() {
-    return __privateGet(this, _alias5);
+    return __privateGet(this, _alias6);
   }
   get rawBuilder() {
     return __privateGet(this, _rawBuilder);
   }
   toOperationNode() {
-    return AliasNode.create(__privateGet(this, _rawBuilder).toOperationNode(), isOperationNodeSource(__privateGet(this, _alias5)) ? __privateGet(this, _alias5).toOperationNode() : IdentifierNode.create(__privateGet(this, _alias5)));
+    return AliasNode.create(__privateGet(this, _rawBuilder).toOperationNode(), isOperationNodeSource(__privateGet(this, _alias6)) ? __privateGet(this, _alias6).toOperationNode() : IdentifierNode.create(__privateGet(this, _alias6)));
   }
 }
 _rawBuilder = new WeakMap();
-_alias5 = new WeakMap();
+_alias6 = new WeakMap();
 const sql = Object.assign((sqlFragments, ...parameters) => {
   return createRawBuilder({
     queryId: createQueryId(),
@@ -25641,7 +25714,7 @@ getTableMetadata_fn = async function(options) {
     "p.notnull",
     "p.dflt_value",
     "p.pk"
-  ]).orderBy(["tl.name", "p.cid"]).execute();
+  ]).orderBy("tl.name").orderBy("p.cid").execute();
   const columnsByTable = {};
   for (const row of tableMetadata) {
     columnsByTable[_a = row.table] ?? (columnsByTable[_a] = []);
@@ -25682,6 +25755,208 @@ class SqliteAdapter extends DialectAdapterBase {
   async releaseMigrationLock(_db2, _opt) {
   }
 }
+var index = /* @__PURE__ */ Object.freeze({
+  __proto__: null,
+  ARITHMETIC_OPERATORS,
+  AddColumnNode,
+  AddConstraintNode,
+  AddIndexNode,
+  AggregateFunctionBuilder,
+  AggregateFunctionNode,
+  AliasNode,
+  AliasedAggregateFunctionBuilder,
+  AliasedExpressionWrapper,
+  AliasedJSONPathBuilder,
+  AlterColumnBuilder,
+  AlterColumnNode,
+  AlterTableBuilder,
+  AlterTableColumnAlteringBuilder,
+  AlterTableNode,
+  AlteredColumnBuilder,
+  AndNode,
+  AndWrapper,
+  BINARY_OPERATORS,
+  BinaryOperationNode,
+  COMPARISON_OPERATORS,
+  CaseBuilder,
+  CaseEndBuilder,
+  CaseNode,
+  CaseThenBuilder,
+  CaseWhenBuilder,
+  CastNode,
+  CheckConstraintNode,
+  CollateNode,
+  ColumnDefinitionBuilder,
+  ColumnDefinitionNode,
+  ColumnNode,
+  ColumnUpdateNode,
+  Command,
+  CommonTableExpressionNameNode,
+  CommonTableExpressionNode,
+  CompiledQuery,
+  ConnectionBuilder,
+  ControlledTransaction,
+  ControlledTransactionBuilder,
+  CreateIndexBuilder,
+  CreateIndexNode,
+  CreateSchemaBuilder,
+  CreateSchemaNode,
+  CreateTableBuilder,
+  CreateTableNode,
+  CreateTypeBuilder,
+  CreateTypeNode,
+  CreateViewBuilder,
+  CreateViewNode,
+  DEFAULT_MIGRATION_LOCK_TABLE,
+  DEFAULT_MIGRATION_TABLE,
+  DataTypeNode,
+  DefaultConnectionProvider,
+  DefaultInsertValueNode,
+  DefaultQueryCompiler,
+  DefaultQueryExecutor,
+  DefaultValueNode,
+  DeleteQueryBuilder,
+  DeleteQueryNode,
+  DeleteResult,
+  DialectAdapterBase,
+  DropColumnNode,
+  DropConstraintNode,
+  DropIndexBuilder,
+  DropIndexNode,
+  DropSchemaBuilder,
+  DropSchemaNode,
+  DropTableBuilder,
+  DropTableNode,
+  DropTypeBuilder,
+  DropTypeNode,
+  DropViewBuilder,
+  DropViewNode,
+  DynamicModule,
+  ExplainNode,
+  ExpressionWrapper,
+  FetchNode,
+  ForeignKeyConstraintBuilder,
+  ForeignKeyConstraintNode,
+  FromNode,
+  FunctionNode,
+  GeneratedNode,
+  GroupByItemNode,
+  GroupByNode,
+  HavingNode,
+  IdentifierNode,
+  InsertQueryBuilder,
+  InsertQueryNode,
+  InsertResult,
+  JSONOperatorChainNode,
+  JSONPathBuilder,
+  JSONPathLegNode,
+  JSONPathNode,
+  JSONReferenceNode,
+  JSON_OPERATORS,
+  JoinBuilder,
+  JoinNode,
+  Kysely,
+  LimitNode,
+  ListNode,
+  Log,
+  MatchedNode,
+  MatchedThenableMergeQueryBuilder,
+  MergeQueryBuilder,
+  MergeQueryNode,
+  MergeResult,
+  ModifyColumnNode,
+  NOOP_QUERY_EXECUTOR,
+  NoResultError,
+  NoopQueryExecutor,
+  NotMatchedThenableMergeQueryBuilder,
+  ON_COMMIT_ACTIONS,
+  ON_MODIFY_FOREIGN_ACTIONS,
+  OPERATORS,
+  OffsetNode,
+  OnConflictBuilder,
+  OnConflictDoNothingBuilder,
+  OnConflictNode,
+  OnConflictUpdateBuilder,
+  OnDuplicateKeyNode,
+  OnNode,
+  OperationNodeTransformer,
+  OperationNodeVisitor,
+  OperatorNode,
+  OrActionNode,
+  OrNode,
+  OrWrapper,
+  OrderByItemBuilder,
+  OrderByItemNode,
+  OrderByNode,
+  OutputNode,
+  OverNode,
+  ParensNode,
+  PartitionByItemNode,
+  PartitionByNode,
+  PrimaryKeyConstraintNode,
+  PrimitiveValueListNode,
+  QueryCreator,
+  QueryNode,
+  RawNode,
+  ReferenceNode,
+  ReferencesNode,
+  RefreshMaterializedViewBuilder,
+  RefreshMaterializedViewNode,
+  RenameColumnNode,
+  RenameConstraintNode,
+  ReturningNode,
+  SchemaModule,
+  SchemableIdentifierNode,
+  SelectAllNode,
+  SelectModifierNode,
+  SelectQueryNode,
+  SelectionNode,
+  SetOperationNode,
+  SingleConnectionProvider,
+  SqliteAdapter,
+  SqliteIntrospector,
+  SqliteQueryCompiler,
+  TRANSACTION_ACCESS_MODES,
+  TRANSACTION_ISOLATION_LEVELS,
+  TableNode,
+  TopNode,
+  Transaction,
+  TransactionBuilder,
+  TraversedJSONPathBuilder,
+  TupleNode,
+  UNARY_FILTER_OPERATORS,
+  UNARY_OPERATORS,
+  UnaryOperationNode,
+  UniqueConstraintNode,
+  UpdateQueryBuilder,
+  UpdateQueryNode,
+  UpdateResult,
+  UsingNode,
+  ValueListNode,
+  ValueNode,
+  ValuesNode,
+  WhenNode,
+  WheneableMergeQueryBuilder,
+  WhereNode,
+  WithNode,
+  WithSchemaPlugin,
+  createFunctionModule,
+  createQueryId,
+  createRawBuilder,
+  createSelectQueryBuilder,
+  expressionBuilder,
+  isAliasedExpression,
+  isColumnDataType,
+  isCompilable,
+  isExpression,
+  isJSONOperator,
+  isKyselyProps,
+  isNoResultErrorConstructor,
+  isOperationNodeSource,
+  logOnce,
+  sql,
+  validateTransactionSettings
+});
 var BaseSqliteDialect = class {
   /**
    * Base class that implements {@link Dialect}
@@ -25721,12 +25996,17 @@ var ConnectionMutex = class {
     resolve?.();
   }
 };
-function parseSavepointCommand(command, savepointName) {
-  return RawNode.createWithChildren([
-    RawNode.createWithSql(`${command} `),
-    IdentifierNode.create(savepointName)
-    // ensures savepointName gets sanitized
-  ]);
+async function runSavepoint(command, createQueryId2, connection, savepointName, compileQuery) {
+  await connection.executeQuery(
+    compileQuery(
+      RawNode.createWithChildren([
+        RawNode.createWithSql(`${command} `),
+        IdentifierNode.create(savepointName)
+        // ensures savepointName gets sanitized
+      ]),
+      createQueryId2()
+    )
+  );
 }
 var BaseSqliteDriver = class {
   /**
@@ -25737,8 +26017,19 @@ var BaseSqliteDriver = class {
   constructor(init) {
     __publicField(this, "mutex", new ConnectionMutex());
     __publicField(this, "conn");
+    __publicField(this, "savepoint");
+    __publicField(this, "releaseSavepoint");
+    __publicField(this, "rollbackToSavepoint");
     __publicField(this, "init");
-    this.init = init;
+    this.init = () => Promise.resolve().then(function() {
+      return index;
+    }).then(({ createQueryId: createQueryId2 }) => {
+      if (createQueryId2) {
+        this.savepoint = runSavepoint.bind(null, "savepoint", createQueryId2);
+        this.releaseSavepoint = runSavepoint.bind(null, "release", createQueryId2);
+        this.rollbackToSavepoint = runSavepoint.bind(null, "rollback to", createQueryId2);
+      }
+    }).then(init);
   }
   async acquireConnection() {
     await this.mutex.lock();
@@ -25752,15 +26043,6 @@ var BaseSqliteDriver = class {
   }
   async rollbackTransaction(connection) {
     await connection.executeQuery(CompiledQuery.raw("rollback"));
-  }
-  async savepoint(connection, savepointName, compileQuery) {
-    await connection.executeQuery(compileQuery(parseSavepointCommand("savepoint", savepointName), createQueryId()));
-  }
-  async rollbackToSavepoint(connection, savepointName, compileQuery) {
-    await connection.executeQuery(compileQuery(parseSavepointCommand("rollback to", savepointName), createQueryId()));
-  }
-  async releaseSavepoint(connection, savepointName, compileQuery) {
-    await connection.executeQuery(compileQuery(parseSavepointCommand("release", savepointName), createQueryId()));
   }
   async releaseConnection() {
     this.mutex.unlock();
@@ -26373,18 +26655,18 @@ function dropTable(tableName) {
   return `DROP TABLE IF EXISTS "${tableName}";`;
 }
 function createTableWithIndexAndTrigger(trx, tableName, table) {
-  const { index, ...props } = table;
+  const { index: index2, ...props } = table;
   const result = [];
   const [sql3, updateColumn, triggerColumn] = createTable(trx, tableName, props);
-  result.push(sql3, ...createTableIndex(tableName, index));
+  result.push(sql3, ...createTableIndex(tableName, index2));
   const triggerSql = createTimeTrigger(tableName, updateColumn, triggerColumn);
   if (triggerSql) {
     result.push(triggerSql);
   }
   return result;
 }
-function createTableIndex(tableName, index = []) {
-  return index.map((i) => {
+function createTableIndex(tableName, index2 = []) {
+  return index2.map((i) => {
     const [columnListStr, key] = parseArray(i);
     return `CREATE INDEX IF NOT EXISTS idx_${tableName + key} on "${tableName}" (${columnListStr});`;
   });
@@ -26677,14 +26959,14 @@ function parseChangedList(existIndexList, targetIndexList) {
   const existSet = new Set(existIndexList.map((arr) => arr.join("|")));
   const targetSet = /* @__PURE__ */ new Set();
   const addList = [];
-  for (const index of targetIndexList) {
-    const hash = Array.isArray(index) ? index.join("|") : index;
+  for (const index2 of targetIndexList) {
+    const hash = Array.isArray(index2) ? index2.join("|") : index2;
     targetSet.add(hash);
     if (!existSet.has(hash)) {
-      addList.push(Array.isArray(index) ? index : [index]);
+      addList.push(Array.isArray(index2) ? index2 : [index2]);
     }
   }
-  const delList = existIndexList.filter((index) => !targetSet.has(index.join("|")));
+  const delList = existIndexList.filter((index2) => !targetSet.has(index2.join("|")));
   return [addList, delList];
 }
 function useSchema(schema, options = {}) {
