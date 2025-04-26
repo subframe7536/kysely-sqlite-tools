@@ -7,8 +7,8 @@ settings:
 catalogs:
   default:
     kysely:
-      specifier: ^0.28.0
-      version: 0.28.0
+      specifier: ^0.28.2
+      version: 0.28.2
 
 importers:
 
@@ -70,7 +70,7 @@ importers:
         version: 9.1.7
       kysely:
         specifier: 'catalog:'
-        version: 0.28.0
+        version: 0.28.2
       lint-staged:
         specifier: ^15.4.3
         version: 15.5.1
@@ -104,13 +104,13 @@ importers:
     devDependencies:
       kysely:
         specifier: 'catalog:'
-        version: 0.28.0
+        version: 0.28.2
 
   packages/dialect-generic-sqlite:
     devDependencies:
       kysely:
         specifier: 'catalog:'
-        version: 0.28.0
+        version: 0.28.2
 
   packages/dialect-sqlite-worker:
     dependencies:
@@ -123,7 +123,7 @@ importers:
     devDependencies:
       kysely:
         specifier: 'catalog:'
-        version: 0.28.0
+        version: 0.28.2
 
   packages/dialect-tauri:
     dependencies:
@@ -136,7 +136,7 @@ importers:
         version: 2.2.0
       kysely:
         specifier: 'catalog:'
-        version: 0.28.0
+        version: 0.28.2
 
   packages/dialect-wasm:
     dependencies:
@@ -146,7 +146,7 @@ importers:
     devDependencies:
       kysely:
         specifier: 'catalog:'
-        version: 0.28.0
+        version: 0.28.2
 
   packages/dialect-wasqlite-worker:
     dependencies:
@@ -162,7 +162,7 @@ importers:
         version: 0.5.3
       kysely:
         specifier: 'catalog:'
-        version: 0.28.0
+        version: 0.28.2
 
   playground:
     dependencies:
@@ -171,10 +171,10 @@ importers:
         version: 0.5.3
       kysely:
         specifier: 'catalog:'
-        version: 0.28.0
+        version: 0.28.2
       kysely-sqlite-builder:
         specifier: ^1.0.0
-        version: 1.0.0(kysely@0.28.0)
+        version: 1.0.0(kysely@0.28.2)
       kysely-wasm:
         specifier: workspace:*
         version: link:../packages/dialect-wasm
@@ -1972,8 +1972,8 @@ packages:
     peerDependencies:
       kysely: '>=0.28'
 
-  kysely@0.28.0:
-    resolution: {integrity: sha512-hq8VcLy57Ww7oPTTVEOrT9ml+g8ehbbmEUkHmW4Xtubu+NHdKZi6SH6egmD4cjDhn3b/0s0h/6AjdPayOTJhNw==}
+  kysely@0.28.2:
+    resolution: {integrity: sha512-4YAVLoF0Sf0UTqlhgQMFU9iQECdah7n+13ANkiuVfRvlK+uI0Etbgd7bVP36dKlG+NXWbhGua8vnGt+sdhvT7A==}
     engines: {node: '>=18.0.0'}
 
   levn@0.4.1:
@@ -4751,16 +4751,16 @@ snapshots:
     dependencies:
       json-buffer: 3.0.1
 
-  kysely-plugin-serialize@0.8.2(kysely@0.28.0):
+  kysely-plugin-serialize@0.8.2(kysely@0.28.2):
     dependencies:
-      kysely: 0.28.0
+      kysely: 0.28.2
 
-  kysely-sqlite-builder@1.0.0(kysely@0.28.0):
+  kysely-sqlite-builder@1.0.0(kysely@0.28.2):
     dependencies:
-      kysely: 0.28.0
-      kysely-plugin-serialize: 0.8.2(kysely@0.28.0)
+      kysely: 0.28.2
+      kysely-plugin-serialize: 0.8.2(kysely@0.28.2)
 
-  kysely@0.28.0: {}
+  kysely@0.28.2: {}
 
   levn@0.4.1:
     dependencies:
