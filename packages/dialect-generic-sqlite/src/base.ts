@@ -11,7 +11,6 @@ import type {
 
 import {
   CompiledQuery,
-  createQueryId,
   IdentifierNode,
   RawNode,
   SqliteAdapter,
@@ -67,26 +66,47 @@ class ConnectionMutex {
   }
 }
 
-export function parseSavepointCommand(command: string, savepointName: string) {
-  return RawNode.createWithChildren([
-    RawNode.createWithSql(`${command} `),
-    IdentifierNode.create(savepointName), // ensures savepointName gets sanitized
-  ])
+async function runSavepoint(
+  command: string,
+  createQueryId: () => { readonly queryId: string },
+  connection: DatabaseConnection,
+  savepointName: string,
+  compileQuery: QueryCompiler['compileQuery'],
+): Promise<void> {
+  await connection.executeQuery(
+    compileQuery(
+      RawNode.createWithChildren([
+        RawNode.createWithSql(`${command} `),
+        IdentifierNode.create(savepointName), // ensures savepointName gets sanitized
+      ]),
+      createQueryId(),
+    ),
+  )
 }
 
 export abstract class BaseSqliteDriver implements Driver {
   private mutex = new ConnectionMutex()
   public conn?: DatabaseConnection
+  savepoint: ((connection: DatabaseConnection, savepointName: string, compileQuery: QueryCompiler['compileQuery']) => Promise<void>) | undefined
+  releaseSavepoint: ((connection: DatabaseConnection, savepointName: string, compileQuery: QueryCompiler['compileQuery']) => Promise<void>) | undefined
+  rollbackToSavepoint: ((connection: DatabaseConnection, savepointName: string, compileQuery: QueryCompiler['compileQuery']) => Promise<void>) | undefined
+  init: () => Promise<void>
   /**
    * Base abstract class that implements {@link Driver}
    *
    * You **MUST** assign `this.conn` in `init` and implement `destroy` method
    */
   constructor(init: () => Promise<void>) {
-    this.init = init
+    this.init = () => import('kysely')
+      .then(({ createQueryId }) => {
+        if (createQueryId) {
+          this.savepoint = runSavepoint.bind(null, 'savepoint', createQueryId)
+          this.releaseSavepoint = runSavepoint.bind(null, 'release', createQueryId)
+          this.rollbackToSavepoint = runSavepoint.bind(null, 'rollback to', createQueryId)
+        }
+      })
+      .then(init)
   }
-
-  init: () => Promise<void>
 
   async acquireConnection(): Promise<DatabaseConnection> {
     // SQLite only has one single connection. We use a mutex here to wait
@@ -105,30 +125,6 @@ export abstract class BaseSqliteDriver implements Driver {
 
   async rollbackTransaction(connection: DatabaseConnection): Promise<void> {
     await connection.executeQuery(CompiledQuery.raw('rollback'))
-  }
-
-  async savepoint(
-    connection: DatabaseConnection,
-    savepointName: string,
-    compileQuery: QueryCompiler['compileQuery'],
-  ): Promise<void> {
-    await connection.executeQuery(compileQuery(parseSavepointCommand('savepoint', savepointName), createQueryId()))
-  }
-
-  async rollbackToSavepoint(
-    connection: DatabaseConnection,
-    savepointName: string,
-    compileQuery: QueryCompiler['compileQuery'],
-  ): Promise<void> {
-    await connection.executeQuery(compileQuery(parseSavepointCommand('rollback to', savepointName), createQueryId()))
-  }
-
-  async releaseSavepoint(
-    connection: DatabaseConnection,
-    savepointName: string,
-    compileQuery: QueryCompiler['compileQuery'],
-  ): Promise<void> {
-    await connection.executeQuery(compileQuery(parseSavepointCommand('release', savepointName), createQueryId()))
   }
 
   async releaseConnection(): Promise<void> {
