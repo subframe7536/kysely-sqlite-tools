@@ -59,7 +59,7 @@
   },
   "peerDependencies": {
     "bun-types": ">=1.1.14",
-    "kysely": ">=0.28"
+    "kysely": ">=0.26"
   },
   "dependencies": {
     "kysely-generic-sqlite": "workspace:*"

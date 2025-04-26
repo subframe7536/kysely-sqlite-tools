@@ -67,7 +67,7 @@
     "access": "public"
   },
   "peerDependencies": {
-    "kysely": ">=0.28"
+    "kysely": ">=0.26"
   },
   "devDependencies": {
     "kysely": "catalog:"

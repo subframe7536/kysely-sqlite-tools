@@ -39,7 +39,7 @@
     "build": "tsup"
   },
   "peerDependencies": {
-    "kysely": ">=0.28"
+    "kysely": ">=0.26"
   },
   "publishConfig": {
     "access": "public"
