@@ -85,7 +85,7 @@ async function runSavepoint(
 }
 
 export abstract class BaseSqliteDriver implements Driver {
-  private mutex = new ConnectionMutex()
+  private mutex?: ConnectionMutex
   public conn?: DatabaseConnection
   savepoint: ((connection: DatabaseConnection, savepointName: string, compileQuery: QueryCompiler['compileQuery']) => Promise<void>) | undefined
   releaseSavepoint: ((connection: DatabaseConnection, savepointName: string, compileQuery: QueryCompiler['compileQuery']) => Promise<void>) | undefined
@@ -111,8 +111,15 @@ export abstract class BaseSqliteDriver implements Driver {
   async acquireConnection(): Promise<DatabaseConnection> {
     // SQLite only has one single connection. We use a mutex here to wait
     // until the single connection has been released.
+    if (!this.mutex) {
+      this.mutex = new ConnectionMutex()
+    }
     await this.mutex.lock()
     return this.conn!
+  }
+
+  async releaseConnection(): Promise<void> {
+    this.mutex?.unlock()
   }
 
   async beginTransaction(connection: DatabaseConnection): Promise<void> {
@@ -125,10 +132,6 @@ export abstract class BaseSqliteDriver implements Driver {
 
   async rollbackTransaction(connection: DatabaseConnection): Promise<void> {
     await connection.executeQuery(CompiledQuery.raw('rollback'))
-  }
-
-  async releaseConnection(): Promise<void> {
-    this.mutex.unlock()
   }
 
   abstract destroy(): Promise<void>
