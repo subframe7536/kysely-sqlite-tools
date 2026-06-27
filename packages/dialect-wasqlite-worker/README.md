@@ -38,7 +38,7 @@ createOnMessageCallback(
     if (type === 'export') {
       return exportDatabase(exec.db)
     }
-  }
+  },
 )
 ```
 

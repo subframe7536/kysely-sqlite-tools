@@ -1,13 +1,9 @@
 const execSync = require('node:child_process').execSync
 
-const issue = execSync('git rev-parse --abbrev-ref HEAD')
-  .toString()
-  .trim()
-  .split('_')[1]
+const issue = execSync('git rev-parse --abbrev-ref HEAD').toString().trim().split('_')[1]
 /** @type {import('cz-git').UserConfig} */
 module.exports = {
-  rule: {
-  },
+  rule: {},
   prompt: {
     path: 'cz-git',
     scopes: [
@@ -23,11 +19,7 @@ module.exports = {
       // 'utils',
     ],
     markBreakingChangeMode: true,
-    allowBreakingChanges: [
-      'feat',
-      'fix',
-      'chore',
-    ],
+    allowBreakingChanges: ['feat', 'fix', 'chore'],
     issuePrefixes: [
       {
         value: 'closed',

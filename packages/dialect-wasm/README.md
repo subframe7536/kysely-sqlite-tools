@@ -19,7 +19,7 @@ there are 6 dialects
 - NodeWasmDialct: dialect for [node sqlite3 wasm](https://github.com/tndrle/node-sqlite3-wasm)
 - EmptyDialect: only for sql generation, no backend
 - CrsqliteDialect: dialect for [vlcn.io/wasm](https://vlcn.io/js/wasm)
-~~- WaSqliteDialect: dialect for [wa-sqlite](https://github.com/rhashimoto/wa-sqlite)~~
+  ~~- WaSqliteDialect: dialect for [wa-sqlite](https://github.com/rhashimoto/wa-sqlite)~~
 
 ### Differences
 

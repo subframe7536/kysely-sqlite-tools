@@ -3,6 +3,7 @@ import InitSqlJs from 'sql.js'
 import { describe, expect, it } from 'vitest'
 
 import { NodeWasmDialect, SqlJsDialect } from '../packages/dialect-wasm/src'
+
 import { testCase } from './utils'
 
 describe('dialect test', () => {

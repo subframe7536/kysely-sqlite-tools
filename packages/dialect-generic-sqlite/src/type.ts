@@ -8,10 +8,7 @@ export interface IGenericSqliteExecutor {
    * @param sql - The SQL query string to execute.
    * @param parameters - Optional array of parameters to bind to the query.
    */
-  all: (
-    sql: string,
-    parameters?: any[] | readonly any[]
-  ) => Promisable<any[]>
+  all: (sql: string, parameters?: any[] | readonly any[]) => Promisable<any[]>
 
   /**
    * Executes a SQL query that modifies the database (e.g., `INSERT`, `UPDATE`, `DELETE`),
@@ -21,7 +18,7 @@ export interface IGenericSqliteExecutor {
    */
   run: (
     sql: string,
-    parameters?: any[] | readonly any[]
+    parameters?: any[] | readonly any[],
   ) => Promisable<Pick<QueryResult<any>, 'insertId' | 'numAffectedRows'>>
 }
 
@@ -48,7 +45,7 @@ export interface IGenericSqlite<DB = unknown> {
   query: (
     isSelect: boolean,
     sql: string,
-    parameters?: any[] | readonly any[]
+    parameters?: any[] | readonly any[],
   ) => Promisable<QueryResult<any>>
 
   /**
@@ -62,7 +59,7 @@ export interface IGenericSqlite<DB = unknown> {
     isSelect: boolean,
     sql: string,
     parameters?: any[] | readonly any[],
-    chunkSize?: number
+    chunkSize?: number,
   ) => IterableIterator<unknown> | AsyncIterableIterator<unknown>
 }
 

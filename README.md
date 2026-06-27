@@ -17,6 +17,7 @@ Base on `kysely-generic-sqlite`
 - [dialect](packages/dialect-bun-worker/) for [`Bun SQLite`](https://bun.sh/docs/api/sqlite), running sql in worker
 
 ## Other Old Utils
+
 - ~~[plugin](packages/plugin-serialize) that auto serialize and deserialize params~~ move to [kysely-plugin-serialize](https://github.com/subframe7536/kysely-plugin-serialize)
 - ~~[sqlite utils](packages/sqlite-utils) useful utils for SQLite~~ deprecated
 - ~~[sqlite builder](packages/sqlite-builder) for various features~~ move to [kysely-sqlite-builder](https://github.com/subframe7536/kysely-sqlite-builder)

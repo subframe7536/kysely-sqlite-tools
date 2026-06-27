@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 
 import { SqliteWorkerDialect } from '../packages/dialect-sqlite-worker'
+
 import { testCase } from './utils'
 
 describe('sqlite worker dialect test', () => {

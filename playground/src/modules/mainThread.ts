@@ -1,6 +1,5 @@
-import type { Database } from 'sql.js'
-
 import { SqlJsDialect } from 'kysely-wasm'
+import type { Database } from 'sql.js'
 import InitSqlJS from 'sql.js'
 import WasmUrl from 'sql.js/dist/sql-wasm.wasm?url'
 import { ref } from 'vue'

@@ -14,7 +14,7 @@ const dialect = new OfficialWasmDialect({
       console.log('support OPFS')
       return new sqlite3.OpfsDb(path)
     }
-    console.log('doesn\'t support OPFS')
+    console.log("doesn't support OPFS")
     return new sqlite3.DB(path)
   },
 })
@@ -22,6 +22,6 @@ const dialect = new OfficialWasmDialect({
 onmessage = () => {
   console.log('start official wasm test')
   testDB(dialect).then((data) => {
-    data?.forEach(e => console.log('[official wasm]', e))
+    data?.forEach((e) => console.log('[official wasm]', e))
   })
 }

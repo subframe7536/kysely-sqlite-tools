@@ -1,4 +1,3 @@
-import type { IGenericSqlite, IGenericSqliteExecutor } from './type'
 import type {
   DatabaseConnection,
   DatabaseIntrospector,
@@ -8,7 +7,6 @@ import type {
   Kysely,
   QueryCompiler,
 } from 'kysely'
-
 import {
   CompiledQuery,
   IdentifierNode,
@@ -17,6 +15,8 @@ import {
   SqliteIntrospector,
   SqliteQueryCompiler,
 } from 'kysely'
+
+import type { IGenericSqlite, IGenericSqliteExecutor } from './type'
 
 export class BaseSqliteDialect implements Dialect {
   /**
@@ -87,9 +87,27 @@ async function runSavepoint(
 export abstract class BaseSqliteDriver implements Driver {
   private mutex?: ConnectionMutex
   public conn?: DatabaseConnection
-  savepoint: ((connection: DatabaseConnection, savepointName: string, compileQuery: QueryCompiler['compileQuery']) => Promise<void>) | undefined
-  releaseSavepoint: ((connection: DatabaseConnection, savepointName: string, compileQuery: QueryCompiler['compileQuery']) => Promise<void>) | undefined
-  rollbackToSavepoint: ((connection: DatabaseConnection, savepointName: string, compileQuery: QueryCompiler['compileQuery']) => Promise<void>) | undefined
+  savepoint:
+    | ((
+        connection: DatabaseConnection,
+        savepointName: string,
+        compileQuery: QueryCompiler['compileQuery'],
+      ) => Promise<void>)
+    | undefined
+  releaseSavepoint:
+    | ((
+        connection: DatabaseConnection,
+        savepointName: string,
+        compileQuery: QueryCompiler['compileQuery'],
+      ) => Promise<void>)
+    | undefined
+  rollbackToSavepoint:
+    | ((
+        connection: DatabaseConnection,
+        savepointName: string,
+        compileQuery: QueryCompiler['compileQuery'],
+      ) => Promise<void>)
+    | undefined
   init: () => Promise<void>
   /**
    * Base abstract class that implements {@link Driver}
@@ -97,15 +115,16 @@ export abstract class BaseSqliteDriver implements Driver {
    * You **MUST** assign `this.conn` in `init` and implement `destroy` method
    */
   constructor(init: () => Promise<void>) {
-    this.init = () => import('kysely')
-      .then(({ createQueryId }) => {
-        if (createQueryId) {
-          this.savepoint = runSavepoint.bind(null, 'savepoint', createQueryId)
-          this.releaseSavepoint = runSavepoint.bind(null, 'release', createQueryId)
-          this.rollbackToSavepoint = runSavepoint.bind(null, 'rollback to', createQueryId)
-        }
-      })
-      .then(init)
+    this.init = () =>
+      import('kysely')
+        .then(({ createQueryId }) => {
+          if (createQueryId) {
+            this.savepoint = runSavepoint.bind(null, 'savepoint', createQueryId)
+            this.releaseSavepoint = runSavepoint.bind(null, 'release', createQueryId)
+            this.rollbackToSavepoint = runSavepoint.bind(null, 'rollback to', createQueryId)
+          }
+        })
+        .then(init)
   }
 
   async acquireConnection(): Promise<DatabaseConnection> {
@@ -144,9 +163,10 @@ export abstract class BaseSqliteDriver implements Driver {
  * @param exec {@link IGenericSqliteExecutor}
  */
 export function buildQueryFnAlt(exec: IGenericSqliteExecutor): IGenericSqlite['query'] {
-  return async (isSelect, sql, parameters) => isSelect
-    ? { rows: await exec.all(sql, parameters) }
-    : { rows: [], ...await exec.run(sql, parameters) }
+  return async (isSelect, sql, parameters) =>
+    isSelect
+      ? { rows: await exec.all(sql, parameters) }
+      : { rows: [], ...(await exec.run(sql, parameters)) }
 }
 
 /**
@@ -158,14 +178,10 @@ export function buildQueryFnAlt(exec: IGenericSqliteExecutor): IGenericSqlite['q
 export function buildQueryFn(exec: IGenericSqliteExecutor): IGenericSqlite['query'] {
   return async (isSelect, sql, parameters) => {
     const rows = await exec.all(sql, parameters)
-    return (isSelect || rows.length)
-      ? { rows }
-      : { rows: [], ...await exec.run('select 1') }
+    return isSelect || rows.length ? { rows } : { rows: [], ...(await exec.run('select 1')) }
   }
 }
 
 export function parseBigInt(num: number | bigint | null | undefined): bigint | undefined {
-  return (num === undefined || num === null)
-    ? undefined
-    : BigInt(num)
+  return num === undefined || num === null ? undefined : BigInt(num)
 }

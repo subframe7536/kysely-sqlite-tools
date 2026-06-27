@@ -16,15 +16,12 @@ class _Buffer {
     return this._size
   }
 
-  read(offset: number, buffer: { length: any, set: (arg0: any) => void }) {
+  read(offset: number, buffer: { length: any; set: (arg0: any) => void }) {
     if (offset >= this._size) {
       return 0
     }
 
-    const toCopy = this._data.subarray(
-      offset,
-      Math.min(this._size, offset + buffer.length),
-    )
+    const toCopy = this._data.subarray(offset, Math.min(this._size, offset + buffer.length))
     buffer.set(toCopy)
     return toCopy.length
   }
@@ -35,13 +32,8 @@ class _Buffer {
     }
 
     const neededBytes = capacity - this._data.length
-    const growBy = Math.min(
-      MAX_GROW_BYTES,
-      Math.max(MIN_GROW_BYTES, this._data.length),
-    )
-    const newArray = new Uint8Array(
-      this._data.length + Math.max(growBy, neededBytes),
-    )
+    const growBy = Math.min(MAX_GROW_BYTES, Math.max(MIN_GROW_BYTES, this._data.length))
+    const newArray = new Uint8Array(this._data.length + Math.max(growBy, neededBytes))
     newArray.set(this._data)
     this._data = newArray
   }
@@ -63,25 +55,30 @@ class _Buffer {
 }
 
 // @ts-expect-error polyfill
-const indexedDB = globalThis.indexedDB || window.indexedDB || window.mozIndexedDB || window.webkitIndexedDB || window.msIndexedDB || window.shimIndexedDB
+const indexedDB =
+  globalThis.indexedDB ||
+  window.indexedDB ||
+  window.mozIndexedDB ||
+  window.webkitIndexedDB ||
+  window.msIndexedDB ||
+  window.shimIndexedDB
 
 // Web browser indexedDB database
 const database: Promise<IDBDatabase> = new Promise((resolve, reject) => {
   const request = indexedDB.open(DB_NAME, 1)
-  request.onupgradeneeded = () =>
-    request.result.createObjectStore('files', { keyPath: 'name' })
+  request.onupgradeneeded = () => request.result.createObjectStore('files', { keyPath: 'name' })
   request.onsuccess = () => resolve(request.result)
   request.onerror = () => reject(request.error)
 })
 
 export async function loadFile(fileName: string) {
   const db = await database
-  const file = await new Promise((resolve, reject) => {
+  const file = (await new Promise((resolve, reject) => {
     const store = db.transaction('files', 'readonly').objectStore('files')
     const request = store.get(fileName)
     request.onsuccess = () => resolve(request.result)
     request.onerror = () => reject(request.error)
-  }) as { data: Uint8Array }
+  })) as { data: Uint8Array }
 
   if (file && !LOADED_FILES.has(fileName)) {
     const buffer = new _Buffer(file.data)

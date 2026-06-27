@@ -1,9 +1,9 @@
-import type { OfficialWasmDB } from './type'
 import type { IBaseSqliteDialectConfig, Promisable } from 'kysely-generic-sqlite'
-
 import { buildQueryFn, GenericSqliteDialect } from 'kysely-generic-sqlite'
 
 import { accessDB } from '../utils'
+
+import type { OfficialWasmDB } from './type'
 
 export type { OfficialWasmDB } from './type'
 export interface OfficialWasmDialectConfig extends IBaseSqliteDialectConfig {
@@ -55,24 +55,21 @@ export class OfficialWasmDialect extends GenericSqliteDialect {
    * @see https://sqlite.org/wasm/doc/trunk/persistence.md#coop-coep
    */
   constructor(config: OfficialWasmDialectConfig) {
-    super(
-      async () => {
-        const db = await accessDB(config.database)
-        return {
-          db,
-          close: () => db.close(),
-          query: buildQueryFn({
-            all: (sql, parameters) => {
-              return db.selectObjects(sql, parameters as any)
-            },
-            run: () => ({
-              insertId: BigInt((db.selectArray('SELECT last_insert_rowid()')?.[0] || 0) as number),
-              numAffectedRows: BigInt(db.changes(false, true)),
-            }),
+    super(async () => {
+      const db = await accessDB(config.database)
+      return {
+        db,
+        close: () => db.close(),
+        query: buildQueryFn({
+          all: (sql, parameters) => {
+            return db.selectObjects(sql, parameters as any)
+          },
+          run: () => ({
+            insertId: BigInt((db.selectArray('SELECT last_insert_rowid()')?.[0] || 0) as number),
+            numAffectedRows: BigInt(db.changes(false, true)),
           }),
-        }
-      },
-      config.onCreateConnection,
-    )
+        }),
+      }
+    }, config.onCreateConnection)
   }
 }

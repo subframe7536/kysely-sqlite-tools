@@ -1,8 +1,8 @@
-import type { OnCreateConnection, Promisable } from '../type'
-import type { IGenericSqliteWorkerExecutor, IGenericWorker } from './types'
-
 import { BaseSqliteDialect } from '../base'
+import type { OnCreateConnection, Promisable } from '../type'
+
 import { GenericSqliteWorkerDriver } from './driver'
+import type { IGenericSqliteWorkerExecutor, IGenericWorker } from './types'
 
 export class GenericSqliteWorkerDialect<
   T extends IGenericWorker,

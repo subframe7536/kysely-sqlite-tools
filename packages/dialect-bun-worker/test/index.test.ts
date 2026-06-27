@@ -1,6 +1,6 @@
-import type { Dialect, Generated } from 'kysely'
-
 import { describe, expect, test } from 'bun:test'
+
+import type { Dialect, Generated } from 'kysely'
 import { CompiledQuery, Kysely } from 'kysely'
 
 import { BunWorkerDialect } from '../src'
@@ -19,20 +19,26 @@ describe('test', () => {
   const dialect = new BunWorkerDialect() as unknown as Dialect
   test('test', async () => {
     const db = new Kysely<DB>({ dialect })
-    await db.schema.createTable('test')
-      .addColumn('id', 'integer', builder => builder.autoIncrement().primaryKey())
+    await db.schema
+      .createTable('test')
+      .addColumn('id', 'integer', (builder) => builder.autoIncrement().primaryKey())
       .addColumn('name', 'text')
       .addColumn('age', 'integer')
       .addColumn('int8', 'blob')
       .execute()
-    await db.insertInto('test')
+    await db
+      .insertInto('test')
       .values({
         age: 18,
         name: `test ${dialect.toString()}`,
         int8: new Uint8Array([1, 2, 3]),
       })
       .execute()
-    const { age, name, int8 } = await db.selectFrom('test').selectAll().limit(1).executeTakeFirstOrThrow()
+    const { age, name, int8 } = await db
+      .selectFrom('test')
+      .selectAll()
+      .limit(1)
+      .executeTakeFirstOrThrow()
     expect(age).toStrictEqual(18)
     expect(name).toStrictEqual(`test ${dialect.toString()}`)
     expect(int8).toStrictEqual(Uint8Array.from([1, 2, 3]))
@@ -47,10 +53,10 @@ describe('test', () => {
     expect(count).toStrictEqual(1)
 
     const result = await db.executeQuery(
-      CompiledQuery.raw(
-        'insert into test("age", "name") values (?, ?) returning *',
-        [20, 'test name'],
-      ),
+      CompiledQuery.raw('insert into test("age", "name") values (?, ?) returning *', [
+        20,
+        'test name',
+      ]),
     )
     expect(result).toMatchInlineSnapshot(`
 {

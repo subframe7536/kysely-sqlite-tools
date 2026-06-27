@@ -2,24 +2,37 @@
   "name": "kysely-sqlite-worker",
   "version": "1.2.1",
   "description": "kysely dialect for better-sqlite3, run sql in worker",
+  "keywords": [
+    "dialect",
+    "kysely",
+    "sql",
+    "sqlite3",
+    "worker"
+  ],
+  "homepage": "https://github.com/subframe7536/kysely-sqlite-tools/tree/master/packages/dialect-sqlite-worker",
+  "bugs": "https://github.com/subframe7536/kysely-sqlite-tools/issues",
+  "license": "MIT",
   "author": {
     "name": "subframe7536",
     "email": "1667077010@qq.com"
   },
-  "license": "MIT",
-  "homepage": "https://github.com/subframe7536/kysely-sqlite-tools/tree/master/packages/dialect-sqlite-worker",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/subframe7536/kysely-sqlite-tools.git#master"
   },
-  "bugs": "https://github.com/subframe7536/kysely-sqlite-tools/issues",
-  "keywords": [
-    "kysely",
-    "dialect",
-    "sql",
-    "worker",
-    "sqlite3"
+  "files": [
+    "dist"
   ],
+  "main": "./dist/index.js",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "typesVersions": {
+    "*": {
+      "worker": [
+        "./dist/index.d.ts"
+      ]
+    }
+  },
   "exports": {
     ".": {
       "import": "./dist/index.mjs",
@@ -31,33 +44,21 @@
     },
     "./package.json": "./package.json"
   },
-  "main": "./dist/index.js",
-  "module": "./dist/index.mjs",
-  "typesVersions": {
-    "*": {
-      "worker": [
-        "./dist/index.d.ts"
-      ]
-    }
-  },
-  "files": [
-    "dist"
-  ],
-  "scripts": {
-    "dev": "tsup --watch",
-    "build": "tsup"
-  },
   "publishConfig": {
     "access": "public"
   },
-  "peerDependencies": {
-    "better-sqlite3": "*",
-    "kysely": ">=0.26"
+  "scripts": {
+    "dev": "tsdown --config tsdown.config.mts --watch",
+    "build": "tsdown --config tsdown.config.mts"
   },
   "dependencies": {
     "kysely-generic-sqlite": "workspace:*"
   },
   "devDependencies": {
     "kysely": "catalog:"
+  },
+  "peerDependencies": {
+    "better-sqlite3": "*",
+    "kysely": ">=0.26"
   }
 }

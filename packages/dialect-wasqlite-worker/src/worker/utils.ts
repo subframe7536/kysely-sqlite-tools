@@ -1,33 +1,27 @@
-import type { InitData } from '../type'
 import type { SQLiteDBCore } from '@subframe7536/sqlite-wasm'
-import type { QueryResult } from 'kysely'
-import type { IGenericSqlite, Promisable } from 'kysely-generic-sqlite'
-import type { MessageHandleFn } from 'kysely-generic-sqlite/worker'
-
 import {
   changes as changesCore,
   close as closeCore,
   lastInsertRowId as lastInsertRowIdCore,
 } from '@subframe7536/sqlite-wasm'
 import { SQLITE_OK, SQLITE_ROW } from '@subframe7536/sqlite-wasm/constant'
+import type { QueryResult } from 'kysely'
+import type { IGenericSqlite, Promisable } from 'kysely-generic-sqlite'
 import { parseBigInt } from 'kysely-generic-sqlite'
+import type { MessageHandleFn } from 'kysely-generic-sqlite/worker'
 import { createWebOnMessageCallback } from 'kysely-generic-sqlite/worker-helper-web'
+
+import type { InitData } from '../type'
 
 export type CreateDatabaseFn = (init: InitData) => Promisable<SQLiteDBCore>
 
-export const defaultCreateDatabaseFn: CreateDatabaseFn
-  = async ({ fileName, url, useOPFS }) => {
-    return (await import('@subframe7536/sqlite-wasm')).initSQLiteCore(
-      (
-        useOPFS
-          ? (await import('@subframe7536/sqlite-wasm/opfs')).useOpfsStorage
-          : (await import('@subframe7536/sqlite-wasm/idb')).useIdbStorage
-      )(
-        fileName,
-        { url },
-      ),
-    )
-  }
+export const defaultCreateDatabaseFn: CreateDatabaseFn = async ({ fileName, url, useOPFS }) => {
+  return (await import('@subframe7536/sqlite-wasm')).initSQLiteCore(
+    (useOPFS
+      ? (await import('@subframe7536/sqlite-wasm/opfs')).useOpfsStorage
+      : (await import('@subframe7536/sqlite-wasm/idb')).useIdbStorage)(fileName, { url }),
+  )
+}
 
 function createRowMapper(sqlite: SQLiteDBCore['sqlite'], stmt: number) {
   const cols = sqlite.column_names(stmt)
@@ -39,9 +33,7 @@ async function queryData(
   sql: string,
   parameters?: readonly any[],
 ): Promise<QueryResult<any>> {
-  const iterator = core
-    .sqlite
-    .statements(core.pointer, sql)[Symbol.asyncIterator]()
+  const iterator = core.sqlite.statements(core.pointer, sql)[Symbol.asyncIterator]()
   const { value: stmt } = await iterator.next()
 
   try {
@@ -62,7 +54,7 @@ async function queryData(
     const mapRow = createRowMapper(core.sqlite, stmt)
     const result = []
     let idx = 0
-    while (await core.sqlite.step(stmt) === SQLITE_ROW) {
+    while ((await core.sqlite.step(stmt)) === SQLITE_ROW) {
       result[idx++] = mapRow(core.sqlite.row(stmt))
     }
     return { rows: result }
@@ -78,7 +70,6 @@ async function* iterateDate(
   chunkSize = 1,
 ): AsyncIterableIterator<any[]> {
   const { sqlite, pointer } = core
-  // eslint-disable-next-line unicorn/no-new-array
   let cache = new Array(chunkSize)
   for await (const stmt of sqlite.statements(pointer, sql)) {
     if (parameters?.length) {
@@ -136,13 +127,10 @@ export function createOnMessageCallback(
   create: CreateDatabaseFn,
   message?: MessageHandleFn<SQLiteDBCore>,
 ): void {
-  createWebOnMessageCallback<InitData, SQLiteDBCore>(
-    async (initData) => {
-      const core = await create(initData!)
-      return createSqliteExecutor(core)
-    },
-    message,
-  )
+  createWebOnMessageCallback<InitData, SQLiteDBCore>(async (initData) => {
+    const core = await create(initData!)
+    return createSqliteExecutor(core)
+  }, message)
 }
 
 export function createSqliteExecutor(db: SQLiteDBCore): IGenericSqlite<SQLiteDBCore> {
@@ -150,11 +138,7 @@ export function createSqliteExecutor(db: SQLiteDBCore): IGenericSqlite<SQLiteDBC
     db,
     query: async (_isSelect, sql, parameters) => await queryData(db, sql, parameters),
     close: async () => await closeCore(db),
-    iterator: (_isSelect, sql, parameters, chunkSize) => iterateDate(
-      db,
-      sql,
-      parameters as any[],
-      chunkSize,
-    ),
+    iterator: (_isSelect, sql, parameters, chunkSize) =>
+      iterateDate(db, sql, parameters as any[], chunkSize),
   }
 }

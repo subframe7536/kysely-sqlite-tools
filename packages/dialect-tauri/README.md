@@ -19,7 +19,7 @@ import { Kysely } from 'kysely'
 
 const kysely = new Kysely<DB>({
   dialect: new TauriSqliteDialect({
-    database: prefix => Database.load(`${prefix}${await appDataDir()}test.db`)
+    database: (prefix) => Database.load(`${prefix}${await appDataDir()}test.db`),
   }),
 })
 ```

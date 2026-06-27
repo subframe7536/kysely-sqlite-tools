@@ -1,6 +1,5 @@
-import type { Database } from 'sql.js'
-
 import { SqlJsDialect } from 'kysely-wasm'
+import type { Database } from 'sql.js'
 import InitSqlJS from 'sql.js'
 import WasmUrl from 'sql.js/dist/sql-wasm.wasm?url'
 
@@ -21,7 +20,7 @@ const dialect = new SqlJsDialect({
 onmessage = () => {
   console.log('start sqljs worker test')
   testDB(dialect).then((data) => {
-    data?.forEach(e => console.log('[sqljs Worker]', e))
+    data?.forEach((e) => console.log('[sqljs Worker]', e))
     writeFile('sqljs', db?.export())
   })
 }

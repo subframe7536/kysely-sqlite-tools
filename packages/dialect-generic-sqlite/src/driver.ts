@@ -1,16 +1,12 @@
-import type { IGenericSqlite, OnCreateConnection, Promisable } from './type'
 import type { CompiledQuery, DatabaseConnection, QueryResult } from 'kysely'
-
 import { SelectQueryNode } from 'kysely'
 
 import { BaseSqliteDriver } from './base'
+import type { IGenericSqlite, OnCreateConnection, Promisable } from './type'
 
 export class GenericSqliteDriver extends BaseSqliteDriver {
   db?: IGenericSqlite
-  constructor(
-    executor: () => Promisable<IGenericSqlite>,
-    onCreateConnection?: OnCreateConnection,
-  ) {
+  constructor(executor: () => Promisable<IGenericSqlite>, onCreateConnection?: OnCreateConnection) {
     super(async () => {
       this.db = await executor()
       this.conn = new GenericSqliteConnection(this.db)
@@ -24,13 +20,13 @@ export class GenericSqliteDriver extends BaseSqliteDriver {
 }
 
 export class GenericSqliteConnection implements DatabaseConnection {
-  constructor(
-    private db: IGenericSqlite,
-  ) { }
+  constructor(private db: IGenericSqlite) {}
 
-  async* streamQuery<R>(
-    { parameters, query, sql }: CompiledQuery,
-  ): AsyncIterableIterator<QueryResult<R>> {
+  async *streamQuery<R>({
+    parameters,
+    query,
+    sql,
+  }: CompiledQuery): AsyncIterableIterator<QueryResult<R>> {
     if (!this.db.iterator) {
       throw new Error('streamQuery() is not supported.')
     }
@@ -40,7 +36,11 @@ export class GenericSqliteConnection implements DatabaseConnection {
     }
   }
 
-  async executeQuery<R>({ parameters, query, sql }: CompiledQuery<unknown>): Promise<QueryResult<R>> {
+  async executeQuery<R>({
+    parameters,
+    query,
+    sql,
+  }: CompiledQuery<unknown>): Promise<QueryResult<R>> {
     return await this.db.query(SelectQueryNode.is(query), sql, parameters)
   }
 }

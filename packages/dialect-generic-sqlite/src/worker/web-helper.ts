@@ -1,11 +1,11 @@
 import type { Promisable } from '../type'
+
 import type {
   HandleMessageFn,
   IGenericSqliteWorkerExecutor,
   InitFn,
   MessageHandleFn,
 } from './types'
-
 import { access, createGenericOnMessageCallback } from './utils'
 
 export function createWebOnMessageCallback<T extends Record<string, unknown>, DB = unknown>(
@@ -14,23 +14,24 @@ export function createWebOnMessageCallback<T extends Record<string, unknown>, DB
 ): void {
   const cb = createGenericOnMessageCallback<T, DB>(
     init,
-    value => globalThis.postMessage(value),
+    (value) => globalThis.postMessage(value),
     message,
   )
   globalThis.onmessage = ({ data }) => cb(data)
 }
 
-export interface IWebWorkerDialectConfig<
-  T extends Record<string, unknown>,
-> extends Pick<IGenericSqliteWorkerExecutor<globalThis.Worker, T>, 'data' | 'mitt'> {
+export interface IWebWorkerDialectConfig<T extends Record<string, unknown>> extends Pick<
+  IGenericSqliteWorkerExecutor<globalThis.Worker, T>,
+  'data' | 'mitt'
+> {
   worker: globalThis.Worker | (() => Promisable<globalThis.Worker>)
 }
 
 /**
  * Util for handle web worker message in main thread
  */
-export const handleWebWorker: HandleMessageFn<globalThis.Worker>
-  = (worker, cb) => worker.onmessage = ({ data }) => cb(data)
+export const handleWebWorker: HandleMessageFn<globalThis.Worker> = (worker, cb) =>
+  (worker.onmessage = ({ data }) => cb(data))
 
 /**
  * Create worker executor for web

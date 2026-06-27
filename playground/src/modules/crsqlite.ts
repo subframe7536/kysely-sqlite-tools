@@ -13,6 +13,6 @@ const dialect = new CrSqliteDialect({
 })
 export async function testCRSqlite() {
   testDB(dialect).then((data) => {
-    data?.forEach(e => console.log('[crsqlite]', e))
+    data?.forEach((e) => console.log('[crsqlite]', e))
   })
 }
