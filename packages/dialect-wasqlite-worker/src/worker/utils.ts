@@ -39,32 +39,36 @@ async function queryData(
   sql: string,
   parameters?: readonly any[],
 ): Promise<QueryResult<any>> {
-  const stmt = (await core
+  const iterator = core
     .sqlite
     .statements(core.pointer, sql)[Symbol.asyncIterator]()
-    .next()).value
+  const { value: stmt } = await iterator.next()
 
-  if (parameters?.length) {
-    core.sqlite.bind_collection(stmt, parameters)
-  }
-
-  const size = core.sqlite.column_count(stmt)
-  if (size === 0) {
-    await core.sqlite.step(stmt)
-    return {
-      rows: [],
-      insertId: parseBigInt(lastInsertRowIdCore(core)),
-      numAffectedRows: parseBigInt(changesCore(core)),
+  try {
+    if (parameters?.length) {
+      core.sqlite.bind_collection(stmt, parameters)
     }
-  }
 
-  const mapRow = createRowMapper(core.sqlite, stmt)
-  const result = []
-  let idx = 0
-  while (await core.sqlite.step(stmt) === SQLITE_ROW) {
-    result[idx++] = mapRow(core.sqlite.row(stmt))
+    const size = core.sqlite.column_count(stmt)
+    if (size === 0) {
+      await core.sqlite.step(stmt)
+      return {
+        rows: [],
+        insertId: parseBigInt(lastInsertRowIdCore(core)),
+        numAffectedRows: parseBigInt(changesCore(core)),
+      }
+    }
+
+    const mapRow = createRowMapper(core.sqlite, stmt)
+    const result = []
+    let idx = 0
+    while (await core.sqlite.step(stmt) === SQLITE_ROW) {
+      result[idx++] = mapRow(core.sqlite.row(stmt))
+    }
+    return { rows: result }
+  } finally {
+    await iterator.return?.()
   }
-  return { rows: result }
 }
 
 async function* iterateDate(
