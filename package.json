@@ -14,8 +14,8 @@
   ],
   "type": "module",
   "scripts": {
-    "dev": "bun run --filter \"./packages/dialect*\" dev",
-    "build": "bun run --filter \"./packages/dialect*\" build",
+    "dev": "bun run --filter \"kysely-*\" dev",
+    "build": "bun --bun run --filter \"kysely-*\" build",
     "release": "bun install && bumpp package.json packages/dialect*/package.json",
     "play": "bun --cwd=playground run dev",
     "play:build": "bun run build && bun --cwd=playground run build",
@@ -43,6 +43,5 @@
     "tsdown": "^0.22.3",
     "typescript": "^6.0.3",
     "vite": "^8.1.0"
-  },
-  "packageManager": "bun@1.2.14"
+  }
 }
