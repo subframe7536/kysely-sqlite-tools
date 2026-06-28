@@ -21,55 +21,34 @@
     "typecheck": "tsc --noEmit",
     "format": "oxfmt",
     "lint": "oxlint",
-    "prepare": "husky",
-    "commit": "czg",
     "release:package": "pnpm i && bumpp --no-commit --no-tag --no-push",
     "publish:package": "pnpm -F ${PACKAGE:?Set PACKAGE to the package name or filter} publish --no-git-checks --provenance --access public",
     "qa": "oxlint --fix && oxfmt && tsc --noEmit"
   },
   "devDependencies": {
-    "@commitlint/cli": "^21.1.0",
-    "@commitlint/config-conventional": "^21.1.0",
     "@sqlite.org/sqlite-wasm": "3.53.0-build1",
     "@subf/config": "^0.2.1",
     "@subframe7536/type-utils": "^0.2.0",
     "@types/better-sqlite3": "^7.6.13",
-    "@types/node": "^26.0.1",
     "@types/sql.js": "^1.4.11",
     "@vlcn.io/crsqlite-wasm": "^0.16.0",
     "better-sqlite3": "^12.11.1",
     "bumpp": "^11.1.0",
     "bun-types": "^1.3.14",
-    "cz-git": "^1.13.1",
-    "czg": "^1.13.1",
-    "husky": "^9.1.7",
     "kysely": "catalog:",
-    "lint-staged": "^17.0.8",
-    "node-sqlite3-wasm": "^0.8.58",
+    "node-sqlite3-wasm": "^0.8.59",
     "oxfmt": "^0.56.0",
     "oxlint": "^1.71.0",
     "sql.js": "^1.14.1",
     "tsdown": "^0.22.3",
-    "typescript": "^5.9.3",
+    "typescript": "^6.0.3",
     "vite": "^8.1.0",
     "vitest": "^4.1.9"
   },
-  "lint-staged": {
-    "*": [
-      "oxlint --fix",
-      "oxfmt"
-    ]
-  },
-  "config": {
-    "commitizen": {
-      "path": "node_modules/cz-git"
-    }
-  },
-  "packageManager": "pnpm@10.4.1",
+  "packageManager": "pnpm@10.33.4",
   "pnpm": {
     "onlyBuiltDependencies": [
-      "better-sqlite3",
-      "esbuild"
+      "better-sqlite3"
     ]
   }
 }

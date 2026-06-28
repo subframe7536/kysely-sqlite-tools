@@ -1,5 +1,0 @@
-if git diff --name-only --cached | grep -vE '\.(md|yml)$' &> /dev/null; then
-  npx lint-staged
-  npm run typecheck
-  npm run test
-fi
