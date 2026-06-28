@@ -24,19 +24,20 @@ Base on `kysely-generic-sqlite`
 
 ## Development
 
-This repository uses [Bun](https://bun.sh/) workspaces. Install dependencies once from the repository root:
+This repository uses [pnpm](https://pnpm.io/) workspaces. Install dependencies once from the repository root:
 
 ```sh
-bun install
+pnpm install
 ```
 
 Common workspace commands:
 
 ```sh
-bun run dev      # watch-build all dialect packages
-bun run build    # build all dialect packages
-bun run qa       # lint, format, and typecheck
-bun run test     # build, then run bun:test suites
+pnpm dev       # watch-build all dialect packages
+pnpm build     # build all dialect packages
+pnpm qa        # lint, format, and typecheck
+pnpm test      # run shared bun:test suites
+pnpm test:bun  # run the kysely-bun-worker-specific bun:test suite
 ```
 
 ## Release and publish
@@ -44,23 +45,9 @@ bun run test     # build, then run bun:test suites
 Version packages from the repository root:
 
 ```sh
-bun run release
-```
-
-Publish all dialect packages after a tag build:
-
-```sh
-bun run publish
-```
-
-Publish a single package by npm package name or workspace path:
-
-```sh
-PACKAGE=kysely-wasm bun run publish:package
-# or
-PACKAGE=packages/dialect-wasm bun run publish:package
+pnpm release
 ```
 
 Note: the `better-sqlite3` worker suite runs under `bun:test` with a `bun:sqlite` preload mock for the Node native `better-sqlite3` runtime.
 
-Publishing intentionally uses `npm publish --provenance --access public` under the hood so CI releases keep npm provenance while the workspace is managed by Bun.
+Publishing intentionally uses npm trusted publishing from the GitHub Actions release workflow while the workspace is managed by pnpm.

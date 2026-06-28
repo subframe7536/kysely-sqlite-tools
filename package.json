@@ -14,16 +14,17 @@
   ],
   "type": "module",
   "scripts": {
-    "dev": "bun run --filter \"kysely-*\" dev",
-    "build": "bun --bun run --filter \"kysely-*\" build",
-    "release": "bun install && bumpp package.json packages/dialect*/package.json",
-    "play": "bun --cwd=playground run dev",
-    "play:build": "bun run build && bun --cwd=playground run build",
-    "test": "bun test",
+    "dev": "pnpm --filter \"kysely-*\" dev",
+    "build": "pnpm --filter \"kysely-*\" build",
+    "release": "pnpm install && bumpp package.json packages/dialect*/package.json",
+    "play": "pnpm --dir playground dev",
+    "play:build": "pnpm build && pnpm --dir playground build",
+    "test": "bun test packages/dialect-wasm packages/dialect-wasqlite-worker packages/dialect-tauri packages/dialect-generic-sqlite packages/dialect-sqlite-worker",
     "typecheck": "tsc --noEmit",
     "format": "oxfmt",
     "lint": "oxlint",
-    "qa": "oxlint --fix && oxfmt && tsc --noEmit"
+    "qa": "oxlint --fix && oxfmt && tsc --noEmit",
+    "test:bun": "pnpm --filter kysely-generic-sqlite build && pnpm --filter kysely-bun-worker test"
   },
   "devDependencies": {
     "@sqlite.org/sqlite-wasm": "3.53.0-build1",
@@ -43,5 +44,6 @@
     "tsdown": "^0.22.3",
     "typescript": "^6.0.3",
     "vite": "^8.1.0"
-  }
+  },
+  "packageManager": "pnpm@10.28.1"
 }
