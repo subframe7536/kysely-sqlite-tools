@@ -24,6 +24,7 @@
   "files": [
     "dist"
   ],
+  "type": "module",
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
   "types": "./dist/index.d.ts",
@@ -53,10 +54,10 @@
     "./package.json": "./package.json"
   },
   "scripts": {
-    "dev": "tsdown --config tsdown.config.mts --watch",
+    "dev": "tsdown --watch",
     "test": "bun test",
-    "test:dev": "tsdown --config tsdown.config.mts && bun test",
-    "build": "tsdown --config tsdown.config.mts"
+    "test:dev": "tsdown && bun test",
+    "build": "tsdown"
   },
   "dependencies": {
     "kysely-generic-sqlite": "workspace:*"
