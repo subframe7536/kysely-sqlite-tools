@@ -1,22 +1,16 @@
-import Database from 'bun:sqlite'
+import { parentPort } from 'node:worker_threads'
 
-import { buildQueryFn, parseBigInt } from '../../dialect-generic-sqlite/src'
-import { createWebOnMessageCallback } from '../../dialect-generic-sqlite/src/worker/web-helper'
+import Database from 'better-sqlite3'
 
-createWebOnMessageCallback(async ({ fileName }: { fileName?: string }) => {
-  const db = new Database(fileName || ':memory:')
-  return {
-    db,
-    query: buildQueryFn({
-      all: (sql, parameters) => db.prepare(sql).all(...((parameters as any[]) ?? [])),
-      run: (sql, parameters) => {
-        const { changes, lastInsertRowid } = db.prepare(sql).run(...((parameters as any[]) ?? []))
-        return {
-          numAffectedRows: parseBigInt(changes),
-          insertId: parseBigInt(lastInsertRowid),
-        }
-      },
-    }),
-    close: () => db.close(),
-  }
+import { createWebOnMessageCallback } from '../../dialect-generic-sqlite/dist/worker-helper-web.js'
+import { createSqliteExecutor } from '../../dialect-sqlite-worker/dist/index.mjs'
+
+globalThis.postMessage = (data) => parentPort?.postMessage(data)
+parentPort?.on('message', (data) => {
+  const onmessage = globalThis.onmessage as ((event: MessageEvent) => void) | null
+  onmessage?.({ data } as MessageEvent)
 })
+
+createWebOnMessageCallback(async ({ fileName }: { fileName?: string }) =>
+  createSqliteExecutor(new Database(fileName || ':memory:')),
+)

@@ -1,5 +1,5 @@
-import Database from 'bun:sqlite'
-import { describe, expect, it } from 'bun:test'
+import Database from 'better-sqlite3'
+import { describe, expect, it } from 'vitest'
 
 import { testCase } from '../../test-utils'
 import { TauriSqliteDialect } from '../src'
@@ -8,14 +8,19 @@ class TauriSqliteMock {
   readonly #db = new Database(':memory:')
 
   select(sql: string, parameters?: unknown[]): unknown[] {
-    return this.#db.prepare(sql).all(...((parameters as any[]) ?? []))
+    const stmt = this.#db.prepare(sql)
+    if (stmt.reader) {
+      return stmt.all(parameters ?? [])
+    }
+    stmt.run(parameters ?? [])
+    return []
   }
 
   execute(
     sql: string,
     parameters?: unknown[],
   ): { rowsAffected: number; lastInsertId: number | bigint } {
-    const { changes, lastInsertRowid } = this.#db.prepare(sql).run(...((parameters as any[]) ?? []))
+    const { changes, lastInsertRowid } = this.#db.prepare(sql).run(parameters ?? [])
     return {
       rowsAffected: changes,
       lastInsertId: lastInsertRowid,

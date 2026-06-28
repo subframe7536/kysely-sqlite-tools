@@ -1,30 +1,33 @@
-import Database from 'bun:sqlite'
-import { describe, expect, it } from 'bun:test'
+import Database from 'better-sqlite3'
+import { describe, expect, it } from 'vitest'
 
 import { testCase } from '../../test-utils'
-import { GenericSqliteDialect, buildQueryFn, parseBigInt } from '../src'
+import { buildQueryFn, GenericSqliteDialect, parseBigInt } from '../src'
 
 describe('generic sqlite dialect test', () => {
-  it('bun:sqlite executor', async () => {
-    const dialect = new GenericSqliteDialect(() => {
-      const db = new Database(':memory:')
-      return {
-        db,
-        query: buildQueryFn({
-          all: (sql, parameters) => db.prepare(sql).all(...((parameters as any[]) ?? [])),
-          run: (sql, parameters) => {
-            const { changes, lastInsertRowid } = db
-              .prepare(sql)
-              .run(...((parameters as any[]) ?? []))
-            return {
-              numAffectedRows: parseBigInt(changes),
-              insertId: parseBigInt(lastInsertRowid),
-            }
-          },
-        }),
-        close: () => db.close(),
-      }
-    })
+  it('better-sqlite3 executor', async () => {
+    const db = new Database(':memory:')
+    const dialect = new GenericSqliteDialect(() => ({
+      db,
+      query: buildQueryFn({
+        all: (sql, parameters) => {
+          const stmt = db.prepare(sql)
+          if (stmt.reader) {
+            return stmt.all(parameters ?? [])
+          }
+          stmt.run(parameters ?? [])
+          return []
+        },
+        run: (sql, parameters) => {
+          const { changes, lastInsertRowid } = db.prepare(sql).run(parameters ?? [])
+          return {
+            numAffectedRows: parseBigInt(changes),
+            insertId: parseBigInt(lastInsertRowid),
+          }
+        },
+      }),
+      close: () => db.close(),
+    }))
 
     await testCase(dialect, expect, false)
   })

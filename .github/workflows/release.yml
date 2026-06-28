@@ -1,13 +1,13 @@
 name: Release
 
+permissions:
+  contents: write
+  id-token: write
+
 on:
   push:
     tags:
       - 'v*'
-
-permissions:
-  contents: write
-  id-token: write
 
 jobs:
   release:
@@ -17,28 +17,38 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Install bun
-        uses: oven-sh/setup-bun@v2
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: 'pnpm'
 
       - name: Install dependencies
-        run: bun ci
+        run: pnpm install --frozen-lockfile
 
       - name: QA
-        run: bun run qa
+        run: pnpm qa
 
       - name: Build
-        run: bun run build
+        run: pnpm build
+
+      - name: Update npm
+        run: npm install -g npm@latest
 
       - name: Publish all packages with npm trusted publishing
         run: |
-          npm i -g npm@latest
+          TAG_NAME="${GITHUB_REF##*/}"
+          if [[ "$TAG_NAME" == *beta* ]]; then
+            NPM_TAG="beta"
+          else
+            NPM_TAG="latest"
+          fi
+
           for dir in packages/dialect*; do
-            cd "$dir"
-            npm publish --access public
-            cd -
+            npm publish "$dir" --access public --tag "$NPM_TAG"
           done
 
       - name: GitHub release notes
-        run: bunx changelogithub
+        run: npx changelogithub
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

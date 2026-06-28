@@ -34,7 +34,7 @@ export async function testCase(dialect: Dialect, expect: any, supportStream = tr
     .executeTakeFirstOrThrow()
   expect(age).toStrictEqual(18)
   expect(name).toStrictEqual(`test ${dialect.toString()}`)
-  expect(int8).toStrictEqual(Uint8Array.from([1, 2, 3]))
+  expect(Array.from(int8)).toStrictEqual([1, 2, 3])
   if (supportStream) {
     const rows = db.selectFrom('test').selectAll().stream()
     let count = 0
@@ -42,7 +42,7 @@ export async function testCase(dialect: Dialect, expect: any, supportStream = tr
       count++
       expect(row.age).toStrictEqual(18)
       expect(row.name).toStrictEqual(`test ${dialect.toString()}`)
-      expect(row.int8).toStrictEqual(Uint8Array.from([1, 2, 3]))
+      expect(Array.from(row.int8)).toStrictEqual([1, 2, 3])
     }
     expect(count).toStrictEqual(1)
   }
