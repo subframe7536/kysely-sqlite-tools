@@ -51,4 +51,4 @@ see in jsdoc
 
 ### Usage and more details
 
-see [test](../../test/dialect-wasm.test.ts) and [playground](../../playground/src/modules)
+see [test](test/index.test.ts) and [playground](../../playground/src/modules)
