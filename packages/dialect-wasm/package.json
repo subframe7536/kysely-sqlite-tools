@@ -39,8 +39,8 @@
     "access": "public"
   },
   "scripts": {
-    "dev": "tsdown --config tsdown.config.mts --watch",
-    "build": "tsdown --config tsdown.config.mts"
+    "dev": "tsdown --watch",
+    "build": "tsdown"
   },
   "dependencies": {
     "kysely-generic-sqlite": "workspace:*"

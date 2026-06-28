@@ -9,7 +9,6 @@ export default lib({
     'worker-helper-web': 'src/worker/web-helper.ts',
   },
   overrides: {
-    clean: true,
     format: ['esm', 'cjs'],
   },
 })

@@ -17,7 +17,7 @@
     "dev": "bun run --filter \"./packages/dialect*\" dev",
     "build": "bun run --filter \"./packages/dialect*\" build",
     "release": "bun install && bumpp package.json packages/dialect*/package.json",
-    "serve": "bun --cwd playground run dev",
+    "serve": "bun --cwd=playground run dev",
     "publish": "for dir in packages/dialect*; do (cd \"$dir\" && npm publish --provenance --access public); done",
     "test": "bun run build && vitest run --root ./test --passWithNoTests && bun run test:bun",
     "test:bun": "bun test ./packages/dialect-bun-worker/test/index.test.ts",
@@ -47,6 +47,5 @@
     "typescript": "^6.0.3",
     "vite": "^8.1.0",
     "vitest": "^4.1.9"
-  },
-  "packageManager": "bun@1.2.14"
+  }
 }
