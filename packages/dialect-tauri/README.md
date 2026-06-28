@@ -7,7 +7,7 @@ Currently only supports SQLite
 ## Install
 
 ```shell
-pnpm add kysely kysely-dialect-tauri @tauri-apps/plugin-sql
+bun add kysely kysely-dialect-tauri @tauri-apps/plugin-sql
 ```
 
 ## Usage

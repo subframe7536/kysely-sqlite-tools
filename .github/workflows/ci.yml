@@ -25,49 +25,41 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          run_install: false
+      - name: Install bun
+        uses: oven-sh/setup-bun@v2
 
       - name: Set node
         uses: actions/setup-node@v4
         with:
           node-version: 20.x
 
-      - name: Setup
-        run: npm i -g @antfu/ni
-
       - name: Install
-        run: nci
+        run: bun install --frozen-lockfile
 
       - name: Lint
-        run: nr lint
+        run: bun run lint
 
   typecheck:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
 
-      - name: Install pnpm
-        uses: pnpm/action-setup@v4
+      - name: Install bun
+        uses: oven-sh/setup-bun@v2
 
       - name: Set node
         uses: actions/setup-node@v4
         with:
           node-version: 20.x
 
-      - name: Setup
-        run: npm i -g @antfu/ni
-
       - name: Install
-        run: nci
+        run: bun install --frozen-lockfile
 
       - name: Build
-        run: nr build
+        run: bun run build
 
       - name: Typecheck
-        run: nr typecheck
+        run: bun run typecheck
 
   test:
     runs-on: ${{ matrix.os }}
@@ -81,21 +73,16 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - name: Install pnpm
-        uses: pnpm/action-setup@v4
+      - name: Install bun
+        uses: oven-sh/setup-bun@v2
 
       - name: Set node ${{ matrix.node }}
         uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node }}
-      - name: Install bun
-        uses: oven-sh/setup-bun@v2
-
-      - name: Setup
-        run: npm i -g @antfu/ni
 
       - name: Install
-        run: nci
+        run: bun install --frozen-lockfile
 
       - name: Test
-        run: nr test
+        run: bun run test

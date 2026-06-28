@@ -47,7 +47,7 @@
   },
   "devDependencies": {
     "@tauri-apps/plugin-sql": "^2.4.0",
-    "kysely": "catalog:"
+    "kysely": "^0.28.2"
   },
   "peerDependencies": {
     "@tauri-apps/plugin-sql": "^2.0.0",

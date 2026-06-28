@@ -5,7 +5,7 @@ Generic Kysely dialect for SQLite, supporting execution in the main thread or a 
 ## Install
 
 ```sh
-pnpm install kysely kysely-generic-sqlite
+bun add kysely kysely-generic-sqlite
 ```
 
 ## Usage

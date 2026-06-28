@@ -21,27 +21,21 @@ jobs:
         with:
           persist-credentials: false
 
-      - name: Install pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          run_install: false
+      - name: Install bun
+        uses: oven-sh/setup-bun@v2
 
       - name: Set node
         uses: actions/setup-node@v4
         with:
           node-version: 20.x
 
-      - name: Setup
-        run: npm i -g @antfu/ni
-
       - name: Install
-        run: nci
+        run: bun install --frozen-lockfile
 
       - name: build
         run: |
-          pnpm run build
-          cd playground
-          pnpm run build
+          bun run build
+          bun --cwd playground run build
 
       - name: Deploy to GitHub Pages 🚀
         uses: peaceiris/actions-gh-pages@v3.9.3

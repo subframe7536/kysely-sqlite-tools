@@ -7,7 +7,7 @@ No need to set response header like [official wasm](../dialect-wasm/README.md#of
 ## Install
 
 ```shell
-pnpm add kysely kysely-wasqlite-worker @subframe7536/sqlite-wasm
+bun add kysely kysely-wasqlite-worker @subframe7536/sqlite-wasm
 ```
 
 ## Usage

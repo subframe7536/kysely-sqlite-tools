@@ -55,7 +55,7 @@
     "kysely-generic-sqlite": "workspace:*"
   },
   "devDependencies": {
-    "kysely": "catalog:"
+    "kysely": "^0.28.2"
   },
   "peerDependencies": {
     "better-sqlite3": "*",
