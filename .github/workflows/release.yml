@@ -30,10 +30,8 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Install pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          run_install: false
+      - name: Install bun
+        uses: oven-sh/setup-bun@v2
 
       - name: Setup node
         uses: actions/setup-node@v4
@@ -41,17 +39,14 @@ jobs:
           node-version: 22.x
           registry-url: 'https://registry.npmjs.org'
 
-      - name: Setup
-        run: npm i -g @antfu/ni
-
       - name: Install dependencies
-        run: nci
+        run: bun install --frozen-lockfile
 
       - name: QA
-        run: pnpm run qa
+        run: bun run qa
 
       - name: Build
-        run: nr build
+        run: bun run build
 
       - name: GitHub release notes
         if: startsWith(github.ref, 'refs/tags/')
@@ -61,8 +56,8 @@ jobs:
 
       - name: Publish selected package with npm trusted publishing
         if: github.event_name == 'workflow_dispatch'
-        run: pnpm -F "${{ inputs.package }}" publish --no-git-checks --provenance --access public
+        run: PACKAGE="${{ inputs.package }}" bun run publish:package
 
       - name: Publish all packages with npm trusted publishing
         if: startsWith(github.ref, 'refs/tags/')
-        run: pnpm -r -F "./packages/dialect*" publish --no-git-checks --provenance --access public
+        run: bun run publish

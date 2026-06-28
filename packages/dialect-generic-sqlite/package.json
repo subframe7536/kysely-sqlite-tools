@@ -67,7 +67,7 @@
     "build": "tsdown --config tsdown.config.mts"
   },
   "devDependencies": {
-    "kysely": "catalog:"
+    "kysely": "^0.28.2"
   },
   "peerDependencies": {
     "kysely": ">=0.26"

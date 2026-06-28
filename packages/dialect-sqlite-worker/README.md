@@ -7,7 +7,7 @@ the type is also availiable for [`better-sqlite3-multiple-ciphers`](https://gith
 ## Install
 
 ```shell
-pnpm add kysely kysely-sqlite-worker better-sqlite3
+bun add kysely kysely-sqlite-worker better-sqlite3
 ```
 
 ## Usage

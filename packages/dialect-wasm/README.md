@@ -7,7 +7,7 @@ no wasm denpendencies, your need to install yourself
 ## Install
 
 ```shell
-pnpm add -D kysely kysely-wasm
+bun add -d kysely kysely-wasm
 ```
 
 ## Introduce
