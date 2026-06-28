@@ -1,7 +1,6 @@
-import { describe, expect, it } from 'bun:test'
-
 import { Database } from 'node-sqlite3-wasm'
 import InitSqlJs from 'sql.js'
+import { describe, expect, it } from 'vitest'
 
 import { testCase } from '../../test-utils'
 import { NodeWasmDialect, SqlJsDialect } from '../src'

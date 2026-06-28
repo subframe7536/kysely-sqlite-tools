@@ -36,7 +36,7 @@ Common workspace commands:
 pnpm dev       # watch-build all dialect packages
 pnpm build     # build all dialect packages
 pnpm qa        # lint, format, and typecheck
-pnpm test      # run shared bun:test suites
+pnpm test      # build, then run shared Vitest suites
 pnpm test:bun  # run the kysely-bun-worker-specific bun:test suite
 ```
 
@@ -47,7 +47,5 @@ Version packages from the repository root:
 ```sh
 pnpm release
 ```
-
-Note: the `better-sqlite3` worker suite runs under `bun:test` with a `bun:sqlite` preload mock for the Node native `better-sqlite3` runtime.
 
 Publishing intentionally uses npm trusted publishing from the GitHub Actions release workflow while the workspace is managed by pnpm.

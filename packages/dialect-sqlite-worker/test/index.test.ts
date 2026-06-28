@@ -1,15 +1,13 @@
-import { describe, expect, it } from 'bun:test'
-import { fileURLToPath } from 'node:url'
+import { describe, expect, it } from 'vitest'
 
 import { testCase } from '../../test-utils'
+import { SqliteWorkerDialect } from '../dist/index.mjs'
 
-const { SqliteWorkerDialect } = await import('../src/index')
-
-describe('sqlite worker dialect test (requires Node better-sqlite3 runtime)', () => {
-  it('test sqlite worker', async () => {
+describe('sqlite worker dialect test', () => {
+  it('better-sqlite3 worker', async () => {
     const dialect = new SqliteWorkerDialect({
       source: ':memory:',
-      workerPath: fileURLToPath(new URL('./sqlite-worker.mock.ts', import.meta.url)),
+      workerPath: new URL('../dist/worker.mjs', import.meta.url) as never,
     })
     await testCase(dialect as never, expect)
   })
