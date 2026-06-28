@@ -45,7 +45,7 @@
     "sql.js": "^1.14.1",
     "tsdown": "^0.22.3",
     "typescript": "^6.0.3",
-    "vite": "^8.1.0",
-    "vitest": "^4.1.9"
-  }
+    "vite": "^8.1.0"
+  },
+  "packageManager": "bun@1.2.14"
 }

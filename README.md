@@ -21,3 +21,46 @@ Base on `kysely-generic-sqlite`
 - ~~[plugin](packages/plugin-serialize) that auto serialize and deserialize params~~ move to [kysely-plugin-serialize](https://github.com/subframe7536/kysely-plugin-serialize)
 - ~~[sqlite utils](packages/sqlite-utils) useful utils for SQLite~~ deprecated
 - ~~[sqlite builder](packages/sqlite-builder) for various features~~ move to [kysely-sqlite-builder](https://github.com/subframe7536/kysely-sqlite-builder)
+
+## Development
+
+This repository uses [Bun](https://bun.sh/) workspaces. Install dependencies once from the repository root:
+
+```sh
+bun install
+```
+
+Common workspace commands:
+
+```sh
+bun run dev      # watch-build all dialect packages
+bun run build    # build all dialect packages
+bun run qa       # lint, format, and typecheck
+bun run test     # build, then run bun:test suites
+```
+
+## Release and publish
+
+Version packages from the repository root:
+
+```sh
+bun run release
+```
+
+Publish all dialect packages after a tag build:
+
+```sh
+bun run publish
+```
+
+Publish a single package by npm package name or workspace path:
+
+```sh
+PACKAGE=kysely-wasm bun run publish:package
+# or
+PACKAGE=packages/dialect-wasm bun run publish:package
+```
+
+Note: the `better-sqlite3` worker suite is declared with `bun:test` but skipped under Bun because it requires the Node native `better-sqlite3` runtime.
+
+Publishing intentionally uses `npm publish --provenance --access public` under the hood so CI releases keep npm provenance while the workspace is managed by Bun.
