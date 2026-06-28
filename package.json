@@ -17,14 +17,12 @@
     "dev": "bun run --filter \"./packages/dialect*\" dev",
     "build": "bun run --filter \"./packages/dialect*\" build",
     "release": "bun install && bumpp package.json packages/dialect*/package.json",
-    "serve": "bun --cwd=playground run dev",
-    "publish": "for dir in packages/dialect*; do (cd \"$dir\" && npm publish --provenance --access public); done",
+    "play": "bun --cwd=playground run dev",
+    "play:build": "bun run build && bun --cwd=playground run build",
     "test": "bun test",
     "typecheck": "tsc --noEmit",
     "format": "oxfmt",
     "lint": "oxlint",
-    "release:package": "bun install && bumpp --no-commit --no-tag --no-push",
-    "publish:package": "node ./scripts/publish-package.mjs",
     "qa": "oxlint --fix && oxfmt && tsc --noEmit"
   },
   "devDependencies": {
