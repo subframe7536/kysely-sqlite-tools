@@ -61,6 +61,6 @@ PACKAGE=kysely-wasm bun run publish:package
 PACKAGE=packages/dialect-wasm bun run publish:package
 ```
 
-Note: the `better-sqlite3` worker suite is declared with `bun:test` but skipped under Bun because it requires the Node native `better-sqlite3` runtime.
+Note: the `better-sqlite3` worker suite runs under `bun:test` with a `bun:sqlite` preload mock for the Node native `better-sqlite3` runtime.
 
 Publishing intentionally uses `npm publish --provenance --access public` under the hood so CI releases keep npm provenance while the workspace is managed by Bun.
