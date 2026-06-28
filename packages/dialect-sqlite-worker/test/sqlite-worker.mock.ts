@@ -1,21 +1,21 @@
+import type { Statement } from 'bun:sqlite'
+import { Database } from 'bun:sqlite'
 import { workerData } from 'node:worker_threads'
 
 import { parseBigInt } from '../../dialect-generic-sqlite/src'
 import { createNodeOnMessageCallback } from '../../dialect-generic-sqlite/src/worker/node-helper'
 
-import { BetterSqlite3Mock } from './better-sqlite3-preload'
-
 const { src } = workerData
 
 createNodeOnMessageCallback(async () => {
-  const db = new BetterSqlite3Mock(src)
-  const getStmt = (sql: string): ReturnType<BetterSqlite3Mock['prepare']> => db.prepare(sql)
+  const db = new Database(src)
+  const getStmt = (sql: string): Statement => db.prepare(sql)
 
   return {
     db,
     query: (_isSelect: boolean, sql: string, parameters?: readonly unknown[]) => {
       const stmt = getStmt(sql)
-      if (stmt.reader) {
+      if (/^\s*(?:select|with|pragma)\b/i.test(sql) || /\breturning\b/i.test(sql)) {
         return { rows: stmt.all(parameters) }
       }
       const { changes, lastInsertRowid } = stmt.run(parameters)

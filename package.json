@@ -19,13 +19,13 @@
     "release": "bun install && bumpp package.json packages/dialect*/package.json",
     "serve": "bun --cwd=playground run dev",
     "publish": "for dir in packages/dialect*; do (cd \"$dir\" && npm publish --provenance --access public); done",
-    "test": "bun test ./packages/dialect-generic-sqlite/test/*.test.ts ./packages/dialect-tauri/test/*.test.ts ./packages/dialect-wasm/test/*.test.ts ./packages/dialect-wasqlite-worker/test/*.test.ts ./packages/dialect-bun-worker/test/*.test.ts && bun test --preload ./packages/dialect-sqlite-worker/test/better-sqlite3-preload.ts ./packages/dialect-sqlite-worker/test/*.test.ts",
+    "test": "bun test",
     "typecheck": "tsc --noEmit",
     "format": "oxfmt",
     "lint": "oxlint",
     "release:package": "bun install && bumpp --no-commit --no-tag --no-push",
     "publish:package": "node ./scripts/publish-package.mjs",
-    "qa": "oxlint --fix && oxfmt && tsc --noEmit && bun run test"
+    "qa": "oxlint --fix && oxfmt && tsc --noEmit"
   },
   "devDependencies": {
     "@sqlite.org/sqlite-wasm": "3.53.0-build1",

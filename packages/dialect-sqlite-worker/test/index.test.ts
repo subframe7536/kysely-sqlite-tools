@@ -1,5 +1,3 @@
-import './better-sqlite3-preload'
-
 import { describe, expect, it } from 'bun:test'
 import { fileURLToPath } from 'node:url'
 
