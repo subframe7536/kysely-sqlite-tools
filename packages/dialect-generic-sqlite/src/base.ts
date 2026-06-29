@@ -63,14 +63,12 @@ async function runSavepoint(
 
 export abstract class BaseSqliteDriver implements Driver {
   public conn?: DatabaseConnection
-  init: (options?: AbortableOperationOptions) => Promise<void>
   /**
    * Base abstract class that implements {@link Driver}
    *
    * You **MUST** assign `this.conn` in `init` and implement `destroy` method
    */
-  constructor(init: (options?: AbortableOperationOptions) => Promise<void>) {
-    this.init = init
+  constructor(public init: (options?: AbortableOperationOptions) => Promise<void>) {
   }
 
   async acquireConnection(): Promise<DatabaseConnection> {
