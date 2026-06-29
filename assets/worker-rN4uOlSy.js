@@ -4866,8 +4866,8 @@ var init_dist = __esmMin((() => {
 	};
 }));
 //#endregion
-//#region ../packages/dialect-generic-sqlite/dist/utils-CWTe1zIz.cjs
-var require_utils_CWTe1zIz = /* @__PURE__ */ __commonJSMin(((exports) => {
+//#region ../packages/dialect-generic-sqlite/dist/utils-8n2Z7a5w.cjs
+var require_utils_8n2Z7a5w = /* @__PURE__ */ __commonJSMin(((exports) => {
 	/**
 	* Create generic message handler
 	* @param init Function that init sqlite executor
@@ -4876,9 +4876,10 @@ var require_utils_CWTe1zIz = /* @__PURE__ */ __commonJSMin(((exports) => {
 	*/
 	function createGenericOnMessageCallback(init, post, message) {
 		let db;
-		return async ([type, data1, data2, data3]) => {
+		return async ([type, data1, data2, data3, data4, data5]) => {
 			const ret = [
 				type,
+				null,
 				null,
 				null
 			];
@@ -4888,29 +4889,32 @@ var require_utils_CWTe1zIz = /* @__PURE__ */ __commonJSMin(((exports) => {
 						db = await init(data1);
 						break;
 					case "1":
-						ret[1] = await db.query(data1, data2, data3);
+						ret[1] = data1;
+						ret[2] = await db.query(data2, data3, data4);
 						break;
 					case "2":
 						await db.close();
 						break;
 					case "3": {
 						if (!db.iterator) throw new Error("streamQuery() is not supported.");
-						const it = db.iterator(data1, data2, data3);
+						const it = db.iterator(data2, data3, data4, data5);
 						for await (const row of it) post([
 							type,
+							data1,
 							row,
 							null
 						]);
 						ret[0] = "4";
+						ret[1] = data1;
 						break;
 					}
 					default: if (message) {
-						const data = await message(db, type, data1, data2, data3);
-						if (data !== void 0 && data !== null) ret[1] = data;
+						const data = await message(db, type, data1, data2, data3, data4);
+						if (data !== void 0 && data !== null) ret[2] = data;
 					}
 				}
 			} catch (error) {
-				ret[2] = error;
+				ret[3] = error;
 			}
 			post(ret);
 		};
@@ -4935,7 +4939,7 @@ var require_utils_CWTe1zIz = /* @__PURE__ */ __commonJSMin(((exports) => {
 //#region ../packages/dialect-generic-sqlite/dist/worker-helper-web.cjs
 var require_worker_helper_web = /* @__PURE__ */ __commonJSMin(((exports) => {
 	Object.defineProperty(exports, Symbol.toStringTag, { value: "Module" });
-	const require_utils = require_utils_CWTe1zIz();
+	const require_utils = require_utils_8n2Z7a5w();
 	function createWebOnMessageCallback(init, message) {
 		const cb = require_utils.createGenericOnMessageCallback(init, (value) => globalThis.postMessage(value), message);
 		globalThis.onmessage = ({ data }) => cb(data);
@@ -4982,7 +4986,7 @@ const require_utils = (/* @__PURE__ */ __commonJSMin(((exports) => {
 	let _subframe7536_sqlite_wasm = (init_dist(), __toCommonJS(dist_exports));
 	let kysely_generic_sqlite_worker_helper_web = require_worker_helper_web();
 	const defaultCreateDatabaseFn = async ({ fileName, url, useOPFS }) => {
-		return (await Promise.resolve().then(() => (init_dist(), dist_exports))).initSQLiteCore((useOPFS ? (await import("./opfs-DkXX9Y_0.js")).useOpfsStorage : (await import("./idb-CM6jfNIu.js")).useIdbStorage)(fileName, { url }));
+		return (await Promise.resolve().then(() => (init_dist(), dist_exports))).initSQLiteCore((useOPFS ? (await import("./opfs-BVwo_ho7.js")).useOpfsStorage : (await import("./idb-CM6jfNIu.js")).useIdbStorage)(fileName, { url }));
 	};
 	/**
 	* Handle worker message, support custom message handler,

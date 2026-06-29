@@ -4333,7 +4333,7 @@ async function initSQLiteCore(options) {
 	};
 }
 //#endregion
-//#region ../packages/dialect-generic-sqlite/dist/utils-D9m9Fjjw.js
+//#region ../packages/dialect-generic-sqlite/dist/utils-Bru-SywF.js
 /**
 * Create generic message handler
 * @param init Function that init sqlite executor
@@ -4342,9 +4342,10 @@ async function initSQLiteCore(options) {
 */
 function createGenericOnMessageCallback(init, post, message) {
 	let db;
-	return async ([type, data1, data2, data3]) => {
+	return async ([type, data1, data2, data3, data4, data5]) => {
 		const ret = [
 			type,
+			null,
 			null,
 			null
 		];
@@ -4354,29 +4355,32 @@ function createGenericOnMessageCallback(init, post, message) {
 					db = await init(data1);
 					break;
 				case "1":
-					ret[1] = await db.query(data1, data2, data3);
+					ret[1] = data1;
+					ret[2] = await db.query(data2, data3, data4);
 					break;
 				case "2":
 					await db.close();
 					break;
 				case "3": {
 					if (!db.iterator) throw new Error("streamQuery() is not supported.");
-					const it = db.iterator(data1, data2, data3);
+					const it = db.iterator(data2, data3, data4, data5);
 					for await (const row of it) post([
 						type,
+						data1,
 						row,
 						null
 					]);
 					ret[0] = "4";
+					ret[1] = data1;
 					break;
 				}
 				default: if (message) {
-					const data = await message(db, type, data1, data2, data3);
-					if (data !== void 0 && data !== null) ret[1] = data;
+					const data = await message(db, type, data1, data2, data3, data4);
+					if (data !== void 0 && data !== null) ret[2] = data;
 				}
 			}
 		} catch (error) {
-			ret[2] = error;
+			ret[3] = error;
 		}
 		post(ret);
 	};
@@ -4390,7 +4394,7 @@ function createWebOnMessageCallback(init, message) {
 //#endregion
 //#region ../packages/dialect-wasqlite-worker/dist/utils-en6L8fHD.mjs
 const defaultCreateDatabaseFn = async ({ fileName, url, useOPFS }) => {
-	return (await Promise.resolve().then(() => dist_exports)).initSQLiteCore((useOPFS ? (await import("./opfs-B4SetFx3.js")).useOpfsStorage : (await import("./idb-D7F607Ov.js")).useIdbStorage)(fileName, { url }));
+	return (await Promise.resolve().then(() => dist_exports)).initSQLiteCore((useOPFS ? (await import("./opfs-mmVU7UV8.js")).useOpfsStorage : (await import("./idb-D7F607Ov.js")).useIdbStorage)(fileName, { url }));
 };
 /**
 * Handle worker message, support custom message handler,

@@ -26717,7 +26717,7 @@ var GenericSqliteWorkerDriver = class extends BaseSqliteDriver {
 			exec.handle(this.worker, ([type, ...msg]) => this.mitt.emit(type, ...msg));
 			this.worker.postMessage(["0", exec.data || {}]);
 			await new Promise((resolve, reject) => {
-				this.mitt.once("0", (_, err) => err ? reject(err) : resolve());
+				this.mitt.once("0", (_qid, _data, err) => err ? reject(err) : resolve());
 			});
 			this.conn = new GenericSqliteWorkerConnection(this.worker, this.mitt);
 			await onCreateConnection?.(this.conn, options);
@@ -26728,7 +26728,7 @@ var GenericSqliteWorkerDriver = class extends BaseSqliteDriver {
 	async destroy() {
 		if (!this.worker) return;
 		this.worker.postMessage(["2"]);
-		return new Promise((resolve, reject) => this.mitt?.once("2", (_, err) => err ? reject(err) : resolve())).finally(() => {
+		return new Promise((resolve, reject) => this.mitt?.once("2", (_qid, _data, err) => err ? reject(err) : resolve())).finally(() => {
 			this.worker?.terminate();
 			this.mitt?.off();
 			this.mitt = this.worker = void 0;
@@ -26739,57 +26739,84 @@ var GenericSqliteWorkerConnection = class {
 	constructor(worker, mitt) {
 		_defineProperty(this, "worker", void 0);
 		_defineProperty(this, "mitt", void 0);
+		_defineProperty(this, "pendingRuns", /* @__PURE__ */ new Map());
+		_defineProperty(this, "pendingStreams", /* @__PURE__ */ new Map());
 		this.worker = worker;
 		this.mitt = mitt;
+		this.mitt.on("1", (queryId, data, err) => {
+			if (!queryId) return;
+			const pending = this.pendingRuns.get(queryId);
+			if (!pending) return;
+			this.pendingRuns.delete(queryId);
+			if (err) pending.reject(err);
+			else pending.resolve(data);
+		});
+		this.mitt.on("3", (queryId, data, err) => {
+			if (!queryId) return;
+			const state = this.pendingStreams.get(queryId);
+			if (!state) return;
+			if (err) {
+				this.pendingStreams.delete(queryId);
+				state.reject(err);
+			} else state.resolve([{ rows: [data] }, false]);
+		});
+		this.mitt.on("4", (queryId, _data, err) => {
+			if (!queryId) return;
+			const state = this.pendingStreams.get(queryId);
+			if (!state) return;
+			this.pendingStreams.delete(queryId);
+			if (err) state.reject(err);
+			else state.resolve([void 0, true]);
+		});
 	}
-	async *streamQuery({ parameters, sql, query }, chunkSize, options) {
+	async *streamQuery({ parameters, sql, query, queryId }, chunkSize, options) {
 		if (options?.signal?.aborted) return;
 		this.worker.postMessage([
 			"3",
+			queryId.queryId,
 			SelectQueryNode.is(query),
 			sql,
 			parameters,
 			chunkSize
 		]);
 		let done = false;
-		let resolveFn;
 		let rejectFn;
 		const onAbort = () => rejectFn(/* @__PURE__ */ new Error("Query aborted"));
 		options?.signal?.addEventListener("abort", onAbort, { once: true });
-		this.mitt.on("3", (data, err) => {
-			if (err) rejectFn(err);
-			else resolveFn([{ rows: [data] }, false]);
-		});
-		this.mitt.on("4", (_, err) => {
-			if (err) rejectFn(err);
-			else resolveFn([void 0, true]);
-		});
+		const streamState = {
+			resolve: void 0,
+			reject: void 0
+		};
+		this.pendingStreams.set(queryId.queryId, streamState);
 		try {
 			while (!done) {
 				const [data, isDone] = await new Promise((res, rej) => {
-					resolveFn = res;
 					rejectFn = rej;
+					streamState.resolve = res;
+					streamState.reject = rej;
 				});
 				if (isDone) done = true;
 				else yield data;
 			}
 		} finally {
 			options?.signal?.removeEventListener("abort", onAbort);
-			this.mitt?.off("3");
-			this.mitt?.off("4");
+			this.pendingStreams.delete(queryId.queryId);
 		}
 	}
 	async executeQuery(compiledQuery) {
-		const { parameters, sql, query } = compiledQuery;
+		const { parameters, sql, query, queryId } = compiledQuery;
 		this.worker.postMessage([
 			"1",
+			queryId.queryId,
 			SelectQueryNode.is(query),
 			sql,
 			parameters
 		]);
-		return await new Promise((resolve, reject) => {
-			if (!this.mitt) reject(/* @__PURE__ */ new Error("kysely instance has been destroyed"));
-			this.mitt.once("1", (data, err) => !err && data ? resolve(data) : reject(err));
+		return new Promise((resolve, reject) => {
+			this.pendingRuns.set(queryId.queryId, {
+				resolve,
+				reject
+			});
 		});
 	}
 };
@@ -26843,11 +26870,11 @@ var WaSqliteWorkerDialect = class extends GenericSqliteWorkerDialect {
 				},
 				worker: worker ? worker instanceof globalThis.Worker ? worker : worker(supportModule) : supportModule ? new Worker(new URL(
 					/* @vite-ignore */
-					"" + new URL("worker-CwScGs08.js", import.meta.url).href,
+					"" + new URL("worker-SyRqq1gz.js", import.meta.url).href,
 					"" + import.meta.url
 				), { type: "module" }) : new Worker(new URL(
 					/* @vite-ignore */
-					"" + new URL("worker-CNbrgiFN.js", import.meta.url).href,
+					"" + new URL("worker-rN4uOlSy.js", import.meta.url).href,
 					"" + import.meta.url
 				)),
 				mitt: m,
