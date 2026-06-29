@@ -12,13 +12,16 @@ export class BunWorkerDialect extends GenericSqliteWorkerDialect<globalThis.Work
    * dialect for `bun:sqlite`, run sql in worker
    */
   constructor(config?: BunWorkerDialectConfig) {
-    const {
+    let {
       url: fileName = ':memory:',
       cacheStatement = false,
       onCreateConnection,
-      worker = new Worker(new URL('./worker', import.meta.url), { type: 'module' }),
+      worker,
       dbOptions: opt = { create: true },
     } = config || {}
+    if (!worker) {
+      worker = new Worker(new URL('./worker', import.meta.url), { type: 'module' })
+    }
     super(
       () => ({
         data: { cache: cacheStatement, fileName, opt },
