@@ -16,7 +16,11 @@ export interface BunWorkerDialectConfig extends IBaseSqliteDialectConfig {
    * @default { create: true }
    */
   dbOptions?: DBOptions
-  cacheStatment?: boolean
+  /**
+   * use `bun:sqlite` built-in statement cache
+   * @see https://bun.sh/docs/api/sqlite#query
+   */
+  cacheStatement?: boolean
   /**
    * custom worker, default is a worker that use bun:sqlite
    */
@@ -37,10 +41,10 @@ export interface BunSqliteDialectConfig extends IBaseSqliteDialectConfig {
    */
   url?: string
   /**
-   * use `bun:sqlite` built-in statment cache
+   * use `bun:sqlite` built-in statement cache
    * @see https://bun.sh/docs/api/sqlite#query
    */
-  cacheStatment?: boolean
+  cacheStatement?: boolean
   /**
    * DB constructor options
    * @default { create: true }

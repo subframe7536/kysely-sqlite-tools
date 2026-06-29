@@ -14,14 +14,14 @@ export class BunWorkerDialect extends GenericSqliteWorkerDialect<globalThis.Work
   constructor(config?: BunWorkerDialectConfig) {
     const {
       url: fileName = ':memory:',
-      cacheStatment: cache = false,
+      cacheStatement = false,
       onCreateConnection,
       worker = new Worker(new URL('./worker', import.meta.url), { type: 'module' }),
       dbOptions: opt = { create: true },
     } = config || {}
     super(
       () => ({
-        data: { cache, fileName, opt },
+        data: { cache: cacheStatement, fileName, opt },
         mitt: createNodeMitt(),
         handle: handleWebWorker,
         worker,
