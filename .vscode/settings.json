@@ -20,7 +20,5 @@
     "jsonc",
     "yaml"
   ],
-  "typescript.preferences.autoImportFileExcludePatterns": [
-    "**/dist/**/*"
-  ]
+  "typescript.preferences.autoImportFileExcludePatterns": ["**/dist/**/*"]
 }

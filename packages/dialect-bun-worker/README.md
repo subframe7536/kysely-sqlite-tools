@@ -28,13 +28,11 @@ in `worker.ts`
 ```ts
 import { createOnMessageCallback, defaultCreateDatabaseFn } from 'kysely-bun-worker'
 
-createOnMessageCallback(
-  async (...args) => {
-    const db = defaultCreateDatabaseFn(...args)
-    db.loadExtension(/* ... */)
-    return db
-  }
-)
+createOnMessageCallback(async (...args) => {
+  const db = defaultCreateDatabaseFn(...args)
+  db.loadExtension(/* ... */)
+  return db
+})
 ```
 
 ### Normal Dialect

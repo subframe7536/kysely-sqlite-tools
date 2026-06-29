@@ -2,8 +2,8 @@ import { Database } from 'node-sqlite3-wasm'
 import InitSqlJs from 'sql.js'
 import { describe, expect, it } from 'vitest'
 
-import { NodeWasmDialect, SqlJsDialect } from '../packages/dialect-wasm/src'
-import { testCase } from './utils'
+import { testCase } from '../../test-utils'
+import { NodeWasmDialect, SqlJsDialect } from '../src'
 
 describe('dialect test', () => {
   it('sql.js', async () => {

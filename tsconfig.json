@@ -1,15 +1,22 @@
 {
-  "extends": "@subframe7536/type-utils/tsconfig.json",
+  "extends": "@subf/config/tsconfig-lib",
   "compilerOptions": {
-    "types": [
-      "vite/client",
-      "node",
-      "bun-types"
-    ]
+    "types": ["vite/client", "bun-types"],
+    "paths": {
+      "kysely-generic-sqlite": ["./packages/dialect-generic-sqlite/src/index.ts"],
+      "kysely-generic-sqlite/*": ["./packages/dialect-generic-sqlite/src/*"],
+      "kysely-generic-sqlite/worker": ["./packages/dialect-generic-sqlite/src/worker/index.ts"],
+      "kysely-generic-sqlite/worker-helper-node": [
+        "./packages/dialect-generic-sqlite/src/worker/node-helper.ts"
+      ],
+      "kysely-generic-sqlite/worker-helper-web": [
+        "./packages/dialect-generic-sqlite/src/worker/web-helper.ts"
+      ],
+      "kysely-sqlite-worker": ["./packages/dialect-sqlite-worker/src/index.ts"],
+      "kysely-sqlite-worker/*": ["./packages/dialect-sqlite-worker/src/*"]
+    },
+    "lib": ["DOM", "ESNext", "DOM.Iterable"],
+    "noUncheckedIndexedAccess": false
   },
-  "exclude": [
-    "**/dist/**",
-    "**/*bun*/**",
-    "playground"
-  ]
+  "exclude": ["**/dist/**", "**/*bun*/**", "playground"]
 }

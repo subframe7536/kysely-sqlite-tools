@@ -28,10 +28,7 @@ export interface NodeWasmDatabase extends BaseDB {
   prepare: (sql: string) => Statement
 }
 export interface Statement {
-  iterate: (
-    values?: BindValues,
-    options?: QueryOptions
-  ) => IterableIterator<QueryResult>
+  iterate: (values?: BindValues, options?: QueryOptions) => IterableIterator<QueryResult>
   finalize: () => void
 }
 

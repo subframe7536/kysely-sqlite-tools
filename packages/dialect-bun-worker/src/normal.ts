@@ -1,9 +1,9 @@
-import type { BunSqliteDialectConfig } from './type'
-
 import Database from 'bun:sqlite'
+
 import { GenericSqliteDialect } from 'kysely-generic-sqlite'
 
 import { createSqliteExecutor } from './executor'
+import type { BunSqliteDialectConfig } from './type'
 
 export type { BunSqliteDialectConfig } from './type'
 

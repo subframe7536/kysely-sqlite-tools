@@ -7,7 +7,7 @@ Currently only supports SQLite
 ## Install
 
 ```shell
-pnpm add kysely kysely-dialect-tauri @tauri-apps/plugin-sql
+bun add kysely kysely-dialect-tauri @tauri-apps/plugin-sql
 ```
 
 ## Usage
@@ -19,7 +19,7 @@ import { Kysely } from 'kysely'
 
 const kysely = new Kysely<DB>({
   dialect: new TauriSqliteDialect({
-    database: prefix => Database.load(`${prefix}${await appDataDir()}test.db`)
+    database: (prefix) => Database.load(`${prefix}${await appDataDir()}test.db`),
   }),
 })
 ```

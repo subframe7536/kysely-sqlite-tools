@@ -5,7 +5,7 @@ Generic Kysely dialect for SQLite, supporting execution in the main thread or a 
 ## Install
 
 ```sh
-pnpm install kysely kysely-generic-sqlite
+bun add kysely kysely-generic-sqlite
 ```
 
 ## Usage
@@ -68,9 +68,9 @@ function createSqliteExecutor(db: Database, cache: boolean): IGenericSqlite<Data
   return {
     db,
     query: buildQueryFn({
-      all: (sql, parameters) => getStmt(sql).all(...parameters || []),
+      all: (sql, parameters) => getStmt(sql).all(...(parameters || [])),
       run: (sql, parameters) => {
-        const { changes, lastInsertRowid } = getStmt(sql).run(...parameters || [])
+        const { changes, lastInsertRowid } = getStmt(sql).run(...(parameters || []))
         return {
           insertId: parseBigInt(lastInsertRowid),
           numAffectedRows: parseBigInt(changes),
@@ -97,7 +97,7 @@ const dialect = new GenericSqliteDialect(
   // optional on created callback
   (conn: DatabaseConnection) => {
     await conn.execute(CompiledQuery.raw('PRAGMA optimize'))
-  }
+  },
 )
 
 const db = new Kysely<YourDB>({ dialect })
@@ -125,7 +125,7 @@ const dialect = new GenericSqliteWorkerDialect(
   // optional on created callback
   (conn: DatabaseConnection) => {
     await conn.execute(CompiledQuery.raw('PRAGMA optimize'))
-  }
+  },
 )
 ```
 
@@ -137,9 +137,7 @@ import type { Database } from 'better-sqlite3'
 import BetterSqlite3Database from 'better-sqlite3'
 import { createNodeOnMessageCallback } from 'kysely-generic-sqlite/worker-helper-node'
 
-createNodeOnMessageCallback<{ fileName: string }>(
-  data => createSqliteExecutor(data.fileName)
-)
+createNodeOnMessageCallback<{ fileName: string }>((data) => createSqliteExecutor(data.fileName))
 ```
 
 ### Run SQLs In Web Worker
@@ -163,7 +161,7 @@ const dialect = new GenericSqliteWorkerDialect(
   // optional on created callback
   (conn: DatabaseConnection) => {
     await conn.execute(CompiledQuery.raw('PRAGMA optimize'))
-  }
+  },
 )
 ```
 
@@ -176,15 +174,13 @@ async function createSqliteExecutor(fileName: string) {
   // your implemention...
 }
 
-createWebOnMessageCallback<{ fileName: string }>(
-  (data) => {
-    const db = createSqliteExecutor(data.fileName)
+createWebOnMessageCallback<{ fileName: string }>((data) => {
+  const db = createSqliteExecutor(data.fileName)
 
-    // more handle with db instance...
+  // more handle with db instance...
 
-    return db
-  }
-)
+  return db
+})
 ```
 
 ### Send Custom Messages To Worker
@@ -196,18 +192,16 @@ import { GenericSqliteWorkerDialect } from 'kysely-generic-sqlite/worker'
 import { createNodeMitt, handleNodeWorker } from 'kysely-generic-sqlite/worker-helper-node'
 
 const outer = createNodeMitt()
-const dialect = new GenericSqliteWorkerDialect(
-  async () => {
-    const m = createNodeMitt()
-    m.on('test', console.log)
-    outer.on('call-test', () => m.emit('test', 'your-data'))
-    return {
-      worker: new Worker('./worker.js'),
-      mitt: m,
-      handle: handleNodeWorker
-    }
+const dialect = new GenericSqliteWorkerDialect(async () => {
+  const m = createNodeMitt()
+  m.on('test', console.log)
+  outer.on('call-test', () => m.emit('test', 'your-data'))
+  return {
+    worker: new Worker('./worker.js'),
+    mitt: m,
+    handle: handleNodeWorker,
   }
-)
+})
 ```
 
 in `worker.ts`
@@ -218,14 +212,14 @@ import type { Database } from 'better-sqlite3'
 import { createNodeOnMessageCallback } from 'kysely-generic-sqlite/worker-helper-node'
 
 createNodeOnMessageCallback<{}, Database>(
-  data => createSqliteExecutor(':memory:'),
+  (data) => createSqliteExecutor(':memory:'),
   (exec, type, data1, data2, data3) => {
     if (type === 'test') {
       exec.db.pragma('optimize')
       console.log(data1) // 'your-data'
       return 'CUSTOM'
     }
-  }
+  },
 )
 ```
 

@@ -1,12 +1,12 @@
 import type { Statement } from 'bun:sqlite'
 import type Database from 'bun:sqlite'
-import type { IGenericSqlite } from 'kysely-generic-sqlite'
 
+import type { IGenericSqlite } from 'kysely-generic-sqlite'
 import { parseBigInt } from 'kysely-generic-sqlite'
 
 export function createSqliteExecutor(db: Database, cache: boolean): IGenericSqlite<Database> {
   const fn = cache ? 'query' : 'prepare'
-  const getStmt = (sql: string, parameters?: any[]) => db[fn](sql, parameters)
+  const getStmt = (sql: string, parameters?: any[]): Statement => db[fn](sql, parameters)
 
   return {
     db,
@@ -36,7 +36,7 @@ async function* iterateData(
   if (!('iterate' in stmt)) {
     throw new Error('Streaming not supported, please upgrade to Bun@1.1.31 or later')
   }
-  for (const row of stmt.iterate(...parameters || [] as any)) {
+  for (const row of stmt.iterate(...(parameters || ([] as any)))) {
     yield row as any
   }
 }

@@ -1,5 +1,6 @@
-import type { IGenericSqlite, Promisable } from '../type'
 import type { QueryResult } from 'kysely'
+
+import type { IGenericSqlite, Promisable } from '../type'
 
 export const initEvent = '0'
 export const runEvent = '1'
@@ -7,10 +8,7 @@ export const closeEvent = '2'
 export const dataEvent = '3'
 export const endEvent = '4'
 
-export type InitMsg<T extends Record<string, unknown>> = [
-  type: typeof initEvent,
-  data: T,
-]
+export type InitMsg<T extends Record<string, unknown>> = [type: typeof initEvent, data: T]
 
 export type RunMsg = [
   type: typeof runEvent,
@@ -28,7 +26,11 @@ export type StreamMsg = [
 
 export type CloseMsg = [type: typeof closeEvent]
 
-export type MainToWorkerMsg<T extends Record<string, unknown>> = InitMsg<T> | RunMsg | CloseMsg | StreamMsg
+export type MainToWorkerMsg<T extends Record<string, unknown>> =
+  | InitMsg<T>
+  | RunMsg
+  | CloseMsg
+  | StreamMsg
 
 export type WorkerToMainMsg = {
   [K in keyof Events]: [type: `${K}`, data: Events[K], err: unknown]
@@ -58,7 +60,10 @@ export interface IGenericEventEmitter {
   off: (eventName?: string) => void
 }
 
-export type HandleMessageFn<T extends IGenericWorker> = (worker: T, cb: (msg: WorkerToMainMsg) => any) => void
+export type HandleMessageFn<T extends IGenericWorker> = (
+  worker: T,
+  cb: (msg: WorkerToMainMsg) => any,
+) => void
 
 export interface IGenericSqliteWorkerExecutor<
   W extends IGenericWorker,
@@ -85,10 +90,9 @@ export interface IGenericSqliteWorkerExecutor<
 /**
  * Initialize function for {@link createGenericOnMessageCallback}
  */
-export type InitFn<
-  T extends Record<string, unknown>,
-  DB = unknown,
-> = (data: T) => Promisable<IGenericSqlite<DB>>
+export type InitFn<T extends Record<string, unknown>, DB = unknown> = (
+  data: T,
+) => Promisable<IGenericSqlite<DB>>
 
 /**
  * Function that handle all message
@@ -98,5 +102,5 @@ export type MessageHandleFn<DB = unknown> = (
   type: string,
   data1: unknown,
   data2: unknown,
-  data3: unknown
+  data3: unknown,
 ) => Promisable<any>

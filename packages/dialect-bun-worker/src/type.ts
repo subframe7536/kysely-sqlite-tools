@@ -1,4 +1,5 @@
 import type Database from 'bun:sqlite'
+
 import type { IBaseSqliteDialectConfig } from 'kysely-generic-sqlite'
 
 export type DBOptions = Exclude<ConstructorParameters<typeof Database>[1], undefined>

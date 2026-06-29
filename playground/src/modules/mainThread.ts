@@ -1,6 +1,5 @@
-import type { Database } from 'sql.js'
-
 import { SqlJsDialect } from 'kysely-wasm'
+import type { Database } from 'sql.js'
 import InitSqlJS from 'sql.js'
 import WasmUrl from 'sql.js/dist/sql-wasm.wasm?url'
 import { ref } from 'vue'
@@ -15,16 +14,18 @@ const dialect = new SqlJsDialect({
       // locateFile: file => `https://sql.js.org/dist/${file}`,
       locateFile: () => WasmUrl,
     })
-    db = new SQL.Database(await loadFile('sqljs'))
+    const buffer = await loadFile('sqljs')
+    db = new SQL.Database(buffer?.toUint8Array())
     return db
   },
 })
 export function useDB() {
   const result = ref()
   function run() {
-    testDB(dialect).then((data) => {
-      result.value = data
+    testDB(dialect, () => {
       writeFile('sqljs', db?.export())
+    }).then((data) => {
+      result.value = data
     })
   }
 

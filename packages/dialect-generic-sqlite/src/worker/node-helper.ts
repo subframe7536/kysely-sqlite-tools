@@ -1,4 +1,9 @@
+import { EventEmitter } from 'node:events'
+import type { Worker } from 'node:worker_threads'
+import { parentPort } from 'node:worker_threads'
+
 import type { Promisable } from '../type'
+
 import type {
   HandleMessageFn,
   IGenericEventEmitter,
@@ -6,11 +11,6 @@ import type {
   InitFn,
   MessageHandleFn,
 } from './types'
-import type { Worker } from 'node:worker_threads'
-
-import { EventEmitter } from 'node:events'
-import { parentPort } from 'node:worker_threads'
-
 import { access, createGenericOnMessageCallback } from './utils'
 
 class NodeEventEmitterWrapper extends EventEmitter {
@@ -28,11 +28,7 @@ export function createNodeOnMessageCallback<T extends Record<string, unknown>, D
   }
   parentPort.on(
     'message',
-    createGenericOnMessageCallback<T, DB>(
-      init,
-      value => parentPort!.postMessage(value),
-      rest,
-    ),
+    createGenericOnMessageCallback<T, DB>(init, (value) => parentPort!.postMessage(value), rest),
   )
 }
 
@@ -48,9 +44,10 @@ export function createNodeMitt(): IGenericEventEmitter {
   return new NodeEventEmitterWrapper()
 }
 
-export interface INodeWorkerDialectConfig<
-  T extends Record<string, unknown>,
-> extends Pick<IGenericSqliteWorkerExecutor<Worker, T>, 'data'> {
+export interface INodeWorkerDialectConfig<T extends Record<string, unknown>> extends Pick<
+  IGenericSqliteWorkerExecutor<Worker, T>,
+  'data'
+> {
   worker: Worker | (() => Promisable<Worker>)
 }
 

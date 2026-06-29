@@ -7,7 +7,7 @@ no wasm denpendencies, your need to install yourself
 ## Install
 
 ```shell
-pnpm add -D kysely kysely-wasm
+bun add -d kysely kysely-wasm
 ```
 
 ## Introduce
@@ -19,7 +19,7 @@ there are 6 dialects
 - NodeWasmDialct: dialect for [node sqlite3 wasm](https://github.com/tndrle/node-sqlite3-wasm)
 - EmptyDialect: only for sql generation, no backend
 - CrsqliteDialect: dialect for [vlcn.io/wasm](https://vlcn.io/js/wasm)
-~~- WaSqliteDialect: dialect for [wa-sqlite](https://github.com/rhashimoto/wa-sqlite)~~
+  ~~- WaSqliteDialect: dialect for [wa-sqlite](https://github.com/rhashimoto/wa-sqlite)~~
 
 ### Differences
 
@@ -51,4 +51,4 @@ see in jsdoc
 
 ### Usage and more details
 
-see [test](../../test/dialect-wasm.test.ts) and [playground](../../playground/src/modules)
+see [test](test/index.test.ts) and [playground](../../playground/src/modules)

@@ -2,25 +2,32 @@
   "name": "kysely-wasm",
   "version": "1.2.1",
   "description": "kysely dialect for various sqlite wasm",
-  "author": {
-    "name": "subframe7536",
-    "email": "1667077010@qq.com"
-  },
-  "license": "MIT",
-  "homepage": "https://github.com/subframe7536/kysely-sqlite-tools/tree/master/packages/dialect-wasm",
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/subframe7536/kysely-sqlite-tools.git#master"
-  },
-  "bugs": "https://github.com/subframe7536/kysely-sqlite-tools/issues",
   "keywords": [
-    "kysely",
     "dialect",
+    "kysely",
     "sql",
     "sqlite",
     "sqlite3",
     "wasm"
   ],
+  "homepage": "https://github.com/subframe7536/kysely-sqlite-tools/tree/master/packages/dialect-wasm",
+  "bugs": "https://github.com/subframe7536/kysely-sqlite-tools/issues",
+  "license": "MIT",
+  "author": {
+    "name": "subframe7536",
+    "email": "1667077010@qq.com"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/subframe7536/kysely-sqlite-tools.git#master"
+  },
+  "files": [
+    "dist",
+    "official-wasm.d.ts"
+  ],
+  "main": "./dist/index.js",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
   "exports": {
     ".": {
       "import": "./dist/index.mjs",
@@ -28,26 +35,20 @@
     },
     "./package.json": "./package.json"
   },
-  "main": "./dist/index.js",
-  "module": "./dist/index.mjs",
-  "files": [
-    "dist",
-    "official-wasm.d.ts"
-  ],
-  "scripts": {
-    "dev": "tsup --watch",
-    "build": "tsup"
-  },
-  "peerDependencies": {
-    "kysely": ">=0.26"
-  },
   "publishConfig": {
     "access": "public"
+  },
+  "scripts": {
+    "dev": "tsdown --watch",
+    "build": "tsdown"
   },
   "dependencies": {
     "kysely-generic-sqlite": "workspace:*"
   },
   "devDependencies": {
-    "kysely": "catalog:"
+    "kysely": "^0.28.2"
+  },
+  "peerDependencies": {
+    "kysely": ">=0.26"
   }
 }

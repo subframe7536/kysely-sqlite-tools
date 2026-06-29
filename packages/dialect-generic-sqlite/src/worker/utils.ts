@@ -1,13 +1,7 @@
 import type { IGenericSqlite, Promisable } from '../type'
-import type { InitFn, MainToWorkerMsg, MessageHandleFn, WorkerToMainMsg } from './types'
 
-import {
-  closeEvent,
-  dataEvent,
-  endEvent,
-  initEvent,
-  runEvent,
-} from './types'
+import type { InitFn, MainToWorkerMsg, MessageHandleFn, WorkerToMainMsg } from './types'
+import { closeEvent, dataEvent, endEvent, initEvent, runEvent } from './types'
 
 /**
  * Create generic message handler
@@ -25,18 +19,18 @@ export function createGenericOnMessageCallback<T extends Record<string, unknown>
     const ret: WorkerToMainMsg = [type, null, null]
     try {
       switch (type) {
-        case initEvent: {
+        case initEvent:
           db = await init(data1)
           break
-        }
-        case runEvent: {
+
+        case runEvent:
           ret[1] = await db.query(data1, data2, data3)
           break
-        }
-        case closeEvent: {
+
+        case closeEvent:
           await db.close()
           break
-        }
+
         case dataEvent: {
           if (!db.iterator) {
             throw new Error('streamQuery() is not supported.')
@@ -48,14 +42,13 @@ export function createGenericOnMessageCallback<T extends Record<string, unknown>
           ret[0] = endEvent
           break
         }
-        default: {
+        default:
           if (message) {
             const data = await message(db, type, data1, data2, data3)
             if (data !== undefined && data !== null) {
               ret[1] = data
             }
           }
-        }
       }
     } catch (error) {
       ret[2] = error

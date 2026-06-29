@@ -2,25 +2,42 @@
   "name": "kysely-bun-worker",
   "version": "1.2.1",
   "description": "kysely dialect for bun:sqlite, running in worker",
+  "keywords": [
+    "bun",
+    "dialect",
+    "kysely",
+    "sql",
+    "sqlite3",
+    "worker"
+  ],
+  "homepage": "https://github.com/subframe7536/kysely-sqlite-tools/tree/master/packages/dialect-bun-worker",
+  "bugs": "https://github.com/subframe7536/kysely-sqlite-tools/issues",
+  "license": "MIT",
   "author": {
     "name": "subframe7536",
     "email": "1667077010@qq.com"
   },
-  "license": "MIT",
-  "homepage": "https://github.com/subframe7536/kysely-sqlite-tools/tree/master/packages/dialect-bun-worker",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/subframe7536/kysely-sqlite-tools.git#master"
   },
-  "bugs": "https://github.com/subframe7536/kysely-sqlite-tools/issues",
-  "keywords": [
-    "kysely",
-    "dialect",
-    "sql",
-    "worker",
-    "sqlite3",
-    "bun"
+  "files": [
+    "dist"
   ],
+  "type": "module",
+  "main": "./dist/index.js",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "typesVersions": {
+    "*": {
+      "normal": [
+        "./dist/normal.d.ts"
+      ],
+      "worker": [
+        "./dist/index.d.ts"
+      ]
+    }
+  },
   "exports": {
     ".": {
       "import": "./dist/index.mjs",
@@ -36,35 +53,20 @@
     },
     "./package.json": "./package.json"
   },
-  "main": "./dist/index.js",
-  "module": "./dist/index.mjs",
-  "typesVersions": {
-    "*": {
-      "normal": [
-        "./dist/normal.d.ts"
-      ],
-      "worker": [
-        "./dist/index.d.ts"
-      ]
-    }
-  },
-  "files": [
-    "dist"
-  ],
   "scripts": {
-    "dev": "tsup --watch",
+    "dev": "tsdown --watch",
     "test": "bun test",
-    "test:dev": "tsup && bun test",
-    "build": "tsup"
-  },
-  "peerDependencies": {
-    "bun-types": ">=1.1.14",
-    "kysely": ">=0.26"
+    "test:dev": "tsdown && bun test",
+    "build": "tsdown"
   },
   "dependencies": {
     "kysely-generic-sqlite": "workspace:*"
   },
   "devDependencies": {
-    "kysely": "catalog:"
+    "kysely": "^0.28.2"
+  },
+  "peerDependencies": {
+    "bun-types": ">=1.1.14",
+    "kysely": ">=0.26"
   }
 }

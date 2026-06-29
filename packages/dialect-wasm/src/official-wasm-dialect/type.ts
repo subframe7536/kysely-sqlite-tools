@@ -1,5 +1,4 @@
 export interface OfficialWasmDB {
-
   /** Returns true if the database handle is open, else false. */
   isOpen: () => boolean
 
@@ -52,9 +51,5 @@ export interface OfficialWasmDB {
    * the returned array is an object, as per the `"object"` rowMode option to
    * {@link Database#exec}.
    */
-  selectObjects: (
-    sql: string,
-    bind?: any[],
-  ) => { [columnName: string]: any }[]
-
+  selectObjects: (sql: string, bind?: any[]) => { [columnName: string]: any }[]
 }

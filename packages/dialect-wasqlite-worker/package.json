@@ -2,38 +2,31 @@
   "name": "kysely-wasqlite-worker",
   "version": "1.2.1",
   "description": "kysely dialect for wa-sqlite, run sql in worker, store data in OPFS or IndexedDB",
+  "keywords": [
+    "dialect",
+    "kysely",
+    "sql",
+    "sqlite",
+    "sqlite3",
+    "worker"
+  ],
+  "homepage": "https://github.com/subframe7536/kysely-sqlite-tools/tree/master/packages/dialect-wasqlite-worker",
+  "bugs": "https://github.com/subframe7536/kysely-sqlite-tools/issues",
+  "license": "MIT",
   "author": {
     "name": "subframe7536",
     "email": "1667077010@qq.com"
   },
-  "license": "MIT",
-  "homepage": "https://github.com/subframe7536/kysely-sqlite-tools/tree/master/packages/dialect-wasqlite-worker",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/subframe7536/kysely-sqlite-tools.git#master"
   },
-  "bugs": "https://github.com/subframe7536/kysely-sqlite-tools/issues",
-  "keywords": [
-    "kysely",
-    "dialect",
-    "sql",
-    "worker",
-    "sqlite",
-    "sqlite3"
+  "files": [
+    "dist"
   ],
-  "exports": {
-    ".": {
-      "import": "./dist/index.mjs",
-      "require": "./dist/index.js"
-    },
-    "./worker-classic": "./dist/worker.js",
-    "./worker-module": "./dist/worker.mjs",
-    "./wasm-sync": "./node_modules/@subframe7536/sqlite-wasm/dist/wa-sqlite.wasm",
-    "./wasm-async": "./node_modules/@subframe7536/sqlite-wasm/dist/wa-sqlite-async.wasm",
-    "./package.json": "./package.json"
-  },
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
   "typesVersions": {
     "*": {
       "worker-classic": [
@@ -44,26 +37,35 @@
       ]
     }
   },
-  "files": [
-    "dist"
-  ],
-  "scripts": {
-    "dev": "tsup --watch",
-    "build": "tsup"
+  "exports": {
+    ".": {
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.js"
+    },
+    "./worker": {
+      "import": "./dist/worker.mjs",
+      "require": "./dist/worker.js"
+    },
+    "./package.json": "./package.json"
   },
   "publishConfig": {
     "access": "public"
   },
-  "peerDependencies": {
-    "@subframe7536/sqlite-wasm": ">=0.5.0",
-    "kysely": ">=0.26"
+  "scripts": {
+    "dev": "tsdown --watch",
+    "build": "tsdown"
   },
   "dependencies": {
     "kysely-generic-sqlite": "workspace:*",
     "zen-mitt": "^3.1.0"
   },
   "devDependencies": {
-    "@subframe7536/sqlite-wasm": "^0.5.3",
-    "kysely": "catalog:"
+    "@subframe7536/sqlite-wasm": "^1.2.0",
+    "kysely": "^0.28.2",
+    "wa-sqlite": "^1.0.0"
+  },
+  "peerDependencies": {
+    "@subframe7536/sqlite-wasm": ">=0.5.0",
+    "kysely": ">=0.26"
   }
 }

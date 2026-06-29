@@ -1,7 +1,6 @@
 import type { Dialect } from 'kysely'
-import type { InferDatabase } from 'kysely-sqlite-builder/schema'
-
 import { SqliteBuilder } from 'kysely-sqlite-builder'
+import type { InferDatabase } from 'kysely-sqlite-builder/schema'
 import { column, defineTable, useSchema } from 'kysely-sqlite-builder/schema'
 
 const tables = {
@@ -16,7 +15,7 @@ const tables = {
   }),
 }
 export type DB = InferDatabase<typeof tables>
-export async function testDB(dialect: Dialect) {
+export async function testDB(dialect: Dialect, onBeforeDestroy?: () => void) {
   const db = new SqliteBuilder<DB>({
     dialect,
     // onQuery: true,
@@ -36,7 +35,8 @@ export async function testDB(dialect: Dialect) {
           console.log('test rollback')
           throw new Error('test rollback')
         }
-        await db.insertInto('test')
+        await db
+          .insertInto('test')
           .values({
             name: `test at ${Date.now()}`,
             blobtest: Uint8Array.from([2, 3, 4, 5, 6, 7, 8]),
@@ -54,9 +54,13 @@ export async function testDB(dialect: Dialect) {
     console.warn(error)
   }
 
-  return db.selectFrom('test').selectAll().execute().then(async (data) => {
-    await db.destroy()
-    console.log(data)
-    return data
-  })
+  const data = await db
+    .selectFrom('test')
+    .selectAll()
+    .execute()
+
+  await onBeforeDestroy?.()
+  await db.destroy()
+  console.log(data)
+  return data
 }

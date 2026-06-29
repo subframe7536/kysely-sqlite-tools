@@ -1,6 +1,3 @@
 packages:
   - packages/*
   - playground
-
-catalog:
-  kysely: ^0.28.2

@@ -23,8 +23,8 @@ function testWaSqliteWorker() {
 async function deleteDatabase() {
   try {
     const dbs = await window.indexedDB.databases()
-    dbs.forEach(db => window.indexedDB.deleteDatabase(db.name!))
-  } catch { }
+    dbs.forEach((db) => window.indexedDB.deleteDatabase(db.name!))
+  } catch {}
 }
 async function clear() {
   console.clear()
@@ -34,13 +34,13 @@ async function clear() {
   const root = await navigator.storage?.getDirectory()
   try {
     await root.removeEntry('test.db')
-  } catch { }
+  } catch {}
   try {
     await root.removeEntry('test.db-journal')
-  } catch { }
+  } catch {}
   try {
     await root.removeEntry('wa-sqlite-worker-test', { recursive: true })
-  } catch { }
+  } catch {}
 }
 </script>
 
@@ -50,7 +50,7 @@ async function clear() {
     <a href="https://github.com/kysely-org/kysely" target="_blank">Kysely</a>
     WASM dialect
   </h1>
-  <br>
+  <br />
   <h3>see worker result in console</h3>
   <h3>
     you can explore
@@ -61,37 +61,28 @@ async function clear() {
       OPFS
     </a>
     file using
-    <a href="https://chrome.google.com/webstore/detail/opfs-explorer/acndjpgkpaclldomagafnognkcgjignd" target="_blank">
+    <a
+      href="https://chrome.google.com/webstore/detail/opfs-explorer/acndjpgkpaclldomagafnognkcgjignd"
+      target="_blank"
+    >
       opfs-explorer
     </a>
   </h3>
-  <br>
+  <br />
   <div class="buttons">
-    <button @click="testSqljsMain()">
-      test sqljs in main thread
-    </button>
+    <button @click="testSqljsMain()">test sqljs in main thread</button>
     <!-- <button @click="testCRSqlite()">
       test crsqlite in main thread
     </button> -->
-    <button @click="testSqljsWorker()">
-      test sqljs in Worker
-    </button>
-    <button @click="testOfficialWasm()">
-      test officialWasm in Worker
-    </button>
-    <button @click="testWaSqliteWorker()">
-      test wa-sqlite in Worker (Better Compability)
-    </button>
-    <button @click="clear()">
-      clear
-    </button>
+    <button @click="testSqljsWorker()">test sqljs in Worker</button>
+    <button @click="testOfficialWasm()">test officialWasm in Worker</button>
+    <button @click="testWaSqliteWorker()">test wa-sqlite in Worker (Better Compability)</button>
+    <button @click="clear()">clear</button>
   </div>
-  <br>
-  <div>
-    result run in main thread:
-  </div>
-  <pre>
-{{ result }}
+  <br />
+  <div>result run in main thread:</div>
+  <pre
+    >{{ result }}
   </pre>
 </template>
 
