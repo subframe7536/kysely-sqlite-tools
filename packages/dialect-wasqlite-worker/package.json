@@ -30,10 +30,7 @@
   "types": "./dist/index.d.ts",
   "typesVersions": {
     "*": {
-      "worker-classic": [
-        "./dist/worker.d.ts"
-      ],
-      "worker-module": [
+      "worker": [
         "./dist/worker.d.ts"
       ]
     }

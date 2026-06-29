@@ -34,7 +34,7 @@
         "./dist/normal.d.ts"
       ],
       "worker": [
-        "./dist/index.d.ts"
+        "./dist/worker.d.ts"
       ]
     }
   },
