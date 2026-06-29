@@ -33,21 +33,25 @@ export class GenericSqliteConnection implements DatabaseConnection {
   async *streamQuery<R>(
     { parameters, query, sql }: CompiledQuery,
     chunkSize?: number,
-    _options?: AbortableOperationOptions,
+    options?: AbortableOperationOptions,
   ): AsyncIterableIterator<QueryResult<R>> {
     if (!this.db.iterator) {
       throw new Error('streamQuery() is not supported.')
     }
     const it = this.db.iterator(SelectQueryNode.is(query), sql, parameters, chunkSize)
     for await (const row of it) {
+      if (options?.signal?.aborted) {
+        break
+      }
       yield { rows: [row as any] }
     }
   }
 
-  async executeQuery<R>(
-    { parameters, query, sql }: CompiledQuery<unknown>,
-    _options?: AbortableOperationOptions,
-  ): Promise<QueryResult<R>> {
+  async executeQuery<R>({
+    parameters,
+    query,
+    sql,
+  }: CompiledQuery<unknown>): Promise<QueryResult<R>> {
     return await this.db.query(SelectQueryNode.is(query), sql, parameters)
   }
 }
