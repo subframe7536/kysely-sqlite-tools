@@ -1,8 +1,13 @@
-import type { CompiledQuery, DatabaseConnection, QueryResult } from 'kysely'
+import type {
+  AbortableOperationOptions,
+  CompiledQuery,
+  DatabaseConnection,
+  QueryResult,
+} from 'kysely'
 import { SelectQueryNode } from 'kysely'
 
 import { BaseSqliteDriver } from '../base'
-import type { OnCreateConnection, Promisable } from '../type'
+import type { OnCreateConnection, SqliteExecutorFactory } from '../type'
 
 import type {
   CloseMsg,
@@ -22,11 +27,11 @@ export class GenericSqliteWorkerDriver<
   private worker?: T
   private mitt?: IGenericEventEmitter
   constructor(
-    executor: () => Promisable<IGenericSqliteWorkerExecutor<T, R>>,
+    executor: SqliteExecutorFactory<IGenericSqliteWorkerExecutor<T, R>>,
     onCreateConnection?: OnCreateConnection,
   ) {
-    super(async () => {
-      const exec = await executor()
+    super(async (options) => {
+      const exec = await executor(options)
       this.mitt = exec.mitt
       this.worker = exec.worker
 
@@ -39,7 +44,7 @@ export class GenericSqliteWorkerDriver<
       })
 
       this.conn = new GenericSqliteWorkerConnection(this.worker, this.mitt)
-      await onCreateConnection?.(this.conn)
+      await onCreateConnection?.(this.conn, options)
     })
   }
 
@@ -64,11 +69,11 @@ class GenericSqliteWorkerConnection implements DatabaseConnection {
     readonly mitt: IGenericEventEmitter,
   ) {}
 
-  async *streamQuery<R>({
-    parameters,
-    sql,
-    query,
-  }: CompiledQuery): AsyncIterableIterator<QueryResult<R>> {
+  async *streamQuery<R>(
+    { parameters, sql, query }: CompiledQuery,
+    _chunkSize?: number,
+    _options?: AbortableOperationOptions,
+  ): AsyncIterableIterator<QueryResult<R>> {
     this.worker.postMessage([
       dataEvent,
       SelectQueryNode.is(query),
@@ -112,7 +117,10 @@ class GenericSqliteWorkerConnection implements DatabaseConnection {
     }
   }
 
-  async executeQuery<R>(compiledQuery: CompiledQuery<unknown>): Promise<QueryResult<R>> {
+  async executeQuery<R>(
+    compiledQuery: CompiledQuery<unknown>,
+    _options?: AbortableOperationOptions,
+  ): Promise<QueryResult<R>> {
     const { parameters, sql, query } = compiledQuery
     this.worker.postMessage([runEvent, SelectQueryNode.is(query), sql, parameters] satisfies RunMsg)
     return await new Promise((resolve, reject) => {

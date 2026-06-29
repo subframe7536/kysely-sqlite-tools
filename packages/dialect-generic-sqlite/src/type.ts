@@ -1,6 +1,8 @@
-import type { DatabaseConnection, QueryResult } from 'kysely'
+import type { AbortableOperationOptions, DatabaseConnection, QueryResult } from 'kysely'
 
 export type Promisable<T> = T | Promise<T>
+
+export type SqliteExecutorFactory<T> = (options?: AbortableOperationOptions) => Promisable<T>
 
 export interface IGenericSqliteExecutor {
   /**
@@ -63,7 +65,10 @@ export interface IGenericSqlite<DB = unknown> {
   ) => IterableIterator<unknown> | AsyncIterableIterator<unknown>
 }
 
-export type OnCreateConnection = (connection: DatabaseConnection) => Promisable<void>
+export type OnCreateConnection = (
+  connection: DatabaseConnection,
+  options?: AbortableOperationOptions,
+) => Promisable<void>
 
 export interface IBaseSqliteDialectConfig {
   /**

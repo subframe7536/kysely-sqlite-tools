@@ -63,7 +63,7 @@
     "kysely-generic-sqlite": "workspace:*"
   },
   "devDependencies": {
-    "kysely": "^0.28.2"
+    "kysely": "^0.29.2"
   },
   "peerDependencies": {
     "bun-types": ">=1.1.14",

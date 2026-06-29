@@ -1,4 +1,5 @@
 import type {
+  AbortableOperationOptions,
   DatabaseConnection,
   DatabaseIntrospector,
   Dialect,
@@ -42,30 +43,6 @@ export class BaseSqliteDialect implements Dialect {
   }
 }
 
-class ConnectionMutex {
-  private promise?: Promise<void>
-  private resolve?: () => void
-
-  async lock(): Promise<void> {
-    while (this.promise) {
-      await this.promise
-    }
-
-    this.promise = new Promise((resolve) => {
-      this.resolve = resolve
-    })
-  }
-
-  unlock(): void {
-    const resolve = this.resolve
-
-    this.promise = undefined
-    this.resolve = undefined
-
-    resolve?.()
-  }
-}
-
 async function runSavepoint(
   command: string,
   createQueryId: () => { readonly queryId: string },
@@ -85,7 +62,6 @@ async function runSavepoint(
 }
 
 export abstract class BaseSqliteDriver implements Driver {
-  private mutex?: ConnectionMutex
   public conn?: DatabaseConnection
   savepoint:
     | ((
@@ -108,14 +84,14 @@ export abstract class BaseSqliteDriver implements Driver {
         compileQuery: QueryCompiler['compileQuery'],
       ) => Promise<void>)
     | undefined
-  init: () => Promise<void>
+  init: (options?: AbortableOperationOptions) => Promise<void>
   /**
    * Base abstract class that implements {@link Driver}
    *
    * You **MUST** assign `this.conn` in `init` and implement `destroy` method
    */
-  constructor(init: () => Promise<void>) {
-    this.init = () =>
+  constructor(init: (options?: AbortableOperationOptions) => Promise<void>) {
+    this.init = (options) =>
       import('kysely')
         .then(({ createQueryId }) => {
           if (createQueryId) {
@@ -124,21 +100,16 @@ export abstract class BaseSqliteDriver implements Driver {
             this.rollbackToSavepoint = runSavepoint.bind(null, 'rollback to', createQueryId)
           }
         })
-        .then(init)
+        .then(() => init(options))
   }
 
   async acquireConnection(): Promise<DatabaseConnection> {
-    // SQLite only has one single connection. We use a mutex here to wait
-    // until the single connection has been released.
-    if (!this.mutex) {
-      this.mutex = new ConnectionMutex()
-    }
-    await this.mutex.lock()
     return this.conn!
   }
 
   async releaseConnection(): Promise<void> {
-    this.mutex?.unlock()
+    // Kysely 0.29+ serializes single-connection dialects using
+    // SqliteAdapter.supportsMultipleConnections instead of driver-local locks.
   }
 
   async beginTransaction(connection: DatabaseConnection): Promise<void> {

@@ -61,7 +61,7 @@
   },
   "devDependencies": {
     "@subframe7536/sqlite-wasm": "^1.2.0",
-    "kysely": "^0.28.2",
+    "kysely": "^0.29.2",
     "wa-sqlite": "^1.0.0"
   },
   "peerDependencies": {

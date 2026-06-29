@@ -1,16 +1,24 @@
-import type { CompiledQuery, DatabaseConnection, QueryResult } from 'kysely'
+import type {
+  AbortableOperationOptions,
+  CompiledQuery,
+  DatabaseConnection,
+  QueryResult,
+} from 'kysely'
 import { SelectQueryNode } from 'kysely'
 
 import { BaseSqliteDriver } from './base'
-import type { IGenericSqlite, OnCreateConnection, Promisable } from './type'
+import type { IGenericSqlite, OnCreateConnection, SqliteExecutorFactory } from './type'
 
 export class GenericSqliteDriver extends BaseSqliteDriver {
   db?: IGenericSqlite
-  constructor(executor: () => Promisable<IGenericSqlite>, onCreateConnection?: OnCreateConnection) {
-    super(async () => {
-      this.db = await executor()
+  constructor(
+    executor: SqliteExecutorFactory<IGenericSqlite>,
+    onCreateConnection?: OnCreateConnection,
+  ) {
+    super(async (options) => {
+      this.db = await executor(options)
       this.conn = new GenericSqliteConnection(this.db)
-      await onCreateConnection?.(this.conn)
+      await onCreateConnection?.(this.conn, options)
     })
   }
 
@@ -22,25 +30,24 @@ export class GenericSqliteDriver extends BaseSqliteDriver {
 export class GenericSqliteConnection implements DatabaseConnection {
   constructor(private db: IGenericSqlite) {}
 
-  async *streamQuery<R>({
-    parameters,
-    query,
-    sql,
-  }: CompiledQuery): AsyncIterableIterator<QueryResult<R>> {
+  async *streamQuery<R>(
+    { parameters, query, sql }: CompiledQuery,
+    chunkSize?: number,
+    _options?: AbortableOperationOptions,
+  ): AsyncIterableIterator<QueryResult<R>> {
     if (!this.db.iterator) {
       throw new Error('streamQuery() is not supported.')
     }
-    const it = this.db.iterator(SelectQueryNode.is(query), sql, parameters)
+    const it = this.db.iterator(SelectQueryNode.is(query), sql, parameters, chunkSize)
     for await (const row of it) {
       yield { rows: [row as any] }
     }
   }
 
-  async executeQuery<R>({
-    parameters,
-    query,
-    sql,
-  }: CompiledQuery<unknown>): Promise<QueryResult<R>> {
+  async executeQuery<R>(
+    { parameters, query, sql }: CompiledQuery<unknown>,
+    _options?: AbortableOperationOptions,
+  ): Promise<QueryResult<R>> {
     return await this.db.query(SelectQueryNode.is(query), sql, parameters)
   }
 }
