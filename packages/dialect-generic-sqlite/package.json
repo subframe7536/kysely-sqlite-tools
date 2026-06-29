@@ -1,6 +1,6 @@
 {
   "name": "kysely-generic-sqlite",
-  "version": "2.0.0-beta.2",
+  "version": "2.0.0-beta.3",
   "description": "Generic kysely dialect for SQLite, support run in main thread or worker",
   "keywords": [
     "dialect",
