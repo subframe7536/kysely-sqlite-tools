@@ -1,6 +1,6 @@
 {
   "name": "kysely-sqlite-worker",
-  "version": "1.2.1",
+  "version": "2.0.0-beta.1",
   "description": "kysely dialect for better-sqlite3, run sql in worker",
   "keywords": [
     "dialect",
