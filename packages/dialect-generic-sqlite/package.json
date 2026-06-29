@@ -67,9 +67,9 @@
     "build": "tsdown"
   },
   "devDependencies": {
-    "kysely": "^0.28.2"
+    "kysely": "catalog:"
   },
   "peerDependencies": {
-    "kysely": ">=0.26"
+    "kysely": ">=0.29"
   }
 }

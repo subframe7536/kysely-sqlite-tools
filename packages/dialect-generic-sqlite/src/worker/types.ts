@@ -22,6 +22,7 @@ export type StreamMsg = [
   isSelect: boolean,
   sql: string,
   parameters?: readonly unknown[],
+  chunkSize?: number,
 ]
 
 export type CloseMsg = [type: typeof closeEvent]

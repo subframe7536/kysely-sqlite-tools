@@ -1,8 +1,13 @@
-import type { CompiledQuery, DatabaseConnection, QueryResult } from 'kysely'
+import type {
+  AbortableOperationOptions,
+  CompiledQuery,
+  DatabaseConnection,
+  QueryResult,
+} from 'kysely'
 import { SelectQueryNode } from 'kysely'
 
 import { BaseSqliteDriver } from '../base'
-import type { OnCreateConnection, Promisable } from '../type'
+import type { OnCreateConnection, SqliteExecutorFactory } from '../type'
 
 import type {
   CloseMsg,
@@ -22,11 +27,11 @@ export class GenericSqliteWorkerDriver<
   private worker?: T
   private mitt?: IGenericEventEmitter
   constructor(
-    executor: () => Promisable<IGenericSqliteWorkerExecutor<T, R>>,
+    executor: SqliteExecutorFactory<IGenericSqliteWorkerExecutor<T, R>>,
     onCreateConnection?: OnCreateConnection,
   ) {
-    super(async () => {
-      const exec = await executor()
+    super(async (options) => {
+      const exec = await executor(options)
       this.mitt = exec.mitt
       this.worker = exec.worker
 
@@ -39,7 +44,7 @@ export class GenericSqliteWorkerDriver<
       })
 
       this.conn = new GenericSqliteWorkerConnection(this.worker, this.mitt)
-      await onCreateConnection?.(this.conn)
+      await onCreateConnection?.(this.conn, options)
     })
   }
 
@@ -64,21 +69,29 @@ class GenericSqliteWorkerConnection implements DatabaseConnection {
     readonly mitt: IGenericEventEmitter,
   ) {}
 
-  async *streamQuery<R>({
-    parameters,
-    sql,
-    query,
-  }: CompiledQuery): AsyncIterableIterator<QueryResult<R>> {
+  async *streamQuery<R>(
+    { parameters, sql, query }: CompiledQuery,
+    chunkSize?: number,
+    options?: AbortableOperationOptions,
+  ): AsyncIterableIterator<QueryResult<R>> {
+    if (options?.signal?.aborted) {
+      return
+    }
+
     this.worker.postMessage([
       dataEvent,
       SelectQueryNode.is(query),
       sql,
       parameters,
+      chunkSize,
     ] satisfies StreamMsg)
     type ResolveData = [data: QueryResult<R> | undefined, done: boolean]
     let done = false
     let resolveFn: (value: ResolveData) => void
     let rejectFn: (reason?: any) => void
+
+    const onAbort = (): void => rejectFn(new Error('Query aborted'))
+    options?.signal?.addEventListener('abort', onAbort, { once: true })
 
     this.mitt!.on(dataEvent, (data, err): void => {
       if (err) {
@@ -96,19 +109,23 @@ class GenericSqliteWorkerConnection implements DatabaseConnection {
       }
     })
 
-    while (!done) {
-      const [data, isDone] = await new Promise<ResolveData>((res, rej) => {
-        resolveFn = res
-        rejectFn = rej
-      })
+    try {
+      while (!done) {
+        const [data, isDone] = await new Promise<ResolveData>((res, rej) => {
+          resolveFn = res
+          rejectFn = rej
+        })
 
-      if (isDone) {
-        done = true
-        this.mitt?.off(dataEvent)
-        this.mitt?.off(endEvent)
-      } else {
-        yield data!
+        if (isDone) {
+          done = true
+        } else {
+          yield data!
+        }
       }
+    } finally {
+      options?.signal?.removeEventListener('abort', onAbort)
+      this.mitt?.off(dataEvent)
+      this.mitt?.off(endEvent)
     }
   }
 

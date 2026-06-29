@@ -1,5 +1,5 @@
 import { BaseSqliteDialect } from '../base'
-import type { OnCreateConnection, Promisable } from '../type'
+import type { OnCreateConnection, SqliteExecutorFactory } from '../type'
 
 import { GenericSqliteWorkerDriver } from './driver'
 import type { IGenericSqliteWorkerExecutor, IGenericWorker } from './types'
@@ -15,7 +15,7 @@ export class GenericSqliteWorkerDialect<
    * @param onCreateConnection optional callback after connection created
    */
   constructor(
-    executor: () => Promisable<IGenericSqliteWorkerExecutor<T, R>>,
+    executor: SqliteExecutorFactory<IGenericSqliteWorkerExecutor<T, R>>,
     onCreateConnection?: OnCreateConnection,
   ) {
     super(() => new GenericSqliteWorkerDriver(executor, onCreateConnection))

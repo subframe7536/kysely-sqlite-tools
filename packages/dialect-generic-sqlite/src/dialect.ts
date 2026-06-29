@@ -1,6 +1,6 @@
 import { BaseSqliteDialect } from './base'
 import { GenericSqliteDriver } from './driver'
-import type { IGenericSqlite, OnCreateConnection, Promisable } from './type'
+import type { IGenericSqlite, OnCreateConnection, SqliteExecutorFactory } from './type'
 
 export class GenericSqliteDialect extends BaseSqliteDialect {
   /**
@@ -9,7 +9,10 @@ export class GenericSqliteDialect extends BaseSqliteDialect {
    * @param executor function to create {@link IGenericSqlite}
    * @param onCreateConnection optional callback after connection created
    */
-  constructor(executor: () => Promisable<IGenericSqlite>, onCreateConnection?: OnCreateConnection) {
+  constructor(
+    executor: SqliteExecutorFactory<IGenericSqlite>,
+    onCreateConnection?: OnCreateConnection,
+  ) {
     super(() => new GenericSqliteDriver(executor, onCreateConnection))
   }
 }

@@ -33,6 +33,6 @@ describe('wasqlite worker dialect test', () => {
       worker: new WebWorkerMock(new URL('./worker.mock.ts', import.meta.url)) as never,
     })
 
-    await testCase(dialect as never, expect, false)
+    await testCase(dialect, expect, true)
   })
 })

@@ -1,4 +1,5 @@
 import type {
+  AbortableOperationOptions,
   DatabaseConnection,
   DatabaseIntrospector,
   Dialect,
@@ -9,6 +10,7 @@ import type {
 } from 'kysely'
 import {
   CompiledQuery,
+  createQueryId,
   IdentifierNode,
   RawNode,
   SqliteAdapter,
@@ -42,33 +44,8 @@ export class BaseSqliteDialect implements Dialect {
   }
 }
 
-class ConnectionMutex {
-  private promise?: Promise<void>
-  private resolve?: () => void
-
-  async lock(): Promise<void> {
-    while (this.promise) {
-      await this.promise
-    }
-
-    this.promise = new Promise((resolve) => {
-      this.resolve = resolve
-    })
-  }
-
-  unlock(): void {
-    const resolve = this.resolve
-
-    this.promise = undefined
-    this.resolve = undefined
-
-    resolve?.()
-  }
-}
-
 async function runSavepoint(
   command: string,
-  createQueryId: () => { readonly queryId: string },
   connection: DatabaseConnection,
   savepointName: string,
   compileQuery: QueryCompiler['compileQuery'],
@@ -85,60 +62,22 @@ async function runSavepoint(
 }
 
 export abstract class BaseSqliteDriver implements Driver {
-  private mutex?: ConnectionMutex
   public conn?: DatabaseConnection
-  savepoint:
-    | ((
-        connection: DatabaseConnection,
-        savepointName: string,
-        compileQuery: QueryCompiler['compileQuery'],
-      ) => Promise<void>)
-    | undefined
-  releaseSavepoint:
-    | ((
-        connection: DatabaseConnection,
-        savepointName: string,
-        compileQuery: QueryCompiler['compileQuery'],
-      ) => Promise<void>)
-    | undefined
-  rollbackToSavepoint:
-    | ((
-        connection: DatabaseConnection,
-        savepointName: string,
-        compileQuery: QueryCompiler['compileQuery'],
-      ) => Promise<void>)
-    | undefined
-  init: () => Promise<void>
   /**
    * Base abstract class that implements {@link Driver}
    *
    * You **MUST** assign `this.conn` in `init` and implement `destroy` method
    */
-  constructor(init: () => Promise<void>) {
-    this.init = () =>
-      import('kysely')
-        .then(({ createQueryId }) => {
-          if (createQueryId) {
-            this.savepoint = runSavepoint.bind(null, 'savepoint', createQueryId)
-            this.releaseSavepoint = runSavepoint.bind(null, 'release', createQueryId)
-            this.rollbackToSavepoint = runSavepoint.bind(null, 'rollback to', createQueryId)
-          }
-        })
-        .then(init)
+  constructor(public init: (options?: AbortableOperationOptions) => Promise<void>) {
   }
 
   async acquireConnection(): Promise<DatabaseConnection> {
-    // SQLite only has one single connection. We use a mutex here to wait
-    // until the single connection has been released.
-    if (!this.mutex) {
-      this.mutex = new ConnectionMutex()
-    }
-    await this.mutex.lock()
     return this.conn!
   }
 
   async releaseConnection(): Promise<void> {
-    this.mutex?.unlock()
+    // Kysely 0.29+ serializes single-connection dialects using
+    // SqliteAdapter.supportsMultipleConnections instead of driver-local locks.
   }
 
   async beginTransaction(connection: DatabaseConnection): Promise<void> {
@@ -151,6 +90,30 @@ export abstract class BaseSqliteDriver implements Driver {
 
   async rollbackTransaction(connection: DatabaseConnection): Promise<void> {
     await connection.executeQuery(CompiledQuery.raw('rollback'))
+  }
+
+  async savepoint(
+    connection: DatabaseConnection,
+    savepointName: string,
+    compileQuery: QueryCompiler['compileQuery'],
+  ): Promise<void> {
+    await runSavepoint('savepoint', connection, savepointName, compileQuery)
+  }
+
+  async rollbackToSavepoint(
+    connection: DatabaseConnection,
+    savepointName: string,
+    compileQuery: QueryCompiler['compileQuery'],
+  ): Promise<void> {
+    await runSavepoint('rollback to', connection, savepointName, compileQuery)
+  }
+
+  async releaseSavepoint(
+    connection: DatabaseConnection,
+    savepointName: string,
+    compileQuery: QueryCompiler['compileQuery'],
+  ): Promise<void> {
+    await runSavepoint('release', connection, savepointName, compileQuery)
   }
 
   abstract destroy(): Promise<void>

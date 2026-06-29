@@ -61,11 +61,11 @@
   },
   "devDependencies": {
     "@subframe7536/sqlite-wasm": "^1.2.0",
-    "kysely": "^0.28.2",
+    "kysely": "catalog:",
     "wa-sqlite": "^1.0.0"
   },
   "peerDependencies": {
     "@subframe7536/sqlite-wasm": ">=0.5.0",
-    "kysely": ">=0.26"
+    "kysely": ">=0.29"
   }
 }
