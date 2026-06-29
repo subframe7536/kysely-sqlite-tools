@@ -4,6 +4,12 @@ settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
+catalogs:
+  default:
+    kysely:
+      specifier: ^0.29.2
+      version: 0.29.2
+
 importers:
 
   .:
@@ -36,7 +42,7 @@ importers:
         specifier: ^1.3.14
         version: 1.3.14
       kysely:
-        specifier: ^0.29.2
+        specifier: 'catalog:'
         version: 0.29.2
       node-sqlite3-wasm:
         specifier: ^0.8.59
@@ -73,13 +79,13 @@ importers:
         version: link:../dialect-generic-sqlite
     devDependencies:
       kysely:
-        specifier: ^0.29.2
+        specifier: 'catalog:'
         version: 0.29.2
 
   packages/dialect-generic-sqlite:
     devDependencies:
       kysely:
-        specifier: ^0.29.2
+        specifier: 'catalog:'
         version: 0.29.2
 
   packages/dialect-sqlite-worker:
@@ -92,7 +98,7 @@ importers:
         version: link:../dialect-generic-sqlite
     devDependencies:
       kysely:
-        specifier: ^0.29.2
+        specifier: 'catalog:'
         version: 0.29.2
 
   packages/dialect-tauri:
@@ -105,7 +111,7 @@ importers:
         specifier: ^2.4.0
         version: 2.4.0
       kysely:
-        specifier: ^0.29.2
+        specifier: 'catalog:'
         version: 0.29.2
 
   packages/dialect-wasm:
@@ -115,7 +121,7 @@ importers:
         version: link:../dialect-generic-sqlite
     devDependencies:
       kysely:
-        specifier: ^0.29.2
+        specifier: 'catalog:'
         version: 0.29.2
 
   packages/dialect-wasqlite-worker:
@@ -131,7 +137,7 @@ importers:
         specifier: ^1.2.0
         version: 1.2.0
       kysely:
-        specifier: ^0.29.2
+        specifier: 'catalog:'
         version: 0.29.2
       wa-sqlite:
         specifier: ^1.0.0
@@ -143,7 +149,7 @@ importers:
         specifier: ^1.2.0
         version: 1.2.0
       kysely:
-        specifier: ^0.29.2
+        specifier: 'catalog:'
         version: 0.29.2
       kysely-sqlite-builder:
         specifier: ^1.0.0

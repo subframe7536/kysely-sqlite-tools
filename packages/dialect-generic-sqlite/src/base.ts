@@ -10,6 +10,7 @@ import type {
 } from 'kysely'
 import {
   CompiledQuery,
+  createQueryId,
   IdentifierNode,
   RawNode,
   SqliteAdapter,
@@ -45,7 +46,6 @@ export class BaseSqliteDialect implements Dialect {
 
 async function runSavepoint(
   command: string,
-  createQueryId: () => { readonly queryId: string },
   connection: DatabaseConnection,
   savepointName: string,
   compileQuery: QueryCompiler['compileQuery'],
@@ -63,27 +63,6 @@ async function runSavepoint(
 
 export abstract class BaseSqliteDriver implements Driver {
   public conn?: DatabaseConnection
-  savepoint:
-    | ((
-        connection: DatabaseConnection,
-        savepointName: string,
-        compileQuery: QueryCompiler['compileQuery'],
-      ) => Promise<void>)
-    | undefined
-  releaseSavepoint:
-    | ((
-        connection: DatabaseConnection,
-        savepointName: string,
-        compileQuery: QueryCompiler['compileQuery'],
-      ) => Promise<void>)
-    | undefined
-  rollbackToSavepoint:
-    | ((
-        connection: DatabaseConnection,
-        savepointName: string,
-        compileQuery: QueryCompiler['compileQuery'],
-      ) => Promise<void>)
-    | undefined
   init: (options?: AbortableOperationOptions) => Promise<void>
   /**
    * Base abstract class that implements {@link Driver}
@@ -91,16 +70,7 @@ export abstract class BaseSqliteDriver implements Driver {
    * You **MUST** assign `this.conn` in `init` and implement `destroy` method
    */
   constructor(init: (options?: AbortableOperationOptions) => Promise<void>) {
-    this.init = (options) =>
-      import('kysely')
-        .then(({ createQueryId }) => {
-          if (createQueryId) {
-            this.savepoint = runSavepoint.bind(null, 'savepoint', createQueryId)
-            this.releaseSavepoint = runSavepoint.bind(null, 'release', createQueryId)
-            this.rollbackToSavepoint = runSavepoint.bind(null, 'rollback to', createQueryId)
-          }
-        })
-        .then(() => init(options))
+    this.init = init
   }
 
   async acquireConnection(): Promise<DatabaseConnection> {
@@ -122,6 +92,30 @@ export abstract class BaseSqliteDriver implements Driver {
 
   async rollbackTransaction(connection: DatabaseConnection): Promise<void> {
     await connection.executeQuery(CompiledQuery.raw('rollback'))
+  }
+
+  async savepoint(
+    connection: DatabaseConnection,
+    savepointName: string,
+    compileQuery: QueryCompiler['compileQuery'],
+  ): Promise<void> {
+    await runSavepoint('savepoint', connection, savepointName, compileQuery)
+  }
+
+  async rollbackToSavepoint(
+    connection: DatabaseConnection,
+    savepointName: string,
+    compileQuery: QueryCompiler['compileQuery'],
+  ): Promise<void> {
+    await runSavepoint('rollback to', connection, savepointName, compileQuery)
+  }
+
+  async releaseSavepoint(
+    connection: DatabaseConnection,
+    savepointName: string,
+    compileQuery: QueryCompiler['compileQuery'],
+  ): Promise<void> {
+    await runSavepoint('release', connection, savepointName, compileQuery)
   }
 
   abstract destroy(): Promise<void>

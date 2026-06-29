@@ -1,6 +1,6 @@
 {
   "name": "kysely-generic-sqlite",
-  "version": "1.2.1",
+  "version": "2.0.0",
   "description": "Generic kysely dialect for SQLite, support run in main thread or worker",
   "keywords": [
     "dialect",
@@ -67,9 +67,9 @@
     "build": "tsdown"
   },
   "devDependencies": {
-    "kysely": "^0.29.2"
+    "kysely": "catalog:"
   },
   "peerDependencies": {
-    "kysely": ">=0.26"
+    "kysely": ">=0.29"
   }
 }

@@ -1,6 +1,6 @@
 {
   "name": "kysely-bun-worker",
-  "version": "1.2.1",
+  "version": "2.0.0",
   "description": "kysely dialect for bun:sqlite, running in worker",
   "keywords": [
     "bun",
@@ -63,10 +63,10 @@
     "kysely-generic-sqlite": "workspace:*"
   },
   "devDependencies": {
-    "kysely": "^0.29.2"
+    "kysely": "catalog:"
   },
   "peerDependencies": {
     "bun-types": ">=1.1.14",
-    "kysely": ">=0.26"
+    "kysely": ">=0.29"
   }
 }

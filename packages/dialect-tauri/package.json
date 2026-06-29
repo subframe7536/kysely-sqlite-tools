@@ -1,6 +1,6 @@
 {
   "name": "kysely-dialect-tauri",
-  "version": "1.2.1",
+  "version": "2.0.0",
   "description": "Kysely Tauri dialect, using @tauri-apps/plugin-sql",
   "keywords": [
     "Tauri",
@@ -48,10 +48,10 @@
   },
   "devDependencies": {
     "@tauri-apps/plugin-sql": "^2.4.0",
-    "kysely": "^0.29.2"
+    "kysely": "catalog:"
   },
   "peerDependencies": {
     "@tauri-apps/plugin-sql": "^2.0.0",
-    "kysely": ">=0.26"
+    "kysely": ">=0.29"
   }
 }
