@@ -44,9 +44,7 @@ jobs:
             NPM_TAG="latest"
           fi
 
-          for dir in packages/dialect*; do
-            npm publish "$dir" --access public --tag "$NPM_TAG"
-          done
+          pnpm publish -r --access public --tag "$NPM_TAG" --provenance --no-git-checks
 
       - name: GitHub release notes
         run: npx changelogithub
