@@ -54,13 +54,16 @@ class _Buffer {
   }
 }
 
-// @ts-expect-error polyfill
 const indexedDB =
   globalThis.indexedDB ||
   window.indexedDB ||
+  // @ts-expect-error polyfill
   window.mozIndexedDB ||
+  // @ts-expect-error polyfill
   window.webkitIndexedDB ||
+  // @ts-expect-error polyfill
   window.msIndexedDB ||
+  // @ts-expect-error polyfill
   window.shimIndexedDB
 
 // Web browser indexedDB database
