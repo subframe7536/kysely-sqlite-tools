@@ -40,7 +40,7 @@ export class GenericSqliteWorkerDriver<
       this.worker.postMessage([initEvent, exec.data || ({} as any)] satisfies InitMsg<R>)
 
       await new Promise<void>((resolve, reject) => {
-        this.mitt!.once(initEvent, (_, err) => (err ? reject(err) : resolve()))
+        this.mitt!.once(initEvent, (_qid, _data, err) => (err ? reject(err) : resolve()))
       })
 
       this.conn = new GenericSqliteWorkerConnection(this.worker, this.mitt)
@@ -54,7 +54,7 @@ export class GenericSqliteWorkerDriver<
     }
     this.worker.postMessage([closeEvent] satisfies CloseMsg)
     return new Promise<void>((resolve, reject) =>
-      this.mitt?.once(closeEvent, (_, err) => (err ? reject(err) : resolve())),
+      this.mitt?.once(closeEvent, (_qid, _data, err) => (err ? reject(err) : resolve())),
     ).finally(() => {
       this.worker?.terminate()
       this.mitt?.off()
@@ -64,13 +64,71 @@ export class GenericSqliteWorkerDriver<
 }
 
 class GenericSqliteWorkerConnection implements DatabaseConnection {
+  private pendingRuns = new Map<
+    string,
+    { resolve: (data: any) => void; reject: (err: any) => void }
+  >()
+  private pendingStreams = new Map<
+    string,
+    { resolve: (data: any) => void; reject: (err: any) => void }
+  >()
+
   constructor(
     readonly worker: IGenericWorker,
     readonly mitt: IGenericEventEmitter,
-  ) {}
+  ) {
+    // Central dispatcher — register once, route by queryId
+    this.mitt.on(runEvent, (queryId: string | undefined, data: any, err: unknown) => {
+      if (!queryId) {
+        return
+      }
+      const pending = this.pendingRuns.get(queryId)
+      if (!pending) {
+        return
+      }
+      this.pendingRuns.delete(queryId)
+      if (err) {
+        pending.reject(err)
+      } else {
+        pending.resolve(data)
+      }
+    })
+
+    this.mitt.on(dataEvent, (queryId: string | undefined, data: any, err: unknown) => {
+      if (!queryId) {
+        return
+      }
+      const state = this.pendingStreams.get(queryId)
+      if (!state) {
+        return
+      }
+      if (err) {
+        this.pendingStreams.delete(queryId)
+        state.reject(err)
+      } else {
+        state.resolve([{ rows: [data] }, false])
+      }
+    })
+
+    this.mitt.on(endEvent, (queryId: string | undefined, _data: any, err: unknown) => {
+      if (!queryId) {
+        return
+      }
+      const state = this.pendingStreams.get(queryId)
+      if (!state) {
+        return
+      }
+      this.pendingStreams.delete(queryId)
+      if (err) {
+        state.reject(err)
+      } else {
+        state.resolve([undefined, true])
+      }
+    })
+  }
 
   async *streamQuery<R>(
-    { parameters, sql, query }: CompiledQuery,
+    { parameters, sql, query, queryId }: CompiledQuery,
     chunkSize?: number,
     options?: AbortableOperationOptions,
   ): AsyncIterableIterator<QueryResult<R>> {
@@ -80,6 +138,7 @@ class GenericSqliteWorkerConnection implements DatabaseConnection {
 
     this.worker.postMessage([
       dataEvent,
+      queryId.queryId,
       SelectQueryNode.is(query),
       sql,
       parameters,
@@ -87,33 +146,23 @@ class GenericSqliteWorkerConnection implements DatabaseConnection {
     ] satisfies StreamMsg)
     type ResolveData = [data: QueryResult<R> | undefined, done: boolean]
     let done = false
-    let resolveFn: (value: ResolveData) => void
     let rejectFn: (reason?: any) => void
 
     const onAbort = (): void => rejectFn(new Error('Query aborted'))
     options?.signal?.addEventListener('abort', onAbort, { once: true })
 
-    this.mitt!.on(dataEvent, (data, err): void => {
-      if (err) {
-        rejectFn(err)
-      } else {
-        resolveFn([{ rows: [data] }, false])
-      }
-    })
-
-    this.mitt!.on(endEvent, (_, err): void => {
-      if (err) {
-        rejectFn(err)
-      } else {
-        resolveFn([undefined, true])
-      }
-    })
+    const streamState: { resolve: (data: any) => void; reject: (err: any) => void } = {
+      resolve: undefined!,
+      reject: undefined!,
+    }
+    this.pendingStreams.set(queryId.queryId, streamState)
 
     try {
       while (!done) {
         const [data, isDone] = await new Promise<ResolveData>((res, rej) => {
-          resolveFn = res
           rejectFn = rej
+          streamState.resolve = res
+          streamState.reject = rej
         })
 
         if (isDone) {
@@ -124,20 +173,22 @@ class GenericSqliteWorkerConnection implements DatabaseConnection {
       }
     } finally {
       options?.signal?.removeEventListener('abort', onAbort)
-      this.mitt?.off(dataEvent)
-      this.mitt?.off(endEvent)
+      this.pendingStreams.delete(queryId.queryId)
     }
   }
 
   async executeQuery<R>(compiledQuery: CompiledQuery<unknown>): Promise<QueryResult<R>> {
-    const { parameters, sql, query } = compiledQuery
-    this.worker.postMessage([runEvent, SelectQueryNode.is(query), sql, parameters] satisfies RunMsg)
-    return await new Promise((resolve, reject) => {
-      if (!this.mitt) {
-        reject(new Error('kysely instance has been destroyed'))
-      }
+    const { parameters, sql, query, queryId } = compiledQuery
+    this.worker.postMessage([
+      runEvent,
+      queryId.queryId,
+      SelectQueryNode.is(query),
+      sql,
+      parameters,
+    ] satisfies RunMsg)
 
-      this.mitt!.once(runEvent, (data, err) => (!err && data ? resolve(data) : reject(err)))
+    return new Promise((resolve, reject) => {
+      this.pendingRuns.set(queryId.queryId, { resolve, reject })
     })
   }
 }

@@ -3,6 +3,8 @@ import { describe, expect, it } from 'vitest'
 
 import { testCase } from '../../test-utils'
 import { buildQueryFn, GenericSqliteDialect, parseBigInt } from '../src'
+import { createGenericOnMessageCallback } from '../src/worker'
+import { initEvent, dataEvent, runEvent } from '../src/worker/types'
 
 describe('generic sqlite dialect test', () => {
   it('better-sqlite3 executor', async () => {
@@ -30,5 +32,37 @@ describe('generic sqlite dialect test', () => {
     }))
 
     await testCase(dialect, expect, false)
+  })
+  it('keeps worker query responses isolated by query id', async () => {
+    const messages: unknown[] = []
+    const onMessage = createGenericOnMessageCallback(
+      async () => ({
+        db: {},
+        close: () => {},
+        query: async (_isSelect, _sql, parameters) => ({
+          rows: [{ id: parameters?.[0] }],
+        }),
+        *iterator(_isSelect, _sql, parameters, chunkSize) {
+          yield {
+            chunkSize,
+            id: parameters?.[0],
+          }
+        },
+      }),
+      (message) => messages.push(message),
+    )
+
+    await onMessage([initEvent, {}])
+    await onMessage([runEvent, 'query-a', true, 'select ?', ['a']])
+    await onMessage([runEvent, 'query-b', true, 'select ?', ['b']])
+    await onMessage([dataEvent, 'stream-a', true, 'select ?', ['a'], 2])
+
+    expect(messages).toStrictEqual([
+      [initEvent, null, null, null],
+      [runEvent, 'query-a', { rows: [{ id: 'a' }] }, null],
+      [runEvent, 'query-b', { rows: [{ id: 'b' }] }, null],
+      [dataEvent, 'stream-a', { chunkSize: 2, id: 'a' }, null],
+      ['4', 'stream-a', null, null],
+    ])
   })
 })

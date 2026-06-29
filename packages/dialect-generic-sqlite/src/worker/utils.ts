@@ -15,8 +15,8 @@ export function createGenericOnMessageCallback<T extends Record<string, unknown>
   message?: MessageHandleFn<DB>,
 ): (data: MainToWorkerMsg<T>) => Promise<void> {
   let db: IGenericSqlite<DB>
-  return async ([type, data1, data2, data3, data4]) => {
-    const ret: WorkerToMainMsg = [type, null, null]
+  return async ([type, data1, data2, data3, data4, data5]) => {
+    const ret: WorkerToMainMsg = [type, null, null, null]
     try {
       switch (type) {
         case initEvent:
@@ -24,7 +24,8 @@ export function createGenericOnMessageCallback<T extends Record<string, unknown>
           break
 
         case runEvent:
-          ret[1] = await db.query(data1, data2, data3)
+          ret[1] = data1 // queryId
+          ret[2] = await db.query(data2, data3, data4)
           break
 
         case closeEvent:
@@ -35,23 +36,24 @@ export function createGenericOnMessageCallback<T extends Record<string, unknown>
           if (!db.iterator) {
             throw new Error('streamQuery() is not supported.')
           }
-          const it = db.iterator(data1, data2, data3, data4)
+          const it = db.iterator(data2, data3, data4, data5)
           for await (const row of it) {
-            post([type, row as any, null] satisfies WorkerToMainMsg)
+            post([type, data1, row as any, null] satisfies WorkerToMainMsg)
           }
           ret[0] = endEvent
+          ret[1] = data1 // queryId
           break
         }
         default:
           if (message) {
             const data = await message(db, type, data1, data2, data3, data4)
             if (data !== undefined && data !== null) {
-              ret[1] = data
+              ret[2] = data
             }
           }
       }
     } catch (error) {
-      ret[2] = error
+      ret[3] = error
     }
     post(ret)
   }

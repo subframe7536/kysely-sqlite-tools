@@ -12,6 +12,7 @@ export type InitMsg<T extends Record<string, unknown>> = [type: typeof initEvent
 
 export type RunMsg = [
   type: typeof runEvent,
+  queryId: string,
   isSelect: boolean,
   sql: string,
   parameters?: readonly unknown[],
@@ -19,6 +20,7 @@ export type RunMsg = [
 
 export type StreamMsg = [
   type: typeof dataEvent,
+  queryId: string,
   isSelect: boolean,
   sql: string,
   parameters?: readonly unknown[],
@@ -34,7 +36,7 @@ export type MainToWorkerMsg<T extends Record<string, unknown>> =
   | StreamMsg
 
 export type WorkerToMainMsg = {
-  [K in keyof Events]: [type: `${K}`, data: Events[K], err: unknown]
+  [K in keyof Events]: [type: `${K}`, queryId: string | null, data: Events[K], err: unknown]
 }[keyof Events]
 
 type Events = {
