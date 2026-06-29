@@ -15,7 +15,7 @@ export function createGenericOnMessageCallback<T extends Record<string, unknown>
   message?: MessageHandleFn<DB>,
 ): (data: MainToWorkerMsg<T>) => Promise<void> {
   let db: IGenericSqlite<DB>
-  return async ([type, data1, data2, data3]) => {
+  return async ([type, data1, data2, data3, data4]) => {
     const ret: WorkerToMainMsg = [type, null, null]
     try {
       switch (type) {
@@ -35,7 +35,7 @@ export function createGenericOnMessageCallback<T extends Record<string, unknown>
           if (!db.iterator) {
             throw new Error('streamQuery() is not supported.')
           }
-          const it = db.iterator(data1, data2, data3)
+          const it = db.iterator(data1, data2, data3, data4)
           for await (const row of it) {
             post([type, row as any, null] satisfies WorkerToMainMsg)
           }

@@ -38,6 +38,6 @@ describe('tauri sqlite dialect test', () => {
       database: new TauriSqliteMock() as never,
     })
 
-    await testCase(dialect, expect, false)
+    await testCase(dialect, expect, { insertId: true, stream: false })
   })
 })

@@ -9,6 +9,10 @@ describe('sqlite worker dialect test', () => {
       source: ':memory:',
       workerPath: new URL('../dist/worker.mjs', import.meta.url) as never,
     })
-    await testCase(dialect as never, expect, true)
+    await testCase(dialect as never, expect, {
+      insertId: true,
+      numAffectedRows: true,
+      stream: true,
+    })
   })
 })

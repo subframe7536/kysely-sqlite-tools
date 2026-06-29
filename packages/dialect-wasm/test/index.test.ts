@@ -13,13 +13,13 @@ describe('dialect test', () => {
         return new SQL.Database()
       },
     })
-    await testCase(dialect, expect, false)
+    await testCase(dialect, expect, { insertId: true, stream: false })
   })
 
   it('node-wasm', async () => {
     const dialect = new NodeWasmDialect({
       database: new Database(':memory:'),
     })
-    await testCase(dialect, expect)
+    await testCase(dialect, expect, { insertId: true, stream: true })
   })
 })
