@@ -104,4 +104,5 @@ export type MessageHandleFn<DB = unknown> = (
   data1: unknown,
   data2: unknown,
   data3: unknown,
+  data4: unknown,
 ) => Promisable<any>
