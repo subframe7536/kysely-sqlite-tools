@@ -14,7 +14,7 @@
   ],
   "type": "module",
   "scripts": {
-    "dev": "pnpm --filter \"kysely-*\" dev",
+    "dev": "pnpm run play",
     "build": "pnpm --filter \"kysely-*\" build",
     "release": "pnpm install && bumpp package.json packages/dialect*/package.json",
     "play": "pnpm --dir playground dev",

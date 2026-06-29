@@ -15,7 +15,7 @@ const tables = {
   }),
 }
 export type DB = InferDatabase<typeof tables>
-export async function testDB(dialect: Dialect) {
+export async function testDB(dialect: Dialect, onBeforeDestroy?: () => void) {
   const db = new SqliteBuilder<DB>({
     dialect,
     // onQuery: true,
@@ -54,13 +54,13 @@ export async function testDB(dialect: Dialect) {
     console.warn(error)
   }
 
-  return db
+  const data = await db
     .selectFrom('test')
     .selectAll()
     .execute()
-    .then(async (data) => {
-      await db.destroy()
-      console.log(data)
-      return data
-    })
+
+  await onBeforeDestroy?.()
+  await db.destroy()
+  console.log(data)
+  return data
 }
