@@ -6,18 +6,18 @@ import { parseBigInt } from 'kysely-generic-sqlite'
 
 export function createSqliteExecutor(db: Database, cache: boolean): IGenericSqlite<Database> {
   const fn = cache ? 'query' : 'prepare'
-  const getStmt = (sql: string, parameters?: any[]): Statement => db[fn](sql, parameters)
+  const getStmt = (sql: string): Statement => db[fn](sql)
 
   return {
     db,
     query: (_, sql, parameters) => {
-      const stmt = getStmt(sql, parameters as any[])
+      const stmt = getStmt(sql)
       if (stmt.columnNames.length > 0) {
         return {
-          rows: stmt.all(),
+          rows: stmt.all(parameters),
         }
       } else {
-        const { changes, lastInsertRowid } = stmt.run()
+        const { changes, lastInsertRowid } = stmt.run(parameters)
         return {
           numAffectedRows: parseBigInt(changes),
           insertId: parseBigInt(lastInsertRowid),
