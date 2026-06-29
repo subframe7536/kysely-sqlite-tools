@@ -26,11 +26,11 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: QA
-        run: pnpm qa
-
       - name: Build
         run: pnpm build
+
+      - name: QA
+        run: pnpm qa
 
       - name: Update npm
         run: npm install -g npm@latest
