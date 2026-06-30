@@ -112,11 +112,21 @@ export default function App() {
     }
   }
 
-  async function deleteDatabase() {
+  async function deleteDatabase(name: string) {
+    await new Promise<void>((resolve, reject) => {
+      const request = window.indexedDB.deleteDatabase(name)
+      request.onsuccess = () => resolve()
+      request.onerror = () => reject(request.error)
+      request.onblocked = () => resolve()
+    })
+  }
+
+  async function deletePlaygroundDatabases() {
     const dbs = await window.indexedDB.databases()
-    await Promise.all(
-      dbs.map((db) => (db.name ? window.indexedDB.deleteDatabase(db.name) : undefined)),
-    )
+    const names = dbs
+      .map((db) => db.name)
+      .filter((name): name is string => Boolean(name) && name !== 'sqlitevfs')
+    await Promise.all(names.map((name) => deleteDatabase(name)))
   }
 
   async function removeOpfsEntries() {
@@ -138,7 +148,7 @@ export default function App() {
     officialWorker.terminate()
     await deleteFile('sqljs')
     await deleteFile('sqljsWorker')
-    await deleteDatabase()
+    await deletePlaygroundDatabases()
     await removeOpfsEntries()
     sqljsWorker = new SqljsWorker()
     officialWorker = new OfficialWorker()
