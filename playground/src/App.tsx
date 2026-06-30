@@ -165,19 +165,26 @@ export default function App() {
         <p>
           Run each backend, inspect the inserted rows, and verify persisted browser storage from a
           polished Solid interface.
-        </p>
-        <div class="hero-links">
-          <a href="https://github.com/kysely-org/kysely" target="_blank" rel="noreferrer">
-            Kysely
+          <br></br>
+          <br></br>
+          <a
+            href="https://github.com/kysely-org/kysely"
+            target="_blank"
+            rel="noreferrer"
+            class="hero-link"
+          >
+            Kysely docs
           </a>
+          <span style={{ padding: '0 0.6rem' }}>|</span>
           <a
             href="https://developer.mozilla.org/en-US/docs/Web/API/File_System_Access_API#origin_private_file_system"
             target="_blank"
             rel="noreferrer"
+            class="hero-link"
           >
             OPFS docs
           </a>
-        </div>
+        </p>
       </section>
 
       <section class="panel controls-panel">
@@ -220,7 +227,7 @@ export default function App() {
       <section class="panel results-panel">
         <div class="results-header">
           <div>
-            <h2>Test table</h2>
+            <h2>Test result table of {activeRunner()}</h2>
             <p>{rows().length} rows returned from the latest run.</p>
           </div>
           <span

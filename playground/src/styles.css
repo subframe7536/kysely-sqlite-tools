@@ -90,13 +90,18 @@ h3 {
   line-height: 1.65;
 }
 
-.hero-links {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
+.hero-link {
+  width: fit-content;
 }
 
-.hero-links a,
+.hero-link:hover {
+  text-decoration: underline;
+}
+
+.hero-link::after {
+  content: '↗';
+}
+
 .clear-button,
 .runner-card button {
   padding: 9px 12px;
