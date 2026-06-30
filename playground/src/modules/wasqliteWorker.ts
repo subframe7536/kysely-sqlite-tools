@@ -8,8 +8,7 @@ import {
 
 import { testDB } from './utils'
 
-export async function useWaSqliteWorker() {
-  // console.log(wasmURL)
+export function runWaSqliteWorker() {
   const dialect = new WaSqliteWorkerDialect({
     fileName: 'wa-sqlite-worker-test',
     // test classic worker
@@ -19,14 +18,6 @@ export async function useWaSqliteWorker() {
     // test custom wasm URL
     url: () => wasmURL,
   })
-  console.log('start wa-sqlite-worker test')
-  testDB(dialect as any).then(async (data) => {
-    data?.forEach((e) => console.log('[wa-sqlite-worker]', e))
-    // const supportModuleWorker = isModuleWorkerSupport()
-    // const supportIDB = isIdbSupported()
-    // const supportOPFS = await isOpfsSupported()
-    // console.log('support module worker:', supportModuleWorker)
-    // console.log('support IDBBatchAtomicVFS:', supportIDB)
-    // console.log('support AccessHandlePoolVFS:', supportOPFS)
-  })
+
+  return testDB(dialect as any)
 }

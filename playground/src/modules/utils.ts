@@ -1,41 +1,44 @@
-import type { Dialect } from 'kysely'
-import { SqliteBuilder } from 'kysely-sqlite-builder'
-import type { InferDatabase } from 'kysely-sqlite-builder/schema'
-import { column, defineTable, useSchema } from 'kysely-sqlite-builder/schema'
+import type { ColumnType, Dialect, Generated, Selectable } from 'kysely'
+import { Kysely, sql } from 'kysely'
 
-const tables = {
-  test: defineTable({
-    columns: {
-      id: column.increments(),
-      name: column.string(),
-      blobtest: column.blob(),
-    },
-    createAt: true,
-    updateAt: true,
-  }),
+type TestTable = {
+  id: Generated<number>
+  name: string
+  blobtest: Uint8Array
+  created_at: ColumnType<string, string | undefined, never>
+  updated_at: ColumnType<string, string | undefined, string | undefined>
 }
-export type DB = InferDatabase<typeof tables>
-export async function testDB(dialect: Dialect, onBeforeDestroy?: () => void) {
-  const db = new SqliteBuilder<DB>({
-    dialect,
-    // onQuery: true,
-  })
 
-  const result = await db.syncDB(useSchema(tables))
-  if (!result.ready) {
-    throw result.error
-  }
-  console.log(await db.execute(`PRAGMA table_info('test')`))
-  // console.log(await db.execute(`select fts5(?1)`))
+export type TestRow = Selectable<TestTable>
+
+type DB = {
+  test: TestTable
+}
+
+async function syncSchema(db: Kysely<DB>) {
+  await db.schema
+    .createTable('test')
+    .ifNotExists()
+    .addColumn('id', 'integer', (col) => col.primaryKey().autoIncrement())
+    .addColumn('name', 'text', (col) => col.notNull())
+    .addColumn('blobtest', 'blob', (col) => col.notNull())
+    .addColumn('created_at', 'text', (col) => col.notNull().defaultTo(sql`CURRENT_TIMESTAMP`))
+    .addColumn('updated_at', 'text', (col) => col.notNull().defaultTo(sql`CURRENT_TIMESTAMP`))
+    .execute()
+}
+
+export async function testDB(dialect: Dialect, onBeforeDestroy?: () => void | Promise<void>) {
+  const db = new Kysely<DB>({ dialect })
+
+  await syncSchema(db)
 
   for (let i = 0; i < 10; i++) {
-    await db.transaction(async () => {
-      await db.transaction(async () => {
+    try {
+      await db.transaction().execute(async (trx) => {
         if (i > 8) {
-          console.log('test rollback')
           throw new Error('test rollback')
         }
-        await db
+        await trx
           .insertInto('test')
           .values({
             name: `test at ${Date.now()}`,
@@ -43,24 +46,14 @@ export async function testDB(dialect: Dialect, onBeforeDestroy?: () => void) {
           })
           .execute()
       })
-    })
-  }
-
-  try {
-    for await (const v of db.selectFrom('test').selectAll().stream(2)) {
-      console.log('Stream Query', v)
+    } catch {
+      // Keep one intentional rollback in the sample flow without interrupting the visual result.
     }
-  } catch (error) {
-    console.warn(error)
   }
 
-  const data = await db
-    .selectFrom('test')
-    .selectAll()
-    .execute()
+  const data = await db.selectFrom('test').selectAll().orderBy('id', 'asc').execute()
 
   await onBeforeDestroy?.()
   await db.destroy()
-  console.log(data)
   return data
 }

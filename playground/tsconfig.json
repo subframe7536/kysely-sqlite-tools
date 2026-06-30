@@ -6,14 +6,15 @@
     "module": "ESNext",
     "moduleResolution": "bundler",
     "resolveJsonModule": true,
-    "types": ["node", "vite/client"],
+    "types": ["vite/client"],
     "strict": true,
     "strictNullChecks": true,
     "noUnusedLocals": true,
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
     "skipDefaultLibCheck": true,
-    "skipLibCheck": true
+    "skipLibCheck": true,
+    "jsxImportSource": "solid-js"
   },
   "include": ["src"],
   "exclude": ["node_modules", "dist"]

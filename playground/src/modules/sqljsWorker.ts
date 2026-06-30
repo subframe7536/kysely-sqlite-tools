@@ -18,11 +18,12 @@ const dialect = new SqlJsDialect({
     return db
   },
 })
-onmessage = () => {
-  console.log('start sqljs worker test')
-  testDB(dialect, () => {
-    writeFile('sqljs', db?.export())
-  }).then((data) => {
-    data?.forEach((e) => console.log('[sqljs Worker]', e))
-  })
+
+onmessage = async () => {
+  try {
+    const rows = await testDB(dialect, () => writeFile('sqljsWorker', db?.export()))
+    postMessage({ type: 'result', rows })
+  } catch (error) {
+    postMessage({ type: 'error', error: error instanceof Error ? error.message : String(error) })
+  }
 }

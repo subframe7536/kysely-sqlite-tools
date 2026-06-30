@@ -105,6 +105,7 @@ async function syncFile(fileName: string, data: Uint8Array) {
 }
 
 export async function deleteFile(fileName: string) {
+  LOADED_FILES.delete(fileName)
   const db = await database
   await new Promise((resolve, reject) => {
     const store = db.transaction('files', 'readwrite').objectStore('files')
