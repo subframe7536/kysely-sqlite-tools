@@ -16,15 +16,15 @@ type DB = {
 }
 
 async function syncSchema(db: Kysely<DB>) {
-  await sql`
-    CREATE TABLE IF NOT EXISTS test (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      name TEXT NOT NULL,
-      blobtest BLOB NOT NULL,
-      created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
-      updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
-    )
-  `.execute(db)
+  await db.schema
+    .createTable('test')
+    .ifNotExists()
+    .addColumn('id', 'integer', (col) => col.primaryKey().autoIncrement())
+    .addColumn('name', 'text', (col) => col.notNull())
+    .addColumn('blobtest', 'blob', (col) => col.notNull())
+    .addColumn('created_at', 'text', (col) => col.notNull().defaultTo(sql`CURRENT_TIMESTAMP`))
+    .addColumn('updated_at', 'text', (col) => col.notNull().defaultTo(sql`CURRENT_TIMESTAMP`))
+    .execute()
 }
 
 export async function testDB(dialect: Dialect, onBeforeDestroy?: () => void | Promise<void>) {
