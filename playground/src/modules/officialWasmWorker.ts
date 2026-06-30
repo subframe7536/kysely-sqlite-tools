@@ -13,7 +13,7 @@ const dialect = new OfficialWasmDialect({
     if (sqlite3.OpfsDb) {
       return new sqlite3.OpfsDb(path)
     }
-    return new sqlite3.DB(path)
+    return new sqlite3.DB(path) as any
   },
 })
 

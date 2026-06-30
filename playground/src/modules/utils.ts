@@ -1,52 +1,54 @@
-import type { Dialect } from 'kysely'
-import { SqliteBuilder } from 'kysely-sqlite-builder'
-import type { InferDatabase } from 'kysely-sqlite-builder/schema'
-import { column, defineTable, useSchema } from 'kysely-sqlite-builder/schema'
+import type { ColumnType, Dialect, Generated, Selectable } from 'kysely'
+import { Kysely, sql } from 'kysely'
 
-const tables = {
-  test: defineTable({
-    columns: {
-      id: column.increments(),
-      name: column.string(),
-      blobtest: column.blob(),
-    },
-    createAt: true,
-    updateAt: true,
-  }),
+type TestTable = {
+  id: Generated<number>
+  name: string
+  blobtest: Uint8Array
+  created_at: ColumnType<string, string | undefined, never>
+  updated_at: ColumnType<string, string | undefined, string | undefined>
 }
-export type DB = InferDatabase<typeof tables>
-export type TestRow = DB['test']
+
+export type TestRow = Selectable<TestTable>
+
+type DB = {
+  test: TestTable
+}
+
+async function syncSchema(db: Kysely<DB>) {
+  await sql`
+    CREATE TABLE IF NOT EXISTS test (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      name TEXT NOT NULL,
+      blobtest BLOB NOT NULL,
+      created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+    )
+  `.execute(db)
+}
 
 export async function testDB(dialect: Dialect, onBeforeDestroy?: () => void | Promise<void>) {
-  const db = new SqliteBuilder<DB>({
-    dialect,
-    // onQuery: true,
-  })
+  const db = new Kysely<DB>({ dialect })
 
-  const result = await db.syncDB(useSchema(tables))
-  if (!result.ready) {
-    throw result.error
-  }
+  await syncSchema(db)
 
   for (let i = 0; i < 10; i++) {
-    await db.transaction(async () => {
-      try {
-        await db.transaction(async () => {
-          if (i > 8) {
-            throw new Error('test rollback')
-          }
-          await db
-            .insertInto('test')
-            .values({
-              name: `test at ${Date.now()}`,
-              blobtest: Uint8Array.from([2, 3, 4, 5, 6, 7, 8]),
-            })
-            .execute()
-        })
-      } catch {
-        // Keep one intentional rollback in the sample flow without interrupting the visual result.
-      }
-    })
+    try {
+      await db.transaction().execute(async (trx) => {
+        if (i > 8) {
+          throw new Error('test rollback')
+        }
+        await trx
+          .insertInto('test')
+          .values({
+            name: `test at ${Date.now()}`,
+            blobtest: Uint8Array.from([2, 3, 4, 5, 6, 7, 8]),
+          })
+          .execute()
+      })
+    } catch {
+      // Keep one intentional rollback in the sample flow without interrupting the visual result.
+    }
   }
 
   try {
@@ -58,7 +60,7 @@ export async function testDB(dialect: Dialect, onBeforeDestroy?: () => void | Pr
     // the final materialized query so users can compare dialect behavior without opening devtools.
   }
 
-  const data = await db.selectFrom('test').selectAll().execute()
+  const data = await db.selectFrom('test').selectAll().orderBy('id', 'asc').execute()
 
   await onBeforeDestroy?.()
   await db.destroy()

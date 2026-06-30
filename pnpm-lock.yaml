@@ -151,9 +151,6 @@ importers:
       kysely:
         specifier: 'catalog:'
         version: 0.29.2
-      kysely-sqlite-builder:
-        specifier: ^1.0.0
-        version: 1.0.0(kysely@0.29.2)
       kysely-wasm:
         specifier: workspace:*
         version: link:../packages/dialect-wasm
@@ -989,16 +986,6 @@ packages:
 
   jsonc-parser@3.3.1:
     resolution: {integrity: sha512-HUgH65KyejrUFPvHFPbqOY0rsFip3Bo5wb4ngvdi1EpCYWUQDC5V+Y7mZws+DLkr4M//zQJoanu1SP+87Dv1oQ==}
-
-  kysely-plugin-serialize@0.8.2:
-    resolution: {integrity: sha512-81nyTvDPGNHTzs9/Si+GW69YkcQgy2PMlkCieihEyF9EmlGY/TURUZMhVRrLV1k3Hsit+AWCfoEOLJczbK3hDw==}
-    peerDependencies:
-      kysely: '>=0.26'
-
-  kysely-sqlite-builder@1.0.0:
-    resolution: {integrity: sha512-sb1+4LwR1fcP58HwO1WHI6SS66ZLrtKIwgRsUI2mh1cSNtBXr3Klr29xJ27voHWTCrDLnikvRV1mvhh5OLiKFA==}
-    peerDependencies:
-      kysely: '>=0.28'
 
   kysely@0.29.2:
     resolution: {integrity: sha512-s6WVJyEZrbm6jhBpiKHsGHyePMrVQKJ85wZCFCr9W4QHv6WTjWIrdvTmO9hDEA3bNK0xkrE2DqrHsXMLWuZpQg==}
@@ -2148,15 +2135,6 @@ snapshots:
   json5@2.2.3: {}
 
   jsonc-parser@3.3.1: {}
-
-  kysely-plugin-serialize@0.8.2(kysely@0.29.2):
-    dependencies:
-      kysely: 0.29.2
-
-  kysely-sqlite-builder@1.0.0(kysely@0.29.2):
-    dependencies:
-      kysely: 0.29.2
-      kysely-plugin-serialize: 0.8.2(kysely@0.29.2)
 
   kysely@0.29.2: {}
 

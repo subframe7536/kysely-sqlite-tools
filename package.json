@@ -20,10 +20,10 @@
     "play": "pnpm --dir playground dev",
     "play:build": "pnpm build && pnpm --dir playground build",
     "test": "pnpm build && vitest run",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "tsc --noEmit && pnpm --dir playground exec tsc --noEmit",
     "format": "oxfmt",
     "lint": "oxlint",
-    "qa": "oxlint --fix && oxfmt && tsc --noEmit",
+    "qa": "pnpm build && oxlint --fix && oxfmt && tsc --noEmit && pnpm --dir playground exec tsc --noEmit",
     "test:bun": "pnpm --filter kysely-generic-sqlite build && pnpm --filter kysely-bun-worker test"
   },
   "devDependencies": {

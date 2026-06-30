@@ -12,8 +12,6 @@ type RunnerKey = 'sqljs-main' | 'sqljs-worker' | 'official-wasm' | 'wa-sqlite-wo
 type RunnerState = {
   key: RunnerKey
   label: string
-  description: string
-  storage: string
 }
 
 type RunStatus = 'idle' | 'running' | 'success' | 'error'
@@ -31,30 +29,10 @@ type WorkerErrorMessage = {
 type WorkerMessage = WorkerResultMessage | WorkerErrorMessage
 
 const runners: RunnerState[] = [
-  {
-    key: 'sqljs-main',
-    label: 'SQL.js main thread',
-    description: 'Runs the SQL.js dialect directly in the browser thread.',
-    storage: 'IndexedDB',
-  },
-  {
-    key: 'sqljs-worker',
-    label: 'SQL.js worker',
-    description: 'Runs the SQL.js dialect in a dedicated web worker.',
-    storage: 'IndexedDB',
-  },
-  {
-    key: 'official-wasm',
-    label: 'Official SQLite WASM',
-    description: 'Runs @sqlite.org/sqlite-wasm through the worker dialect.',
-    storage: 'OPFS when available',
-  },
-  {
-    key: 'wa-sqlite-worker',
-    label: 'wa-sqlite worker',
-    description: 'Runs the wa-sqlite worker dialect with broad browser compatibility.',
-    storage: 'OPFS / IndexedDB VFS',
-  },
+  { key: 'sqljs-main', label: 'SQL.js main thread' },
+  { key: 'sqljs-worker', label: 'SQL.js worker' },
+  { key: 'official-wasm', label: 'Official SQLite WASM' },
+  { key: 'wa-sqlite-worker', label: 'wa-sqlite worker' },
 ]
 
 function getErrorMessage(error: unknown) {
@@ -82,8 +60,8 @@ export default function App() {
   const [error, setError] = createSignal('')
   const [clearedAt, setClearedAt] = createSignal('')
 
-  const sqljsWorker = new SqljsWorker()
-  const officialWorker = new OfficialWorker()
+  let sqljsWorker = new SqljsWorker()
+  let officialWorker = new OfficialWorker()
 
   async function run(key: RunnerKey) {
     setActiveRunner(key)
@@ -136,10 +114,14 @@ export default function App() {
   async function clear() {
     setStatus('running')
     setError('')
+    sqljsWorker.terminate()
+    officialWorker.terminate()
     await deleteFile('sqljs')
     await deleteFile('sqljsWorker')
     await deleteDatabase()
     await removeOpfsEntries()
+    sqljsWorker = new SqljsWorker()
+    officialWorker = new OfficialWorker()
     setRows([])
     setStatus('idle')
     setClearedAt(new Date().toLocaleTimeString())
@@ -176,18 +158,16 @@ export default function App() {
             below.
           </p>
         </div>
-        <div class="runner-grid">
+        <div class="runner-actions">
           <For each={runners}>
             {(runner) => (
               <button
-                classList={{ 'runner-card': true, active: activeRunner() === runner.key }}
+                classList={{ 'runner-button': true, active: activeRunner() === runner.key }}
                 disabled={status() === 'running'}
                 onClick={() => run(runner.key)}
                 type="button"
               >
-                <span>{runner.label}</span>
-                <small>{runner.description}</small>
-                <em>{runner.storage}</em>
+                {runner.label}
               </button>
             )}
           </For>

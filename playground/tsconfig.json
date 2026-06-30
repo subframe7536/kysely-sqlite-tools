@@ -6,7 +6,7 @@
     "module": "ESNext",
     "moduleResolution": "bundler",
     "resolveJsonModule": true,
-    "types": ["node", "vite/client"],
+    "types": ["vite/client"],
     "strict": true,
     "strictNullChecks": true,
     "noUnusedLocals": true,

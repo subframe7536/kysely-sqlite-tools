@@ -9,7 +9,6 @@
   "dependencies": {
     "@subframe7536/sqlite-wasm": "^1.2.0",
     "kysely": "catalog:",
-    "kysely-sqlite-builder": "^1.0.0",
     "kysely-wasm": "workspace:*",
     "kysely-wasqlite-worker": "workspace:*",
     "solid-js": "^1.9.10"

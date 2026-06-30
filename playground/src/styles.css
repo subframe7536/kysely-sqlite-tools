@@ -116,61 +116,39 @@ h2 {
   gap: 22px;
 }
 
-.runner-grid {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 14px;
+.runner-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
 }
 
-.runner-card {
-  display: grid;
-  gap: 10px;
-  min-height: 172px;
-  padding: 18px;
-  border: 1px solid rgb(148 163 184 / 30%);
-  border-radius: 22px;
+.runner-button {
+  padding: 12px 16px;
+  border: 1px solid rgb(148 163 184 / 34%);
+  border-radius: 999px;
   color: #334155;
-  text-align: left;
+  font-weight: 800;
   cursor: pointer;
-  background: linear-gradient(180deg, rgb(255 255 255 / 92%), rgb(248 250 252 / 88%));
+  background: linear-gradient(180deg, rgb(255 255 255 / 94%), rgb(248 250 252 / 90%));
+  box-shadow: 0 10px 26px rgb(15 23 42 / 8%);
   transition:
     transform 180ms ease,
     border-color 180ms ease,
     box-shadow 180ms ease;
 }
 
-.runner-card:hover,
-.runner-card.active {
+.runner-button:hover,
+.runner-button.active {
   border-color: rgb(37 99 235 / 55%);
-  box-shadow: 0 18px 42px rgb(37 99 235 / 16%);
-  transform: translateY(-2px);
+  color: #1d4ed8;
+  box-shadow: 0 16px 34px rgb(37 99 235 / 16%);
+  transform: translateY(-1px);
 }
 
-.runner-card:disabled,
+.runner-button:disabled,
 .clear-button:disabled {
   cursor: wait;
   opacity: 0.65;
-}
-
-.runner-card span {
-  color: #0f172a;
-  font-size: 1.02rem;
-  font-weight: 800;
-}
-
-.runner-card small {
-  color: #64748b;
-  line-height: 1.5;
-}
-
-.runner-card em {
-  align-self: end;
-  color: #2563eb;
-  font-size: 0.78rem;
-  font-style: normal;
-  font-weight: 800;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
 }
 
 .clear-button {
@@ -271,12 +249,6 @@ tr:last-child td {
   text-align: center;
 }
 
-@media (max-width: 920px) {
-  .runner-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-}
-
 @media (max-width: 640px) {
   .shell {
     width: min(100% - 20px, 1180px);
@@ -286,11 +258,6 @@ tr:last-child td {
   .panel {
     padding: 18px;
     border-radius: 22px;
-  }
-
-  .runner-grid,
-  .results-header {
-    grid-template-columns: 1fr;
   }
 
   .results-header {
