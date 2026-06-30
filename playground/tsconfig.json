@@ -13,7 +13,8 @@
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
     "skipDefaultLibCheck": true,
-    "skipLibCheck": true
+    "skipLibCheck": true,
+    "jsxImportSource": "solid-js"
   },
   "include": ["src"],
   "exclude": ["node_modules", "dist"]

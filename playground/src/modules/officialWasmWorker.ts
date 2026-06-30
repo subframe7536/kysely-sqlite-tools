@@ -11,17 +11,17 @@ const dialect = new OfficialWasmDialect({
     }
     const path = '/test.db'
     if (sqlite3.OpfsDb) {
-      console.log('support OPFS')
       return new sqlite3.OpfsDb(path)
     }
-    console.log("doesn't support OPFS")
     return new sqlite3.DB(path)
   },
 })
 
-onmessage = () => {
-  console.log('start official wasm test')
-  testDB(dialect).then((data) => {
-    data?.forEach((e) => console.log('[official wasm]', e))
-  })
+onmessage = async () => {
+  try {
+    const rows = await testDB(dialect)
+    postMessage({ type: 'result', rows })
+  } catch (error) {
+    postMessage({ type: 'error', error: error instanceof Error ? error.message : String(error) })
+  }
 }
