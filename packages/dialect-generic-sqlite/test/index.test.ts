@@ -1,9 +1,11 @@
 import Database from 'better-sqlite3'
+import { CompiledQuery } from 'kysely'
 import { describe, expect, it } from 'vitest'
 
 import { testCase } from '../../test-utils'
 import { buildQueryFn, GenericSqliteDialect, parseBigInt } from '../src'
-import { createGenericOnMessageCallback } from '../src/worker'
+import { createGenericOnMessageCallback, GenericSqliteWorkerDialect } from '../src/worker'
+import type { IGenericEventEmitter } from '../src/worker'
 import { initEvent, dataEvent, runEvent } from '../src/worker/types'
 
 describe('generic sqlite dialect test', () => {
@@ -65,4 +67,81 @@ describe('generic sqlite dialect test', () => {
       ['4', 'stream-a', null, null],
     ])
   })
+  it('buffers synchronous worker stream rows without dropping data', async () => {
+    const mitt = createTestMitt()
+    const messages: unknown[] = []
+    const onMessage = createGenericOnMessageCallback(
+      async () => ({
+        db: {},
+        close: () => {},
+        query: () => ({ rows: [] }),
+        *iterator() {
+          yield { id: 1 }
+          yield { id: 2 }
+          yield { id: 3 }
+        },
+      }),
+      (message) => {
+        messages.push(message)
+        const [type, ...args] = message as [string, ...unknown[]]
+        mitt.emit(type, ...args)
+      },
+    )
+
+    const dialect = new GenericSqliteWorkerDialect(() => ({
+      mitt,
+      worker: {
+        postMessage: (message) => void onMessage(message as never),
+        terminate: () => {},
+      },
+      handle: () => {},
+    }))
+    const driver = dialect.createDriver()
+    await driver.init()
+
+    const connection = await driver.acquireConnection()
+    const query = CompiledQuery.raw('select 1')
+    const rows: unknown[] = []
+    for await (const result of connection.streamQuery(query, 1)) {
+      rows.push(...result.rows)
+    }
+    await driver.releaseConnection(connection)
+    await driver.destroy()
+
+    expect(rows).toStrictEqual([{ id: 1 }, { id: 2 }, { id: 3 }])
+    expect(messages).toHaveLength(6)
+  })
 })
+
+function createTestMitt(): IGenericEventEmitter {
+  const listeners = new Map<string, Set<(...value: any[]) => void>>()
+
+  return {
+    emit: (eventName: string, ...args: any[]) => {
+      for (const listener of listeners.get(eventName) ?? []) {
+        listener(...args)
+      }
+    },
+    on: (eventName: string, callback: (...value: any[]) => void) => {
+      const eventListeners = listeners.get(eventName) ?? new Set()
+      eventListeners.add(callback)
+      listeners.set(eventName, eventListeners)
+    },
+    once: (eventName: string, callback: (...value: any[]) => void) => {
+      const onceCallback = (...value: any[]): void => {
+        listeners.get(eventName)?.delete(onceCallback)
+        callback(...value)
+      }
+      const eventListeners = listeners.get(eventName) ?? new Set()
+      eventListeners.add(onceCallback)
+      listeners.set(eventName, eventListeners)
+    },
+    off: (eventName?: string): void => {
+      if (eventName) {
+        listeners.delete(eventName)
+      } else {
+        listeners.clear()
+      }
+    },
+  }
+}
