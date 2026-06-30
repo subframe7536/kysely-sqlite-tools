@@ -11,7 +11,8 @@ type RunnerKey = 'sqljs-main' | 'sqljs-worker' | 'official-wasm' | 'wa-sqlite-wo
 
 type RunnerState = {
   key: RunnerKey
-  label: string
+  title: string
+  description: string
 }
 
 type RunStatus = 'idle' | 'running' | 'success' | 'error'
@@ -29,10 +30,29 @@ type WorkerErrorMessage = {
 type WorkerMessage = WorkerResultMessage | WorkerErrorMessage
 
 const runners: RunnerState[] = [
-  { key: 'sqljs-main', label: 'SQL.js main thread' },
-  { key: 'sqljs-worker', label: 'SQL.js worker' },
-  { key: 'official-wasm', label: 'Official SQLite WASM' },
-  { key: 'wa-sqlite-worker', label: 'wa-sqlite worker' },
+  {
+    key: 'sqljs-main',
+    title: 'SQL.js main thread',
+    description:
+      'Runs SQL.js directly in the browser thread and persists the database in IndexedDB.',
+  },
+  {
+    key: 'sqljs-worker',
+    title: 'SQL.js worker',
+    description: 'Runs SQL.js in a dedicated worker and sends table rows back to the UI.',
+  },
+  {
+    key: 'official-wasm',
+    title: 'Official SQLite WASM',
+    description:
+      'Uses @sqlite.org/sqlite-wasm in a worker, backed by OPFS when the browser supports it.',
+  },
+  {
+    key: 'wa-sqlite-worker',
+    title: 'wa-sqlite worker',
+    description:
+      'Runs the wa-sqlite worker dialect with broad compatibility across browser storage APIs.',
+  },
 ]
 
 function getErrorMessage(error: unknown) {
@@ -151,24 +171,29 @@ export default function App() {
       </section>
 
       <section class="panel controls-panel">
-        <div>
+        <div class="section-heading">
           <h2>Choose a runner</h2>
           <p>
-            Each action creates sample records in the shared test table and renders the latest query
+            Each runner creates sample records in the shared test table and renders the latest query
             below.
           </p>
         </div>
-        <div class="runner-actions">
+        <div class="runner-grid">
           <For each={runners}>
             {(runner) => (
-              <button
-                classList={{ 'runner-button': true, active: activeRunner() === runner.key }}
-                disabled={status() === 'running'}
-                onClick={() => run(runner.key)}
-                type="button"
-              >
-                {runner.label}
-              </button>
+              <article classList={{ 'runner-card': true, active: activeRunner() === runner.key }}>
+                <div>
+                  <h3>{runner.title}</h3>
+                  <p>{runner.description}</p>
+                </div>
+                <button
+                  disabled={status() === 'running'}
+                  onClick={() => run(runner.key)}
+                  type="button"
+                >
+                  Run test
+                </button>
+              </article>
             )}
           </For>
         </div>

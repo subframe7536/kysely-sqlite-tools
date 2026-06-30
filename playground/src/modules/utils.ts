@@ -51,15 +51,6 @@ export async function testDB(dialect: Dialect, onBeforeDestroy?: () => void | Pr
     }
   }
 
-  try {
-    for await (const _row of db.selectFrom('test').selectAll().stream(2)) {
-      // Streaming is exercised to verify dialect support; the final table query below drives the UI.
-    }
-  } catch {
-    // Some browser-backed dialects do not support streaming consistently. The playground still shows
-    // the final materialized query so users can compare dialect behavior without opening devtools.
-  }
-
   const data = await db.selectFrom('test').selectAll().orderBy('id', 'asc').execute()
 
   await onBeforeDestroy?.()

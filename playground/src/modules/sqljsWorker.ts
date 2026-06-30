@@ -21,9 +21,7 @@ const dialect = new SqlJsDialect({
 
 onmessage = async () => {
   try {
-    const rows = await testDB(dialect, () => {
-      writeFile('sqljsWorker', db?.export())
-    })
+    const rows = await testDB(dialect, () => writeFile('sqljsWorker', db?.export()))
     postMessage({ type: 'result', rows })
   } catch (error) {
     postMessage({ type: 'error', error: error instanceof Error ? error.message : String(error) })

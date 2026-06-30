@@ -19,7 +19,5 @@ const dialect = new SqlJsDialect({
   },
 })
 export function runSqlJsMain() {
-  return testDB(dialect, () => {
-    writeFile('sqljs', db?.export())
-  })
+  return testDB(dialect, () => writeFile('sqljs', db?.export()))
 }
