@@ -63,15 +63,17 @@ export class GenericSqliteWorkerDriver<
   }
 }
 
+type PendingRun = { resolve: (data: any) => void; reject: (err: any) => void }
+type StreamResult<R> = [data: QueryResult<R> | undefined, done: boolean]
+type PendingStream = {
+  queue: StreamResult<any>[]
+  wait?: PendingRun
+  error?: unknown
+}
+
 class GenericSqliteWorkerConnection implements DatabaseConnection {
-  private pendingRuns = new Map<
-    string,
-    { resolve: (data: any) => void; reject: (err: any) => void }
-  >()
-  private pendingStreams = new Map<
-    string,
-    { resolve: (data: any) => void; reject: (err: any) => void }
-  >()
+  private pendingRuns = new Map<string, PendingRun>()
+  private pendingStreams = new Map<string, PendingStream>()
 
   constructor(
     readonly worker: IGenericWorker,
@@ -103,10 +105,9 @@ class GenericSqliteWorkerConnection implements DatabaseConnection {
         return
       }
       if (err) {
-        this.pendingStreams.delete(queryId)
-        state.reject(err)
+        this.rejectStream(queryId, state, err)
       } else {
-        state.resolve([{ rows: [data] }, false])
+        this.pushStreamResult(queryId, state, [{ rows: [data] }, false])
       }
     })
 
@@ -118,11 +119,10 @@ class GenericSqliteWorkerConnection implements DatabaseConnection {
       if (!state) {
         return
       }
-      this.pendingStreams.delete(queryId)
       if (err) {
-        state.reject(err)
+        this.rejectStream(queryId, state, err)
       } else {
-        state.resolve([undefined, true])
+        this.pushStreamResult(queryId, state, [undefined, true])
       }
     })
   }
@@ -136,6 +136,9 @@ class GenericSqliteWorkerConnection implements DatabaseConnection {
       return
     }
 
+    const streamState: PendingStream = { queue: [] }
+    this.pendingStreams.set(queryId.queryId, streamState)
+
     this.worker.postMessage([
       dataEvent,
       queryId.queryId,
@@ -144,32 +147,20 @@ class GenericSqliteWorkerConnection implements DatabaseConnection {
       parameters,
       chunkSize,
     ] satisfies StreamMsg)
-    type ResolveData = [data: QueryResult<R> | undefined, done: boolean]
-    let done = false
-    let rejectFn: (reason?: any) => void
 
-    const onAbort = (): void => rejectFn(new Error('Query aborted'))
+    const onAbort = (): void => {
+      this.rejectStream(queryId.queryId, streamState, new Error('Query aborted'))
+    }
     options?.signal?.addEventListener('abort', onAbort, { once: true })
 
-    const streamState: { resolve: (data: any) => void; reject: (err: any) => void } = {
-      resolve: undefined!,
-      reject: undefined!,
-    }
-    this.pendingStreams.set(queryId.queryId, streamState)
-
     try {
-      while (!done) {
-        const [data, isDone] = await new Promise<ResolveData>((res, rej) => {
-          rejectFn = rej
-          streamState.resolve = res
-          streamState.reject = rej
-        })
+      while (true) {
+        const [data, isDone] = await this.nextStreamResult<R>(streamState)
 
         if (isDone) {
-          done = true
-        } else {
-          yield data!
+          return
         }
+        yield data!
       }
     } finally {
       options?.signal?.removeEventListener('abort', onAbort)
@@ -179,16 +170,52 @@ class GenericSqliteWorkerConnection implements DatabaseConnection {
 
   async executeQuery<R>(compiledQuery: CompiledQuery<unknown>): Promise<QueryResult<R>> {
     const { parameters, sql, query, queryId } = compiledQuery
-    this.worker.postMessage([
-      runEvent,
-      queryId.queryId,
-      SelectQueryNode.is(query),
-      sql,
-      parameters,
-    ] satisfies RunMsg)
-
     return new Promise((resolve, reject) => {
       this.pendingRuns.set(queryId.queryId, { resolve, reject })
+      this.worker.postMessage([
+        runEvent,
+        queryId.queryId,
+        SelectQueryNode.is(query),
+        sql,
+        parameters,
+      ] satisfies RunMsg)
     })
+  }
+
+  private nextStreamResult<R>(state: PendingStream): Promise<StreamResult<R>> {
+    const queued = state.queue.shift()
+    if (queued) {
+      return Promise.resolve(queued)
+    }
+    if (state.error) {
+      return Promise.reject(state.error)
+    }
+    return new Promise((resolve, reject) => {
+      state.wait = { resolve, reject }
+    })
+  }
+
+  private pushStreamResult(queryId: string, state: PendingStream, result: StreamResult<any>): void {
+    if (state.wait) {
+      const { resolve } = state.wait
+      state.wait = undefined
+      resolve(result)
+      return
+    }
+    state.queue.push(result)
+    if (result[1]) {
+      this.pendingStreams.delete(queryId)
+    }
+  }
+
+  private rejectStream(queryId: string, state: PendingStream, err: unknown): void {
+    this.pendingStreams.delete(queryId)
+    state.queue.length = 0
+    state.error = err
+    if (state.wait) {
+      const { reject } = state.wait
+      state.wait = undefined
+      reject(err)
+    }
   }
 }
