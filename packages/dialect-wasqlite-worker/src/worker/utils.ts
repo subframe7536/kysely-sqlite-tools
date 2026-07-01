@@ -23,83 +23,31 @@ function createRowMapper(sqlite: SQLiteDBCore['sqlite'], stmt: number) {
   return (row: any[]) => Object.fromEntries(cols.map((key, i) => [key, row[i]]))
 }
 
-export async function queryFn<T>(
-  core: SQLiteDBCore,
-  convertResult: (noColumns: boolean, rows: Record<string, unknown>[]) => T,
+async function prepareStatement(
+  db: SQLiteDBCore,
   sql: string,
-  parameters?: unknown[],
-): Promise<T> {
-  const iterator = core.sqlite.statements(core.pointer, sql)[Symbol.asyncIterator]()
-  const { value: stmt } = await iterator.next()
+  parameters: any[] | readonly any[],
+): Promise<{ stmt: number; release: () => Promise<any> }> {
+  const iterator = db.sqlite.statements(db.pointer, sql)[Symbol.asyncIterator]()
+  const { value: stmt, done } = await iterator.next()
+
+  if (done || !stmt) {
+    await iterator.return?.()
+    throw new Error(`No statement returned for sql: ${sql}`)
+  }
 
   try {
-    if (parameters?.length) {
-      core.sqlite.bind_collection(stmt, parameters as any[])
+    if (parameters.length) {
+      db.sqlite.bind_collection(stmt, parameters as any[])
     }
-
-    const size = core.sqlite.column_count(stmt)
-    if (size === 0) {
-      await core.sqlite.step(stmt)
-      return convertResult(true, [])
-    }
-
-    const mapRow = createRowMapper(core.sqlite, stmt)
-    const result = []
-    let idx = 0
-    while ((await core.sqlite.step(stmt)) === SQLITE_ROW) {
-      result[idx++] = mapRow(core.sqlite.row(stmt))
-    }
-    return convertResult(false, result)
-  } finally {
+  } catch (error) {
     await iterator.return?.()
+    throw error
   }
-}
 
-export async function* iteratorFn(
-  core: SQLiteDBCore,
-  sql: string,
-  parameters?: unknown[],
-  chunkSize = 1,
-): AsyncIterableIterator<Record<string, unknown>> {
-  const { sqlite, pointer } = core
-  const cache = new Array(chunkSize)
-  for await (const stmt of sqlite.statements(pointer, sql)) {
-    if (parameters?.length) {
-      sqlite.bind_collection(stmt, parameters as any[])
-    }
-    let idx = 0
-    const mapRow = createRowMapper(core.sqlite, stmt)
-
-    while (1) {
-      try {
-        const result = await sqlite.step(stmt)
-
-        if (result === SQLITE_ROW) {
-          cache[idx] = mapRow(core.sqlite.row(stmt))
-
-          if (++idx === chunkSize) {
-            for (let i = 0; i < idx; i++) {
-              yield cache[i]
-            }
-            idx = 0
-          }
-        } else if (result === SQLITE_DONE) {
-          if (idx > 0) {
-            for (let i = 0; i < idx; i++) {
-              yield cache[i]
-            }
-            idx = 0
-          }
-          break
-        }
-      } finally {
-        if (idx > 0) {
-          for (let i = 0; i < idx; i++) {
-            yield cache[i]
-          }
-        }
-      }
-    }
+  return {
+    stmt,
+    release: async () => await iterator.return?.(),
   }
 }
 
@@ -139,25 +87,65 @@ export function createOnMessageCallback(
 export function createSqliteExecutor(db: SQLiteDBCore): IGenericSqlite<SQLiteDBCore> {
   return {
     db,
+    close: async () => await coreClose(db),
     query: async (_isSelect, sql, parameters) => {
-      return await queryFn(
-        db,
-        (noColumns, rows) => {
-          if (!noColumns) {
-            return { rows }
-          }
+      const { stmt, release } = await prepareStatement(db, sql, parameters)
+
+      try {
+        const size = db.sqlite.column_count(stmt)
+        if (size === 0) {
+          await db.sqlite.step(stmt)
           return {
-            rows,
+            rows: [],
             insertId: parseBigInt(lastInsertRowId(db)),
             numAffectedRows: parseBigInt(changes(db)),
           }
-        },
-        sql,
-        parameters as any[],
-      )
+        }
+
+        const mapRow = createRowMapper(db.sqlite, stmt)
+        const result = []
+        let idx = 0
+        while ((await db.sqlite.step(stmt)) === SQLITE_ROW) {
+          result[idx++] = mapRow(db.sqlite.row(stmt))
+        }
+        return { rows: result }
+      } finally {
+        await release()
+      }
     },
-    close: async () => await coreClose(db),
-    iterator: (_isSelect, sql, parameters, chunkSize) =>
-      iteratorFn(db, sql, parameters as any[], chunkSize),
+    async *iterator(_isSelect, sql, parameters, chunkSize = 1) {
+      const { stmt, release } = await prepareStatement(db, sql, parameters)
+
+      try {
+        const cache = new Array(chunkSize)
+        let idx = 0
+        const mapRow = createRowMapper(db.sqlite, stmt)
+
+        while (1) {
+          const result = await db.sqlite.step(stmt)
+
+          if (result === SQLITE_ROW) {
+            cache[idx] = mapRow(db.sqlite.row(stmt))
+
+            if (++idx === chunkSize) {
+              for (let i = 0; i < idx; i++) {
+                yield cache[i]
+              }
+              idx = 0
+            }
+            continue
+          }
+
+          if (result === SQLITE_DONE) {
+            for (let i = 0; i < idx; i++) {
+              yield cache[i]
+            }
+            return
+          }
+        }
+      } finally {
+        await release()
+      }
+    },
   }
 }
