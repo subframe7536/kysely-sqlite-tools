@@ -68,8 +68,7 @@ export abstract class BaseSqliteDriver implements Driver {
    *
    * You **MUST** assign `this.conn` in `init` and implement `destroy` method
    */
-  constructor(public init: (options?: AbortableOperationOptions) => Promise<void>) {
-  }
+  constructor(public init: (options?: AbortableOperationOptions) => Promise<void>) {}
 
   async acquireConnection(): Promise<DatabaseConnection> {
     return this.conn!

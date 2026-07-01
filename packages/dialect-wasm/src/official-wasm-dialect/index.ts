@@ -3,11 +3,10 @@ import { buildQueryFn, GenericSqliteDialect } from 'kysely-generic-sqlite'
 
 import { accessDB } from '../utils'
 
-import type { OfficialWasmDB } from './type'
-
-export type { OfficialWasmDB } from './type'
 export interface OfficialWasmDialectConfig extends IBaseSqliteDialectConfig {
-  database: OfficialWasmDB | (() => Promisable<OfficialWasmDB>)
+  database:
+    | import('@sqlite.org/sqlite-wasm').Database
+    | (() => Promisable<import('@sqlite.org/sqlite-wasm').Database>)
 }
 
 export class OfficialWasmDialect extends GenericSqliteDialect {
@@ -19,11 +18,6 @@ export class OfficialWasmDialect extends GenericSqliteDialect {
    * and {@link https://sqlite.org/forum/forumpost/8f50dc99149a6cedade784595238f45aa912144fae81821d5f9db31965f754dd this})
    *
    * you can also use [sqlite-wasm-esm](https://github.com/overtone-app/sqlite-wasm-esm)
-   *
-   * #### partial typescript support:
-   * ```ts
-   * /// <reference types="kysely-wasm/official-wasm" />
-   * ```
    *
    * @example
    * ```ts
@@ -57,13 +51,16 @@ export class OfficialWasmDialect extends GenericSqliteDialect {
   constructor(config: OfficialWasmDialectConfig) {
     super(async () => {
       const db = await accessDB(config.database)
-      const all = (sql: string, parameters?: any[] | readonly any[]) =>
+      const all = (
+        sql: string,
+        parameters?: any[] | readonly any[],
+      ): Record<string, import('@sqlite.org/sqlite-wasm').SqlValue>[] =>
         db.exec({
           sql,
           bind: parameters,
           rowMode: 'object',
           returnValue: 'resultRows',
-        }) as { [columnName: string]: any }[]
+        })
 
       return {
         db,
@@ -88,17 +85,17 @@ export class OfficialWasmDialect extends GenericSqliteDialect {
 }
 
 function* queryIterator(
-  db: OfficialWasmDB,
+  db: import('@sqlite.org/sqlite-wasm').Database,
   sql: string,
   parameters?: any[] | readonly any[],
-): IterableIterator<{ [columnName: string]: any }> {
+): IterableIterator<Record<string, import('@sqlite.org/sqlite-wasm').SqlValue>> {
   const statement = db.prepare(sql)
   try {
     if (parameters?.length) {
-      statement.bind(parameters)
+      statement.bind(parameters as import('@sqlite.org/sqlite-wasm').BindingSpec)
     }
     while (statement.step()) {
-      yield statement.get(Object.create(null))
+      yield statement.get({})
     }
   } finally {
     statement.finalize()
