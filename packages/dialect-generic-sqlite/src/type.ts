@@ -71,7 +71,7 @@ export interface IGenericSqlite<DB = unknown> {
   iterator?: (
     isSelect: boolean,
     sql: string,
-    parameters?: any[] | readonly any[],
+    parameters: any[] | readonly any[],
     chunkSize?: number,
   ) => IterableIterator<unknown> | AsyncIterableIterator<unknown>
 }

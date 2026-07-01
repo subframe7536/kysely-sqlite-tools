@@ -56,11 +56,9 @@ export class OfficialWasmDialect extends GenericSqliteDialect {
         db,
         close: () => db.close(),
         query: (_isSelect, sql, parameters) => {
-          const statement = prepareStatement(db, sql, parameters)
-
-          try {
+          return runWithStatement(db, sql, parameters, (statement) => {
             if (statement.columnCount > 0) {
-              return { rows: [...queryIterator(statement)] }
+              return { rows: [...iterator(statement)] }
             }
 
             statement.step()
@@ -72,35 +70,37 @@ export class OfficialWasmDialect extends GenericSqliteDialect {
               ),
               numAffectedRows: parseBigInt(db.changes()),
             }
-          } finally {
-            statement.finalize()
-          }
+          })
         },
         iterator: (isSelect, sql, parameters) => {
           if (!isSelect) {
             throw new Error('Only support select query')
           }
-          const statement = prepareStatement(db, sql, parameters)
-          return queryIterator(statement)
+          return runWithStatement(db, sql, parameters, iterator)
         },
       }
     }, config.onCreateConnection)
   }
 }
 
-function prepareStatement(
+function runWithStatement<T>(
   db: import('@sqlite.org/sqlite-wasm').Database,
   sql: string,
-  parameters?: any[] | readonly any[],
-): import('@sqlite.org/sqlite-wasm').PreparedStatement {
+  parameters: any[] | readonly any[],
+  callback: (stmt: import('@sqlite.org/sqlite-wasm').PreparedStatement) => T,
+): T {
   const statement = db.prepare(sql)
-  if (parameters?.length) {
-    statement.bind(parameters as import('@sqlite.org/sqlite-wasm').BindingSpec)
+  try {
+    if (parameters.length) {
+      statement.bind(parameters as import('@sqlite.org/sqlite-wasm').BindingSpec)
+    }
+    return callback(statement)
+  } finally {
+    statement.finalize()
   }
-  return statement
 }
 
-function* queryIterator(
+function* iterator(
   statement: import('@sqlite.org/sqlite-wasm').PreparedStatement,
 ): IterableIterator<Record<string, import('@sqlite.org/sqlite-wasm').SqlValue>> {
   try {
