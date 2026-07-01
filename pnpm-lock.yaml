@@ -29,6 +29,9 @@ importers:
       '@types/sql.js':
         specifier: ^1.4.11
         version: 1.4.11
+      '@vlcn.io/crsqlite-wasm':
+        specifier: ^0.16.0
+        version: 0.16.0
       better-sqlite3:
         specifier: ^12.11.1
         version: 12.11.1
@@ -744,6 +747,15 @@ packages:
   '@vitest/utils@4.1.9':
     resolution: {integrity: sha512-A51o8ymO5PpqlWNnBP9ZHPXDIpuMtTLlGSjN7la4US+LJzoUMyhwjA5QXlm39JexgwHKW4Xjs8Z2d3dLCXOeuA==}
 
+  '@vlcn.io/crsqlite-wasm@0.16.0':
+    resolution: {integrity: sha512-5gf52eyMYvZirxuEUo4QS65JhEsw3fndoO+tCtCEOxuiIEtvaKB2/6wuuKGRlMVkxIp4Bls70D3DCF5v9lcJxA==}
+
+  '@vlcn.io/wa-sqlite@0.22.0':
+    resolution: {integrity: sha512-OujKro0mAqP7/efUeCGB6zBiyMoSCFVe7jQKPF0n47U9ZhOaIW3kQUVCwF+CmzvzQfN1Vl4PrFQRNNxlSwTCNQ==}
+
+  '@vlcn.io/xplat-api@0.15.0':
+    resolution: {integrity: sha512-2/aE7VgI3EbIO5EcJGrskAJuCa2pteY1rWNWfhovFKMERe9NhJdlDMIB1I31X0sN/WC2DnF30RqcdTXNfYyzhQ==}
+
   ansis@4.3.1:
     resolution: {integrity: sha512-BJ8/l4R5LRE7hW9WdSuGYrLSHi2ynxeFpDFbH0K/CgNeY/tyhk+vO6TYxXC5r5CpUhNVX310xzPsN/H9lCdfOA==}
     engines: {node: '>=14'}
@@ -758,6 +770,9 @@ packages:
   ast-kit@3.0.0:
     resolution: {integrity: sha512-8OG92q3R35qjC/4i6BLBMg8IB+fClWu/1PEwg2Z9Rn+BuNaiEgJzpzn+pxWOdHJWDCAwu2JP0wCDTozAM4QirQ==}
     engines: {node: ^22.18.0 || >=24.11.0}
+
+  async-mutex@0.4.1:
+    resolution: {integrity: sha512-WfoBo4E/TbCX1G95XTjbWTE3X2XLG0m1Xbv2cwOtuPdyH9CZvnaA5nCt1ucjaKEgW2A5IF71hxrRhr83Je5xjA==}
 
   babel-plugin-jsx-dom-expressions@0.40.7:
     resolution: {integrity: sha512-/O6JWUmjv03OI9lL2ry9bUjpD5S3PclM55RRJEyCdcFZ5W2SEA/59d+l2hNsk3gI6kiWRdRPdOtqZmsQzFN1pQ==}
@@ -823,6 +838,9 @@ packages:
 
   chownr@1.1.4:
     resolution: {integrity: sha512-jJ0bqzaylmJtVnNgzTeSOs8DPavpbYgEr/b0YL8/2GO3xJEhInFmhKMUnEJQjZumK7KXGFhUy89PrsJWlakBVg==}
+
+  comlink@4.4.2:
+    resolution: {integrity: sha512-OxGdvBmJuNKSCMO4NTl1L47VRp6xn2wG4F/2hYzB6tiCb709otOxtEYCSvK80PtjODfXXZu8ds+Nw5kVCjqd2g==}
 
   convert-source-map@2.0.0:
     resolution: {integrity: sha512-Kvp459HrV2FEJ1CAsi1Ku+MY3kasH19TFykTz2xWmMeq6bk2NU3XXvfJ+Q61m0xktWwt+1HSYf3JZsTms3aRJg==}
@@ -1929,6 +1947,18 @@ snapshots:
       convert-source-map: 2.0.0
       tinyrainbow: 3.1.0
 
+  '@vlcn.io/crsqlite-wasm@0.16.0':
+    dependencies:
+      '@vlcn.io/wa-sqlite': 0.22.0
+      '@vlcn.io/xplat-api': 0.15.0
+      async-mutex: 0.4.1
+
+  '@vlcn.io/wa-sqlite@0.22.0': {}
+
+  '@vlcn.io/xplat-api@0.15.0':
+    dependencies:
+      comlink: 4.4.2
+
   ansis@4.3.1: {}
 
   args-tokenizer@0.3.0: {}
@@ -1940,6 +1970,10 @@ snapshots:
       '@babel/parser': 8.0.0
       estree-walker: 3.0.3
       pathe: 2.0.3
+
+  async-mutex@0.4.1:
+    dependencies:
+      tslib: 2.8.1
 
   babel-plugin-jsx-dom-expressions@0.40.7(@babel/core@7.29.7):
     dependencies:
@@ -2014,6 +2048,8 @@ snapshots:
   chai@6.2.2: {}
 
   chownr@1.1.4: {}
+
+  comlink@4.4.2: {}
 
   convert-source-map@2.0.0: {}
 
@@ -2433,8 +2469,7 @@ snapshots:
       - oxc-resolver
       - vue-tsc
 
-  tslib@2.8.1:
-    optional: true
+  tslib@2.8.1: {}
 
   tunnel-agent@0.6.0:
     dependencies:

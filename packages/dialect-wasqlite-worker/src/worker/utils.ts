@@ -25,16 +25,16 @@ function createRowMapper(sqlite: SQLiteDBCore['sqlite'], stmt: number) {
 
 export async function queryFn<T>(
   core: SQLiteDBCore,
-  convertResult: (noColumns: boolean, rows: Record<string, SQLiteCompatibleType>[]) => T,
+  convertResult: (noColumns: boolean, rows: Record<string, unknown>[]) => T,
   sql: string,
-  parameters?: SQLiteCompatibleType[],
+  parameters?: unknown[],
 ): Promise<T> {
   const iterator = core.sqlite.statements(core.pointer, sql)[Symbol.asyncIterator]()
   const { value: stmt } = await iterator.next()
 
   try {
     if (parameters?.length) {
-      core.sqlite.bind_collection(stmt, parameters)
+      core.sqlite.bind_collection(stmt, parameters as any[])
     }
 
     const size = core.sqlite.column_count(stmt)
@@ -58,14 +58,14 @@ export async function queryFn<T>(
 export async function* iteratorFn(
   core: SQLiteDBCore,
   sql: string,
-  parameters?: SQLiteCompatibleType[],
+  parameters?: unknown[],
   chunkSize = 1,
-): AsyncIterableIterator<Record<string, SQLiteCompatibleType>> {
+): AsyncIterableIterator<Record<string, unknown>> {
   const { sqlite, pointer } = core
   const cache = new Array(chunkSize)
   for await (const stmt of sqlite.statements(pointer, sql)) {
     if (parameters?.length) {
-      sqlite.bind_collection(stmt, parameters)
+      sqlite.bind_collection(stmt, parameters as any[])
     }
     let idx = 0
     const mapRow = createRowMapper(core.sqlite, stmt)

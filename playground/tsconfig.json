@@ -1,21 +1,3 @@
 {
-  "compilerOptions": {
-    "target": "ESNext",
-    "jsx": "preserve",
-    "lib": ["DOM", "ESNext"],
-    "module": "ESNext",
-    "moduleResolution": "bundler",
-    "resolveJsonModule": true,
-    "types": ["vite/client"],
-    "strict": true,
-    "strictNullChecks": true,
-    "noUnusedLocals": true,
-    "esModuleInterop": true,
-    "forceConsistentCasingInFileNames": true,
-    "skipDefaultLibCheck": true,
-    "skipLibCheck": true,
-    "jsxImportSource": "solid-js"
-  },
-  "include": ["src"],
-  "exclude": ["node_modules", "dist"]
+  "extends": "../node_modules/@subf/config/tsconfig.web.json"
 }
