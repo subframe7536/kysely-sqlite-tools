@@ -1,3 +1,22 @@
+export type OfficialWasmBindParams = any[] | readonly any[] | Record<string, any>
+
+export interface OfficialWasmExecOptions {
+  sql: string
+  bind?: OfficialWasmBindParams
+  rowMode?: 'array' | 'object' | 'stmt' | number | `$${string}`
+  resultRows?: any[]
+  returnValue?: 'this' | 'resultRows' | 'saveSql'
+  callback?: (row: any, statement: OfficialWasmStatement) => false | void
+  columnNames?: string[]
+}
+
+export interface OfficialWasmStatement {
+  bind: (values: OfficialWasmBindParams) => this
+  step: () => boolean
+  get: <T = any>(target?: T) => T
+  finalize: () => void
+}
+
 export interface OfficialWasmDB {
   /** Returns true if the database handle is open, else false. */
   isOpen: () => boolean
@@ -45,6 +64,20 @@ export interface OfficialWasmDB {
    * function. Throws on error.
    */
   selectArray: (sql: string, bind?: any[]) => any[] | undefined
+
+  /**
+   * Executes SQL and optionally collects or streams rows. Prefer this API for
+   * query execution because it supports bind parameters, row modes, and the
+   * official wasm result collection/callback flow.
+   */
+  exec: {
+    (sql: string): OfficialWasmDB
+    (sql: string, options: Omit<OfficialWasmExecOptions, 'sql'>): OfficialWasmDB | any[]
+    (options: OfficialWasmExecOptions): OfficialWasmDB | any[]
+  }
+
+  /** Compiles SQL into a prepared statement. The caller must finalize it. */
+  prepare: (sql: string) => OfficialWasmStatement
 
   /**
    * Works identically to {@link Database#selectArrays} except that each value in

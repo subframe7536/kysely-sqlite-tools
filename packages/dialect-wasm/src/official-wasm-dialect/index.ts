@@ -57,19 +57,50 @@ export class OfficialWasmDialect extends GenericSqliteDialect {
   constructor(config: OfficialWasmDialectConfig) {
     super(async () => {
       const db = await accessDB(config.database)
+      const all = (sql: string, parameters?: any[] | readonly any[]) =>
+        db.exec({
+          sql,
+          bind: parameters,
+          rowMode: 'object',
+          returnValue: 'resultRows',
+        }) as { [columnName: string]: any }[]
+
       return {
         db,
         close: () => db.close(),
         query: buildQueryFn({
-          all: (sql, parameters) => {
-            return db.selectObjects(sql, parameters as any)
-          },
+          all,
           run: () => ({
             insertId: BigInt((db.selectArray('SELECT last_insert_rowid()')?.[0] || 0) as number),
             numAffectedRows: BigInt(db.changes(false, true)),
           }),
         }),
+        iterator: (isSelect, sql, parameters) => {
+          if (!isSelect) {
+            throw new Error('Only support select query')
+          }
+
+          return queryIterator(db, sql, parameters)
+        },
       }
     }, config.onCreateConnection)
+  }
+}
+
+function* queryIterator(
+  db: OfficialWasmDB,
+  sql: string,
+  parameters?: any[] | readonly any[],
+): IterableIterator<{ [columnName: string]: any }> {
+  const statement = db.prepare(sql)
+  try {
+    if (parameters?.length) {
+      statement.bind(parameters)
+    }
+    while (statement.step()) {
+      yield statement.get(Object.create(null))
+    }
+  } finally {
+    statement.finalize()
   }
 }
