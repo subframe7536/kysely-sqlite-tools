@@ -22,10 +22,13 @@ export class CrSqliteDialect extends GenericSqliteDialect {
           all: async (sql, parameters) => {
             return await db.execO(sql, parameters as any)
           },
-          run: async () => ({
-            numAffectedRows: BigInt(db.api.changes(db.db)),
-            insertId: BigInt((await db.execA('SELECT last_insert_rowid()'))[0][0]),
-          }),
+          run: async (sql, parameters) => {
+            await db.execA(sql, parameters as any)
+            return {
+              numAffectedRows: BigInt(db.api.changes(db.db)),
+              insertId: BigInt((await db.execA('SELECT last_insert_rowid()'))[0][0]),
+            }
+          },
         }),
       }
     }, config.onCreateConnection)

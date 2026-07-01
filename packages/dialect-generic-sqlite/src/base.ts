@@ -7,15 +7,20 @@ import type {
   Driver,
   Kysely,
   QueryCompiler,
+  RootOperationNode,
 } from 'kysely'
 import {
   CompiledQuery,
   createQueryId,
+  DeleteQueryNode,
   IdentifierNode,
+  InsertQueryNode,
   RawNode,
+  SelectQueryNode,
   SqliteAdapter,
   SqliteIntrospector,
   SqliteQueryCompiler,
+  UpdateQueryNode,
 } from 'kysely'
 
 import type { IGenericSqlite, IGenericSqliteExecutor } from './type'
@@ -121,12 +126,12 @@ export abstract class BaseSqliteDriver implements Driver {
 /**
  * Wrapper for {@link IGenericSqlite}'s `query` function
  *
- * Do not support `returning` in `INSERT`, `UPDATE`, `DELETE`
- * @param exec {@link IGenericSqliteExecutor}
+ * When `isSelectQueryNode` is true or sql starts with `select`, call `exec.all`, otherwise call `exec.run`.
+ * This is a simple implementation that does not support `returning`.
  */
 export function buildQueryFnAlt(exec: IGenericSqliteExecutor): IGenericSqlite['query'] {
   return async (isSelect, sql, parameters) =>
-    isSelect
+    isSelect || sql.toLowerCase().startsWith('select')
       ? { rows: await exec.all(sql, parameters) }
       : { rows: [], ...(await exec.run(sql, parameters)) }
 }
@@ -134,16 +139,48 @@ export function buildQueryFnAlt(exec: IGenericSqliteExecutor): IGenericSqlite['q
 /**
  * Wrapper for {@link IGenericSqlite}'s `query` function
  *
- * Support `returning`, get `insertId` and `numAffectedRows` by calling `select 1`
- * @param exec {@link IGenericSqliteExecutor} `exec.run` will never call real sqls
+ * This implementation supports `returning` queries
+ * by checking {@link isReadOrReturningQuery} and calling `exec.all` for those queries, otherwise, it calls `exec.run`.
+ *
+ * Limitation: `returning` is only detected from Kysely's query AST. Raw SQL
+ * `INSERT`, `UPDATE`, or `DELETE` statements with a `RETURNING` clause are
+ * treated as write queries and executed with `exec.run`.
  */
 export function buildQueryFn(exec: IGenericSqliteExecutor): IGenericSqlite['query'] {
-  return async (isSelect, sql, parameters) => {
-    const rows = await exec.all(sql, parameters)
-    return isSelect || rows.length ? { rows } : { rows: [], ...(await exec.run('select 1')) }
+  return async (_isSelect, sql, parameters, node) => {
+    if (isReadOrReturningQuery(node, sql)) {
+      const rows = await exec.all(sql, parameters)
+      return { rows }
+    }
+    return { rows: [], ...(await exec.run(sql, parameters)) }
   }
 }
 
 export function parseBigInt(num: number | bigint | null | undefined): bigint | undefined {
   return num === undefined || num === null ? undefined : BigInt(num)
+}
+
+/**
+ * Returns true if the query is a read query or a returning query.
+ *
+ * Checking:
+ * - if Kysely INSERT, UPDATE, and DELETE query nodes have a RETURNING clause.
+ * - if the query is a SELECT, PRAGMA, VALUES, or WITH query.
+ *
+ * Limitation: raw SQL `returning` clauses are not inspected.
+ */
+export function isReadOrReturningQuery(node: RootOperationNode | undefined, sql: string): boolean {
+  if (node) {
+    if (SelectQueryNode.is(node)) {
+      return true
+    }
+    if (
+      (InsertQueryNode.is(node) || UpdateQueryNode.is(node) || DeleteQueryNode.is(node)) &&
+      node.returning
+    ) {
+      return true
+    }
+  }
+
+  return /^\s*(select|pragma|values|with)\b/i.test(sql)
 }

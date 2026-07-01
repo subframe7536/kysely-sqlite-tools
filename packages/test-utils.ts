@@ -1,5 +1,5 @@
 import type { Dialect, Generated } from 'kysely'
-import { CompiledQuery, Kysely, sql } from 'kysely'
+import { Kysely, sql } from 'kysely'
 
 interface DB {
   audit: AuditTable
@@ -26,7 +26,7 @@ export async function testCase(dialect: Dialect, expect: any, supportStream = tr
     await assertFilteringOrderingAndAggregates(db, expect)
     await assertUpdateDeleteAndJoins(db, expect)
     await assertTransactionsRollbackAndCommit(db, expect)
-    await assertRawReturningQuery(db, expect)
+    await assertReturningQuery(db, expect)
 
     if (supportStream) {
       await assertStreaming(db, dialect, expect)
@@ -161,14 +161,14 @@ async function assertTransactionsRollbackAndCommit(db: Kysely<DB>, expect: any):
   expect(Array.from(committed.int8 ?? [])).toStrictEqual([7, 8])
 }
 
-async function assertRawReturningQuery(db: Kysely<DB>, expect: any): Promise<void> {
-  const result = await db.executeQuery(
-    CompiledQuery.raw('insert into test("age", "name") values (?, ?) returning *', [
-      20,
-      'test name',
-    ]),
-  )
-  expect(result.rows[0]).toStrictEqual({
+async function assertReturningQuery(db: Kysely<DB>, expect: any): Promise<void> {
+  const [result] = await db
+    .insertInto('test')
+    .values({ age: 20, name: 'test name', int8: null })
+    .returningAll()
+    .execute()
+
+  expect(result).toStrictEqual({
     age: 20,
     id: 4,
     int8: null,

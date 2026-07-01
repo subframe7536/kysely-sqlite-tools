@@ -52,6 +52,6 @@ export class GenericSqliteConnection implements DatabaseConnection {
     query,
     sql,
   }: CompiledQuery<unknown>): Promise<QueryResult<R>> {
-    return await this.db.query(SelectQueryNode.is(query), sql, parameters)
+    return await this.db.query(SelectQueryNode.is(query), sql, parameters, query)
   }
 }

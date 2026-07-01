@@ -15,7 +15,7 @@ export type RunMsg = [
   queryId: string,
   isSelect: boolean,
   sql: string,
-  parameters?: readonly unknown[],
+  parameters: readonly unknown[],
 ]
 
 export type StreamMsg = [
@@ -23,7 +23,7 @@ export type StreamMsg = [
   queryId: string,
   isSelect: boolean,
   sql: string,
-  parameters?: readonly unknown[],
+  parameters: readonly unknown[],
   chunkSize?: number,
 ]
 

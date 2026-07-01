@@ -23,8 +23,8 @@ export class NodeWasmDialect extends GenericSqliteDialect {
           all: (sql, parameters) => {
             return db.all(sql, parameters as any)
           },
-          run: (sql) => {
-            const { changes, lastInsertRowid } = db.run(sql)
+          run: (sql, parameters) => {
+            const { changes, lastInsertRowid } = db.run(sql, parameters as any)
             return {
               insertId: BigInt(lastInsertRowid),
               numAffectedRows: BigInt(changes),

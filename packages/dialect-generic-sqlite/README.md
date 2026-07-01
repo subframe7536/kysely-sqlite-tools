@@ -52,8 +52,10 @@ function createSqliteExecutor(db: Database): IGenericSqlite<Database> {
 
 For client that does not support `stmt.reader`, there are 2 utils with same parameters:
 
-- `buildQueryFn`: Support `returning`, get `insertId` and `numAffectedRows` by calling `select 1`
+- `buildQueryFn`: Support `returning` when the query is built by Kysely, get `insertId` and `numAffectedRows` from `exec.run`
 - `buildQueryFnAlt`: Do not support `returning`
+
+`buildQueryFn` detects `returning` from Kysely's query AST. Raw SQL `INSERT`, `UPDATE`, or `DELETE` statements with a `RETURNING` clause are not detected as returning queries and are executed with `exec.run`.
 
 ```ts
 import type { IGenericSqlite } from 'kysely-generic-sqlite'

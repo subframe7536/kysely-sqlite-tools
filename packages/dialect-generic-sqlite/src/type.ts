@@ -1,4 +1,9 @@
-import type { AbortableOperationOptions, DatabaseConnection, QueryResult } from 'kysely'
+import type {
+  AbortableOperationOptions,
+  DatabaseConnection,
+  QueryResult,
+  RootOperationNode,
+} from 'kysely'
 
 export type Promisable<T> = T | Promise<T>
 
@@ -21,7 +26,11 @@ export interface IGenericSqliteExecutor {
   run: (
     sql: string,
     parameters?: any[] | readonly any[],
-  ) => Promisable<Pick<QueryResult<any>, 'insertId' | 'numAffectedRows'>>
+  ) => Promisable<
+    Pick<QueryResult<any>, 'insertId' | 'numAffectedRows'> & {
+      rows?: any[]
+    }
+  >
 }
 
 /**
@@ -42,12 +51,14 @@ export interface IGenericSqlite<DB = unknown> {
    * @param isSelect Whether the sql is SELECT query
    * @param sql The SQL query string to execute.
    * @param parameters Optional array of parameters to bind to the query.
+   * @param node Optional {@link RootOperationNode} for the query, used to determine if the query is a read or returning query. `undefined` when in worker dialect.
    * @returns Kysely's {@link QueryResult}
    */
   query: (
     isSelect: boolean,
     sql: string,
-    parameters?: any[] | readonly any[],
+    parameters: any[] | readonly any[],
+    node?: RootOperationNode,
   ) => Promisable<QueryResult<any>>
 
   /**

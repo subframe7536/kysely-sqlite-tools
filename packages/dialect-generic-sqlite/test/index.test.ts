@@ -1,5 +1,5 @@
 import Database from 'better-sqlite3'
-import { CompiledQuery } from 'kysely'
+import { CompiledQuery, Kysely } from 'kysely'
 import { describe, expect, it } from 'vitest'
 
 import { testCase } from '../../test-utils'
@@ -34,6 +34,61 @@ describe('generic sqlite dialect test', () => {
     }))
 
     await testCase(dialect, expect, false)
+  })
+  it('does not request metadata for empty returning queries', async () => {
+    const calls: string[] = []
+    const dialect = new GenericSqliteDialect(() => ({
+      db: {},
+      query: buildQueryFn({
+        all: (sql) => {
+          calls.push(sql)
+          return []
+        },
+        run: (sql) => {
+          calls.push(sql)
+          return {
+            insertId: 0n,
+            numAffectedRows: 0n,
+          }
+        },
+      }),
+      close: () => {},
+    }))
+    const db = new Kysely<{ test: { age: number; id: number } }>({ dialect })
+
+    try {
+      await db.updateTable('test').set({ age: 1 }).where('id', '=', -1).returningAll().execute()
+    } finally {
+      await db.destroy()
+    }
+
+    expect(calls).toHaveLength(1)
+    expect(calls[0]).toContain('returning')
+  })
+  it('ignores returning inside raw SQL literals', async () => {
+    const calls: string[] = []
+    const query = buildQueryFn({
+      all: (sql) => {
+        calls.push(sql)
+        return []
+      },
+      run: (sql) => {
+        calls.push(sql)
+        return {
+          insertId: 1n,
+          numAffectedRows: 1n,
+        }
+      },
+    })
+
+    const result = await query(false, "insert into test(name) values ('returning')", [], {} as any)
+
+    expect(result).toStrictEqual({
+      insertId: 1n,
+      numAffectedRows: 1n,
+      rows: [],
+    })
+    expect(calls).toStrictEqual(["insert into test(name) values ('returning')"])
   })
   it('keeps worker query responses isolated by query id', async () => {
     const messages: unknown[] = []
