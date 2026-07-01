@@ -1,6 +1,5 @@
-import type { QueryResult } from 'kysely'
 import type { IBaseSqliteDialectConfig, Promisable } from 'kysely-generic-sqlite'
-import { GenericSqliteDialect } from 'kysely-generic-sqlite'
+import { GenericSqliteDialect, parseBigInt } from 'kysely-generic-sqlite'
 
 import { accessDB } from '../utils'
 
@@ -56,54 +55,55 @@ export class OfficialWasmDialect extends GenericSqliteDialect {
       return {
         db,
         close: () => db.close(),
-        query: (isSelect, sql, parameters) => executeQuery(db, isSelect, sql, parameters),
+        query: (_isSelect, sql, parameters) => {
+          const statement = prepareStatement(db, sql, parameters)
+
+          try {
+            if (statement.columnCount > 0) {
+              return { rows: [...queryIterator(statement)] }
+            }
+
+            statement.step()
+
+            return {
+              rows: [],
+              insertId: parseBigInt(
+                db.selectValue('SELECT last_insert_rowid()') as number | bigint,
+              ),
+              numAffectedRows: parseBigInt(db.changes()),
+            }
+          } finally {
+            statement.finalize()
+          }
+        },
         iterator: (isSelect, sql, parameters) => {
           if (!isSelect) {
             throw new Error('Only support select query')
           }
-
-          return queryIterator(db, sql, parameters)
+          const statement = prepareStatement(db, sql, parameters)
+          return queryIterator(statement)
         },
       }
     }, config.onCreateConnection)
   }
 }
 
-function executeQuery(
+function prepareStatement(
   db: import('@sqlite.org/sqlite-wasm').Database,
-  isSelect: boolean,
   sql: string,
   parameters?: any[] | readonly any[],
-): QueryResult<Record<string, import('@sqlite.org/sqlite-wasm').SqlValue>> {
-  const rows = [...queryIterator(db, sql, parameters)]
-  return isSelect || rows.length
-    ? { rows }
-    : {
-        rows,
-        insertId: getLastInsertId(db),
-        numAffectedRows: db.changes(false, true),
-      }
-}
-
-function getLastInsertId(db: import('@sqlite.org/sqlite-wasm').Database): bigint {
-  const statement = db.prepare('SELECT last_insert_rowid()')
-  try {
-    return statement.step() ? BigInt((statement.get(0) as number | bigint | null) ?? 0) : 0n
-  } finally {
-    statement.finalize()
+): import('@sqlite.org/sqlite-wasm').PreparedStatement {
+  const statement = db.prepare(sql)
+  if (parameters?.length) {
+    statement.bind(parameters as import('@sqlite.org/sqlite-wasm').BindingSpec)
   }
+  return statement
 }
 
 function* queryIterator(
-  db: import('@sqlite.org/sqlite-wasm').Database,
-  sql: string,
-  parameters?: any[] | readonly any[],
+  statement: import('@sqlite.org/sqlite-wasm').PreparedStatement,
 ): IterableIterator<Record<string, import('@sqlite.org/sqlite-wasm').SqlValue>> {
-  const statement = db.prepare(sql)
   try {
-    if (parameters?.length) {
-      statement.bind(parameters as import('@sqlite.org/sqlite-wasm').BindingSpec)
-    }
     while (statement.step()) {
       yield statement.get({})
     }
