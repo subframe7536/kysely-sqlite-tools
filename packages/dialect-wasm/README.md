@@ -33,7 +33,7 @@ you can **get total buffer** on every sql execution except `select` and **no bac
 
 you can choose to use [OPFS](https://developer.mozilla.org/en-US/docs/Web/API/File_System_Access_API#origin_private_file_system) as backend storage(for some vfs, your server must response COOP and COEP in header, see [doc](https://sqlite.org/wasm/doc/trunk/persistence.md#coop-coep)), which is recommended officially (see [this](https://sqlite.org/forum/forumpost/59097f57cbe647a2d1950fab93e7ab82dd24c1e384d38b90ec1e2f03a2a4e580) and [this](https://sqlite.org/forum/forumpost/8f50dc99149a6cedade784595238f45aa912144fae81821d5f9db31965f754dd)) and **only work in WebWorker**.
 
-The dialect uses the official `db.exec({ sql, bind, rowMode: 'object', returnValue: 'resultRows' })` API for normal Kysely queries. `stream()`/`streamQuery()` uses a prepared statement and finalizes it in a `finally` block, so large `select` results can be consumed incrementally instead of first collecting every row into an array.
+The dialect executes Kysely queries with the official prepared-statement API (`prepare`, `bind`, `step`, `get`, `finalize`) instead of the higher-level `exec` helper. `stream()`/`streamQuery()` reuses the same low-level path and finalizes statements in a `finally` block, so large `select` results can be consumed incrementally instead of first collecting every row into an array.
 
 ```ts
 const rows = db.selectFrom('person').selectAll().stream()

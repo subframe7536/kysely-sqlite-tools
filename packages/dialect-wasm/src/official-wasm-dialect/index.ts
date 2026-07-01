@@ -1,5 +1,6 @@
+import type { QueryResult } from 'kysely'
 import type { IBaseSqliteDialectConfig, Promisable } from 'kysely-generic-sqlite'
-import { buildQueryFn, GenericSqliteDialect } from 'kysely-generic-sqlite'
+import { GenericSqliteDialect } from 'kysely-generic-sqlite'
 
 import { accessDB } from '../utils'
 
@@ -51,27 +52,11 @@ export class OfficialWasmDialect extends GenericSqliteDialect {
   constructor(config: OfficialWasmDialectConfig) {
     super(async () => {
       const db = await accessDB(config.database)
-      const all = (
-        sql: string,
-        parameters?: any[] | readonly any[],
-      ): Record<string, import('@sqlite.org/sqlite-wasm').SqlValue>[] =>
-        db.exec({
-          sql,
-          bind: parameters,
-          rowMode: 'object',
-          returnValue: 'resultRows',
-        })
 
       return {
         db,
         close: () => db.close(),
-        query: buildQueryFn({
-          all,
-          run: () => ({
-            insertId: BigInt((db.selectArray('SELECT last_insert_rowid()')?.[0] || 0) as number),
-            numAffectedRows: BigInt(db.changes(false, true)),
-          }),
-        }),
+        query: (isSelect, sql, parameters) => executeQuery(db, isSelect, sql, parameters),
         iterator: (isSelect, sql, parameters) => {
           if (!isSelect) {
             throw new Error('Only support select query')
@@ -81,6 +66,31 @@ export class OfficialWasmDialect extends GenericSqliteDialect {
         },
       }
     }, config.onCreateConnection)
+  }
+}
+
+function executeQuery(
+  db: import('@sqlite.org/sqlite-wasm').Database,
+  isSelect: boolean,
+  sql: string,
+  parameters?: any[] | readonly any[],
+): QueryResult<Record<string, import('@sqlite.org/sqlite-wasm').SqlValue>> {
+  const rows = [...queryIterator(db, sql, parameters)]
+  return isSelect || rows.length
+    ? { rows }
+    : {
+        rows,
+        insertId: getLastInsertId(db),
+        numAffectedRows: db.changes(false, true),
+      }
+}
+
+function getLastInsertId(db: import('@sqlite.org/sqlite-wasm').Database): bigint {
+  const statement = db.prepare('SELECT last_insert_rowid()')
+  try {
+    return statement.step() ? BigInt((statement.get(0) as number | bigint | null) ?? 0) : 0n
+  } finally {
+    statement.finalize()
   }
 }
 
