@@ -3595,11 +3595,11 @@ var Module = (() => {
 //#endregion
 //#region ../node_modules/.pnpm/@subframe7536+sqlite-wasm@1.3.0/node_modules/@subframe7536/sqlite-wasm/dist/index.js
 var dist_exports = /* @__PURE__ */ __exportAll({
+	changes: () => changes,
 	close: () => close,
 	initSQLiteCore: () => initSQLiteCore,
-	iterator: () => iterator,
-	parseOpenV2Flag: () => parseOpenV2Flag,
-	query: () => query
+	lastInsertRowId: () => lastInsertRowId,
+	parseOpenV2Flag: () => parseOpenV2Flag
 });
 const MAX_INT64 = 9223372036854775807n;
 const MIN_INT64 = -9223372036854775808n;
@@ -4258,54 +4258,11 @@ new Uint8Array([
 async function close(core) {
 	await core.sqlite.close(core.pointer);
 }
-function createRowMapper(sqlite, stmt) {
-	const cols = sqlite.column_names(stmt);
-	return (row) => Object.fromEntries(cols.map((key, i) => [key, row[i]]));
+function changes(core) {
+	return core.sqliteModule._sqlite3_changes(core.pointer);
 }
-async function query(core, sql, parameters) {
-	const iterator = core.sqlite.statements(core.pointer, sql)[Symbol.asyncIterator]();
-	const { value: stmt } = await iterator.next();
-	try {
-		if (parameters?.length) core.sqlite.bind_collection(stmt, parameters);
-		if (core.sqlite.column_count(stmt) === 0) {
-			await core.sqlite.step(stmt);
-			return [];
-		}
-		const mapRow = createRowMapper(core.sqlite, stmt);
-		const result = [];
-		let idx = 0;
-		while (await core.sqlite.step(stmt) === 100) result[idx++] = mapRow(core.sqlite.row(stmt));
-		return result;
-	} finally {
-		await iterator.return?.();
-	}
-}
-async function* iterator(core, sql, parameters, chunkSize = 1) {
-	const { sqlite, pointer } = core;
-	const cache = new Array(chunkSize);
-	for await (const stmt of sqlite.statements(pointer, sql)) {
-		if (parameters?.length) sqlite.bind_collection(stmt, parameters);
-		let idx = 0;
-		const mapRow = createRowMapper(core.sqlite, stmt);
-		while (1) try {
-			const result = await sqlite.step(stmt);
-			if (result === 100) {
-				cache[idx] = mapRow(core.sqlite.row(stmt));
-				if (++idx === chunkSize) {
-					for (let i = 0; i < idx; i++) yield cache[i];
-					idx = 0;
-				}
-			} else if (result === 101) {
-				if (idx > 0) {
-					for (let i = 0; i < idx; i++) yield cache[i];
-					idx = 0;
-				}
-				break;
-			}
-		} finally {
-			if (idx > 0) for (let i = 0; i < idx; i++) yield cache[i];
-		}
-	}
+function lastInsertRowId(core) {
+	return core.sqliteModule._sqlite3_last_insert_rowid(core.pointer);
 }
 function parseOpenV2Flag(readonly) {
 	return readonly ? 1 : 6;
@@ -4392,10 +4349,37 @@ function createWebOnMessageCallback(init, message) {
 	globalThis.onmessage = ({ data }) => cb(data);
 }
 //#endregion
-//#region ../packages/dialect-wasqlite-worker/dist/utils-en6L8fHD.mjs
+//#region ../packages/dialect-generic-sqlite/dist/base-DOKiiLT3.js
+function parseBigInt(num) {
+	return num === void 0 || num === null ? void 0 : BigInt(num);
+}
+//#endregion
+//#region ../packages/dialect-wasqlite-worker/dist/utils-BF9npbAw.mjs
 const defaultCreateDatabaseFn = async ({ fileName, url, useOPFS }) => {
-	return (await Promise.resolve().then(() => dist_exports)).initSQLiteCore((useOPFS ? (await import("./opfs-mmVU7UV8.js")).useOpfsStorage : (await import("./idb-D7F607Ov.js")).useIdbStorage)(fileName, { url }));
+	return (await Promise.resolve().then(() => dist_exports)).initSQLiteCore((useOPFS ? (await import("./opfs-BUtv03K8.js")).useOpfsStorage : (await import("./idb-D7F607Ov.js")).useIdbStorage)(fileName, { url }));
 };
+function createRowMapper(sqlite, stmt) {
+	const cols = sqlite.column_names(stmt);
+	return (row) => Object.fromEntries(cols.map((key, i) => [key, row[i]]));
+}
+async function prepareStatement(db, sql, parameters) {
+	const iterator = db.sqlite.statements(db.pointer, sql)[Symbol.asyncIterator]();
+	const { value: stmt, done } = await iterator.next();
+	if (done || !stmt) {
+		await iterator.return?.();
+		throw new Error(`No statement returned for sql: ${sql}`);
+	}
+	try {
+		if (parameters.length) db.sqlite.bind_collection(stmt, parameters);
+	} catch (error) {
+		await iterator.return?.();
+		throw error;
+	}
+	return {
+		stmt,
+		release: async () => await iterator.return?.()
+	};
+}
 /**
 * Handle worker message, support custom message handler,
 * built-in: {@link defaultCreateDatabaseFn}
@@ -4427,9 +4411,52 @@ function createOnMessageCallback(create, message) {
 function createSqliteExecutor(db) {
 	return {
 		db,
-		query: async (_isSelect, sql, parameters) => ({ rows: await query(db, sql, parameters) }),
 		close: async () => await close(db),
-		iterator: (_isSelect, sql, parameters, chunkSize) => iterator(db, sql, parameters, chunkSize)
+		query: async (_isSelect, sql, parameters) => {
+			const { stmt, release } = await prepareStatement(db, sql, parameters);
+			try {
+				if (db.sqlite.column_count(stmt) === 0) {
+					await db.sqlite.step(stmt);
+					return {
+						rows: [],
+						insertId: parseBigInt(lastInsertRowId(db)),
+						numAffectedRows: parseBigInt(changes(db))
+					};
+				}
+				const mapRow = createRowMapper(db.sqlite, stmt);
+				const result = [];
+				let idx = 0;
+				while (await db.sqlite.step(stmt) === 100) result[idx++] = mapRow(db.sqlite.row(stmt));
+				return { rows: result };
+			} finally {
+				await release();
+			}
+		},
+		async *iterator(_isSelect, sql, parameters, chunkSize = 1) {
+			const { stmt, release } = await prepareStatement(db, sql, parameters);
+			try {
+				const cache = new Array(chunkSize);
+				let idx = 0;
+				const mapRow = createRowMapper(db.sqlite, stmt);
+				while (1) {
+					const result = await db.sqlite.step(stmt);
+					if (result === 100) {
+						cache[idx] = mapRow(db.sqlite.row(stmt));
+						if (++idx === chunkSize) {
+							for (let i = 0; i < idx; i++) yield cache[i];
+							idx = 0;
+						}
+						continue;
+					}
+					if (result === 101) {
+						for (let i = 0; i < idx; i++) yield cache[i];
+						return;
+					}
+				}
+			} finally {
+				await release();
+			}
+		}
 	};
 }
 //#endregion

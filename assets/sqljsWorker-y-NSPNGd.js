@@ -60,7 +60,7 @@ function isObject(obj) {
 function freeze(obj) {
 	return Object.freeze(obj);
 }
-function asArray$1(arg) {
+function asArray(arg) {
 	if (isReadonlyArray(arg)) return arg;
 	else return [arg];
 }
@@ -1908,7 +1908,7 @@ function parseSelectAll(table) {
 	else return [parseSelectAllArg(table)];
 }
 function parseSelectAllArg(table) {
-	if (isString(table)) return SelectionNode.createSelectAllFromTable(parseTable$1(table));
+	if (isString(table)) return SelectionNode.createSelectAllFromTable(parseTable(table));
 	throw new Error(`invalid value selectAll expression: ${JSON.stringify(table)}`);
 }
 //#endregion
@@ -6963,7 +6963,7 @@ var QueryCreator = class QueryCreator {
 		return new InsertQueryBuilder({
 			queryId: createQueryId(),
 			executor: _classPrivateFieldGet2(_props$25, this).executor,
-			queryNode: InsertQueryNode.create(parseTable$1(table), _classPrivateFieldGet2(_props$25, this).withNode)
+			queryNode: InsertQueryNode.create(parseTable(table), _classPrivateFieldGet2(_props$25, this).withNode)
 		});
 	}
 	/**
@@ -7006,7 +7006,7 @@ var QueryCreator = class QueryCreator {
 		return new InsertQueryBuilder({
 			queryId: createQueryId(),
 			executor: _classPrivateFieldGet2(_props$25, this).executor,
-			queryNode: InsertQueryNode.create(parseTable$1(table), _classPrivateFieldGet2(_props$25, this).withNode, true)
+			queryNode: InsertQueryNode.create(parseTable(table), _classPrivateFieldGet2(_props$25, this).withNode, true)
 		});
 	}
 	/**
@@ -7702,25 +7702,25 @@ var SelectQueryBuilderImpl = class {
 	forUpdate(of) {
 		return new _a$1({
 			..._classPrivateFieldGet2(_props$24, this),
-			queryNode: QueryNode.cloneWithEndModifier(_classPrivateFieldGet2(_props$24, this).queryNode, SelectModifierNode.create("ForUpdate", of ? asArray$1(of).map(parseTable$1) : void 0))
+			queryNode: QueryNode.cloneWithEndModifier(_classPrivateFieldGet2(_props$24, this).queryNode, SelectModifierNode.create("ForUpdate", of ? asArray(of).map(parseTable) : void 0))
 		});
 	}
 	forShare(of) {
 		return new _a$1({
 			..._classPrivateFieldGet2(_props$24, this),
-			queryNode: QueryNode.cloneWithEndModifier(_classPrivateFieldGet2(_props$24, this).queryNode, SelectModifierNode.create("ForShare", of ? asArray$1(of).map(parseTable$1) : void 0))
+			queryNode: QueryNode.cloneWithEndModifier(_classPrivateFieldGet2(_props$24, this).queryNode, SelectModifierNode.create("ForShare", of ? asArray(of).map(parseTable) : void 0))
 		});
 	}
 	forKeyShare(of) {
 		return new _a$1({
 			..._classPrivateFieldGet2(_props$24, this),
-			queryNode: QueryNode.cloneWithEndModifier(_classPrivateFieldGet2(_props$24, this).queryNode, SelectModifierNode.create("ForKeyShare", of ? asArray$1(of).map(parseTable$1) : void 0))
+			queryNode: QueryNode.cloneWithEndModifier(_classPrivateFieldGet2(_props$24, this).queryNode, SelectModifierNode.create("ForKeyShare", of ? asArray(of).map(parseTable) : void 0))
 		});
 	}
 	forNoKeyUpdate(of) {
 		return new _a$1({
 			..._classPrivateFieldGet2(_props$24, this),
-			queryNode: QueryNode.cloneWithEndModifier(_classPrivateFieldGet2(_props$24, this).queryNode, SelectModifierNode.create("ForNoKeyUpdate", of ? asArray$1(of).map(parseTable$1) : void 0))
+			queryNode: QueryNode.cloneWithEndModifier(_classPrivateFieldGet2(_props$24, this).queryNode, SelectModifierNode.create("ForNoKeyUpdate", of ? asArray(of).map(parseTable) : void 0))
 		});
 	}
 	skipLocked() {
@@ -8314,10 +8314,10 @@ function createFunctionModule() {
 			return fn("any", [column]);
 		},
 		jsonAgg(table) {
-			return new AggregateFunctionBuilder({ aggregateFunctionNode: AggregateFunctionNode.create("json_agg", [isString(table) ? parseTable$1(table) : table.toOperationNode()]) });
+			return new AggregateFunctionBuilder({ aggregateFunctionNode: AggregateFunctionNode.create("json_agg", [isString(table) ? parseTable(table) : table.toOperationNode()]) });
 		},
 		toJson(table) {
-			return new ExpressionWrapper(FunctionNode.create("to_json", [isString(table) ? parseTable$1(table) : table.toOperationNode()]));
+			return new ExpressionWrapper(FunctionNode.create("to_json", [isString(table) ? parseTable(table) : table.toOperationNode()]));
 		}
 	});
 }
@@ -8838,7 +8838,7 @@ function createExpressionBuilder(executor = NOOP_QUERY_EXECUTOR) {
 			return new JSONPathBuilder(JSONPathNode.create());
 		},
 		table(table) {
-			return new ExpressionWrapper(parseTable$1(table));
+			return new ExpressionWrapper(parseTable(table));
 		},
 		val(value) {
 			return new ExpressionWrapper(parseValueExpression(value));
@@ -8938,7 +8938,7 @@ var AliasedDynamicTableBuilder = class {
 		_classPrivateFieldSet2(_alias$1, this, alias);
 	}
 	toOperationNode() {
-		return AliasNode.create(parseTable$1(_classPrivateFieldGet2(_table2, this)), IdentifierNode.create(_classPrivateFieldGet2(_alias$1, this)));
+		return AliasNode.create(parseTable(_classPrivateFieldGet2(_table2, this)), IdentifierNode.create(_classPrivateFieldGet2(_alias$1, this)));
 	}
 };
 function isAliasedDynamicTableBuilder(obj) {
@@ -8959,10 +8959,10 @@ function parseAliasedTable(from) {
 	const ALIAS_SEPARATOR = " as ";
 	if (from.includes(ALIAS_SEPARATOR)) {
 		const [table, alias] = from.split(ALIAS_SEPARATOR).map(trim$1);
-		return AliasNode.create(parseTable$1(table), IdentifierNode.create(alias));
-	} else return parseTable$1(from);
+		return AliasNode.create(parseTable(table), IdentifierNode.create(alias));
+	} else return parseTable(from);
 }
-function parseTable$1(from) {
+function parseTable(from) {
 	const SCHEMA_SEPARATOR = ".";
 	if (from.includes(SCHEMA_SEPARATOR)) {
 		const [schema, table] = from.split(SCHEMA_SEPARATOR).map(trim$1);
@@ -10409,7 +10409,7 @@ var AlterTableBuilder = class {
 	renameTo(newTableName) {
 		return new AlterTableExecutor({
 			..._classPrivateFieldGet2(_props$16, this),
-			node: AlterTableNode.cloneWithTableProps(_classPrivateFieldGet2(_props$16, this).node, { renameTo: parseTable$1(newTableName) })
+			node: AlterTableNode.cloneWithTableProps(_classPrivateFieldGet2(_props$16, this).node, { renameTo: parseTable(newTableName) })
 		});
 	}
 	setSchema(newSchema) {
@@ -10480,7 +10480,7 @@ var AlterTableBuilder = class {
 	* is because you can only add one column per `ALTER TABLE` query.
 	*/
 	addForeignKeyConstraint(constraintName, columns, targetTable, targetColumns, build = noop) {
-		const constraintBuilder = build(new ForeignKeyConstraintBuilder(ForeignKeyConstraintNode.create(columns.map(ColumnNode.create), parseTable$1(targetTable), targetColumns.map(ColumnNode.create), constraintName)));
+		const constraintBuilder = build(new ForeignKeyConstraintBuilder(ForeignKeyConstraintNode.create(columns.map(ColumnNode.create), parseTable(targetTable), targetColumns.map(ColumnNode.create), constraintName)));
 		return new AlterTableAddForeignKeyConstraintBuilder({
 			..._classPrivateFieldGet2(_props$16, this),
 			constraintBuilder
@@ -10695,7 +10695,7 @@ var CreateIndexBuilder = class CreateIndexBuilder {
 	on(table) {
 		return new CreateIndexBuilder({
 			..._classPrivateFieldGet2(_props$15, this),
-			node: CreateIndexNode.cloneWith(_classPrivateFieldGet2(_props$15, this).node, { table: parseTable$1(table) })
+			node: CreateIndexNode.cloneWith(_classPrivateFieldGet2(_props$15, this).node, { table: parseTable(table) })
 		});
 	}
 	column(arg) {
@@ -11141,7 +11141,7 @@ var CreateTableBuilder = class CreateTableBuilder {
 	* ```
 	*/
 	addForeignKeyConstraint(constraintName, columns, targetTable, targetColumns, build = noop) {
-		const builder = build(new ForeignKeyConstraintBuilder(ForeignKeyConstraintNode.create(columns.map(ColumnNode.create), parseTable$1(targetTable), targetColumns.map(ColumnNode.create), constraintName)));
+		const builder = build(new ForeignKeyConstraintBuilder(ForeignKeyConstraintNode.create(columns.map(ColumnNode.create), parseTable(targetTable), targetColumns.map(ColumnNode.create), constraintName)));
 		return new CreateTableBuilder({
 			..._classPrivateFieldGet2(_props$13, this),
 			node: CreateTableNode.cloneWithConstraint(_classPrivateFieldGet2(_props$13, this).node, builder.toOperationNode())
@@ -11305,7 +11305,7 @@ var DropIndexBuilder = class DropIndexBuilder {
 	on(table) {
 		return new DropIndexBuilder({
 			..._classPrivateFieldGet2(_props$12, this),
-			node: DropIndexNode.cloneWith(_classPrivateFieldGet2(_props$12, this).node, { table: parseTable$1(table) })
+			node: DropIndexNode.cloneWith(_classPrivateFieldGet2(_props$12, this).node, { table: parseTable(table) })
 		});
 	}
 	ifExists() {
@@ -12088,7 +12088,7 @@ var SchemaModule = class SchemaModule {
 		return new CreateTableBuilder({
 			queryId: createQueryId(),
 			executor: _classPrivateFieldGet2(_executor$1, this),
-			node: CreateTableNode.create(parseTable$1(table))
+			node: CreateTableNode.create(parseTable(table))
 		});
 	}
 	/**
@@ -12106,7 +12106,7 @@ var SchemaModule = class SchemaModule {
 		return new DropTableBuilder({
 			queryId: createQueryId(),
 			executor: _classPrivateFieldGet2(_executor$1, this),
-			node: DropTableNode.create(parseTable$1(table))
+			node: DropTableNode.create(parseTable(table))
 		});
 	}
 	/**
@@ -12199,7 +12199,7 @@ var SchemaModule = class SchemaModule {
 		return new AlterTableBuilder({
 			queryId: createQueryId(),
 			executor: _classPrivateFieldGet2(_executor$1, this),
-			node: AlterTableNode.create(parseTable$1(table))
+			node: AlterTableNode.create(parseTable(table))
 		});
 	}
 	/**
@@ -13921,7 +13921,7 @@ const sql = Object.assign((sqlFragments, ...parameters) => {
 	table(tableReference) {
 		return createRawBuilder({
 			queryId: createQueryId(),
-			rawNode: RawNode.createWithChild(parseTable$1(tableReference))
+			rawNode: RawNode.createWithChild(parseTable(tableReference))
 		});
 	},
 	id(...ids) {
@@ -15459,7 +15459,7 @@ var SqliteAdapter = class extends DialectAdapterBase {
 	async releaseMigrationLock(_db, _opt) {}
 };
 //#endregion
-//#region ../packages/dialect-generic-sqlite/dist/base-l3N0b3Sd.js
+//#region ../packages/dialect-generic-sqlite/dist/base-DOKiiLT3.js
 init_defineProperty();
 var BaseSqliteDialect = class {
 	/**
@@ -15517,21 +15517,6 @@ var BaseSqliteDriver = class {
 		await runSavepoint("release", connection, savepointName, compileQuery);
 	}
 };
-/**
-* Wrapper for {@link IGenericSqlite}'s `query` function
-*
-* Support `returning`, get `insertId` and `numAffectedRows` by calling `select 1`
-* @param exec {@link IGenericSqliteExecutor} `exec.run` will never call real sqls
-*/
-function buildQueryFn(exec) {
-	return async (isSelect, sql, parameters) => {
-		const rows = await exec.all(sql, parameters);
-		return isSelect || rows.length ? { rows } : {
-			rows: [],
-			...await exec.run("select 1")
-		};
-	};
-}
 //#endregion
 //#region ../packages/dialect-generic-sqlite/dist/index.js
 init_defineProperty();
@@ -15562,7 +15547,7 @@ var GenericSqliteConnection = class {
 		}
 	}
 	async executeQuery({ parameters, query, sql }) {
-		return await this.db.query(SelectQueryNode.is(query), sql, parameters);
+		return await this.db.query(SelectQueryNode.is(query), sql, parameters, query);
 	}
 };
 var GenericSqliteDialect = class extends BaseSqliteDialect {
@@ -15593,27 +15578,49 @@ var SqlJsDialect = class extends GenericSqliteDialect {
 			return {
 				db,
 				close: () => db.close(),
-				query: buildQueryFn({
-					run: () => ({
-						insertId: BigInt(db.exec("SELECT last_insert_rowid()")[0].values[0][0]),
-						numAffectedRows: BigInt(db.getRowsModified())
-					}),
-					all: (sql, parameters) => {
-						const stmt = db.prepare(sql);
-						try {
-							if (parameters?.length) stmt.bind(parameters);
-							const rows = [];
-							while (stmt.step()) rows.push(stmt.getAsObject());
-							return rows;
-						} finally {
-							stmt.free();
+				query: (_, sql, parameters) => {
+					const stmt = db.prepare(sql);
+					try {
+						if (parameters?.length) stmt.bind(parameters);
+						if (stmt.getColumnNames().length === 0) {
+							stmt.step();
+							return {
+								rows: [],
+								insertId: BigInt(db.exec("SELECT last_insert_rowid()")[0].values[0][0]),
+								numAffectedRows: BigInt(db.getRowsModified())
+							};
 						}
+						const rows = [];
+						while (stmt.step()) rows.push(stmt.getAsObject());
+						return { rows };
+					} finally {
+						stmt.free();
 					}
-				})
+				},
+				iterator: (isSelect, sql, parameters) => {
+					if (!isSelect) throw new Error("Only support select query");
+					return runWithStatement(db, sql, parameters, iterator);
+				}
 			};
 		}, config.onCreateConnection);
 	}
 };
+function runWithStatement(db, sql, parameters, callback) {
+	const statement = db.prepare(sql);
+	try {
+		if (parameters.length) statement.bind(parameters);
+		return callback(statement);
+	} finally {
+		statement.free();
+	}
+}
+function* iterator(stmt) {
+	try {
+		while (stmt.step()) yield stmt.getAsObject();
+	} finally {
+		stmt.free();
+	}
+}
 //#endregion
 //#region ../node_modules/.pnpm/sql.js@1.14.1/node_modules/sql.js/dist/sql-wasm.wasm?url
 var import_sql_wasm_browser = /* @__PURE__ */ __toESM((/* @__PURE__ */ __commonJSMin(((exports, module) => {
@@ -18026,718 +18033,17 @@ async function writeFile(fileName, data) {
 	}
 }
 //#endregion
-//#region ../node_modules/.pnpm/kysely-plugin-serialize@0.8.2_kysely@0.29.2/node_modules/kysely-plugin-serialize/dist/index.js
-init_defineProperty();
-var SerializeParametersTransformer = class extends OperationNodeTransformer {
-	constructor(serializer) {
-		super();
-		_defineProperty(this, "serializer", void 0);
-		this.serializer = serializer;
-	}
-	transformPrimitiveValueList(node) {
-		return {
-			...node,
-			values: node.values.map(this.serializer)
-		};
-	}
-	transformColumnUpdate(node) {
-		const { value: valueNode } = node;
-		if (valueNode.kind !== "ValueNode") return super.transformColumnUpdate(node);
-		const { value, ...item } = valueNode;
-		const serializedValue = this.serializer(value);
-		return value === serializedValue ? super.transformColumnUpdate(node) : super.transformColumnUpdate({
-			...node,
-			value: {
-				...item,
-				value: serializedValue
-			}
-		});
-	}
-	transformValue(node) {
-		return {
-			...node,
-			value: this.serializer(node.value)
-		};
-	}
-};
-var dateRegex = /^\d{4}-\d{2}-\d{2}[T ]\d{2}:\d{2}:\d{2}(?:\.\d+)?Z?$/;
-function maybeJson(parameter) {
-	return parameter.startsWith("{") && parameter.endsWith("}") || parameter.startsWith("[") && parameter.endsWith("]");
-}
-function skipTransform$1(parameter) {
-	return parameter === void 0 || parameter === null || typeof parameter === "bigint" || typeof parameter === "number" || typeof parameter === "object" && "buffer" in parameter;
-}
-var BaseSerializePlugin = class {
-	/**
-	* Base class for {@link SerializePlugin}, without default options
-	*/
-	constructor(serializer, deserializer, skipNodeKind) {
-		_defineProperty(this, "transformer", void 0);
-		_defineProperty(this, "deserializer", void 0);
-		_defineProperty(this, "skipNodeSet", void 0);
-		_defineProperty(this, "ctx", void 0);
-		this.transformer = new SerializeParametersTransformer(serializer);
-		this.deserializer = deserializer;
-		if (skipNodeKind.length) {
-			this.skipNodeSet = new Set(skipNodeKind);
-			this.ctx = /* @__PURE__ */ new WeakSet();
-		}
-	}
-	transformQuery({ node, queryId }) {
-		if (this.skipNodeSet?.has(node.kind)) {
-			this.ctx?.add(queryId);
-			return node;
-		}
-		return this.transformer.transformNode(node);
-	}
-	async transformResult({ result, queryId }) {
-		return this.ctx?.has(queryId) ? result : {
-			...result,
-			rows: this.parseRows(result.rows)
-		};
-	}
-	parseRows(rows) {
-		const result = [];
-		for (const row of rows) {
-			if (!row) continue;
-			const parsedRow = {};
-			for (const [key, value] of Object.entries(row)) parsedRow[key] = this.deserializer(value);
-			result.push(parsedRow);
-		}
-		return result;
-	}
-};
-//#endregion
-//#region ../node_modules/.pnpm/kysely-sqlite-builder@1.0.0_kysely@0.29.2/node_modules/kysely-sqlite-builder/dist/chunk-SSHRXRCB.js
-async function executeSQL(kysely, data, parameters) {
-	if (typeof data === "string") data = CompiledQuery.raw(data, parameters);
-	return await kysely.executeQuery(data);
-}
-async function checkIntegrity(db) {
-	const { rows } = await executeSQL(db, "PRAGMA integrity_check");
-	if (!rows.length) return false;
-	return rows[0].integrity_check === "ok";
-}
-async function getOrSetDBVersion(db, version) {
-	if (version) {
-		await executeSQL(db, `PRAGMA user_version = ${version}`);
-		return version;
-	}
-	const { rows } = await executeSQL(db, "PRAGMA user_version");
-	if (!rows.length) throw new Error("Fail to get DBVersion");
-	return rows[0].user_version;
-}
-var skipTransform = (parameter) => skipTransform$1(parameter) || typeof parameter === "boolean";
-var defaultSerializer = (parameter) => {
-	if (skipTransform(parameter) || typeof parameter === "string") return parameter;
-	else try {
-		return JSON.stringify(parameter);
-	} catch {
-		return parameter;
-	}
-};
-var defaultDeserializer = (parameter) => {
-	if (skipTransform(parameter)) return parameter;
-	if (typeof parameter === "string") {
-		if (dateRegex.test(parameter)) return new Date(parameter);
-		else if (maybeJson(parameter)) try {
-			return JSON.parse(parameter);
-		} catch {}
-	}
-	return parameter;
-};
-//#endregion
-//#region ../node_modules/.pnpm/kysely-sqlite-builder@1.0.0_kysely@0.29.2/node_modules/kysely-sqlite-builder/dist/index.js
-init_defineProperty();
-var QUESTION_MARKER = "_Q_";
-var QUESTION_MARKER_REGEX = new RegExp(QUESTION_MARKER, "g");
-var QUESTION_MATCH_REGEX = /\?/;
-var QUESTION_MATCH_REGEX_GLOBAL = /\?/g;
-function createKyselyLogger(options = {}) {
-	const { enable = "error", logger = console.log, merge, logQueryNode } = options;
-	return (event) => {
-		if (!enable || typeof enable === "string" && event.level !== enable) return;
-		const { level, queryDurationMillis, query: { parameters, sql: sql2, query } } = event;
-		const err = level === "error" ? event.error : void 0;
-		let _sql = sql2.replace(/\r?\n/g, " ").replace(/\s+/g, " ");
-		if (merge) for (let param2 of parameters) {
-			if (param2 instanceof Date) param2 = param2.toLocaleString();
-			if (typeof param2 === "string") param2 = `'${param2}'`.replace(QUESTION_MATCH_REGEX_GLOBAL, QUESTION_MARKER);
-			_sql = _sql.replace(QUESTION_MATCH_REGEX, param2);
-		}
-		const param = {
-			sql: _sql.replace(QUESTION_MARKER_REGEX, "?"),
-			params: parameters,
-			duration: Math.round(queryDurationMillis * 100) / 100,
-			error: err
-		};
-		if (logQueryNode) param.queryNode = query;
-		logger(param);
-	};
-}
-var IntegrityError = class extends Error {
-	constructor() {
-		super("DB file maybe corrupted");
-	}
-};
-var BaseSqliteBuilder = class {
-	/**
-	* Current kysely / transaction instance
-	*/
-	get kysely() {
-		return this.trx || this.ky;
-	}
-	constructor(options) {
-		_defineProperty(this, "trxCount", 0);
-		_defineProperty(this, "ky", void 0);
-		_defineProperty(this, "trx", void 0);
-		_defineProperty(this, "log", void 0);
-		const { dialect, logger, onQuery, plugins = [] } = options;
-		this.log = logger;
-		plugins.push(new BaseSerializePlugin(defaultSerializer, defaultDeserializer, []));
-		let log;
-		if (onQuery === true) log = createKyselyLogger({
-			logger: this.log?.debug || console.log,
-			merge: true
-		});
-		else if (onQuery) log = createKyselyLogger(onQuery);
-		this.ky = new Kysely({
-			dialect,
-			log,
-			plugins
-		});
-	}
-	/**
-	* sync db schema
-	* @param updater sync table function, built-in: {@link useSchema}, {@link useMigrator}
-	* @param checkIntegrity whether to check integrity
-	* @example
-	* import { useSchema } from 'kysely-sqlite-builder/schema'
-	* import { useMigrator } from 'kysely-sqlite-builder/migrator'
-	* import { createCodeProvider } from 'kysely-sqlite-builder/migrator'
-	*
-	* // update tables using schema
-	* await db.syncDB(useSchema(Schema, { logger: false }))
-	*
-	* // update tables using MigrationProvider and migrate to latest
-	* await db.syncDB(useMigrator(createCodeProvider(...)))
-	*/
-	async syncDB(updater, checkIntegrity2) {
-		try {
-			if (checkIntegrity2 && !await checkIntegrity(this.ky)) {
-				this.log?.error("Integrity check fail");
-				return {
-					ready: false,
-					error: new IntegrityError()
-				};
-			}
-			const result = await updater(this.ky, this.log);
-			this.log?.info("Sync completed");
-			return result;
-		} catch (error) {
-			this.logError(error, "Unknown error while syncing");
-			return {
-				ready: false,
-				error
-			};
-		}
-	}
-	logError(e, errorMsg) {
-		if (errorMsg) this.log?.error(errorMsg, e instanceof Error ? e : new Error(String(e)));
-	}
-	/**
-	* Run in transaction, support nest call (using `savepoint`)
-	* @example
-	* db.transaction(async (trx) => {
-	*   // auto load transaction
-	*   await db.insertInto('test').values({ gender: true }).execute()
-	*   // or
-	*   await trx.insertInto('test').values({ person: { name: 'test' }, gender: true }).execute()
-	*   db.transaction(async () => {
-	*     // nest transaction, using savepoint
-	*     await db.selectFrom('test').where('gender', '=', true).execute()
-	*   })
-	* })
-	*/
-	async transaction(fn, options = {}) {
-		if (!this.trx) {
-			const trx = await this.ky.startTransaction().execute();
-			this.log?.debug("Run in transaction");
-			this.trx = trx;
-			try {
-				const result = await fn(trx);
-				await trx.commit().execute();
-				await options.onCommit?.(result);
-				return result;
-			} catch (e) {
-				await trx.rollback().execute();
-				this.logError(e, options.errorMsg);
-				await options.onRollback?.(e);
-				return;
-			} finally {
-				this.trx = void 0;
-			}
-		}
-		this.trxCount++;
-		const spName = `SP_${this.trxCount}`;
-		this.log?.debug(`Run in savepoint: ${spName}`);
-		const sp = await this.trx.savepoint(spName).execute();
-		try {
-			const result = await fn(this.kysely);
-			await sp.releaseSavepoint(spName).execute();
-			await options.onCommit?.(result);
-			return result;
-		} catch (e) {
-			await sp.rollbackToSavepoint(spName).execute();
-			await options.onRollback?.(e);
-			this.logError(e, options.errorMsg);
-			return;
-		} finally {
-			this.trxCount--;
-		}
-	}
-	async execute(data, parameters) {
-		if (data.as) return await data.execute(this.kysely);
-		return await executeSQL(this.kysely, data, parameters);
-	}
-	/**
-	* Destroy db connection
-	*/
-	async destroy() {
-		this.log?.info("Destroyed");
-		await this.ky.destroy();
-		this.trx = void 0;
-	}
-};
-var SqliteBuilder = class extends BaseSqliteBuilder {
-	constructor(..._args) {
-		super(..._args);
-		_defineProperty(this, "insertInto", (tb) => this.kysely.insertInto(tb));
-		_defineProperty(this, "replaceInto", (tb) => this.kysely.replaceInto(tb));
-		_defineProperty(this, "selectFrom", (tb) => this.kysely.selectFrom(tb));
-		_defineProperty(this, "updateTable", (tb) => this.kysely.updateTable(tb));
-		_defineProperty(this, "deleteFrom", (tb) => this.kysely.deleteFrom(tb));
-	}
-};
-new RegExp(`"_P@([^"]+)"`, "g");
-//#endregion
-//#region ../node_modules/.pnpm/kysely-sqlite-builder@1.0.0_kysely@0.29.2/node_modules/kysely-sqlite-builder/dist/schema.js
-var DataType = {
-	increments: 0,
-	int: 1,
-	float: 2,
-	string: 3,
-	blob: 4,
-	object: 5,
-	boolean: 6,
-	date: 7
-};
-var TGRC = "_TC_";
-var TGRU = "_TU_";
-function defineTable(options) {
-	const { columns, ...rest } = options;
-	const { updateAt, createAt, softDelete } = rest;
-	if (createAt) columns[createAt === true ? "createAt" : createAt] = {
-		type: DataType.date,
-		defaultTo: TGRC
-	};
-	if (updateAt) columns[updateAt === true ? "updateAt" : updateAt] = {
-		type: DataType.date,
-		defaultTo: TGRU
-	};
-	if (softDelete) columns[softDelete === true ? "isDeleted" : softDelete] = {
-		type: DataType.int,
-		defaultTo: 0
-	};
-	return {
-		...rest,
-		columns
-	};
-}
-function parse(type, options) {
-	const data = {
-		type,
-		...options
-	};
-	return {
-		...data,
-		$cast: () => data
-	};
-}
-var column = {
-	/**
-	* Column type: INTEGER AUTO INCREMENT
-	*/
-	increments: () => ({ type: DataType.increments }),
-	/**
-	* Column type: INTEGER
-	*/
-	int: (options) => parse(DataType.int, options),
-	/**
-	* Column type: REAL
-	*/
-	float: (options) => parse(DataType.float, options),
-	/**
-	* Column type: text
-	*/
-	string: (options) => parse(DataType.string, options),
-	/**
-	* Column type: BLOB
-	*/
-	blob: (options) => parse(DataType.blob, options),
-	/**
-	* Column type: INTEGER
-	*/
-	boolean: (options) => parse(DataType.boolean, options),
-	/**
-	* Column type: TEXT (serialize with `JSON.parse` and `JSON.stringify`)
-	*/
-	date: (options) => parse(DataType.date, options),
-	/**
-	* Column type: TEXT (serialize with `JSON.parse` and `JSON.stringify`)
-	*/
-	object: (options) => parse(DataType.object, options)
-};
-async function parseTable(db, tableName, hasAutoIncrement) {
-	const result = {
-		columns: {},
-		primary: [],
-		unique: [],
-		index: [],
-		trigger: []
-	};
-	const cols = (await sql`SELECT "name", "type", "notnull", "dflt_value", "pk" FROM PRAGMA_TABLE_INFO(${tableName})`.execute(db)).rows;
-	for (const { dflt_value, name, notnull, pk, type } of cols) {
-		result.columns[name] = {
-			type,
-			notNull: !!notnull,
-			defaultTo: dflt_value
-		};
-		if (pk !== 0) {
-			if (hasAutoIncrement && pk === 1 && type === "INTEGER") result.increment = name;
-			result.primary.push(name);
-		}
-	}
-	const indexes = (await sql`SELECT "origin", (SELECT GROUP_CONCAT(name) FROM PRAGMA_INDEX_INFO(i.name)) as "columns" FROM PRAGMA_INDEX_LIST(${tableName}) as i WHERE "origin" != 'pk'`.execute(db)).rows;
-	for (const { columns, origin } of indexes) result[origin === "u" ? "unique" : "index"].push(columns.split(",").map((c) => c.trim()));
-	return result;
-}
-async function parseExistSchema(db, prefix = []) {
-	const extraColumns = prefix.length ? ` AND ${prefix.map((t) => `"name" NOT LIKE '${t}%'`).join(" AND ")}` : "";
-	const tables = (await sql`SELECT "type", "tbl_name" AS "table", CASE WHEN "sql" LIKE '%PRIMARY KEY AUTOINCREMENT%' THEN 1 ELSE "name" END AS "name" FROM "sqlite_master" WHERE "type" IN ('table', 'trigger') AND "name" NOT LIKE 'SQLITE_%'${sql.raw(extraColumns)} ORDER BY "type"`.execute(db)).rows;
-	const tableMap = {};
-	for (const { name, table, type } of tables) if (type === "table") tableMap[table] = await parseTable(db, table, name === 1);
-	else tableMap[table].trigger.push(name);
-	return tableMap;
-}
-function parseColumnType(type) {
-	let dataType;
-	let isIncrements = false;
-	switch (type) {
-		case DataType.float:
-			dataType = "REAL";
-			break;
-		case DataType.increments: isIncrements = true;
-		case DataType.boolean:
-		case DataType.int:
-			dataType = "INTEGER";
-			break;
-		case DataType.blob:
-			dataType = "BLOB";
-			break;
-		default: dataType = "TEXT";
-	}
-	return [dataType, isIncrements];
-}
-function asArray(arr) {
-	return Array.isArray(arr) ? arr : [arr];
-}
-function parseArray(arr) {
-	const columns = asArray(arr);
-	let key = "";
-	let columnList = "";
-	for (const c of columns) {
-		key += `_${c}`;
-		columnList += `"${c}",`;
-	}
-	return [
-		columnList.slice(0, -1),
-		key,
-		columns[0]
-	];
-}
-function parseDefaultValue(trx, defaultTo) {
-	if (defaultTo === void 0 || defaultTo === null) return "";
-	if (defaultTo === TGRC || defaultTo === TGRU) return "CURRENT_TIMESTAMP";
-	let _defaultTo = defaultTo.isRawBuilder ? defaultTo.compile(trx).sql : defaultSerializer(defaultTo);
-	_defaultTo = typeof _defaultTo === "string" ? `'${_defaultTo}'` : _defaultTo;
-	return _defaultTo !== void 0 ? String(_defaultTo) : "";
-}
-function parseDefaultValueWithPrefix(trx, defaultTo) {
-	const result = parseDefaultValue(trx, defaultTo);
-	return result ? ` DEFAULT ${result}` : "";
-}
-function dropTable(tableName) {
-	return `DROP TABLE IF EXISTS "${tableName}";`;
-}
-function createTableWithIndexAndTrigger(trx, tableName, table) {
-	const { index, ...props } = table;
-	const result = [];
-	const [sql3, updateColumn, triggerColumn] = createTable(trx, tableName, props);
-	result.push(sql3, ...createTableIndex(tableName, index));
-	const triggerSql = createTimeTrigger(tableName, updateColumn, triggerColumn);
-	if (triggerSql) result.push(triggerSql);
-	return result;
-}
-function createTableIndex(tableName, index = []) {
-	return index.map((i) => {
-		const [columnListStr, key] = parseArray(i);
-		return `CREATE INDEX IF NOT EXISTS idx_${tableName + key} on "${tableName}" (${columnListStr});`;
-	});
-}
-function createTable(trx, tableName, { columns, primary, unique, withoutRowId }) {
-	let updateColumn;
-	let triggerColumn;
-	const columnList = [];
-	for (const [columnName, columnProperty] of Object.entries(columns)) {
-		const { type, notNull, defaultTo } = columnProperty;
-		const [dataType, isIncrements] = parseColumnType(type);
-		if (isIncrements) {
-			if (withoutRowId) throw new Error(`Cannot setup AUTOINCREMENT column "${columnName}" in table "${tableName}" without rowid `);
-			if (triggerColumn) throw new Error(`Multiple AUTOINCREMENT columns (${triggerColumn}, ${columnName}) in table ${tableName}`);
-			triggerColumn = columnName;
-			columnList.push(`"${columnName}" ${dataType} PRIMARY KEY AUTOINCREMENT`);
-		} else {
-			if (defaultTo === TGRU) updateColumn = columnName;
-			columnList.push(`"${columnName}" ${dataType}${notNull ? " NOT NULL" : ""}${parseDefaultValueWithPrefix(trx, defaultTo)}`);
-		}
-	}
-	if (primary) {
-		const [targetColumns, key, first] = parseArray(primary);
-		if (!triggerColumn) {
-			columnList.push(`PRIMARY KEY (${targetColumns})`);
-			triggerColumn = first;
-		} else if (triggerColumn !== key.substring(1)) throw new Error(`Exists AUTOINCREMENT column "${triggerColumn}" in table "${tableName}", cannot setup extra primary key (${targetColumns})`);
-	} else if (withoutRowId) throw new Error(`No primary key in table "${tableName}" and "withoutRowId" setup`);
-	if (unique) for (const uk of unique) columnList.push(`UNIQUE (${parseArray(uk)[0]})`);
-	return [
-		`CREATE TABLE IF NOT EXISTS "${tableName}" (${columnList})${withoutRowId ? " WITHOUT ROWID" : ""};`,
-		updateColumn,
-		triggerColumn || "rowid"
-	];
-}
-function createTimeTrigger(tableName, updateColumn, triggerColumn) {
-	if (!updateColumn || !triggerColumn) return;
-	return `CREATE TRIGGER IF NOT EXISTS "${`tgr_${tableName}_${updateColumn}`}" AFTER UPDATE ON "${tableName}" BEGIN UPDATE "${tableName}" SET "${updateColumn}" = CURRENT_TIMESTAMP WHERE "${triggerColumn}" = NEW."${triggerColumn}"; END;`;
-}
-function renameTable(tableName, newTableName) {
-	return `ALTER TABLE "${tableName}" RENAME TO "${newTableName}";`;
-}
-function addColumn(trx, tableName, columnName, columnProperty) {
-	const { type, notNull, defaultTo } = columnProperty;
-	const [dataType] = parseColumnType(type);
-	return `ALTER TABLE "${tableName}" ADD COLUMN "${columnName}" ${dataType}${notNull ? " NOT NULL" : ""}${parseDefaultValueWithPrefix(trx, defaultTo)};`;
-}
-function dropColumn(tableName, columnName) {
-	return `ALTER TABLE "${tableName}" DROP COLUMN "${columnName}";`;
-}
-function createIndex(tableName, columns) {
-	const [columnListStr, indexSuffix] = parseArray(columns);
-	return `CREATE INDEX IF NOT EXISTS "idx_${tableName}${indexSuffix}" on "${tableName}"(${columnListStr});`;
-}
-function dropIndex(tableName, columns) {
-	const [, indexSuffix] = parseArray(columns);
-	return `DROP INDEX IF EXISTS "idx_${tableName}${indexSuffix}";`;
-}
-function dropTrigger(triggerName) {
-	return `DROP TRIGGER IF EXISTS "${triggerName}";`;
-}
-function migrateWholeTable(trx, tableName, restoreColumnList, targetTable) {
-	const result = [];
-	const tempTableName = `_temp_${tableName}`;
-	const [sql3, updateColumn, triggerColumn] = createTable(trx, tempTableName, targetTable);
-	result.push(sql3);
-	if (restoreColumnList.length) {
-		let cols = "";
-		let values = "";
-		for (const [name, selectSQL] of restoreColumnList) {
-			cols += `,"${name}"`;
-			values += `,${selectSQL}`;
-		}
-		result.push(`INSERT INTO "${tempTableName}" (${cols.substring(1)}) SELECT ${values.substring(1)} FROM "${tableName}";`);
-	}
-	result.push(dropTable(tableName));
-	result.push(renameTable(tempTableName, tableName));
-	result.push(...createTableIndex(tableName, targetTable.index));
-	const triggerSql = createTimeTrigger(tableName, updateColumn, triggerColumn);
-	if (triggerSql) result.push(triggerSql);
-	return result;
-}
-async function syncTables(db, targetSchema, options = {}, logger) {
-	const { truncateIfExists = [], log, version: { current, skipSyncWhenSame } = {}, excludeTablePrefix, onSuccess, onError, fallback } = options;
-	let oldVersion;
-	if (current) {
-		oldVersion = await getOrSetDBVersion(db);
-		if (skipSyncWhenSame && current === oldVersion) return { ready: true };
-		await getOrSetDBVersion(db, current);
-	}
-	const debug = (e) => log && logger?.debug(e);
-	debug("Sync tables start");
-	const existSchema = await parseExistSchema(db, excludeTablePrefix);
-	let i = 0;
-	let sqls = [];
-	try {
-		sqls = generateSyncTableSQL(db, existSchema, targetSchema, truncateIfExists, debug, fallback);
-	} catch (e) {
-		await onError?.(e, void 0, existSchema, targetSchema);
-		debug(`Sync failed, ${e}`);
-		return {
-			ready: false,
-			error: e
-		};
-	}
-	return await db.transaction().execute(async (trx) => {
-		for (; i < sqls.length; i++) await executeSQL(trx, sqls[i]);
-	}).then(async () => {
-		await onSuccess?.(db, existSchema, oldVersion);
-		debug("Sync success");
-		return { ready: true };
-	}).catch(async (e) => {
-		await onError?.(e, sqls[i], existSchema, targetSchema);
-		debug(`Sync failed, ${e}`);
-		return {
-			ready: false,
-			error: e
-		};
-	});
-}
-var defaultFallbackFunction = ({ target }) => target.parsedType === "TEXT" ? sql`'0'` : sql`0`;
-function generateSyncTableSQL(db, existSchema, targetSchema, truncateIfExists = [], debug = () => {}, fallback = defaultFallbackFunction) {
-	const existTableMap = new Map(Object.entries(existSchema));
-	const targetSchemaMap = new Map(Object.entries(targetSchema));
-	const truncateTableSet = new Set(Array.isArray(truncateIfExists) ? truncateIfExists : truncateIfExists ? existTableMap.keys() : []);
-	const sqls = [];
-	for (const [existTableName, existTable] of existTableMap) if (targetSchemaMap.has(existTableName)) {
-		const targetTable = targetSchemaMap.get(existTableName);
-		if (truncateTableSet.has(existTableName)) {
-			debug(`- Update table "${existTableName}" and truncate`);
-			sqls.push(dropTable(existTableName));
-			sqls.push(...createTableWithIndexAndTrigger(db, existTableName, targetTable));
-		} else {
-			debug(`- Update table "${existTableName}"`);
-			sqls.push(...updateTable(db, existTableName, existTable, targetTable, fallback));
-		}
-	} else {
-		debug(`- Delete table "${existTableName}"`);
-		sqls.push(dropTable(existTableName));
-	}
-	for (const [targetTableName, targetTable] of targetSchemaMap) if (!existTableMap.has(targetTableName)) {
-		debug(`- Create table "${targetTableName}"`);
-		sqls.push(...createTableWithIndexAndTrigger(db, targetTableName, targetTable));
-	}
-	return sqls;
-}
-function updateTable(trx, tableName, existTable, targetTable, migrateColumn) {
-	const targetColumnMap = new Map(Object.entries(targetTable.columns));
-	const existColumnMap = new Map(Object.entries(existTable.columns));
-	const insertColumnList = [];
-	const updateColumnList = [];
-	const deleteColumnList = [];
-	let updateTimeColumn;
-	let autoIncrementColumn;
-	let isChanged = false;
-	for (const [name, { type, defaultTo, notNull }] of targetColumnMap) {
-		const existColumnInfo = existColumnMap.get(name);
-		const parsedTargetColumn = {
-			type,
-			parsedType: parseColumnType(type)[0],
-			defaultTo: parseDefaultValue(trx, defaultTo) || null,
-			notNull: !!notNull
-		};
-		const getFallbackValue = () => migrateColumn({
-			column: name,
-			exist: existColumnInfo,
-			target: parsedTargetColumn,
-			table: tableName
-		}).compile(trx).sql;
-		if (defaultTo === TGRU) updateTimeColumn = name;
-		if (type === DataType.increments) {
-			if (autoIncrementColumn) throw new Error(`Multiple AUTOINCREMENT columns (${autoIncrementColumn}, ${name}) in table ${tableName}`);
-			autoIncrementColumn = name;
-		}
-		if (existColumnInfo) if (existColumnInfo.type === parsedTargetColumn.parsedType && existColumnInfo.notNull === parsedTargetColumn.notNull && existColumnInfo.defaultTo === parsedTargetColumn.defaultTo) updateColumnList.push([name, `"${name}"`]);
-		else {
-			isChanged = true;
-			updateColumnList.push([name, existColumnInfo.notNull || !notNull ? `"${name}"` : `IFNULL(CAST("${name}" AS ${parsedTargetColumn.parsedType}),${getFallbackValue()})`]);
-		}
-		else {
-			insertColumnList.push(name);
-			if (notNull && !defaultTo) {
-				isChanged = true;
-				updateColumnList.push([name, getFallbackValue()]);
-			}
-		}
-	}
-	for (const [name] of existColumnMap) if (!targetColumnMap.has(name)) deleteColumnList.push(name);
-	if (isChanged || isPrimaryKeyChanged(existTable.primary, targetTable.primary || autoIncrementColumn) || isUniqueChanged(existTable.unique, targetTable.unique) || targetTable.withoutRowId) return migrateWholeTable(trx, tableName, updateColumnList, targetTable);
-	const result = [...insertColumnList.map((col) => addColumn(trx, tableName, col, targetColumnMap.get(col))), ...deleteColumnList.map((col) => dropColumn(tableName, col))];
-	const [insertIndexList, deleteIndexList] = parseChangedList(existTable.index, targetTable.index || []);
-	result.push(...insertIndexList.map((colList) => createIndex(tableName, colList)), ...deleteIndexList.map((colList) => dropIndex(tableName, colList)));
-	const existTrigger = existTable.trigger[0];
-	if (existTrigger !== `tgr_${tableName}_${updateTimeColumn}`) {
-		if (existTrigger) result.splice(0, 0, dropTrigger(existTrigger));
-		if (updateTimeColumn) result.push(createTimeTrigger(tableName, updateTimeColumn, asArray(targetTable.primary)[0] || autoIncrementColumn));
-	}
-	return result;
-}
-function isPrimaryKeyChanged(existPK, targetPK) {
-	if (!targetPK) return existPK.length > 0;
-	if (!Array.isArray(targetPK)) targetPK = [targetPK];
-	if (existPK.length !== targetPK.length) return true;
-	return existPK.some((v, i) => v !== targetPK[i]);
-}
-function isUniqueChanged(existUnique, targetUnique) {
-	if (!targetUnique) return existUnique.length > 0;
-	const [insertUniqueList, deleteUniqueList] = parseChangedList(existUnique, targetUnique);
-	return insertUniqueList.length > 0 || deleteUniqueList.length > 0;
-}
-function parseChangedList(existIndexList, targetIndexList) {
-	const existSet = new Set(existIndexList.map((arr) => arr.join("|")));
-	const targetSet = /* @__PURE__ */ new Set();
-	const addList = [];
-	for (const index of targetIndexList) {
-		const hash = Array.isArray(index) ? index.join("|") : index;
-		targetSet.add(hash);
-		if (!existSet.has(hash)) addList.push(Array.isArray(index) ? index : [index]);
-	}
-	return [addList, existIndexList.filter((index) => !targetSet.has(index.join("|")))];
-}
-function useSchema(schema, options = {}) {
-	return async (db, logger) => await syncTables(db, schema, options, options.log ? logger : void 0);
-}
-//#endregion
 //#region src/modules/utils.ts
-const tables = { test: defineTable({
-	columns: {
-		id: column.increments(),
-		name: column.string(),
-		blobtest: column.blob()
-	},
-	createAt: true,
-	updateAt: true
-}) };
+async function syncSchema(db) {
+	await db.schema.createTable("test").ifNotExists().addColumn("id", "integer", (col) => col.primaryKey().autoIncrement()).addColumn("name", "text", (col) => col.notNull()).addColumn("blobtest", "blob", (col) => col.notNull()).addColumn("created_at", "text", (col) => col.notNull().defaultTo(sql`CURRENT_TIMESTAMP`)).addColumn("updated_at", "text", (col) => col.notNull().defaultTo(sql`CURRENT_TIMESTAMP`)).execute();
+}
 async function testDB(dialect, onBeforeDestroy) {
-	const db = new SqliteBuilder({ dialect });
-	const result = await db.syncDB(useSchema(tables));
-	if (!result.ready) throw result.error;
-	console.log(await db.execute(`PRAGMA table_info('test')`));
-	for (let i = 0; i < 10; i++) await db.transaction(async () => {
-		await db.transaction(async () => {
-			if (i > 8) {
-				console.log("test rollback");
-				throw new Error("test rollback");
-			}
-			await db.insertInto("test").values({
+	const db = new Kysely({ dialect });
+	await syncSchema(db);
+	for (let i = 0; i < 10; i++) try {
+		await db.transaction().execute(async (trx) => {
+			if (i > 8) throw new Error("test rollback");
+			await trx.insertInto("test").values({
 				name: `test at ${Date.now()}`,
 				blobtest: Uint8Array.from([
 					2,
@@ -18750,16 +18056,10 @@ async function testDB(dialect, onBeforeDestroy) {
 				])
 			}).execute();
 		});
-	});
-	try {
-		for await (const v of db.selectFrom("test").selectAll().stream(2)) console.log("Stream Query", v);
-	} catch (error) {
-		console.warn(error);
-	}
-	const data = await db.selectFrom("test").selectAll().execute();
+	} catch {}
+	const data = await db.selectFrom("test").selectAll().orderBy("id", "asc").execute();
 	await onBeforeDestroy?.();
 	await db.destroy();
-	console.log(data);
 	return data;
 }
 //#endregion
@@ -18771,12 +18071,18 @@ const dialect = new SqlJsDialect({ async database() {
 	db = new SQL.Database(buffer?.toUint8Array());
 	return db;
 } });
-onmessage = () => {
-	console.log("start sqljs worker test");
-	testDB(dialect, () => {
-		writeFile("sqljs", db?.export());
-	}).then((data) => {
-		data?.forEach((e) => console.log("[sqljs Worker]", e));
-	});
+onmessage = async () => {
+	try {
+		const rows = await testDB(dialect, () => writeFile("sqljsWorker", db?.export()));
+		postMessage({
+			type: "result",
+			rows
+		});
+	} catch (error) {
+		postMessage({
+			type: "error",
+			error: error instanceof Error ? error.message : String(error)
+		});
+	}
 };
 //#endregion

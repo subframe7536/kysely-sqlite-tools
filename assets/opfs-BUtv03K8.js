@@ -1,5 +1,5 @@
 import { _ as _classPrivateMethodInitSpec, c as SQLITE_IOERR_FSTAT, d as SQLITE_IOERR_TRUNCATE, g as _assertClassBrand, i as SQLITE_IOERR_ACCESS, l as SQLITE_IOERR_FSYNC, o as SQLITE_IOERR_CLOSE, s as SQLITE_IOERR_DELETE, t as FacadeVFS, v as _defineProperty } from "./FacadeVFS-XQtZprLW-CP1BfLXw.js";
-import { t as Module } from "./worker-SyRqq1gz.js";
+import { t as Module } from "./worker-C4Ot3Pm-.js";
 //#region ../node_modules/.pnpm/@subframe7536+sqlite-wasm@1.3.0/node_modules/@subframe7536/sqlite-wasm/dist/opfs.js
 var _OPFSCoopSyncVFS_brand;
 const DEFAULT_TEMPORARY_FILES = 10;
