@@ -22,8 +22,7 @@
     "url": "git+https://github.com/subframe7536/kysely-sqlite-tools.git#master"
   },
   "files": [
-    "dist",
-    "official-wasm.d.ts"
+    "dist"
   ],
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
@@ -50,5 +49,10 @@
   },
   "peerDependencies": {
     "kysely": ">=0.29"
+  },
+  "inlinedDependencies": {
+    "@vlcn.io/crsqlite-wasm": "0.16.0",
+    "@vlcn.io/wa-sqlite": "0.22.0",
+    "@vlcn.io/xplat-api": "0.15.0"
   }
 }

@@ -1,13 +1,12 @@
 import type { IBaseSqliteDialectConfig, Promisable } from 'kysely-generic-sqlite'
-import { buildQueryFn, GenericSqliteDialect } from 'kysely-generic-sqlite'
+import { GenericSqliteDialect, parseBigInt } from 'kysely-generic-sqlite'
 
 import { accessDB } from '../utils'
 
-import type { OfficialWasmDB } from './type'
-
-export type { OfficialWasmDB } from './type'
 export interface OfficialWasmDialectConfig extends IBaseSqliteDialectConfig {
-  database: OfficialWasmDB | (() => Promisable<OfficialWasmDB>)
+  database:
+    | import('@sqlite.org/sqlite-wasm').Database
+    | (() => Promisable<import('@sqlite.org/sqlite-wasm').Database>)
 }
 
 export class OfficialWasmDialect extends GenericSqliteDialect {
@@ -19,11 +18,6 @@ export class OfficialWasmDialect extends GenericSqliteDialect {
    * and {@link https://sqlite.org/forum/forumpost/8f50dc99149a6cedade784595238f45aa912144fae81821d5f9db31965f754dd this})
    *
    * you can also use [sqlite-wasm-esm](https://github.com/overtone-app/sqlite-wasm-esm)
-   *
-   * #### partial typescript support:
-   * ```ts
-   * /// <reference types="kysely-wasm/official-wasm" />
-   * ```
    *
    * @example
    * ```ts
@@ -57,19 +51,63 @@ export class OfficialWasmDialect extends GenericSqliteDialect {
   constructor(config: OfficialWasmDialectConfig) {
     super(async () => {
       const db = await accessDB(config.database)
+
       return {
         db,
         close: () => db.close(),
-        query: buildQueryFn({
-          all: (sql, parameters) => {
-            return db.selectObjects(sql, parameters as any)
-          },
-          run: () => ({
-            insertId: BigInt((db.selectArray('SELECT last_insert_rowid()')?.[0] || 0) as number),
-            numAffectedRows: BigInt(db.changes(false, true)),
-          }),
-        }),
+        query: (_isSelect, sql, parameters) => {
+          const statement = prepareStatement(db, sql, parameters)
+
+          try {
+            if (statement.columnCount > 0) {
+              return { rows: [...queryIterator(statement)] }
+            }
+
+            statement.step()
+
+            return {
+              rows: [],
+              insertId: parseBigInt(
+                db.selectValue('SELECT last_insert_rowid()') as number | bigint,
+              ),
+              numAffectedRows: parseBigInt(db.changes()),
+            }
+          } finally {
+            statement.finalize()
+          }
+        },
+        iterator: (isSelect, sql, parameters) => {
+          if (!isSelect) {
+            throw new Error('Only support select query')
+          }
+          const statement = prepareStatement(db, sql, parameters)
+          return queryIterator(statement)
+        },
       }
     }, config.onCreateConnection)
+  }
+}
+
+function prepareStatement(
+  db: import('@sqlite.org/sqlite-wasm').Database,
+  sql: string,
+  parameters?: any[] | readonly any[],
+): import('@sqlite.org/sqlite-wasm').PreparedStatement {
+  const statement = db.prepare(sql)
+  if (parameters?.length) {
+    statement.bind(parameters as import('@sqlite.org/sqlite-wasm').BindingSpec)
+  }
+  return statement
+}
+
+function* queryIterator(
+  statement: import('@sqlite.org/sqlite-wasm').PreparedStatement,
+): IterableIterator<Record<string, import('@sqlite.org/sqlite-wasm').SqlValue>> {
+  try {
+    while (statement.step()) {
+      yield statement.get({})
+    }
+  } finally {
+    statement.finalize()
   }
 }

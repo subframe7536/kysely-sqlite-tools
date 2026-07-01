@@ -3,10 +3,10 @@ import { buildQueryFn, GenericSqliteDialect } from 'kysely-generic-sqlite'
 
 import { accessDB } from '../utils'
 
-import type { CrSqliteDB } from './type'
-
 export interface CrSqliteDialectConfig extends IBaseSqliteDialectConfig {
-  database: CrSqliteDB | (() => Promisable<CrSqliteDB>)
+  database:
+    | import('@vlcn.io/crsqlite-wasm').DB
+    | (() => Promisable<import('@vlcn.io/crsqlite-wasm').DB>)
 }
 export class CrSqliteDialect extends GenericSqliteDialect {
   /**
@@ -24,7 +24,7 @@ export class CrSqliteDialect extends GenericSqliteDialect {
           },
           run: async () => ({
             numAffectedRows: BigInt(db.api.changes(db.db)),
-            insertId: BigInt((await db.execA('SELECT last_insert_rowid()'))[0]),
+            insertId: BigInt((await db.execA('SELECT last_insert_rowid()'))[0][0]),
           }),
         }),
       }
