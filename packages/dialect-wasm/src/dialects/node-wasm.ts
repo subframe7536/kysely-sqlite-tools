@@ -3,10 +3,10 @@ import { buildQueryFn, GenericSqliteDialect } from 'kysely-generic-sqlite'
 
 import { accessDB } from '../utils'
 
-import type { NodeWasmDatabase } from './type'
-
 export interface NodeWasmDialectConfig extends IBaseSqliteDialectConfig {
-  database: NodeWasmDatabase | (() => Promisable<NodeWasmDatabase>)
+  database:
+    | import('node-sqlite3-wasm').Database
+    | (() => Promisable<import('node-sqlite3-wasm').Database>)
 }
 
 export class NodeWasmDialect extends GenericSqliteDialect {

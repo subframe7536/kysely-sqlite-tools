@@ -3,10 +3,8 @@ import { buildQueryFn, GenericSqliteDialect } from 'kysely-generic-sqlite'
 
 import { accessDB } from '../utils'
 
-import type { SqlJSDB } from './type'
-
 export interface SqlJsDialectConfig extends IBaseSqliteDialectConfig {
-  database: SqlJSDB | (() => Promisable<SqlJSDB>)
+  database: import('sql.js').Database | (() => Promisable<import('sql.js').Database>)
 }
 export class SqlJsDialect extends GenericSqliteDialect {
   /**
