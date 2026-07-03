@@ -45,36 +45,31 @@ export class SqlJsDialect extends GenericSqliteDialect {
           if (!isSelect) {
             throw new Error('Only support select query')
           }
-          return runWithStatement(db, sql, parameters, iterator)
+          return iterateWithStatement(db, sql, parameters)
         },
       }
     }, config.onCreateConnection)
   }
 }
 
-function runWithStatement<T>(
+function* iterator<T>(stmt: import('sql.js').Statement): IterableIterator<T> {
+  while (stmt.step()) {
+    yield stmt.getAsObject() as unknown as T
+  }
+}
+
+function* iterateWithStatement<T>(
   db: import('sql.js').Database,
   sql: string,
   parameters: any[] | readonly any[],
-  callback: (stmt: import('sql.js').Statement) => T,
-): T {
+): IterableIterator<T> {
   const statement = db.prepare(sql)
   try {
     if (parameters.length) {
       statement.bind(parameters as any[])
     }
-    return callback(statement)
+    yield* iterator(statement)
   } finally {
     statement.free()
-  }
-}
-
-function* iterator<T>(stmt: import('sql.js').Statement): IterableIterator<T> {
-  try {
-    while (stmt.step()) {
-      yield stmt.getAsObject() as unknown as T
-    }
-  } finally {
-    stmt.free()
   }
 }

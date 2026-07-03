@@ -13,7 +13,7 @@ describe('dialect test', () => {
         return new SQL.Database()
       },
     })
-    await testCase(dialect, expect, false)
+    await testCase(dialect, expect)
   })
 
   it('node-wasm', async () => {
