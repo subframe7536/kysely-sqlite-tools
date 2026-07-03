@@ -76,7 +76,7 @@ export class OfficialWasmDialect extends GenericSqliteDialect {
           if (!isSelect) {
             throw new Error('Only support select query')
           }
-          return runWithStatement(db, sql, parameters, iterator)
+          return iterateWithStatement(db, sql, parameters)
         },
       }
     }, config.onCreateConnection)
@@ -103,10 +103,22 @@ function runWithStatement<T>(
 function* iterator(
   statement: import('@sqlite.org/sqlite-wasm').PreparedStatement,
 ): IterableIterator<Record<string, import('@sqlite.org/sqlite-wasm').SqlValue>> {
+  while (statement.step()) {
+    yield statement.get({})
+  }
+}
+
+function* iterateWithStatement(
+  db: import('@sqlite.org/sqlite-wasm').Database,
+  sql: string,
+  parameters: any[] | readonly any[],
+): IterableIterator<Record<string, import('@sqlite.org/sqlite-wasm').SqlValue>> {
+  const statement = db.prepare(sql)
   try {
-    while (statement.step()) {
-      yield statement.get({})
+    if (parameters.length) {
+      statement.bind(parameters as import('@sqlite.org/sqlite-wasm').BindingSpec)
     }
+    yield* iterator(statement)
   } finally {
     statement.finalize()
   }
