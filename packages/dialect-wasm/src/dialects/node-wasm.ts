@@ -1,7 +1,5 @@
 import type { IBaseSqliteDialectConfig, Promisable } from 'kysely-generic-sqlite'
-import { buildQueryFn, GenericSqliteDialect } from 'kysely-generic-sqlite'
-
-import { accessDB } from '../utils'
+import { access, buildQueryFn, GenericSqliteDialect } from 'kysely-generic-sqlite'
 
 export interface NodeWasmDialectConfig extends IBaseSqliteDialectConfig {
   database:
@@ -15,7 +13,7 @@ export class NodeWasmDialect extends GenericSqliteDialect {
    */
   constructor(config: NodeWasmDialectConfig) {
     super(async () => {
-      const db = await accessDB(config.database)
+      const db = await access(config.database)
       return {
         db,
         close: () => db.close(),

@@ -1,7 +1,5 @@
 import type { IBaseSqliteDialectConfig, Promisable } from 'kysely-generic-sqlite'
-import { GenericSqliteDialect, parseBigInt } from 'kysely-generic-sqlite'
-
-import { accessDB } from '../utils'
+import { access, GenericSqliteDialect, parseBigInt } from 'kysely-generic-sqlite'
 
 export interface OfficialWasmDialectConfig extends IBaseSqliteDialectConfig {
   database:
@@ -50,7 +48,7 @@ export class OfficialWasmDialect extends GenericSqliteDialect {
    */
   constructor(config: OfficialWasmDialectConfig) {
     super(async () => {
-      const db = await accessDB(config.database)
+      const db = await access(config.database)
 
       return {
         db,

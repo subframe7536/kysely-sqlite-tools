@@ -1,7 +1,5 @@
 import type { IBaseSqliteDialectConfig, Promisable } from 'kysely-generic-sqlite'
-import { GenericSqliteDialect } from 'kysely-generic-sqlite'
-
-import { accessDB } from '../utils'
+import { access, GenericSqliteDialect } from 'kysely-generic-sqlite'
 
 export interface SqlJsDialectConfig extends IBaseSqliteDialectConfig {
   database: import('sql.js').Database | (() => Promisable<import('sql.js').Database>)
@@ -14,7 +12,7 @@ export class SqlJsDialect extends GenericSqliteDialect {
    */
   constructor(config: SqlJsDialectConfig) {
     super(async () => {
-      const db = await accessDB(config.database)
+      const db = await access(config.database)
       return {
         db,
         close: () => db.close(),

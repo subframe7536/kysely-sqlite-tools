@@ -23,7 +23,7 @@ import {
   UpdateQueryNode,
 } from 'kysely'
 
-import type { IGenericSqlite, IGenericSqliteExecutor } from './type'
+import type { IGenericSqlite, IGenericSqliteExecutor, Promisable } from './type'
 
 export class BaseSqliteDialect implements Dialect {
   /**
@@ -121,6 +121,14 @@ export abstract class BaseSqliteDriver implements Driver {
   }
 
   abstract destroy(): Promise<void>
+}
+
+/**
+ * Resolve a value or a factory function into a promise.
+ * If the argument is a function, it is called and the result is awaited; otherwise the value is returned as-is.
+ */
+export async function access<T>(data: T | (() => Promisable<T>)): Promise<T> {
+  return typeof data === 'function' ? await (data as any)() : data
 }
 
 /**

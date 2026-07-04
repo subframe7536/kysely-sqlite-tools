@@ -1,5 +1,6 @@
 export * from './dialect'
 export * from './driver'
+export { access } from './utils'
 export type {
   HandleMessageFn,
   IGenericEventEmitter,
