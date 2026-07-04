@@ -4290,7 +4290,7 @@ async function initSQLiteCore(options) {
 	};
 }
 //#endregion
-//#region ../packages/dialect-generic-sqlite/dist/utils-Bru-SywF.js
+//#region ../packages/dialect-generic-sqlite/dist/utils-cy3p-136.js
 /**
 * Create generic message handler
 * @param init Function that init sqlite executor
@@ -4334,7 +4334,7 @@ function createGenericOnMessageCallback(init, post, message) {
 				default: if (message) {
 					const data = await message(db, type, data1, data2, data3, data4);
 					if (data !== void 0 && data !== null) ret[2] = data;
-				}
+				} else throw new Error(`Unknown message type: ${type}`);
 			}
 		} catch (error) {
 			ret[3] = error;
@@ -4349,14 +4349,14 @@ function createWebOnMessageCallback(init, message) {
 	globalThis.onmessage = ({ data }) => cb(data);
 }
 //#endregion
-//#region ../packages/dialect-generic-sqlite/dist/base-DOKiiLT3.js
+//#region ../packages/dialect-generic-sqlite/dist/base-CsEzCtSy.js
 function parseBigInt(num) {
 	return num === void 0 || num === null ? void 0 : BigInt(num);
 }
 //#endregion
 //#region ../packages/dialect-wasqlite-worker/dist/utils-BF9npbAw.mjs
 const defaultCreateDatabaseFn = async ({ fileName, url, useOPFS }) => {
-	return (await Promise.resolve().then(() => dist_exports)).initSQLiteCore((useOPFS ? (await import("./opfs-BUtv03K8.js")).useOpfsStorage : (await import("./idb-D7F607Ov.js")).useIdbStorage)(fileName, { url }));
+	return (await Promise.resolve().then(() => dist_exports)).initSQLiteCore((useOPFS ? (await import("./opfs-DQk4Qsd7.js")).useOpfsStorage : (await import("./idb-D7F607Ov.js")).useIdbStorage)(fileName, { url }));
 };
 function createRowMapper(sqlite, stmt) {
 	const cols = sqlite.column_names(stmt);

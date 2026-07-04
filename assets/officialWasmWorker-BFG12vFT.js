@@ -31263,7 +31263,7 @@ var SqliteAdapter = class extends DialectAdapterBase {
 	async releaseMigrationLock(_db, _opt) {}
 };
 //#endregion
-//#region ../packages/dialect-generic-sqlite/dist/base-DOKiiLT3.js
+//#region ../packages/dialect-generic-sqlite/dist/base-CsEzCtSy.js
 var BaseSqliteDialect = class {
 	/**
 	* Base class that implements {@link Dialect}
@@ -31320,6 +31320,13 @@ var BaseSqliteDriver = class {
 		await runSavepoint("release", connection, savepointName, compileQuery);
 	}
 };
+/**
+* Resolve a value or a factory function into a promise.
+* If the argument is a function, it is called and the result is awaited; otherwise the value is returned as-is.
+*/
+async function access(data) {
+	return typeof data === "function" ? await data() : data;
+}
 function parseBigInt(num) {
 	return num === void 0 || num === null ? void 0 : BigInt(num);
 }
@@ -31368,9 +31375,6 @@ var GenericSqliteDialect = class extends BaseSqliteDialect {
 };
 //#endregion
 //#region ../packages/dialect-wasm/dist/index.mjs
-async function accessDB(accessor) {
-	return typeof accessor === "function" ? await accessor() : accessor;
-}
 var OfficialWasmDialect = class extends GenericSqliteDialect {
 	/**
 	* dialect for [official wasm build](https://sqlite.org/wasm/doc/trunk/index.md)
@@ -31412,12 +31416,12 @@ var OfficialWasmDialect = class extends GenericSqliteDialect {
 	*/
 	constructor(config) {
 		super(async () => {
-			const db = await accessDB(config.database);
+			const db = await access(config.database);
 			return {
 				db,
 				close: () => db.close(),
 				query: (_isSelect, sql, parameters) => {
-					return runWithStatement$1(db, sql, parameters, (statement) => {
+					return runWithStatement(db, sql, parameters, (statement) => {
 						if (statement.columnCount > 0) return { rows: [...iterator$1(statement)] };
 						statement.step();
 						return {
@@ -31429,13 +31433,13 @@ var OfficialWasmDialect = class extends GenericSqliteDialect {
 				},
 				iterator: (isSelect, sql, parameters) => {
 					if (!isSelect) throw new Error("Only support select query");
-					return runWithStatement$1(db, sql, parameters, iterator$1);
+					return iterateWithStatement$1(db, sql, parameters);
 				}
 			};
 		}, config.onCreateConnection);
 	}
 };
-function runWithStatement$1(db, sql, parameters, callback) {
+function runWithStatement(db, sql, parameters, callback) {
 	const statement = db.prepare(sql);
 	try {
 		if (parameters.length) statement.bind(parameters);
@@ -31445,8 +31449,13 @@ function runWithStatement$1(db, sql, parameters, callback) {
 	}
 }
 function* iterator$1(statement) {
+	while (statement.step()) yield statement.get({});
+}
+function* iterateWithStatement$1(db, sql, parameters) {
+	const statement = db.prepare(sql);
 	try {
-		while (statement.step()) yield statement.get({});
+		if (parameters.length) statement.bind(parameters);
+		yield* iterator$1(statement);
 	} finally {
 		statement.finalize();
 	}

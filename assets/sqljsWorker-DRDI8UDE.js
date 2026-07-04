@@ -15459,7 +15459,7 @@ var SqliteAdapter = class extends DialectAdapterBase {
 	async releaseMigrationLock(_db, _opt) {}
 };
 //#endregion
-//#region ../packages/dialect-generic-sqlite/dist/base-DOKiiLT3.js
+//#region ../packages/dialect-generic-sqlite/dist/base-CsEzCtSy.js
 init_defineProperty();
 var BaseSqliteDialect = class {
 	/**
@@ -15517,6 +15517,13 @@ var BaseSqliteDriver = class {
 		await runSavepoint("release", connection, savepointName, compileQuery);
 	}
 };
+/**
+* Resolve a value or a factory function into a promise.
+* If the argument is a function, it is called and the result is awaited; otherwise the value is returned as-is.
+*/
+async function access(data) {
+	return typeof data === "function" ? await data() : data;
+}
 //#endregion
 //#region ../packages/dialect-generic-sqlite/dist/index.js
 init_defineProperty();
@@ -15563,9 +15570,6 @@ var GenericSqliteDialect = class extends BaseSqliteDialect {
 };
 //#endregion
 //#region ../packages/dialect-wasm/dist/index.mjs
-async function accessDB(accessor) {
-	return typeof accessor === "function" ? await accessor() : accessor;
-}
 var SqlJsDialect = class extends GenericSqliteDialect {
 	/**
 	* dialect for [sql.js](https://github.com/sql-js/sql.js)
@@ -15574,7 +15578,7 @@ var SqlJsDialect = class extends GenericSqliteDialect {
 	*/
 	constructor(config) {
 		super(async () => {
-			const db = await accessDB(config.database);
+			const db = await access(config.database);
 			return {
 				db,
 				close: () => db.close(),
@@ -15599,26 +15603,22 @@ var SqlJsDialect = class extends GenericSqliteDialect {
 				},
 				iterator: (isSelect, sql, parameters) => {
 					if (!isSelect) throw new Error("Only support select query");
-					return runWithStatement(db, sql, parameters, iterator);
+					return iterateWithStatement(db, sql, parameters);
 				}
 			};
 		}, config.onCreateConnection);
 	}
 };
-function runWithStatement(db, sql, parameters, callback) {
+function* iterator(stmt) {
+	while (stmt.step()) yield stmt.getAsObject();
+}
+function* iterateWithStatement(db, sql, parameters) {
 	const statement = db.prepare(sql);
 	try {
 		if (parameters.length) statement.bind(parameters);
-		return callback(statement);
+		yield* iterator(statement);
 	} finally {
 		statement.free();
-	}
-}
-function* iterator(stmt) {
-	try {
-		while (stmt.step()) yield stmt.getAsObject();
-	} finally {
-		stmt.free();
 	}
 }
 //#endregion

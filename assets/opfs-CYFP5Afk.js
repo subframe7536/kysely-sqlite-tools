@@ -1,5 +1,5 @@
 import { C as init_assertClassBrand, D as init_defineProperty, E as _defineProperty, S as _assertClassBrand, T as init_classPrivateMethodInitSpec, c as SQLITE_IOERR_CLOSE, d as SQLITE_IOERR_FSYNC, h as init_FacadeVFS_XQtZprLW, k as __esmMin, l as SQLITE_IOERR_DELETE, o as SQLITE_IOERR_ACCESS, p as SQLITE_IOERR_TRUNCATE, t as FacadeVFS, u as SQLITE_IOERR_FSTAT, w as _classPrivateMethodInitSpec } from "./FacadeVFS-XQtZprLW-0G3Zn85o.js";
-import { n as init_wa_sqlite_DfKPyFeY, t as Module } from "./worker-B02c_wLx.js";
+import { n as init_wa_sqlite_DfKPyFeY, t as Module } from "./worker-X4EkCYxU.js";
 //#region ../node_modules/.pnpm/@subframe7536+sqlite-wasm@1.3.0/node_modules/@subframe7536/sqlite-wasm/dist/opfs.js
 async function _initialize(nTemporaryFiles) {
 	const root = await navigator.storage.getDirectory();

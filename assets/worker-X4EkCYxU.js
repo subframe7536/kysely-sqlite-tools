@@ -4866,8 +4866,8 @@ var init_dist$1 = __esmMin((() => {
 	};
 }));
 //#endregion
-//#region ../packages/dialect-generic-sqlite/dist/utils-8n2Z7a5w.cjs
-var require_utils_8n2Z7a5w = /* @__PURE__ */ __commonJSMin(((exports) => {
+//#region ../packages/dialect-generic-sqlite/dist/utils-DDr7Nb7w.cjs
+var require_utils_DDr7Nb7w = /* @__PURE__ */ __commonJSMin(((exports) => {
 	/**
 	* Create generic message handler
 	* @param init Function that init sqlite executor
@@ -4911,7 +4911,7 @@ var require_utils_8n2Z7a5w = /* @__PURE__ */ __commonJSMin(((exports) => {
 					default: if (message) {
 						const data = await message(db, type, data1, data2, data3, data4);
 						if (data !== void 0 && data !== null) ret[2] = data;
-					}
+					} else throw new Error(`Unknown message type: ${type}`);
 				}
 			} catch (error) {
 				ret[3] = error;
@@ -4939,7 +4939,7 @@ var require_utils_8n2Z7a5w = /* @__PURE__ */ __commonJSMin(((exports) => {
 //#region ../packages/dialect-generic-sqlite/dist/worker-helper-web.cjs
 var require_worker_helper_web = /* @__PURE__ */ __commonJSMin(((exports) => {
 	Object.defineProperty(exports, Symbol.toStringTag, { value: "Module" });
-	const require_utils = require_utils_8n2Z7a5w();
+	const require_utils = require_utils_DDr7Nb7w();
 	function createWebOnMessageCallback(init, message) {
 		const cb = require_utils.createGenericOnMessageCallback(init, (value) => globalThis.postMessage(value), message);
 		globalThis.onmessage = ({ data }) => cb(data);
@@ -24180,8 +24180,8 @@ var init_dist = __esmMin((() => {
 	init_query_id();
 }));
 //#endregion
-//#region ../packages/dialect-generic-sqlite/dist/base-BE-k1Ali.cjs
-var require_base_BE_k1Ali = /* @__PURE__ */ __commonJSMin(((exports) => {
+//#region ../packages/dialect-generic-sqlite/dist/base-DkX-AB55.cjs
+var require_base_DkX_AB55 = /* @__PURE__ */ __commonJSMin(((exports) => {
 	var _defineProperty = require_defineProperty();
 	let kysely = (init_dist(), __toCommonJS(dist_exports));
 	var BaseSqliteDialect = class {
@@ -24240,6 +24240,13 @@ var require_base_BE_k1Ali = /* @__PURE__ */ __commonJSMin(((exports) => {
 			await runSavepoint("release", connection, savepointName, compileQuery);
 		}
 	};
+	/**
+	* Resolve a value or a factory function into a promise.
+	* If the argument is a function, it is called and the result is awaited; otherwise the value is returned as-is.
+	*/
+	async function access(data) {
+		return typeof data === "function" ? await data() : data;
+	}
 	/**
 	* Wrapper for {@link IGenericSqlite}'s `query` function
 	*
@@ -24302,6 +24309,12 @@ var require_base_BE_k1Ali = /* @__PURE__ */ __commonJSMin(((exports) => {
 			return BaseSqliteDriver;
 		}
 	});
+	Object.defineProperty(exports, "access", {
+		enumerable: true,
+		get: function() {
+			return access;
+		}
+	});
 	Object.defineProperty(exports, "buildQueryFn", {
 		enumerable: true,
 		get: function() {
@@ -24332,7 +24345,7 @@ var require_base_BE_k1Ali = /* @__PURE__ */ __commonJSMin(((exports) => {
 var require_dist = /* @__PURE__ */ __commonJSMin(((exports) => {
 	var _defineProperty = require_defineProperty();
 	Object.defineProperty(exports, Symbol.toStringTag, { value: "Module" });
-	const require_base = require_base_BE_k1Ali();
+	const require_base = require_base_DkX_AB55();
 	let kysely = (init_dist(), __toCommonJS(dist_exports));
 	var GenericSqliteDriver = class extends require_base.BaseSqliteDriver {
 		constructor(executor, onCreateConnection) {
@@ -24380,6 +24393,7 @@ var require_dist = /* @__PURE__ */ __commonJSMin(((exports) => {
 	exports.GenericSqliteConnection = GenericSqliteConnection;
 	exports.GenericSqliteDialect = GenericSqliteDialect;
 	exports.GenericSqliteDriver = GenericSqliteDriver;
+	exports.access = require_base.access;
 	exports.buildQueryFn = require_base.buildQueryFn;
 	exports.buildQueryFnAlt = require_base.buildQueryFnAlt;
 	exports.isReadOrReturningQuery = require_base.isReadOrReturningQuery;
@@ -24393,7 +24407,7 @@ const require_utils = (/* @__PURE__ */ __commonJSMin(((exports) => {
 	let _subframe7536_sqlite_wasm_constant = (init_constant(), __toCommonJS(constant_exports));
 	let kysely_generic_sqlite = require_dist();
 	const defaultCreateDatabaseFn = async ({ fileName, url, useOPFS }) => {
-		return (await Promise.resolve().then(() => (init_dist$1(), dist_exports$1))).initSQLiteCore((useOPFS ? (await import("./opfs-CLLKs8Ex.js")).useOpfsStorage : (await import("./idb-CM6jfNIu.js")).useIdbStorage)(fileName, { url }));
+		return (await Promise.resolve().then(() => (init_dist$1(), dist_exports$1))).initSQLiteCore((useOPFS ? (await import("./opfs-CYFP5Afk.js")).useOpfsStorage : (await import("./idb-CM6jfNIu.js")).useIdbStorage)(fileName, { url }));
 	};
 	function createRowMapper(sqlite, stmt) {
 		const cols = sqlite.column_names(stmt);
