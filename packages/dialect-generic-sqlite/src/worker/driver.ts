@@ -56,6 +56,7 @@ export class GenericSqliteWorkerDriver<
     return new Promise<void>((resolve, reject) =>
       this.mitt?.once(closeEvent, (_qid, _data, err) => (err ? reject(err) : resolve())),
     ).finally(() => {
+      ;(this.conn as GenericSqliteWorkerConnection)?.close()
       this.worker?.terminate()
       this.mitt?.off()
       this.mitt = this.worker = undefined
@@ -125,6 +126,17 @@ class GenericSqliteWorkerConnection implements DatabaseConnection {
         this.pushStreamResult(queryId, state, [undefined, true])
       }
     })
+  }
+
+  close(): void {
+    const err = new Error('Connection closed')
+    for (const [, pending] of this.pendingRuns) {
+      pending.reject(err)
+    }
+    this.pendingRuns.clear()
+    for (const [queryId, state] of this.pendingStreams) {
+      this.rejectStream(queryId, state, err)
+    }
   }
 
   async *streamQuery<R>(
