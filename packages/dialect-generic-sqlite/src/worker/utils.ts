@@ -50,6 +50,8 @@ export function createGenericOnMessageCallback<T extends Record<string, unknown>
             if (data !== undefined && data !== null) {
               ret[2] = data
             }
+          } else {
+            throw new Error(`Unknown message type: ${type}`)
           }
       }
     } catch (error) {
