@@ -2,5 +2,8 @@ packages:
   - packages/*
   - playground
 
+allowBuilds:
+  better-sqlite3: true
+
 catalog:
   kysely: ^0.29.2
