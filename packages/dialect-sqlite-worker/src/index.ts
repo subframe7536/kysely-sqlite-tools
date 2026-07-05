@@ -1,4 +1,3 @@
-import path from 'node:path'
 import { Worker } from 'node:worker_threads'
 
 import type { Options } from 'better-sqlite3'
@@ -19,7 +18,9 @@ export interface SqliteWorkerDialectConfig extends IBaseSqliteDialectConfig {
   dbOption?: Options
   /**
    * db worker path
-   * @default join(__dirname, 'worker.js')
+   *
+   * Defaults to the packaged worker file for the current runtime format:
+   * `worker.mjs` for ESM and `worker.js` for CJS.
    */
   workerPath?: string
 }
@@ -30,7 +31,10 @@ export class SqliteWorkerDialect extends GenericSqliteWorkerDialect<Worker, {}> 
       source,
       dbOption,
       onCreateConnection,
-      workerPath = path.join(__dirname, 'worker.js'),
+      workerPath = new URL(
+        import.meta.url.endsWith('.mjs') ? './worker.mjs' : './worker.js',
+        import.meta.url,
+      ),
     } = config
     super(async () => {
       const worker = new Worker(workerPath, {

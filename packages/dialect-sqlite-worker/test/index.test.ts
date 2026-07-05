@@ -4,6 +4,16 @@ import { testCase } from '../../test-utils'
 import { SqliteWorkerDialect } from '../dist/index.mjs'
 
 describe('sqlite worker dialect test', () => {
+  it('constructs with the default ESM worker path', async () => {
+    const dialect = new SqliteWorkerDialect({
+      source: ':memory:',
+    })
+
+    const driver = dialect.createDriver()
+    await expect(driver.init()).resolves.toBeUndefined()
+    await driver.destroy()
+  })
+
   it('better-sqlite3 worker', async () => {
     const dialect = new SqliteWorkerDialect({
       source: ':memory:',

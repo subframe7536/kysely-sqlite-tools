@@ -37,11 +37,13 @@ export class GenericSqliteWorkerDriver<
 
       exec.handle(this.worker, ([type, ...msg]) => this.mitt!.emit(type, ...msg))
 
-      this.worker.postMessage([initEvent, exec.data || ({} as any)] satisfies InitMsg<R>)
-
-      await new Promise<void>((resolve, reject) => {
+      const initAck = new Promise<void>((resolve, reject) => {
         this.mitt!.once(initEvent, (_qid, _data, err) => (err ? reject(err) : resolve()))
       })
+
+      this.worker.postMessage([initEvent, exec.data || ({} as any)] satisfies InitMsg<R>)
+
+      await initAck
 
       this.conn = new GenericSqliteWorkerConnection(this.worker, this.mitt)
       await onCreateConnection?.(this.conn, options)
@@ -52,10 +54,13 @@ export class GenericSqliteWorkerDriver<
     if (!this.worker) {
       return
     }
-    this.worker.postMessage([closeEvent] satisfies CloseMsg)
-    return new Promise<void>((resolve, reject) =>
+    const closeAck = new Promise<void>((resolve, reject) =>
       this.mitt?.once(closeEvent, (_qid, _data, err) => (err ? reject(err) : resolve())),
-    ).finally(() => {
+    )
+
+    this.worker.postMessage([closeEvent] satisfies CloseMsg)
+
+    return closeAck.finally(() => {
       ;(this.conn as GenericSqliteWorkerConnection)?.close()
       this.worker?.terminate()
       this.mitt?.off()

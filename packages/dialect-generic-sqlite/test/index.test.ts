@@ -6,7 +6,7 @@ import { testCase } from '../../test-utils'
 import { buildQueryFn, GenericSqliteDialect, parseBigInt } from '../src'
 import { createGenericOnMessageCallback, GenericSqliteWorkerDialect } from '../src/worker'
 import type { IGenericEventEmitter } from '../src/worker'
-import { initEvent, dataEvent, runEvent } from '../src/worker/types'
+import { closeEvent, initEvent, dataEvent, runEvent } from '../src/worker/types'
 
 describe('generic sqlite dialect test', () => {
   it('better-sqlite3 executor', async () => {
@@ -122,6 +122,103 @@ describe('generic sqlite dialect test', () => {
       ['4', 'stream-a', null, null],
     ])
   })
+
+  it('rejects worker streams when iterator is unsupported', async () => {
+    const mitt = createTestMitt()
+    const onMessage = createGenericOnMessageCallback(
+      async () => ({
+        db: {},
+        close: () => {},
+        query: () => ({ rows: [] }),
+      }),
+      (message) => {
+        const [type, ...args] = message as [string, ...unknown[]]
+        mitt.emit(type, ...args)
+      },
+    )
+
+    const dialect = new GenericSqliteWorkerDialect(() => ({
+      mitt,
+      worker: {
+        postMessage: (message) => void onMessage(message as never),
+        terminate: () => {},
+      },
+      handle: () => {},
+    }))
+    const driver = dialect.createDriver()
+    await driver.init()
+
+    const connection = await driver.acquireConnection()
+    const stream = connection.streamQuery(CompiledQuery.raw('select 1'), 1)
+
+    await expect(stream.next()).rejects.toThrow('streamQuery() is not supported.')
+
+    await driver.releaseConnection(connection)
+    await driver.destroy()
+  })
+
+  it('rejects worker streams when iterator throws', async () => {
+    const mitt = createTestMitt()
+    const onMessage = createGenericOnMessageCallback(
+      async () => ({
+        db: {},
+        close: () => {},
+        query: () => ({ rows: [] }),
+        *iterator() {
+          yield { id: 1 }
+          throw new Error('iterator failed')
+        },
+      }),
+      (message) => {
+        const [type, ...args] = message as [string, ...unknown[]]
+        mitt.emit(type, ...args)
+      },
+    )
+
+    const dialect = new GenericSqliteWorkerDialect(() => ({
+      mitt,
+      worker: {
+        postMessage: (message) => void onMessage(message as never),
+        terminate: () => {},
+      },
+      handle: () => {},
+    }))
+    const driver = dialect.createDriver()
+    await driver.init()
+
+    const connection = await driver.acquireConnection()
+    const stream = connection.streamQuery(CompiledQuery.raw('select 1'), 1)
+
+    await expect(stream.next()).resolves.toStrictEqual({
+      done: false,
+      value: { rows: [{ id: 1 }] },
+    })
+    await expect(stream.next()).rejects.toThrow('iterator failed')
+
+    await driver.releaseConnection(connection)
+    await driver.destroy()
+  })
+
+  it('resolves init and destroy with synchronous worker acknowledgements', async () => {
+    const mitt = createTestMitt()
+    const driver = new GenericSqliteWorkerDialect(() => ({
+      mitt,
+      worker: {
+        postMessage: (message) => {
+          const [type] = message as [string]
+          if (type === initEvent || type === closeEvent) {
+            mitt.emit(type, null, null, null)
+          }
+        },
+        terminate: () => {},
+      },
+      handle: () => {},
+    })).createDriver()
+
+    await expect(driver.init()).resolves.toBeUndefined()
+    await expect(driver.destroy()).resolves.toBeUndefined()
+  })
+
   it('buffers synchronous worker stream rows without dropping data', async () => {
     const mitt = createTestMitt()
     const messages: unknown[] = []
