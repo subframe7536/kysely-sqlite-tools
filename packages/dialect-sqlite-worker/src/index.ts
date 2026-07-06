@@ -1,3 +1,4 @@
+import { join } from 'node:path'
 import { Worker } from 'node:worker_threads'
 
 import type { Options } from 'better-sqlite3'
@@ -9,34 +10,29 @@ export * from './worker/utils'
 
 export interface SqliteWorkerDialectConfig extends IBaseSqliteDialectConfig {
   /**
-   * db file path or existing buffer
+   * DB file path or existing buffer
    */
   source: string | Buffer | (() => Promisable<string | Buffer>)
   /**
-   * better-sqlite3 initiate option
+   * `better-sqlite3` initiate option
    */
   dbOption?: Options
   /**
-   * db worker path
-   *
-   * Defaults to the packaged worker file for the current runtime format:
-   * `worker.mjs` for ESM and `worker.js` for CJS.
+   * Custom worker path
    */
   workerPath?: string
 }
 
 export class SqliteWorkerDialect extends GenericSqliteWorkerDialect<Worker, {}> {
   constructor(config: SqliteWorkerDialectConfig) {
-    const {
-      source,
-      dbOption,
-      onCreateConnection,
-      workerPath = new URL(
-        import.meta.url.endsWith('.mjs') ? './worker.mjs' : './worker.js',
-        import.meta.url,
-      ),
-    } = config
+    let { source, dbOption, onCreateConnection, workerPath } = config
     super(async () => {
+      if (!workerPath) {
+        // default worker path, cjs format here, will be transformed to esm format in tsdown.config.ts
+        // CJS: path.join(__dirname, 'worker.js')
+        // ESM: new URL('./worker.mjs', import.meta.url)
+        workerPath = join(__dirname, 'worker.js')
+      }
       const worker = new Worker(workerPath, {
         workerData: {
           src: typeof source === 'function' ? await source() : source,
