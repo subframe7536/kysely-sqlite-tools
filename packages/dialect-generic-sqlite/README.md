@@ -2,6 +2,9 @@
 
 Generic Kysely dialect for SQLite, supporting execution in the main thread or a worker.
 
+> [!important]
+> To migrate from v1.2.1 to v2.0.0, see [MIGRATE_TO_V2.md](./MIGRATE_TO_V2.md)
+
 ## Install
 
 ```sh
@@ -10,9 +13,9 @@ bun add kysely kysely-generic-sqlite
 
 ## Usage
 
-This is a abstraction for sqlite dialect, so the dialect is not worked out-of-box.
+This is an abstraction for the SQLite dialect, so the dialect does not work out-of-the-box.
 
-Below is the guide to create a new dialect, use `better-sqlite3` as example.
+Below is the guide to create a new dialect, using `better-sqlite3` as an example.
 
 ### Executor
 
@@ -20,6 +23,7 @@ First of all, you need to create a function that returns a `IGenericSqlite`
 
 ```ts
 import type { Database } from 'better-sqlite3'
+import { parseBigInt } from 'kysely-generic-sqlite'
 import type { IGenericSqlite } from 'kysely-generic-sqlite'
 
 function createSqliteExecutor(db: Database): IGenericSqlite<Database> {
@@ -27,7 +31,7 @@ function createSqliteExecutor(db: Database): IGenericSqlite<Database> {
 
   return {
     db,
-    query: (_isSelect, sql, parameters) => {
+    query: (_isSelect, sql, parameters, _node) => {
       const stmt = getStmt(sql)
       if (stmt.reader) {
         return { rows: stmt.all(parameters) }
@@ -61,7 +65,7 @@ For client that does not support `stmt.reader`, there are 2 utils with same para
 import type { IGenericSqlite } from 'kysely-generic-sqlite'
 
 import Database from 'bun:sqlite'
-import { parseBigInt } from 'kysely-generic-sqlite'
+import { buildQueryFn, parseBigInt } from 'kysely-generic-sqlite'
 
 function createSqliteExecutor(db: Database, cache: boolean): IGenericSqlite<Database> {
   const fn = cache ? 'query' : 'prepare'
@@ -97,8 +101,8 @@ import { GenericSqliteDialect } from 'kysely-generic-sqlite'
 const dialect = new GenericSqliteDialect(
   createSqliteExecutor,
   // optional on created callback
-  (conn: DatabaseConnection) => {
-    await conn.execute(CompiledQuery.raw('PRAGMA optimize'))
+  (conn) => {
+    await conn.executeQuery(CompiledQuery.raw('PRAGMA optimize'))
   },
 )
 
@@ -125,13 +129,13 @@ const dialect = new GenericSqliteWorkerDialect(
     data: { fileName: ':memory:' },
   }),
   // optional on created callback
-  (conn: DatabaseConnection) => {
-    await conn.execute(CompiledQuery.raw('PRAGMA optimize'))
+  (conn) => {
+    await conn.executeQuery(CompiledQuery.raw('PRAGMA optimize'))
   },
 )
 ```
 
-in `worker.ts`
+in `worker.ts` (Node)
 
 ```ts
 import type { Database } from 'better-sqlite3'
@@ -161,8 +165,8 @@ const dialect = new GenericSqliteWorkerDialect(
     data: { fileName: ':memory:' },
   }),
   // optional on created callback
-  (conn: DatabaseConnection) => {
-    await conn.execute(CompiledQuery.raw('PRAGMA optimize'))
+  (conn) => {
+    await conn.executeQuery(CompiledQuery.raw('PRAGMA optimize'))
   },
 )
 ```
@@ -215,7 +219,7 @@ import { createNodeOnMessageCallback } from 'kysely-generic-sqlite/worker-helper
 
 createNodeOnMessageCallback<{}, Database>(
   (data) => createSqliteExecutor(':memory:'),
-  (exec, type, data1, data2, data3) => {
+  (exec, type, data1, data2, data3, data4) => {
     if (type === 'test') {
       exec.db.pragma('optimize')
       console.log(data1) // 'your-data'

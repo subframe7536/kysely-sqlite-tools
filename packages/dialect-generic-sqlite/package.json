@@ -21,7 +21,8 @@
     "url": "git+https://github.com/subframe7536/kysely-sqlite-tools.git#master"
   },
   "files": [
-    "dist"
+    "dist",
+    "MIGRATE_TO_V2.md"
   ],
   "type": "module",
   "main": "./dist/index.cjs",
