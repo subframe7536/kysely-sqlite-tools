@@ -1,9 +1,9 @@
 import { execFileSync } from 'node:child_process'
 import { mkdtempSync, mkdirSync, rmSync, writeFileSync } from 'node:fs'
-import { fileURLToPath } from 'node:url'
 import { createRequire } from 'node:module'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
+import { fileURLToPath } from 'node:url'
 
 import { describe, expect, it } from 'vitest'
 
@@ -45,10 +45,14 @@ describe('wasm package declarations', () => {
 
     try {
       expect(() =>
-        execFileSync(process.execPath, [require.resolve('typescript/lib/tsc'), '--project', tsconfigPath], {
-          cwd: dir,
-          stdio: 'pipe',
-        }),
+        execFileSync(
+          process.execPath,
+          [require.resolve('typescript/lib/tsc'), '--project', tsconfigPath],
+          {
+            cwd: dir,
+            stdio: 'pipe',
+          },
+        ),
       ).not.toThrow()
     } finally {
       rmSync(dir, { force: true, recursive: true })

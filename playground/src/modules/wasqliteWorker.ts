@@ -19,5 +19,5 @@ export function runWaSqliteWorker() {
     url: () => wasmURL,
   })
 
-  return testDB(dialect as any)
+  return testDB(dialect)
 }

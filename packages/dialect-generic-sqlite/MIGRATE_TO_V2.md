@@ -48,19 +48,20 @@ If you were calling `driver.releaseConnection()` in tests or wrapper code expect
 ```ts
 // ❌ v1.2.1
 abstract class BaseSqliteDriver {
-  init: () => Promise<void>  // public property, assigned in constructor
-  constructor(init: () => Promise<void>) { /* ... */ }
+  init: () => Promise<void> // public property, assigned in constructor
+  constructor(init: () => Promise<void>) {
+    /* ... */
+  }
 }
 
 // ✅ v2
 abstract class BaseSqliteDriver {
-  constructor(
-    public init: (options?: AbortableOperationOptions) => Promise<void>
-  ) {}
+  constructor(public init: (options?: AbortableOperationOptions) => Promise<void>) {}
 }
 ```
 
 `init` is now a **constructor parameter property** (still public, still assignable). The key differences:
+
 - It now receives an optional `options?: AbortableOperationOptions` (with an `AbortSignal`).
 - The v1 constructor ran `import('kysely').then(...)` as a side effect to bind savepoint methods dynamically. v2 imports `createQueryId` statically and defines savepoint methods as concrete class members — no dynamic import side effect.
 
@@ -76,7 +77,7 @@ interface IGenericSqlite<DB> {
   query(
     isSelect: boolean,
     sql: string,
-    parameters?: any[] | readonly any[]  // optional
+    parameters?: any[] | readonly any[], // optional
   ): Promisable<QueryResult<any>>
 }
 
@@ -85,13 +86,14 @@ interface IGenericSqlite<DB> {
   query(
     isSelect: boolean,
     sql: string,
-    parameters: any[] | readonly any[],  // required
-    node?: RootOperationNode             // new — Kysely query AST
+    parameters: any[] | readonly any[], // required
+    node?: RootOperationNode, // new — Kysely query AST
   ): Promisable<QueryResult<any>>
 }
 ```
 
 Two changes in this signature:
+
 1. **`parameters` is now required** (was optional). If you pass `undefined`, change it to `[]`.
 2. **New 4th parameter `node`** — the Kysely query AST node, used by `isReadOrReturningQuery` to detect `RETURNING` clauses. If you hand-roll an executor, forward it; if you ignore it the dialect still works but raw-SQL `RETURNING` detection degrades.
 
@@ -111,14 +113,12 @@ const executor: IGenericSqlite = {
 
 ```ts
 // ❌ v1.2.1
-type OnCreateConnection = (
-  connection: DatabaseConnection
-) => Promisable<void>
+type OnCreateConnection = (connection: DatabaseConnection) => Promisable<void>
 
 // ✅ v2
 type OnCreateConnection = (
   connection: DatabaseConnection,
-  options?: AbortableOperationOptions
+  options?: AbortableOperationOptions,
 ) => Promisable<void>
 ```
 
@@ -147,9 +147,7 @@ If you ignore the second parameter, the callback still works — just add `, _op
 type Factory = () => Promisable<IGenericSqlite>
 
 // ✅ v2
-type SqliteExecutorFactory<T> = (
-  options?: AbortableOperationOptions
-) => Promisable<T>
+type SqliteExecutorFactory<T> = (options?: AbortableOperationOptions) => Promisable<T>
 ```
 
 The factory passed to `GenericSqliteDialect` / `GenericSqliteWorkerDialect` constructors now receives `options`. If your factory ignores it, no change needed. If you have a type annotation, update to `SqliteExecutorFactory<IGenericSqlite>`.
@@ -162,7 +160,7 @@ The factory passed to `GenericSqliteDialect` / `GenericSqliteWorkerDialect` cons
 
 ```ts
 // ❌ v1.2.1
-type RunMsg    = [type, isSelect: boolean, sql: string, parameters?: readonly unknown[]]
+type RunMsg = [type, isSelect: boolean, sql: string, parameters?: readonly unknown[]]
 type StreamMsg = [type, isSelect: boolean, sql: string, parameters?: readonly unknown[]]
 ```
 
@@ -170,18 +168,35 @@ type StreamMsg = [type, isSelect: boolean, sql: string, parameters?: readonly un
 
 ```ts
 // ✅ v2
-type RunMsg    = [type, queryId: string, isSelect: boolean, sql: string, parameters: readonly unknown[]]
-type StreamMsg = [type, queryId: string, isSelect: boolean, sql: string, parameters: readonly unknown[], chunkSize?: number]
+type RunMsg = [
+  type,
+  queryId: string,
+  isSelect: boolean,
+  sql: string,
+  parameters: readonly unknown[],
+]
+type StreamMsg = [
+  type,
+  queryId: string,
+  isSelect: boolean,
+  sql: string,
+  parameters: readonly unknown[],
+  chunkSize?: number,
+]
 ```
 
 **Worker-side handler (`createGenericOnMessageCallback`) message destructuring changed:**
 
 ```ts
 // ❌ v1.2.1 — 3 data args
-return async ([type, data1, data2, data3]) => { /* ... */ }
+return async ([type, data1, data2, data3]) => {
+  /* ... */
+}
 
 // ✅ v2 — 5 data args (queryId, isSelect, sql, params, chunkSize)
-return async ([type, data1, data2, data3, data4, data5]) => { /* ... */ }
+return async ([type, data1, data2, data3, data4, data5]) => {
+  /* ... */
+}
 ```
 
 If you wrote a custom `onmessage` handler that manually destructures the tuple, update the arity and positions. If you use `createNodeOnMessageCallback` / `createWebOnMessageCallback` (the recommended path), this is handled for you.
@@ -191,14 +206,21 @@ If you wrote a custom `onmessage` handler that manually destructures the tuple, 
 ```ts
 // ❌ v1.2.1
 type MessageHandleFn<DB> = (
-  exec: IGenericSqlite<DB>, type: string,
-  data1: unknown, data2: unknown, data3: unknown
+  exec: IGenericSqlite<DB>,
+  type: string,
+  data1: unknown,
+  data2: unknown,
+  data3: unknown,
 ) => Promisable<any>
 
 // ✅ v2
 type MessageHandleFn<DB> = (
-  exec: IGenericSqlite<DB>, type: string,
-  data1: unknown, data2: unknown, data3: unknown, data4: unknown
+  exec: IGenericSqlite<DB>,
+  type: string,
+  data1: unknown,
+  data2: unknown,
+  data3: unknown,
+  data4: unknown,
 ) => Promisable<any>
 ```
 
@@ -235,16 +257,15 @@ Two related changes: `buildQueryFn` now routes queries differently, and `IGeneri
 ```ts
 // ❌ v1.2.1
 interface IGenericSqliteExecutor {
-  run(sql, params): Promisable<
-    Pick<QueryResult<any>, 'insertId' | 'numAffectedRows'>
-  >
+  run(sql, params): Promisable<Pick<QueryResult<any>, 'insertId' | 'numAffectedRows'>>
 }
 
 // ✅ v2
 interface IGenericSqliteExecutor {
-  run(sql, params): Promisable<
-    Pick<QueryResult<any>, 'insertId' | 'numAffectedRows'> & { rows?: any[] }
-  >
+  run(
+    sql,
+    params,
+  ): Promisable<Pick<QueryResult<any>, 'insertId' | 'numAffectedRows'> & { rows?: any[] }>
 }
 ```
 
@@ -276,6 +297,7 @@ These were internal or absent in v1.2.1 and are now public:
 | `SqliteExecutorFactory`  | `kysely-generic-sqlite` | Type for `(options?) => Promisable<T>`               |
 
 The `access` helper replaces the common v1 pattern:
+
 ```ts
 // ❌ v1.2.1
 const db = typeof config.database === 'function' ? await config.database() : config.database

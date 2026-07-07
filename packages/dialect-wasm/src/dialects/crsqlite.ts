@@ -24,7 +24,9 @@ export class CrSqliteDialect extends GenericSqliteDialect {
             await db.execA(sql, parameters as any)
             return {
               numAffectedRows: BigInt(db.api.changes(db.db)),
-              insertId: BigInt((await db.execA('SELECT last_insert_rowid()'))[0][0] as number | bigint),
+              insertId: BigInt(
+                (await db.execA('SELECT last_insert_rowid()'))[0][0] as number | bigint,
+              ),
             }
           },
         }),

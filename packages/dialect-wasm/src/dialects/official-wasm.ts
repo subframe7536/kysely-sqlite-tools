@@ -1,11 +1,7 @@
 import type { IBaseSqliteDialectConfig, Promisable } from 'kysely-generic-sqlite'
 import { access, GenericSqliteDialect, parseBigInt } from 'kysely-generic-sqlite'
 
-import type {
-  OfficialPreparedStatement,
-  OfficialWasmDatabase,
-  SqliteParameters,
-} from './types'
+import type { OfficialPreparedStatement, OfficialWasmDatabase, SqliteParameters } from './types'
 
 export interface OfficialWasmDialectConfig extends IBaseSqliteDialectConfig {
   database: OfficialWasmDatabase | (() => Promisable<OfficialWasmDatabase>)

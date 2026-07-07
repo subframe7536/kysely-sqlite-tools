@@ -86,7 +86,7 @@ export interface WaSqliteWorkerDialectConfig {
    * (useAsync) => useAsync
    *   ? `https://esm.sh/@subframe7536/sqlite-wasm@${sqliteWasmVersion}/dist/wa-sqlite-async.wasm`
    *   : new URL(`@subframe7536/sqlite-wasm/dist/wa-sqlite.wasm`, import.meta.url).href
-  */
+   */
   url?: string | ((useAsyncWasm: boolean) => string)
   /**
    * Handle custom messages for event emitter

@@ -29,7 +29,9 @@ export interface NodeWasmDatabase {
   }
 }
 
-export interface OfficialPreparedStatement<Row extends Record<string, unknown> = Record<string, unknown>> {
+export interface OfficialPreparedStatement<
+  Row extends Record<string, unknown> = Record<string, unknown>,
+> {
   columnCount: number
   bind: (parameters: any) => unknown
   finalize: () => void
