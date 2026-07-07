@@ -1,6 +1,6 @@
 {
   "name": "kysely-bun-worker",
-  "version": "2.0.0-beta.5",
+  "version": "2.0.0-beta.6",
   "description": "kysely dialect for bun:sqlite, running in worker",
   "keywords": [
     "bun",
