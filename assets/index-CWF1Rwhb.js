@@ -22685,10 +22685,11 @@ var GenericSqliteWorkerDriver = class extends BaseSqliteDriver {
 			this.mitt = exec.mitt;
 			this.worker = exec.worker;
 			exec.handle(this.worker, ([type, ...msg]) => this.mitt.emit(type, ...msg));
-			this.worker.postMessage(["0", exec.data || {}]);
-			await new Promise((resolve, reject) => {
+			const initAck = new Promise((resolve, reject) => {
 				this.mitt.once("0", (_qid, _data, err) => err ? reject(err) : resolve());
 			});
+			this.worker.postMessage(["0", exec.data || {}]);
+			await initAck;
 			this.conn = new GenericSqliteWorkerConnection(this.worker, this.mitt);
 			await onCreateConnection?.(this.conn, options);
 		});
@@ -22697,8 +22698,9 @@ var GenericSqliteWorkerDriver = class extends BaseSqliteDriver {
 	}
 	async destroy() {
 		if (!this.worker) return;
+		const closeAck = new Promise((resolve, reject) => this.mitt?.once("2", (_qid, _data, err) => err ? reject(err) : resolve()));
 		this.worker.postMessage(["2"]);
-		return new Promise((resolve, reject) => this.mitt?.once("2", (_qid, _data, err) => err ? reject(err) : resolve())).finally(() => {
+		return closeAck.finally(() => {
 			this.conn?.close();
 			this.worker?.terminate();
 			this.mitt?.off();
@@ -22851,7 +22853,7 @@ var mitt = (map = /* @__PURE__ */ new Map()) => ({
 	}
 });
 //#endregion
-//#region ../packages/dialect-wasqlite-worker/dist/index.mjs
+//#region ../packages/dialect-wasqlite-worker/dist/index.js
 var WaSqliteWorkerDialect = class extends GenericSqliteWorkerDialect {
 	constructor(config) {
 		const { onCreateConnection, worker, fileName, preferOPFS, url, message } = config;
@@ -22868,11 +22870,11 @@ var WaSqliteWorkerDialect = class extends GenericSqliteWorkerDialect {
 				},
 				worker: worker ? worker instanceof globalThis.Worker ? worker : worker(supportModule) : supportModule ? new Worker(new URL(
 					/* @vite-ignore */
-					"" + new URL("worker-DzN9aHZS.js", import.meta.url).href,
+					"" + new URL("worker-cNsygU_m.js", import.meta.url).href,
 					"" + import.meta.url
 				), { type: "module" }) : new Worker(new URL(
 					/* @vite-ignore */
-					"" + new URL("worker-X4EkCYxU.js", import.meta.url).href,
+					"" + new URL("worker-cNsygU_m.js", import.meta.url).href,
 					"" + import.meta.url
 				)),
 				mitt: m,
