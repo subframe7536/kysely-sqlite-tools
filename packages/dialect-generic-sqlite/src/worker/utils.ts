@@ -33,6 +33,7 @@ export function createGenericOnMessageCallback<T extends Record<string, unknown>
           break
 
         case dataEvent: {
+          ret[1] = data1 // queryId
           if (!db.iterator) {
             throw new Error('streamQuery() is not supported.')
           }
@@ -41,7 +42,6 @@ export function createGenericOnMessageCallback<T extends Record<string, unknown>
             post([type, data1, row as any, null] satisfies WorkerToMainMsg)
           }
           ret[0] = endEvent
-          ret[1] = data1 // queryId
           break
         }
         default:

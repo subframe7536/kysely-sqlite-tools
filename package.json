@@ -46,10 +46,5 @@
     "vite": "^8.1.0",
     "vitest": "^4.0.15"
   },
-  "packageManager": "pnpm@10.33.4",
-  "pnpm": {
-    "onlyBuiltDependencies": [
-      "better-sqlite3"
-    ]
-  }
+  "packageManager": "pnpm@10.33.4"
 }
