@@ -25,9 +25,9 @@
     "dist"
   ],
   "type": "module",
-  "main": "./dist/index.js",
+  "main": "./dist/index.cjs",
   "module": "./dist/index.mjs",
-  "types": "./dist/index.d.ts",
+  "types": "./dist/index.d.cts",
   "typesVersions": {
     "*": {
       "normal": [
@@ -41,15 +41,15 @@
   "exports": {
     ".": {
       "import": "./dist/index.mjs",
-      "require": "./dist/index.js"
+      "require": "./dist/index.cjs"
     },
     "./normal": {
       "import": "./dist/normal.mjs",
-      "require": "./dist/normal.js"
+      "require": "./dist/normal.cjs"
     },
     "./worker": {
       "import": "./dist/worker.mjs",
-      "require": "./dist/worker.js"
+      "require": "./dist/worker.cjs"
     },
     "./package.json": "./package.json"
   },

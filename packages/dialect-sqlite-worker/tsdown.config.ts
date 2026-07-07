@@ -9,14 +9,14 @@ export default lib({
   },
   overrides: {
     format: ['cjs', 'esm'],
-    outExtensions: ({ format }) => ({ js: format === 'es' ? '.mjs' : '.js' }),
+    outExtensions: ({ format }) => ({ js: format === 'es' ? '.mjs' : '.cjs' }),
     plugins: [correctWorkerPathPlugin()],
   },
 })
 
 function correctWorkerPathPlugin(): TsdownPluginOption<any> {
   let format: UserConfig['format']
-  const REG_TARGET = /join\(__dirname, "worker\.js"\)/
+  const REG_TARGET = /join\(__dirname, "worker\.cjs"\)/
   return {
     name: 'correct-worker-path',
     tsdownConfigResolved(config) {

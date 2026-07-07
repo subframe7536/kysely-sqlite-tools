@@ -1,10 +1,14 @@
 import type { IBaseSqliteDialectConfig, Promisable } from 'kysely-generic-sqlite'
 import { access, GenericSqliteDialect, parseBigInt } from 'kysely-generic-sqlite'
 
+import type {
+  OfficialPreparedStatement,
+  OfficialWasmDatabase,
+  SqliteParameters,
+} from './types'
+
 export interface OfficialWasmDialectConfig extends IBaseSqliteDialectConfig {
-  database:
-    | import('@sqlite.org/sqlite-wasm').Database
-    | (() => Promisable<import('@sqlite.org/sqlite-wasm').Database>)
+  database: OfficialWasmDatabase | (() => Promisable<OfficialWasmDatabase>)
 }
 
 export class OfficialWasmDialect extends GenericSqliteDialect {
@@ -82,15 +86,15 @@ export class OfficialWasmDialect extends GenericSqliteDialect {
 }
 
 function runWithStatement<T>(
-  db: import('@sqlite.org/sqlite-wasm').Database,
+  db: OfficialWasmDatabase,
   sql: string,
-  parameters: any[] | readonly any[],
-  callback: (stmt: import('@sqlite.org/sqlite-wasm').PreparedStatement) => T,
+  parameters: SqliteParameters,
+  callback: (stmt: OfficialPreparedStatement) => T,
 ): T {
   const statement = db.prepare(sql)
   try {
     if (parameters.length) {
-      statement.bind(parameters as import('@sqlite.org/sqlite-wasm').BindingSpec)
+      statement.bind(parameters)
     }
     return callback(statement)
   } finally {
@@ -99,22 +103,22 @@ function runWithStatement<T>(
 }
 
 function* iterator(
-  statement: import('@sqlite.org/sqlite-wasm').PreparedStatement,
-): IterableIterator<Record<string, import('@sqlite.org/sqlite-wasm').SqlValue>> {
+  statement: OfficialPreparedStatement,
+): IterableIterator<Record<string, unknown>> {
   while (statement.step()) {
     yield statement.get({})
   }
 }
 
 function* iterateWithStatement(
-  db: import('@sqlite.org/sqlite-wasm').Database,
+  db: OfficialWasmDatabase,
   sql: string,
-  parameters: any[] | readonly any[],
-): IterableIterator<Record<string, import('@sqlite.org/sqlite-wasm').SqlValue>> {
+  parameters: SqliteParameters,
+): IterableIterator<Record<string, unknown>> {
   const statement = db.prepare(sql)
   try {
     if (parameters.length) {
-      statement.bind(parameters as import('@sqlite.org/sqlite-wasm').BindingSpec)
+      statement.bind(parameters)
     }
     yield* iterator(statement)
   } finally {

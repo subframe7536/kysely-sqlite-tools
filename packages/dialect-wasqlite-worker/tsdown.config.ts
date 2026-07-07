@@ -8,6 +8,6 @@ export default lib({
   unbundled: ['kysely'],
   overrides: {
     format: ['cjs', 'esm'],
-    outExtensions: ({ format }) => ({ js: format === 'es' ? '.mjs' : '.js' }),
+    outExtensions: ({ format }) => ({ js: format === 'es' ? '.mjs' : '.cjs' }),
   },
 })

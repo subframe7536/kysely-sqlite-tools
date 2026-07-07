@@ -59,4 +59,4 @@ export type SqliteWorkerDialectConfig = {
 
 ## Notice
 
-the worker script defaults to the packaged worker file for the current runtime format (`worker.mjs` for ESM and `worker.js` for CJS), and you can customize the path with `workerPath`.
+The worker script defaults to the packaged worker file for the current runtime format (`worker.mjs` for ESM and `worker.cjs` for CJS), and you can customize the path with `workerPath`.

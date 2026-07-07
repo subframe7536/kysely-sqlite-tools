@@ -1,8 +1,10 @@
 import type { IBaseSqliteDialectConfig, Promisable } from 'kysely-generic-sqlite'
 import { access, GenericSqliteDialect } from 'kysely-generic-sqlite'
 
+import type { SqliteParameters, SqlJsDatabase, SqlJsStatement } from './types'
+
 export interface SqlJsDialectConfig extends IBaseSqliteDialectConfig {
-  database: import('sql.js').Database | (() => Promisable<import('sql.js').Database>)
+  database: SqlJsDatabase | (() => Promisable<SqlJsDatabase>)
 }
 export class SqlJsDialect extends GenericSqliteDialect {
   /**
@@ -50,23 +52,23 @@ export class SqlJsDialect extends GenericSqliteDialect {
   }
 }
 
-function* iterator<T>(stmt: import('sql.js').Statement): IterableIterator<T> {
+function* iterator<T>(stmt: SqlJsStatement<T>): IterableIterator<T> {
   while (stmt.step()) {
     yield stmt.getAsObject() as unknown as T
   }
 }
 
 function* iterateWithStatement<T>(
-  db: import('sql.js').Database,
+  db: SqlJsDatabase,
   sql: string,
-  parameters: any[] | readonly any[],
+  parameters: SqliteParameters,
 ): IterableIterator<T> {
   const statement = db.prepare(sql)
   try {
     if (parameters.length) {
       statement.bind(parameters as any[])
     }
-    yield* iterator(statement)
+    yield* iterator(statement as SqlJsStatement<T>)
   } finally {
     statement.free()
   }

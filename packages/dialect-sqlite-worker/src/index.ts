@@ -29,9 +29,9 @@ export class SqliteWorkerDialect extends GenericSqliteWorkerDialect<Worker, {}> 
     super(async () => {
       if (!workerPath) {
         // default worker path, cjs format here, will be transformed to esm format in tsdown.config.ts
-        // CJS: path.join(__dirname, 'worker.js')
+        // CJS: path.join(__dirname, 'worker.cjs')
         // ESM: new URL('./worker.mjs', import.meta.url)
-        workerPath = join(__dirname, 'worker.js')
+        workerPath = join(__dirname, 'worker.cjs')
       }
       const worker = new Worker(workerPath, {
         workerData: {

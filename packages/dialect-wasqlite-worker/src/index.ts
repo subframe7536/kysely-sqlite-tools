@@ -28,7 +28,7 @@ export class WaSqliteWorkerDialect extends GenericSqliteWorkerDialect<globalThis
             : worker(supportModule)
           : supportModule
             ? new Worker(new URL('worker.mjs', import.meta.url), { type: 'module' })
-            : new Worker(new URL('worker.js', import.meta.url)),
+            : new Worker(new URL('worker.cjs', import.meta.url)),
         mitt: m,
         handle: handleWebWorker,
       }
