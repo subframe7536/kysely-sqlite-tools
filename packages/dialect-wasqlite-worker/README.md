@@ -1,14 +1,19 @@
 # kysely-wasqlite-worker
 
-[kysely](https://github.com/kysely-org/kysely) dialect for [`@subframe7536/sqlite-wasm`](https://github.com/subframe7536/sqlite-wasm) (use custom [`wa-sqlite`](https://github.com/rhashimoto/wa-sqlite) under the hood), execute sql in `Web Worker`, store data in [OPFS](https://developer.mozilla.org/en-US/docs/Web/API/File_System_API/Origin_private_file_system) or IndexedDB
+[kysely](https://github.com/kysely-org/kysely) dialect for [`@subframe7536/sqlite-wasm`](https://github.com/subframe7536/sqlite-wasm) (using custom build [`wa-sqlite`](https://github.com/subframe7536/sqwab) under the hood), execute sql in `Web Worker`, store data in [OPFS](https://developer.mozilla.org/en-US/docs/Web/API/File_System_API/Origin_private_file_system) or IndexedDB
 
 No need to set response header like [official wasm](../dialect-wasm/README.md#officialwasmdialect-performance)
+
+> [!important]
+> This package is ESM-only in v2.
 
 ## Install
 
 ```shell
 bun add kysely kysely-wasqlite-worker @subframe7536/sqlite-wasm
 ```
+
+`kysely-wasqlite-worker` is an ESM-only package.
 
 ## Usage
 
@@ -31,7 +36,7 @@ import { createOnMessageCallback, defaultCreateDatabaseFn } from 'kysely-wasqlit
 createOnMessageCallback(
   async (...args) => {
     const sqliteDB = await defaultCreateDatabaseFn(...args)
-    customFunctionCore(sqliteDB, 'customFunction', (a, b) => a + b)
+    customFunctionCore(sqliteDB, 'myFunction', (a, b) => a + b)
     return sqliteDB
   },
   ([type, exec, data1, data2, data3]) => {
@@ -58,34 +63,30 @@ export interface WaSqliteWorkerDialectConfig {
   /**
    * wasqlite worker
    *
-   * built-in: {@link useDefaultWorker}
+   * The built-in worker uses the packaged worker entry.
+   * It prefers module workers when the runtime supports them.
+   * You can still provide a custom worker if you need explicit worker options.
    * @param supportModuleWorker if support { type: 'module' } in worker options
    * @example
-   * import { useDefaultWorker } from 'kysely-wasqlite-worker'
-   * @example
    * (support) => support
-   *   ? new Worker(
-   *       new URL('kysely-wasqlite-worker/worker-module', import.meta.url),
-   *       { type: 'module', credentials: 'same-origin' }
-   *     )
-   *   : new Worker(
-   *       new URL('kysely-wasqlite-worker/worker-classic', import.meta.url),
-   *       { type: 'classic', name: 'test' }
-   *     )
+   *   ? new Worker(new URL('kysely-wasqlite-worker/worker', import.meta.url), {
+   *       type: 'module',
+   *       credentials: 'same-origin',
+   *     })
+   *   : new Worker(new URL('./my-classic-worker.js', import.meta.url))
    */
   worker?: Worker | ((supportModuleWorker: boolean) => Worker)
   /**
    * wasm URL
    *
-   * built-in: {@link useDefaultWasmURL}
+   * When omitted, `@subframe7536/sqlite-wasm` resolves its default runtime asset.
    * @param useAsyncWasm if need to use wa-sqlite-async.wasm
    * @example
-   * import { useDefaultWasmURL } from 'kysely-wasqlite-worker'
-   * @example
+   * const sqliteWasmVersion = '1.3.0'
    * (useAsync) => useAsync
-   *   ? 'https://cdn.jsdelivr.net/gh/rhashimoto/wa-sqlite@v0.9.9/dist/wa-sqlite-async.wasm'
-   *   : new URL('kysely-wasqlite-worker/wasm-sync', import.meta.url).href
-   */
+   *   ? `https://esm.sh/@subframe7536/sqlite-wasm@${sqliteWasmVersion}/dist/wa-sqlite-async.wasm`
+   *   : new URL(`@subframe7536/sqlite-wasm/dist/wa-sqlite.wasm`, import.meta.url).href
+  */
   url?: string | ((useAsyncWasm: boolean) => string)
   /**
    * Handle custom messages for event emitter
@@ -98,7 +99,7 @@ export interface WaSqliteWorkerDialectConfig {
 
 see more in [playground](../../playground/src/modules/wasqliteWorker.ts)
 
-if throw error when using `Vite` to build, add worker config
+If `Vite` needs an explicit worker output format, configure it in `vite.config.ts`:
 
 ```ts
 export default defineConfig({
@@ -111,8 +112,8 @@ export default defineConfig({
 
 ## Limitation
 
-- [minimal IndexedDB backend browser version](https://caniuse.com/mdn-api_lockmanager)
-- [minimal OPFS backend browser version](https://caniuse.com/mdn-api_filesystemsyncaccesshandle)
-- only worked in secure environment, like:
+- [Minimal IndexedDB backend browser version](https://caniuse.com/mdn-api_lockmanager)
+- [Minimal OPFS backend browser version](https://caniuse.com/mdn-api_filesystemsyncaccesshandle)
+- Only worked in secure environment, like:
   - localhost
   - https

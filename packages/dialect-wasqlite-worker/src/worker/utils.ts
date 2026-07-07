@@ -1,5 +1,10 @@
 import type { SQLiteDBCore } from '@subframe7536/sqlite-wasm'
-import { close as coreClose, lastInsertRowId, changes } from '@subframe7536/sqlite-wasm'
+import {
+  close as coreClose,
+  lastInsertRowId,
+  changes,
+  initSQLiteCore,
+} from '@subframe7536/sqlite-wasm'
 import { SQLITE_ROW, SQLITE_DONE } from '@subframe7536/sqlite-wasm/constant'
 import { parseBigInt } from 'kysely-generic-sqlite'
 import type { IGenericSqlite, Promisable } from 'kysely-generic-sqlite'
@@ -11,7 +16,7 @@ import type { InitData } from '../type'
 export type CreateDatabaseFn = (init: InitData) => Promisable<SQLiteDBCore>
 
 export const defaultCreateDatabaseFn: CreateDatabaseFn = async ({ fileName, url, useOPFS }) => {
-  return (await import('@subframe7536/sqlite-wasm')).initSQLiteCore(
+  return initSQLiteCore(
     (useOPFS
       ? (await import('@subframe7536/sqlite-wasm/opfs')).useOpfsStorage
       : (await import('@subframe7536/sqlite-wasm/idb')).useIdbStorage)(fileName, { url }),

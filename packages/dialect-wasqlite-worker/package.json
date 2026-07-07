@@ -25,25 +25,9 @@
     "dist"
   ],
   "type": "module",
-  "main": "./dist/index.cjs",
-  "module": "./dist/index.mjs",
-  "types": "./dist/index.d.cts",
-  "typesVersions": {
-    "*": {
-      "worker": [
-        "./dist/worker.d.ts"
-      ]
-    }
-  },
   "exports": {
-    ".": {
-      "import": "./dist/index.mjs",
-      "require": "./dist/index.cjs"
-    },
-    "./worker": {
-      "import": "./dist/worker.mjs",
-      "require": "./dist/worker.cjs"
-    },
+    ".": "./dist/index.js",
+    "./worker": "./dist/worker.js",
     "./package.json": "./package.json"
   },
   "publishConfig": {

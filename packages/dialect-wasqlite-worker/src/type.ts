@@ -3,44 +3,40 @@ import type { IGenericEventEmitter } from 'kysely-generic-sqlite/worker'
 
 export interface WaSqliteWorkerDialectConfig extends IBaseSqliteDialectConfig {
   /**
-   * db file name
+   * File name for the SQLite database file.
    */
   fileName: string
   /**
-   * prefer to store data in OPFS
+   * Whether prefer to store data in OPFS
    * @default true
    */
   preferOPFS?: boolean
   /**
-   * wasqlite worker
+   * Custom SQLite worker
    *
-   * built-in: {@link useDefaultWorker}
-   * @param supportModuleWorker if support `{ type: 'module' }` in worker options
-   * @example
-   * import { useDefaultWorker } from 'kysely-wasqlite-worker'
+   * The built-in worker uses the packaged worker entry.
+   * It prefers module workers when the runtime supports them.
+   * You can still provide a custom worker if you need explicit worker options.
+   * @param supportModuleWorker whether the runtime supports `{ type: 'module' }` workers
    * @example
    * (supportModuleWorker) => supportModuleWorker
-   *   ? new Worker(
-   *       new URL('kysely-wasqlite-worker/worker-module', import.meta.url),
-   *       { type: 'module', credentials: 'same-origin' }
-   *     )
-   *   : new Worker(
-   *       new URL('kysely-wasqlite-worker/worker-classic', import.meta.url),
-   *       { type: 'classic', name: 'test' }
-   *     )
+   *   ? new Worker(new URL('kysely-wasqlite-worker/worker', import.meta.url), {
+   *       type: 'module',
+   *       credentials: 'same-origin',
+   *     })
+   *   : new Worker(new URL('./my-classic-worker.js', import.meta.url))
    */
   worker?: Worker | ((supportModuleWorker: boolean) => Worker)
   /**
    * wasm URL
    *
-   * built-in: {@link useDefaultWasmURL}
+   * When omitted, `@subframe7536/sqlite-wasm` resolves its default runtime asset.
    * @param useAsyncWasm if need to use wa-sqlite-async.wasm
    * @example
-   * import { useDefaultWasmURL } from 'kysely-wasqlite-worker'
-   * @example
+   * const sqliteWasmVersion = '1.3.0'
    * (useAsyncWasm) => useAsyncWasm
-   *   ? 'https://cdn.jsdelivr.net/gh/rhashimoto/wa-sqlite@v1.0.0/dist/wa-sqlite-async.wasm'
-   *   : new URL('kysely-wasqlite-worker/wasm-sync', import.meta.url).href
+   *   ? `https://esm.sh/@subframe7536/sqlite-wasm@${sqliteWasmVersion}/dist/wa-sqlite-async.wasm`
+   *   : new URL(`@subframe7536/sqlite-wasm/dist/wa-sqlite.wasm`, import.meta.url).href
    */
   url?: string | ((useAsyncWasm: boolean) => string)
   /**

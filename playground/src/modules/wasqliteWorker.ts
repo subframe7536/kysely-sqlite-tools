@@ -11,10 +11,10 @@ import { testDB } from './utils'
 export function runWaSqliteWorker() {
   const dialect = new WaSqliteWorkerDialect({
     fileName: 'wa-sqlite-worker-test',
-    // test classic worker
-    // worker: () => new Worker(
-    //   new URL('kysely-wasqlite-worker/worker-classic', import.meta.url),
-    // ),
+    // test custom worker
+    // worker: () => new Worker(new URL('kysely-wasqlite-worker/worker', import.meta.url), {
+    //   type: 'module',
+    // }),
     // test custom wasm URL
     url: () => wasmURL,
   })

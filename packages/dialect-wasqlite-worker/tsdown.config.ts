@@ -6,8 +6,4 @@ export default lib({
     worker: 'src/worker/index.ts',
   },
   unbundled: ['kysely'],
-  overrides: {
-    format: ['cjs', 'esm'],
-    outExtensions: ({ format }) => ({ js: format === 'es' ? '.mjs' : '.cjs' }),
-  },
 })
