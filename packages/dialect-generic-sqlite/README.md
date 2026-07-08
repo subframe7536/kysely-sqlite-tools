@@ -189,6 +189,29 @@ createWebOnMessageCallback<{ fileName: string }>((data) => {
 })
 ```
 
+### Worker Stream Cancellation
+
+`GenericSqliteWorkerDialect` cancels active worker streams when a stream is aborted,
+closed early, or the connection is closed. The built-in
+`createNodeOnMessageCallback` and `createWebOnMessageCallback` helpers handle
+this automatically.
+
+If you implement the worker protocol manually, handle the `cancelEvent` message
+and call `return()` on the active iterator for the matching query id:
+
+```ts
+import { cancelEvent } from 'kysely-generic-sqlite/worker'
+
+const activeStreams = new Map<string, AsyncIterator<unknown> | Iterator<unknown>>()
+
+async function onMessage([type, queryId]: [string, string]) {
+  if (type === cancelEvent) {
+    await activeStreams.get(queryId)?.return?.()
+    activeStreams.delete(queryId)
+  }
+}
+```
+
 ### Send Custom Messages To Worker
 
 dialect:

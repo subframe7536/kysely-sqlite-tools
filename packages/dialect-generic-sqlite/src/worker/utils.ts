@@ -1,7 +1,7 @@
 import type { IGenericSqlite, Promisable } from '../type'
 
 import type { InitFn, MainToWorkerMsg, MessageHandleFn, WorkerToMainMsg } from './types'
-import { closeEvent, dataEvent, endEvent, initEvent, runEvent } from './types'
+import { cancelEvent, closeEvent, dataEvent, endEvent, initEvent, runEvent } from './types'
 
 /**
  * Create generic message handler
@@ -15,8 +15,11 @@ export function createGenericOnMessageCallback<T extends Record<string, unknown>
   message?: MessageHandleFn<DB>,
 ): (data: MainToWorkerMsg<T>) => Promise<void> {
   let db: IGenericSqlite<DB>
+  const activeStreams = new Map<string, AsyncIterator<unknown> | Iterator<unknown>>()
+  const canceledStreams = new Set<string>()
   return async ([type, data1, data2, data3, data4, data5]) => {
     const ret: WorkerToMainMsg = [type, null, null, null]
+    let shouldPost = true
     try {
       switch (type) {
         case initEvent:
@@ -29,19 +32,46 @@ export function createGenericOnMessageCallback<T extends Record<string, unknown>
           break
 
         case closeEvent:
+          await Promise.all(
+            [...activeStreams].map(async ([queryId, iterator]) => {
+              canceledStreams.add(queryId)
+              await iterator.return?.()
+            }),
+          )
           await db.close()
           break
 
+        case cancelEvent: {
+          shouldPost = false
+          const queryId = data1
+          canceledStreams.add(queryId)
+          await activeStreams.get(queryId)?.return?.()
+          break
+        }
+
         case dataEvent: {
-          ret[1] = data1 // queryId
+          const queryId = data1
+          ret[1] = queryId
           if (!db.iterator) {
             throw new Error('streamQuery() is not supported.')
           }
           const it = db.iterator(data2, data3, data4, data5)
-          for await (const row of it) {
-            post([type, data1, row as any, null] satisfies WorkerToMainMsg)
+          activeStreams.set(queryId, it)
+          try {
+            for await (const row of it) {
+              if (canceledStreams.has(queryId)) {
+                break
+              }
+              post([type, queryId, row as any, null] satisfies WorkerToMainMsg)
+            }
+          } finally {
+            activeStreams.delete(queryId)
           }
-          ret[0] = endEvent
+          if (canceledStreams.delete(queryId)) {
+            shouldPost = false
+          } else {
+            ret[0] = endEvent
+          }
           break
         }
         default:
@@ -57,7 +87,9 @@ export function createGenericOnMessageCallback<T extends Record<string, unknown>
     } catch (error) {
       ret[3] = error
     }
-    post(ret)
+    if (shouldPost) {
+      post(ret)
+    }
   }
 }
 

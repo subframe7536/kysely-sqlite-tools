@@ -6,7 +6,14 @@ import { testCase } from '../../test-utils'
 import { buildQueryFn, GenericSqliteDialect, parseBigInt } from '../src'
 import { createGenericOnMessageCallback, GenericSqliteWorkerDialect } from '../src/worker'
 import type { IGenericEventEmitter } from '../src/worker'
-import { closeEvent, initEvent, dataEvent, runEvent } from '../src/worker/types'
+import {
+  cancelEvent,
+  closeEvent,
+  dataEvent,
+  endEvent,
+  initEvent,
+  runEvent,
+} from '../src/worker/types'
 
 describe('generic sqlite dialect test', () => {
   it('better-sqlite3 executor', async () => {
@@ -254,6 +261,97 @@ describe('generic sqlite dialect test', () => {
     mitt.emit(runEvent, capturedMessage?.[1], { rows: [{ id: 1 }] }, null)
 
     await expect(driver.destroy()).resolves.toBeUndefined()
+  })
+
+  it('sends worker stream cancellation when aborted', async () => {
+    const mitt = createTestMitt()
+    const messages: unknown[][] = []
+    const driver = new GenericSqliteWorkerDialect(() => ({
+      mitt,
+      worker: {
+        postMessage: (message) => {
+          const msg = message as unknown[]
+          messages.push(msg)
+          const [type] = msg as [string]
+          if (type === initEvent || type === closeEvent) {
+            mitt.emit(type, null, null, null)
+          }
+        },
+        terminate: () => {},
+      },
+      handle: () => {},
+    })).createDriver()
+
+    await driver.init()
+
+    const controller = new AbortController()
+    const connection = await driver.acquireConnection()
+    const stream = connection.streamQuery(CompiledQuery.raw('select 1'), 1, {
+      signal: controller.signal,
+    })
+    const next = stream.next()
+    const streamMsg = messages.find(([type]) => type === dataEvent)
+
+    controller.abort()
+
+    await expect(next).rejects.toThrow('Query aborted')
+    expect(messages).toContainEqual([cancelEvent, streamMsg?.[1]])
+
+    await expect(driver.destroy()).resolves.toBeUndefined()
+  })
+
+  it('returns active worker stream iterators when cancelled', async () => {
+    const messages: unknown[][] = []
+    let resolveNext: ((value: IteratorResult<unknown>) => void) | undefined
+    let returned = false
+
+    const iterator: AsyncIterableIterator<unknown> = {
+      [Symbol.asyncIterator]() {
+        return this
+      },
+      next: (() => {
+        let first = true
+        return () => {
+          if (first) {
+            first = false
+            return Promise.resolve({ done: false, value: { id: 1 } })
+          }
+          return new Promise<IteratorResult<unknown>>((resolve) => {
+            resolveNext = resolve
+          })
+        }
+      })(),
+      return: () => {
+        returned = true
+        resolveNext?.({ done: true, value: undefined })
+        return Promise.resolve({ done: true, value: undefined })
+      },
+      throw: (error?: unknown) => Promise.reject(error),
+    }
+
+    const onMessage = createGenericOnMessageCallback(
+      async () => ({
+        db: {},
+        close: () => {},
+        query: () => ({ rows: [] }),
+        iterator: () => iterator,
+      }),
+      (message) => messages.push(message as unknown[]),
+    )
+
+    await onMessage([initEvent, {}])
+    const stream = onMessage([dataEvent, 'stream-a', true, 'select 1', [], 1])
+    await Promise.resolve()
+
+    await onMessage([cancelEvent, 'stream-a'])
+    await stream
+
+    expect(returned).toBe(true)
+    expect(messages).toStrictEqual([
+      [initEvent, null, null, null],
+      [dataEvent, 'stream-a', { id: 1 }, null],
+    ])
+    expect(messages.some(([type]) => type === endEvent)).toBe(false)
   })
 
   it('buffers synchronous worker stream rows without dropping data', async () => {

@@ -164,7 +164,8 @@ type RunMsg = [type, isSelect: boolean, sql: string, parameters?: readonly unkno
 type StreamMsg = [type, isSelect: boolean, sql: string, parameters?: readonly unknown[]]
 ```
 
-**v2 adds `queryId`** as the second element, and `chunkSize` to `StreamMsg`:
+**v2 adds `queryId`** as the second element, `chunkSize` to `StreamMsg`, and a
+stream cancellation message:
 
 ```ts
 // ✅ v2
@@ -183,7 +184,13 @@ type StreamMsg = [
   parameters: readonly unknown[],
   chunkSize?: number,
 ]
+type CancelMsg = [type, queryId: string]
 ```
+
+`CancelMsg` is sent when the main thread stops consuming a worker stream before
+the worker sends `endEvent`, including aborts, early iterator close, and
+connection close. Custom worker protocol implementations must call `return()` on
+the active iterator for that `queryId` and suppress the normal end response.
 
 **Worker-side handler (`createGenericOnMessageCallback`) message destructuring changed:**
 
@@ -245,6 +252,12 @@ async *streamQuery<R>(
 ```
 
 v2 adds `chunkSize` forwarding and `AbortSignal` support via `options?.signal`. If you implement a custom `DatabaseConnection`, update the signature and wire the abort listener.
+
+For worker-backed connections, aborting or closing the async iterator also sends
+`CancelMsg` to the worker so the worker-side iterator can stop and release its
+statement. If you use `GenericSqliteWorkerDialect`, this is already implemented.
+If you wrote your own worker connection, mirror this behavior instead of only
+rejecting the main-thread promise.
 
 ---
 
@@ -310,11 +323,12 @@ The `sql.toLowerCase().startsWith('select')` guard catches raw SQL `SELECT` stat
 
 These were internal or absent in v1.2.1 and are now public:
 
-| Export                   | Import from             | Purpose                                              |
-| ------------------------ | ----------------------- | ---------------------------------------------------- |
-| `access`                 | `kysely-generic-sqlite` | Resolve `T \| (() => Promisable<T>)` to `Promise<T>` |
-| `isReadOrReturningQuery` | `kysely-generic-sqlite` | Detect SELECT / PRAGMA / VALUES / WITH / RETURNING   |
-| `SqliteExecutorFactory`  | `kysely-generic-sqlite` | Type for `(options?) => Promisable<T>`               |
+| Export                   | Import from                    | Purpose                                                |
+| ------------------------ | ------------------------------ | ------------------------------------------------------ |
+| `access`                 | `kysely-generic-sqlite`        | Resolve `T \| (() => Promisable<T>)` to `Promise<T>`   |
+| `isReadOrReturningQuery` | `kysely-generic-sqlite`        | Detect SELECT / PRAGMA / VALUES / WITH / RETURNING     |
+| `SqliteExecutorFactory`  | `kysely-generic-sqlite`        | Type for `(options?) => Promisable<T>`                 |
+| Worker protocol messages | `kysely-generic-sqlite/worker` | Types and event constants for custom worker transports |
 
 The `access` helper replaces the common v1 pattern:
 
@@ -338,6 +352,7 @@ const db = await access(config.database)
 - [ ] `OnCreateConnection` callbacks: add second `options?` parameter
 - [ ] Executor factories: accept `options?` parameter (or use `SqliteExecutorFactory<T>`)
 - [ ] Worker `onmessage` handlers: update tuple destructuring for `queryId` position
+- [ ] Custom worker stream protocol: handle `CancelMsg` and call `return()` on the active iterator
 - [ ] Custom `MessageHandleFn`: add 4th data arg
 - [ ] Custom `DatabaseConnection.streamQuery`: add `chunkSize?` and `options?` parameters
 - [ ] Replace `typeof x === 'function' ? await x() : x` with `await access(x)`

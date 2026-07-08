@@ -10,6 +10,7 @@ import { BaseSqliteDriver } from '../base'
 import type { OnCreateConnection, SqliteExecutorFactory } from '../type'
 
 import type {
+  CancelMsg,
   CloseMsg,
   IGenericEventEmitter,
   IGenericSqliteWorkerExecutor,
@@ -18,7 +19,7 @@ import type {
   RunMsg,
   StreamMsg,
 } from './types'
-import { closeEvent, dataEvent, endEvent, initEvent, runEvent } from './types'
+import { cancelEvent, closeEvent, dataEvent, endEvent, initEvent, runEvent } from './types'
 
 export class GenericSqliteWorkerDriver<
   T extends IGenericWorker,
@@ -75,6 +76,8 @@ type PendingStream = {
   queue: StreamResult<any>[]
   wait?: PendingRun
   error?: unknown
+  completed?: boolean
+  canceled?: boolean
 }
 
 class GenericSqliteWorkerConnection implements DatabaseConnection {
@@ -140,6 +143,7 @@ class GenericSqliteWorkerConnection implements DatabaseConnection {
     }
     this.pendingRuns.clear()
     for (const [queryId, state] of this.pendingStreams) {
+      this.cancelStream(queryId, state)
       this.rejectStream(queryId, state, err)
     }
   }
@@ -166,6 +170,7 @@ class GenericSqliteWorkerConnection implements DatabaseConnection {
     ] satisfies StreamMsg)
 
     const onAbort = (): void => {
+      this.cancelStream(queryId.queryId, streamState)
       this.rejectStream(queryId.queryId, streamState, new Error('Query aborted'))
     }
     options?.signal?.addEventListener('abort', onAbort, { once: true })
@@ -181,6 +186,7 @@ class GenericSqliteWorkerConnection implements DatabaseConnection {
       }
     } finally {
       options?.signal?.removeEventListener('abort', onAbort)
+      this.cancelStream(queryId.queryId, streamState)
       this.pendingStreams.delete(queryId.queryId)
     }
   }
@@ -247,6 +253,9 @@ class GenericSqliteWorkerConnection implements DatabaseConnection {
   }
 
   private pushStreamResult(queryId: string, state: PendingStream, result: StreamResult<any>): void {
+    if (result[1]) {
+      state.completed = true
+    }
     if (state.wait) {
       const { resolve } = state.wait
       state.wait = undefined
@@ -256,6 +265,18 @@ class GenericSqliteWorkerConnection implements DatabaseConnection {
     state.queue.push(result)
     if (result[1]) {
       this.pendingStreams.delete(queryId)
+    }
+  }
+
+  private cancelStream(queryId: string, state: PendingStream): void {
+    if (state.completed || state.canceled) {
+      return
+    }
+    state.canceled = true
+    try {
+      this.worker.postMessage([cancelEvent, queryId] satisfies CancelMsg)
+    } catch {
+      // Ignore cancellation delivery failures so cleanup never masks the original stream result.
     }
   }
 

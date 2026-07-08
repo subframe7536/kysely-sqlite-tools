@@ -7,6 +7,7 @@ export const runEvent = '1'
 export const closeEvent = '2'
 export const dataEvent = '3'
 export const endEvent = '4'
+export const cancelEvent = '5'
 
 export type InitMsg<T extends Record<string, unknown>> = [type: typeof initEvent, data: T]
 
@@ -28,12 +29,14 @@ export type StreamMsg = [
 ]
 
 export type CloseMsg = [type: typeof closeEvent]
+export type CancelMsg = [type: typeof cancelEvent, queryId: string]
 
 export type MainToWorkerMsg<T extends Record<string, unknown>> =
   | InitMsg<T>
   | RunMsg
   | CloseMsg
   | StreamMsg
+  | CancelMsg
 
 export type WorkerToMainMsg = {
   [K in keyof Events]: [type: `${K}`, queryId: string | null, data: Events[K], err: unknown]
@@ -45,6 +48,7 @@ type Events = {
   2: null
   3: QueryResult<any>[] | null
   4: null
+  5: null
 }
 
 export interface IGenericWorker {
