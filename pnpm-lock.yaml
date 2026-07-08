@@ -139,9 +139,6 @@ importers:
       kysely:
         specifier: 'catalog:'
         version: 0.29.2
-      wa-sqlite:
-        specifier: ^1.0.0
-        version: 1.0.0
 
   playground:
     dependencies:
@@ -1461,9 +1458,6 @@ packages:
       jsdom:
         optional: true
 
-  wa-sqlite@1.0.0:
-    resolution: {integrity: sha512-Kyybo5/BaJp76z7gDWGk2J6Hthl4NIPsE+swgraEjy3IY6r5zIR02wAs1OJH4XtJp1y3puj3Onp5eMGS0z7nUA==}
-
   why-is-node-running@2.3.0:
     resolution: {integrity: sha512-hUrmaWBdVDcxvYqnyh09zunKzROWjbZTiNy8dBEjkS7ehEDQibXJ7XvlmtbwuTclUiIyN+CyXQD4Vmko8fNm8w==}
     engines: {node: '>=8'}
@@ -2556,8 +2550,6 @@ snapshots:
       '@types/node': 26.0.1
     transitivePeerDependencies:
       - msw
-
-  wa-sqlite@1.0.0: {}
 
   why-is-node-running@2.3.0:
     dependencies:

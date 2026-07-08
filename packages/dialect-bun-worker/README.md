@@ -60,10 +60,10 @@ export type BunWorkerDialectConfig = {
   url?: string
   onCreateConnection?: (connection: DatabaseConnection) => Promisable<void>
   /**
-   * use bun:sqlite's built-in statment cache
+   * use bun:sqlite's built-in statement cache
    * @see https://bun.sh/docs/api/sqlite#query
    */
-  cacheStatment?: boolean
+  cacheStatement?: boolean
   /**
    * custom worker, default is a worker that use bun:sqlite
    */
