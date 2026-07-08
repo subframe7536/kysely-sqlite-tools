@@ -185,17 +185,51 @@ class GenericSqliteWorkerConnection implements DatabaseConnection {
     }
   }
 
-  async executeQuery<R>(compiledQuery: CompiledQuery<unknown>): Promise<QueryResult<R>> {
+  async executeQuery<R>(
+    compiledQuery: CompiledQuery<unknown>,
+    options?: AbortableOperationOptions,
+  ): Promise<QueryResult<R>> {
     const { parameters, sql, query, queryId } = compiledQuery
+    if (options?.signal?.aborted) {
+      throw new Error('Query aborted')
+    }
+
     return new Promise((resolve, reject) => {
-      this.pendingRuns.set(queryId.queryId, { resolve, reject })
-      this.worker.postMessage([
-        runEvent,
-        queryId.queryId,
-        SelectQueryNode.is(query),
-        sql,
-        parameters,
-      ] satisfies RunMsg)
+      const queryKey = queryId.queryId
+      let cleanup = (): void => {}
+      const onAbort = (): void => {
+        cleanup()
+        reject(new Error('Query aborted'))
+      }
+      cleanup = (): void => {
+        this.pendingRuns.delete(queryKey)
+        options?.signal?.removeEventListener('abort', onAbort)
+      }
+      const settle =
+        <T>(callback: (value: T) => void) =>
+        (value: T): void => {
+          cleanup()
+          callback(value)
+        }
+
+      this.pendingRuns.set(queryKey, {
+        resolve: settle(resolve),
+        reject: settle(reject),
+      })
+      options?.signal?.addEventListener('abort', onAbort, { once: true })
+
+      try {
+        this.worker.postMessage([
+          runEvent,
+          queryKey,
+          SelectQueryNode.is(query),
+          sql,
+          parameters,
+        ] satisfies RunMsg)
+      } catch (error) {
+        cleanup()
+        reject(error)
+      }
     })
   }
 

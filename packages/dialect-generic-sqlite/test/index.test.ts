@@ -219,6 +219,43 @@ describe('generic sqlite dialect test', () => {
     await expect(driver.destroy()).resolves.toBeUndefined()
   })
 
+  it('rejects aborted worker queries and ignores late responses', async () => {
+    const mitt = createTestMitt()
+    let capturedMessage: unknown[] | undefined
+    const driver = new GenericSqliteWorkerDialect(() => ({
+      mitt,
+      worker: {
+        postMessage: (message) => {
+          const [type] = message as [string]
+          if (type === initEvent || type === closeEvent) {
+            mitt.emit(type, null, null, null)
+            return
+          }
+          capturedMessage = message as unknown[]
+        },
+        terminate: () => {},
+      },
+      handle: () => {},
+    })).createDriver()
+
+    await driver.init()
+
+    const controller = new AbortController()
+    const connection = await driver.acquireConnection()
+    const promise = connection.executeQuery(CompiledQuery.raw('select 1'), {
+      signal: controller.signal,
+    })
+
+    controller.abort()
+
+    await expect(promise).rejects.toThrow('Query aborted')
+    expect(capturedMessage?.[0]).toBe(runEvent)
+
+    mitt.emit(runEvent, capturedMessage?.[1], { rows: [{ id: 1 }] }, null)
+
+    await expect(driver.destroy()).resolves.toBeUndefined()
+  })
+
   it('buffers synchronous worker stream rows without dropping data', async () => {
     const mitt = createTestMitt()
     const messages: unknown[] = []

@@ -10,5 +10,6 @@ export default lib({
   },
   overrides: {
     format: ['esm', 'cjs'],
+    fixedExtension: true,
   },
 })

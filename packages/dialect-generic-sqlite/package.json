@@ -26,7 +26,7 @@
   ],
   "type": "module",
   "main": "./dist/index.cjs",
-  "module": "./dist/index.js",
+  "module": "./dist/index.mjs",
   "types": "./dist/index.d.cts",
   "typesVersions": {
     "*": {
@@ -43,19 +43,19 @@
   },
   "exports": {
     ".": {
-      "import": "./dist/index.js",
+      "import": "./dist/index.mjs",
       "require": "./dist/index.cjs"
     },
     "./worker": {
-      "import": "./dist/worker.js",
+      "import": "./dist/worker.mjs",
       "require": "./dist/worker.cjs"
     },
     "./worker-helper-node": {
-      "import": "./dist/worker-helper-node.js",
+      "import": "./dist/worker-helper-node.mjs",
       "require": "./dist/worker-helper-node.cjs"
     },
     "./worker-helper-web": {
-      "import": "./dist/worker-helper-web.js",
+      "import": "./dist/worker-helper-web.mjs",
       "require": "./dist/worker-helper-web.cjs"
     },
     "./package.json": "./package.json"
