@@ -2,7 +2,7 @@ import { parentPort } from 'node:worker_threads'
 
 import Database from 'better-sqlite3'
 
-import { createWebOnMessageCallback } from '../../dialect-generic-sqlite/dist/worker-helper-web.js'
+import { createWebOnMessageCallback } from '../../dialect-generic-sqlite/dist/worker-helper-web.mjs'
 import { createSqliteExecutor } from '../../dialect-sqlite-worker/dist/index.mjs'
 
 globalThis.postMessage = (data) => parentPort?.postMessage(data)
