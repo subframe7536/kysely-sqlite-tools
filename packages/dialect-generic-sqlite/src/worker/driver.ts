@@ -196,7 +196,7 @@ class GenericSqliteWorkerConnection implements DatabaseConnection {
 
     return new Promise((resolve, reject) => {
       const queryKey = queryId.queryId
-      let cleanup: () => void
+      let cleanup = (): void => {}
       const onAbort = (): void => {
         cleanup()
         reject(new Error('Query aborted'))
