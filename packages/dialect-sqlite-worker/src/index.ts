@@ -2,6 +2,7 @@ import { join } from 'node:path'
 import { Worker } from 'node:worker_threads'
 
 import type { Options } from 'better-sqlite3'
+import { access } from 'kysely-generic-sqlite'
 import type { IBaseSqliteDialectConfig, Promisable } from 'kysely-generic-sqlite'
 import { GenericSqliteWorkerDialect } from 'kysely-generic-sqlite/worker'
 import { createNodeMitt, handleNodeWorker } from 'kysely-generic-sqlite/worker-helper-node'
@@ -35,7 +36,7 @@ export class SqliteWorkerDialect extends GenericSqliteWorkerDialect<Worker, {}> 
       }
       const worker = new Worker(workerPath, {
         workerData: {
-          src: typeof source === 'function' ? await source() : source,
+          src: await access(source),
           option: dbOption,
         },
       })

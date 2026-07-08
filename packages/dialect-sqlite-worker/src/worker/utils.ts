@@ -72,7 +72,7 @@ export function createSqliteExecutor(
       if (!isSelect) {
         throw new Error('Only support select in stream()')
       }
-      return getStmt(sql).iterate(parameters) as any
+      return getStmt(sql).iterate(parameters)
     },
   }
 }

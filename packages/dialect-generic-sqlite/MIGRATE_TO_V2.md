@@ -248,9 +248,9 @@ v2 adds `chunkSize` forwarding and `AbortSignal` support via `options?.signal`. 
 
 ---
 
-### Rule 9 — `buildQueryFn` and `IGenericSqliteExecutor.run` behavior changed
+### Rule 9 — `buildQueryFn` / `buildQueryFnAlt` routing and `IGenericSqliteExecutor.run` behavior changed
 
-Two related changes: `buildQueryFn` now routes queries differently, and `IGenericSqliteExecutor.run`'s return type expanded to match.
+Three related changes: `buildQueryFn` now uses AST-aware routing, `buildQueryFnAlt` gained SQL-level detection, and `IGenericSqliteExecutor.run`'s return type expanded to match.
 
 **`IGenericSqliteExecutor.run` return type:**
 
@@ -283,6 +283,26 @@ interface IGenericSqliteExecutor {
 ```
 
 If your `run` implementation already executes the SQL and returns metadata from it, **no change needed** — the extra `rows` property is optional. However, v1's `buildQueryFn` called `exec.run('select 1')` (a dummy query that only fetched `last_insert_rowid` and `changes` without executing the real SQL). In v2, `buildQueryFn` calls `exec.run(sql, parameters)` — your `run` implementation must now **execute the actual SQL** and return the resulting metadata.
+
+**`buildQueryFnAlt` routing also enhanced:**
+
+`buildQueryFnAlt` is a simpler alternative that does **not** support Kysely AST `returning` detection. Its detection logic was also broadened:
+
+```ts
+// ❌ v1.2.1 — pure boolean routing
+return async (isSelect, sql, parameters) =>
+  isSelect
+    ? { rows: await exec.all(sql, parameters) }
+    : { rows: [], ...(await exec.run(sql, parameters)) }
+
+// ✅ v2 — boolean + SQL prefix routing
+return async (isSelect, sql, parameters) =>
+  isSelect || sql.toLowerCase().startsWith('select')
+    ? { rows: await exec.all(sql, parameters) }
+    : { rows: [], ...(await exec.run(sql, parameters)) }
+```
+
+The `sql.toLowerCase().startsWith('select')` guard catches raw SQL `SELECT` statements that arrive with `isSelect === false`. In practice this is safe — `all` is a superset of `run` — but if your `all` and `run` implementations have materially different side effects, verify that raw SELECTs routed through `all` still work as expected.
 
 ---
 

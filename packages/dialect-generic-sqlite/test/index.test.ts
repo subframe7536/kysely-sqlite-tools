@@ -153,7 +153,7 @@ describe('generic sqlite dialect test', () => {
 
     await expect(stream.next()).rejects.toThrow('streamQuery() is not supported.')
 
-    await driver.releaseConnection(connection)
+    // await driver.releaseConnection(connection)
     await driver.destroy()
   })
 
@@ -195,7 +195,7 @@ describe('generic sqlite dialect test', () => {
     })
     await expect(stream.next()).rejects.toThrow('iterator failed')
 
-    await driver.releaseConnection(connection)
+    // await driver.releaseConnection(connection)
     await driver.destroy()
   })
 
@@ -257,7 +257,7 @@ describe('generic sqlite dialect test', () => {
     for await (const result of connection.streamQuery(query, 1)) {
       rows.push(...result.rows)
     }
-    await driver.releaseConnection(connection)
+    // await driver.releaseConnection(connection)
     await driver.destroy()
 
     expect(rows).toStrictEqual([{ id: 1 }, { id: 2 }, { id: 3 }])
