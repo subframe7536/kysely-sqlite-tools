@@ -7,7 +7,7 @@
     "preview": "pnpm build && vite preview"
   },
   "dependencies": {
-    "@subframe7536/sqlite-wasm": "^1.2.0",
+    "@subframe7536/sqlite-wasm": "catalog:",
     "kysely": "catalog:",
     "kysely-wasm": "workspace:*",
     "kysely-wasqlite-worker": "workspace:*",

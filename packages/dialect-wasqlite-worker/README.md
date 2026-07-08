@@ -13,7 +13,7 @@ No need to set response header like [official wasm](../dialect-wasm/README.md#of
 bun add kysely kysely-wasqlite-worker @subframe7536/sqlite-wasm
 ```
 
-`kysely-wasqlite-worker` is an ESM-only package.
+`kysely-wasqlite-worker` is an ESM-only package and only works in modern browsers.
 
 ## Usage
 

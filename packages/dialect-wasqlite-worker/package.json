@@ -42,7 +42,7 @@
     "zen-mitt": "^3.1.0"
   },
   "devDependencies": {
-    "@subframe7536/sqlite-wasm": "^1.3.0",
+    "@subframe7536/sqlite-wasm": "catalog:",
     "kysely": "catalog:"
   },
   "peerDependencies": {

@@ -6,6 +6,9 @@ settings:
 
 catalogs:
   default:
+    '@subframe7536/sqlite-wasm':
+      specifier: ^1.3.1
+      version: 1.3.1
     kysely:
       specifier: ^0.29.2
       version: 0.29.2
@@ -134,8 +137,8 @@ importers:
         version: 3.1.0
     devDependencies:
       '@subframe7536/sqlite-wasm':
-        specifier: ^1.3.0
-        version: 1.3.0
+        specifier: 'catalog:'
+        version: 1.3.1
       kysely:
         specifier: 'catalog:'
         version: 0.29.2
@@ -143,8 +146,8 @@ importers:
   playground:
     dependencies:
       '@subframe7536/sqlite-wasm':
-        specifier: ^1.2.0
-        version: 1.2.0
+        specifier: 'catalog:'
+        version: 1.3.1
       kysely:
         specifier: 'catalog:'
         version: 0.29.2
@@ -661,11 +664,8 @@ packages:
   '@subf/oxlint-plugin@0.2.2':
     resolution: {integrity: sha512-e2v+0TRtDK1jX11dSNTOqnFc2n3Hln2TYA2w/JuExzRhZBIyCVNj5qRCGWN3spOVfefGv4NPzqjo8Ag+0Ycs7A==}
 
-  '@subframe7536/sqlite-wasm@1.2.0':
-    resolution: {integrity: sha512-7gtJ1BXe6ZU4vhSWsad6pxRmCN40iqI99SQGJB6jt3TPMFb4uO+3qTrIxrqeKji4DOlpqkWZp/imO56GI77U9w==}
-
-  '@subframe7536/sqlite-wasm@1.3.0':
-    resolution: {integrity: sha512-csWFVpvaPh+b6aM3ibsVxRnecjGMdtn2yewbA+rFdVRdWzNZxcKViKZNgZrrTZ6Nm6+nCUYFH7xn0yh4th+D1A==}
+  '@subframe7536/sqlite-wasm@1.3.1':
+    resolution: {integrity: sha512-0Xlapt/w6tzEjxPsjPSnIEcrgfJfDESYbkEf8gyPCU7HrM0Qcdd/ooXvkK6ZaMtx6aBdsABTBqC77fa2Sk1xsA==}
 
   '@subframe7536/type-utils@0.2.0':
     resolution: {integrity: sha512-5OmY4NfRPBVcsVReZLU1sh7bZppZUWFnnN2ybjOQS7i2suOR1ds3qsFJmZNLpWV5gLmL0RVAmHgMQU0salMJOw==}
@@ -1836,9 +1836,7 @@ snapshots:
 
   '@subf/oxlint-plugin@0.2.2': {}
 
-  '@subframe7536/sqlite-wasm@1.2.0': {}
-
-  '@subframe7536/sqlite-wasm@1.3.0': {}
+  '@subframe7536/sqlite-wasm@1.3.1': {}
 
   '@subframe7536/type-utils@0.2.0': {}
 
