@@ -9,7 +9,7 @@ export default lib({
   },
   overrides: {
     format: ['cjs', 'esm'],
-    outExtensions: ({ format }) => ({ js: format === 'es' ? '.mjs' : '.cjs' }),
+    fixedExtension: true,
     plugins: [correctWorkerPathPlugin()],
   },
 })

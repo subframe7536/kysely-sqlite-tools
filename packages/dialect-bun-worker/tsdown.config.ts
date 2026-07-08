@@ -9,6 +9,6 @@ export default lib({
   unbundled: ['kysely', 'bun:sqlite'],
   overrides: {
     format: ['cjs', 'esm'],
-    outExtensions: ({ format }) => ({ js: format === 'es' ? '.mjs' : '.cjs' }),
+    fixedExtension: true,
   },
 })
