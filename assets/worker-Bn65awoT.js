@@ -5130,7 +5130,7 @@ async function initSQLiteCore(options) {
 	};
 }
 //#endregion
-//#region ../packages/dialect-generic-sqlite/dist/utils-B22HCdc4.js
+//#region ../packages/dialect-generic-sqlite/dist/utils-B22HCdc4.mjs
 /**
 * Create generic message handler
 * @param init Function that init sqlite executor
@@ -5183,20 +5183,20 @@ function createGenericOnMessageCallback(init, post, message) {
 	};
 }
 //#endregion
-//#region ../packages/dialect-generic-sqlite/dist/worker-helper-web.js
+//#region ../packages/dialect-generic-sqlite/dist/worker-helper-web.mjs
 function createWebOnMessageCallback(init, message) {
 	const cb = createGenericOnMessageCallback(init, (value) => globalThis.postMessage(value), message);
 	globalThis.onmessage = ({ data }) => cb(data);
 }
 //#endregion
-//#region ../packages/dialect-generic-sqlite/dist/base-CsEzCtSy.js
+//#region ../packages/dialect-generic-sqlite/dist/base-CsEzCtSy.mjs
 function parseBigInt(num) {
 	return num === void 0 || num === null ? void 0 : BigInt(num);
 }
 //#endregion
 //#region ../packages/dialect-wasqlite-worker/dist/utils-Cc2O-UZy.js
 const defaultCreateDatabaseFn = async ({ fileName, url, useOPFS }) => {
-	return initSQLiteCore((useOPFS ? (await import("./opfs-By-2JG8f.js")).useOpfsStorage : (await import("./idb-JHz4WVBD.js")).useIdbStorage)(fileName, { url }));
+	return initSQLiteCore((useOPFS ? (await import("./opfs-BomJMjax.js")).useOpfsStorage : (await import("./idb-DNltG12M.js")).useIdbStorage)(fileName, { url }));
 };
 function createRowMapper(sqlite, stmt) {
 	const cols = sqlite.column_names(stmt);

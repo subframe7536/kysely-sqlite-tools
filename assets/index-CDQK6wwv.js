@@ -16453,7 +16453,7 @@ var SqliteAdapter = class extends DialectAdapterBase {
 	async releaseMigrationLock(_db, _opt) {}
 };
 //#endregion
-//#region ../packages/dialect-generic-sqlite/dist/base-CsEzCtSy.js
+//#region ../packages/dialect-generic-sqlite/dist/base-CsEzCtSy.mjs
 init_defineProperty();
 var BaseSqliteDialect = class {
 	/**
@@ -16519,7 +16519,7 @@ async function access(data) {
 	return typeof data === "function" ? await data() : data;
 }
 //#endregion
-//#region ../packages/dialect-generic-sqlite/dist/index.js
+//#region ../packages/dialect-generic-sqlite/dist/index.mjs
 init_defineProperty();
 var GenericSqliteDriver = class extends BaseSqliteDriver {
 	constructor(executor, onCreateConnection) {
@@ -18987,7 +18987,7 @@ function runSqlJsMain() {
 //#endregion
 //#region src/modules/officialWasmWorker.ts?worker
 function WorkerWrapper$1(options) {
-	return new Worker("" + new URL("officialWasmWorker-BFG12vFT.js", import.meta.url).href, {
+	return new Worker("" + new URL("officialWasmWorker-D0rQyrrw.js", import.meta.url).href, {
 		type: "module",
 		name: options?.name
 	});
@@ -18995,7 +18995,7 @@ function WorkerWrapper$1(options) {
 //#endregion
 //#region src/modules/sqljsWorker.ts?worker
 function WorkerWrapper(options) {
-	return new Worker("" + new URL("sqljsWorker-DRDI8UDE.js", import.meta.url).href, {
+	return new Worker("" + new URL("sqljsWorker-DovfYvYx.js", import.meta.url).href, {
 		type: "module",
 		name: options?.name
 	});
@@ -22670,13 +22670,13 @@ function isModuleWorkerSupport() {
 	}
 }
 //#endregion
-//#region ../packages/dialect-generic-sqlite/dist/worker-helper-web.js
+//#region ../packages/dialect-generic-sqlite/dist/worker-helper-web.mjs
 /**
 * Util for handle web worker message in main thread
 */
 var handleWebWorker = (worker, cb) => worker.onmessage = ({ data }) => cb(data);
 //#endregion
-//#region ../packages/dialect-generic-sqlite/dist/worker.js
+//#region ../packages/dialect-generic-sqlite/dist/worker.mjs
 init_defineProperty();
 var GenericSqliteWorkerDriver = class extends BaseSqliteDriver {
 	constructor(executor, onCreateConnection) {
@@ -22772,20 +22772,41 @@ var GenericSqliteWorkerConnection = class {
 			this.pendingStreams.delete(queryId.queryId);
 		}
 	}
-	async executeQuery(compiledQuery) {
+	async executeQuery(compiledQuery, options) {
 		const { parameters, sql, query, queryId } = compiledQuery;
+		if (options?.signal?.aborted) throw new Error("Query aborted");
 		return new Promise((resolve, reject) => {
-			this.pendingRuns.set(queryId.queryId, {
-				resolve,
-				reject
+			const queryKey = queryId.queryId;
+			let cleanup = () => {};
+			const onAbort = () => {
+				cleanup();
+				reject(/* @__PURE__ */ new Error("Query aborted"));
+			};
+			cleanup = () => {
+				this.pendingRuns.delete(queryKey);
+				options?.signal?.removeEventListener("abort", onAbort);
+			};
+			const settle = (callback) => (value) => {
+				cleanup();
+				callback(value);
+			};
+			this.pendingRuns.set(queryKey, {
+				resolve: settle(resolve),
+				reject: settle(reject)
 			});
-			this.worker.postMessage([
-				"1",
-				queryId.queryId,
-				SelectQueryNode.is(query),
-				sql,
-				parameters
-			]);
+			options?.signal?.addEventListener("abort", onAbort, { once: true });
+			try {
+				this.worker.postMessage([
+					"1",
+					queryKey,
+					SelectQueryNode.is(query),
+					sql,
+					parameters
+				]);
+			} catch (error) {
+				cleanup();
+				reject(error);
+			}
 		});
 	}
 	nextStreamResult(state) {
@@ -22870,11 +22891,11 @@ var WaSqliteWorkerDialect = class extends GenericSqliteWorkerDialect {
 				},
 				worker: worker ? worker instanceof globalThis.Worker ? worker : worker(supportModule) : supportModule ? new Worker(new URL(
 					/* @vite-ignore */
-					"" + new URL("worker-cNsygU_m.js", import.meta.url).href,
+					"" + new URL("worker-Bn65awoT.js", import.meta.url).href,
 					"" + import.meta.url
 				), { type: "module" }) : new Worker(new URL(
 					/* @vite-ignore */
-					"" + new URL("worker-cNsygU_m.js", import.meta.url).href,
+					"" + new URL("worker-Bn65awoT.js", import.meta.url).href,
 					"" + import.meta.url
 				)),
 				mitt: m,

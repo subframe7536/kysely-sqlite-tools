@@ -15459,7 +15459,7 @@ var SqliteAdapter = class extends DialectAdapterBase {
 	async releaseMigrationLock(_db, _opt) {}
 };
 //#endregion
-//#region ../packages/dialect-generic-sqlite/dist/base-CsEzCtSy.js
+//#region ../packages/dialect-generic-sqlite/dist/base-CsEzCtSy.mjs
 init_defineProperty();
 var BaseSqliteDialect = class {
 	/**
@@ -15525,7 +15525,7 @@ async function access(data) {
 	return typeof data === "function" ? await data() : data;
 }
 //#endregion
-//#region ../packages/dialect-generic-sqlite/dist/index.js
+//#region ../packages/dialect-generic-sqlite/dist/index.mjs
 init_defineProperty();
 var GenericSqliteDriver = class extends BaseSqliteDriver {
 	constructor(executor, onCreateConnection) {

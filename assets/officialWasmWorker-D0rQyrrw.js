@@ -31263,7 +31263,7 @@ var SqliteAdapter = class extends DialectAdapterBase {
 	async releaseMigrationLock(_db, _opt) {}
 };
 //#endregion
-//#region ../packages/dialect-generic-sqlite/dist/base-CsEzCtSy.js
+//#region ../packages/dialect-generic-sqlite/dist/base-CsEzCtSy.mjs
 var BaseSqliteDialect = class {
 	/**
 	* Base class that implements {@link Dialect}
@@ -31331,7 +31331,7 @@ function parseBigInt(num) {
 	return num === void 0 || num === null ? void 0 : BigInt(num);
 }
 //#endregion
-//#region ../packages/dialect-generic-sqlite/dist/index.js
+//#region ../packages/dialect-generic-sqlite/dist/index.mjs
 var GenericSqliteDriver = class extends BaseSqliteDriver {
 	constructor(executor, onCreateConnection) {
 		super(async (options) => {
