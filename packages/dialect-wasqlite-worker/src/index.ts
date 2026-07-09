@@ -8,7 +8,17 @@ import type { InitData, WaSqliteWorkerDialectConfig } from './type'
 export * from './type'
 export * from './worker/utils'
 
+/**
+ * SQLite dialect for the browser using
+ * {@link https://github.com/subframe7536/sqlite-wasm | wa-sqlite} running in a
+ * web worker.
+ *
+ * Supports OPFS and IndexedDB storage backends.
+ */
 export class WaSqliteWorkerDialect extends GenericSqliteWorkerDialect<globalThis.Worker, InitData> {
+  /**
+   * @param config - {@link WaSqliteWorkerDialectConfig}
+   */
   constructor(config: WaSqliteWorkerDialectConfig) {
     const { onCreateConnection, worker, fileName, preferOPFS, url, message } = config
     super(async () => {

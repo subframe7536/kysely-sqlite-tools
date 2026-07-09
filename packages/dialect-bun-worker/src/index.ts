@@ -9,7 +9,9 @@ export * from './worker/utils'
 
 export class BunWorkerDialect extends GenericSqliteWorkerDialect<globalThis.Worker, InitData> {
   /**
-   * dialect for `bun:sqlite`, run sql in worker
+   * SQLite dialect for Bun, backed by `bun:sqlite` running in a web worker.
+   *
+   * Offloads all queries to a worker thread so the main thread stays responsive.
    */
   constructor(config?: BunWorkerDialectConfig) {
     let {

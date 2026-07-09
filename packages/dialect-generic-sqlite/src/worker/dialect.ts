@@ -4,6 +4,16 @@ import type { OnCreateConnection, SqliteExecutorFactory } from '../type'
 import { GenericSqliteWorkerDriver } from './driver'
 import type { IGenericSqliteWorkerExecutor, IGenericWorker } from './types'
 
+/**
+ * Dialect for generic SQLite implementations running queries in a worker
+ * thread.
+ *
+ * @template T - the worker type (e.g. `Worker` or `globalThis.Worker`)
+ * @template R - extra init data shape passed to the worker
+ *
+ * @param executor - factory returning an {@link IGenericSqliteWorkerExecutor}
+ * @param onCreateConnection - optional callback after connection is established
+ */
 export class GenericSqliteWorkerDialect<
   T extends IGenericWorker,
   R extends Record<string, unknown>,

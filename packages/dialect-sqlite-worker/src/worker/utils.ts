@@ -7,19 +7,27 @@ import { parseBigInt } from 'kysely-generic-sqlite'
 import type { MessageHandleFn } from 'kysely-generic-sqlite/worker'
 import { createNodeOnMessageCallback } from 'kysely-generic-sqlite/worker-helper-node'
 
+/**
+ * Factory signature for creating a `better-sqlite3` Database.
+ */
 export type CreateDatabaseFn = (
   filename?: string | Buffer,
   options?: BetterSqlite3.Options,
 ) => Promisable<BetterSqlite3.Database>
 
+/**
+ * Default database factory — creates a new `better-sqlite3` Database instance.
+ */
 export const defaultCreateDatabaseFn: CreateDatabaseFn = (fileName, options) =>
   new Database(fileName, options)
 
 /**
- * Handle worker message, support custom message handler,
- * built-in: {@link defaultCreateDatabaseFn}
+ * Handle worker messages, with optional custom message handler.
+ *
+ * Uses {@link defaultCreateDatabaseFn} by default.
+ *
  * @example
- * in `worker.ts`
+ * In `worker.ts`:
  * ```ts
  * import { createOnMessageCallback, defaultCreateDatabaseFn } from 'kysely-sqlite-worker'
  *
@@ -48,6 +56,9 @@ export function createOnMessageCallback(
   }, message)
 }
 
+/**
+ * Build a {@link IGenericSqlite} executor from a `better-sqlite3` Database.
+ */
 export function createSqliteExecutor(
   db: BetterSqlite3.Database,
 ): IGenericSqlite<BetterSqlite3.Database> {

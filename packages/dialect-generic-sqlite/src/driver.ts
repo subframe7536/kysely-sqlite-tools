@@ -9,8 +9,18 @@ import { SelectQueryNode } from 'kysely'
 import { BaseSqliteDriver } from './base'
 import type { IGenericSqlite, OnCreateConnection, SqliteExecutorFactory } from './type'
 
+/**
+ * {@link Driver} implementation that owns a single {@link IGenericSqlite}
+ * instance.
+ */
 export class GenericSqliteDriver extends BaseSqliteDriver {
+  /** The underlying SQLite executor. */
   db?: IGenericSqlite
+
+  /**
+   * @param executor - factory returning an {@link IGenericSqlite}
+   * @param onCreateConnection - optional callback after connection is created
+   */
   constructor(
     executor: SqliteExecutorFactory<IGenericSqlite>,
     onCreateConnection?: OnCreateConnection,
@@ -27,6 +37,9 @@ export class GenericSqliteDriver extends BaseSqliteDriver {
   }
 }
 
+/**
+ * {@link DatabaseConnection} backed by an {@link IGenericSqlite} instance.
+ */
 export class GenericSqliteConnection implements DatabaseConnection {
   constructor(private db: IGenericSqlite) {}
 

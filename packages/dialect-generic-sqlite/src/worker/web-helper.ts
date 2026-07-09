@@ -8,6 +8,9 @@ import type {
 } from './types'
 import { access, createGenericOnMessageCallback } from './utils'
 
+/**
+ * Register the generic message callback on a web worker's `onmessage`.
+ */
 export function createWebOnMessageCallback<T extends Record<string, unknown>, DB = unknown>(
   init: InitFn<T, DB>,
   message?: MessageHandleFn<DB>,
@@ -20,6 +23,9 @@ export function createWebOnMessageCallback<T extends Record<string, unknown>, DB
   globalThis.onmessage = ({ data }) => cb(data)
 }
 
+/**
+ * Configuration for {@link createWebWorkerExecutor}.
+ */
 export interface IWebWorkerDialectConfig<T extends Record<string, unknown>> extends Pick<
   IGenericSqliteWorkerExecutor<globalThis.Worker, T>,
   'data' | 'mitt'

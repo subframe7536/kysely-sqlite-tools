@@ -46,6 +46,9 @@ export interface WaSqliteWorkerDialectConfig extends IBaseSqliteDialectConfig {
   message?: (mitt: IGenericEventEmitter) => Promisable<void>
 }
 
+/**
+ * Initialization data passed to the worker.
+ */
 export type InitData = {
   fileName: string
   url?: string

@@ -4,6 +4,9 @@ import type { IBaseSqliteDialectConfig } from 'kysely-generic-sqlite'
 
 export type DBOptions = Exclude<ConstructorParameters<typeof Database>[1], undefined>
 
+/**
+ * Configuration for {@link BunWorkerDialect}.
+ */
 export interface BunWorkerDialectConfig extends IBaseSqliteDialectConfig {
   /**
    * DB file path
@@ -27,12 +30,18 @@ export interface BunWorkerDialectConfig extends IBaseSqliteDialectConfig {
   worker?: Worker
 }
 
+/**
+ * Initialization data passed to the worker.
+ */
 export type InitData = {
   fileName: string
   cache: boolean
   opt: DBOptions
 }
 
+/**
+ * Configuration for {@link BunSqliteDialect}.
+ */
 export interface BunSqliteDialectConfig extends IBaseSqliteDialectConfig {
   /**
    * db file path

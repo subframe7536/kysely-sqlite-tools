@@ -51,11 +51,16 @@ type Events = {
   5: null
 }
 
+/** Minimal interface for a worker (web or Node.js). */
 export interface IGenericWorker {
   postMessage: (message: any) => void
   terminate: () => void
 }
 
+/**
+ * Minimal event-emitter interface used to route messages between main thread
+ * and worker.
+ */
 export interface IGenericEventEmitter {
   emit: (eventName: string, ...args: any[]) => void
   on: (eventName: string, callback: (...value: any[]) => void) => void
@@ -67,11 +72,17 @@ export interface IGenericEventEmitter {
   off: (eventName?: string) => void
 }
 
+/**
+ * Function that wires a worker's message event to a callback.
+ */
 export type HandleMessageFn<T extends IGenericWorker> = (
   worker: T,
   cb: (msg: WorkerToMainMsg) => any,
 ) => void
 
+/**
+ * Describes everything needed to bootstrap a worker-based SQLite executor.
+ */
 export interface IGenericSqliteWorkerExecutor<
   W extends IGenericWorker,
   T extends Record<string, unknown>,
@@ -97,12 +108,19 @@ export interface IGenericSqliteWorkerExecutor<
 /**
  * Initialize function for {@link createGenericOnMessageCallback}
  */
+/**
+ * Callback that initializes a SQLite executor inside a worker.
+ */
 export type InitFn<T extends Record<string, unknown>, DB = unknown> = (
   data: T,
 ) => Promisable<IGenericSqlite<DB>>
 
 /**
  * Function that handle all message
+ */
+/**
+ * Optional callback for handling custom worker messages beyond the built-in
+ * protocol.
  */
 export type MessageHandleFn<DB = unknown> = (
   exec: IGenericSqlite<DB>,

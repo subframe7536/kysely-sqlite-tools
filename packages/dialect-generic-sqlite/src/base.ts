@@ -49,6 +49,10 @@ export class BaseSqliteDialect implements Dialect {
   }
 }
 
+/**
+ * Execute a savepoint command (savepoint / rollback to / release) with a
+ * sanitized identifier.
+ */
 async function runSavepoint(
   command: string,
   connection: DatabaseConnection,
@@ -67,11 +71,14 @@ async function runSavepoint(
 }
 
 export abstract class BaseSqliteDriver implements Driver {
-  public conn?: DatabaseConnection
   /**
-   * Base abstract class that implements {@link Driver}
-   *
-   * You **MUST** assign `this.conn` in `init` and implement `destroy` method
+   * The active database connection, set during {@link init}.
+   */
+  public conn?: DatabaseConnection
+
+  /**
+   * @param init - async function that creates and assigns `this.conn`.
+   *   You **must** implement {@link destroy} to release resources.
    */
   constructor(public init: (options?: AbortableOperationOptions) => Promise<void>) {}
 
@@ -120,6 +127,9 @@ export abstract class BaseSqliteDriver implements Driver {
     await runSavepoint('release', connection, savepointName, compileQuery)
   }
 
+  /**
+   * Release all resources held by this driver.
+   */
   abstract destroy(): Promise<void>
 }
 

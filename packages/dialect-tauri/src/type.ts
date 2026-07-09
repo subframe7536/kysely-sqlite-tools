@@ -1,6 +1,9 @@
 import type Database from '@tauri-apps/plugin-sql'
 import type { IBaseSqliteDialectConfig, Promisable } from 'kysely-generic-sqlite'
 
+/**
+ * Configuration for {@link TauriSqliteDialect}.
+ */
 export interface TauriSqliteDialectConfig extends IBaseSqliteDialectConfig {
   /**
    * Tauri database instance.

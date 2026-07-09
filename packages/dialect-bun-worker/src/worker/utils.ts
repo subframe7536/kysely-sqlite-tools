@@ -9,8 +9,14 @@ import type { DBOptions, InitData } from '../type'
 
 export { createSqliteExecutor } from '../executor'
 
+/**
+ * Factory signature for creating a `bun:sqlite` Database.
+ */
 export type CreateDatabaseFn = (fileName: string, opt: DBOptions) => Promisable<Database>
 
+/**
+ * Default database factory — creates a new `bun:sqlite` Database instance.
+ */
 export const defaultCreateDatabaseFn: CreateDatabaseFn = (fileName, opt) =>
   new Database(fileName, opt)
 

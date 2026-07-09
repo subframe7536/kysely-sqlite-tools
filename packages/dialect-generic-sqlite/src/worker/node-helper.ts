@@ -13,12 +13,19 @@ import type {
 } from './types'
 import { access, createGenericOnMessageCallback } from './utils'
 
+/**
+ * Wraps a Node.js `EventEmitter` to conform to {@link IGenericEventEmitter}.
+ */
 class NodeEventEmitterWrapper extends EventEmitter {
   override off(eventName?: string | symbol): this {
     return this.removeAllListeners(eventName)
   }
 }
 
+/**
+ * Register the generic message callback on a Node.js worker thread's
+ * `parentPort`.
+ */
 export function createNodeOnMessageCallback<T extends Record<string, unknown>, DB = unknown>(
   init: InitFn<T, DB>,
   rest?: MessageHandleFn<DB>,
@@ -35,15 +42,24 @@ export function createNodeOnMessageCallback<T extends Record<string, unknown>, D
 /**
  * Util for handle node worker message in main thread
  */
+/**
+ * Wire a Node.js `Worker` message event to the provided callback.
+ */
 export const handleNodeWorker: HandleMessageFn<Worker> = (worker, cb) => worker.on('message', cb)
 
 /**
  * Util to create node mitt
  */
+/**
+ * Create a Node.js-compatible event emitter for worker communication.
+ */
 export function createNodeMitt(): IGenericEventEmitter {
   return new NodeEventEmitterWrapper()
 }
 
+/**
+ * Configuration for {@link createNodeWorkerExecutor}.
+ */
 export interface INodeWorkerDialectConfig<T extends Record<string, unknown>> extends Pick<
   IGenericSqliteWorkerExecutor<Worker, T>,
   'data'

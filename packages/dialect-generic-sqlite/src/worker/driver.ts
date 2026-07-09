@@ -21,6 +21,12 @@ import type {
 } from './types'
 import { cancelEvent, closeEvent, dataEvent, endEvent, initEvent, runEvent } from './types'
 
+/**
+ * {@link Driver} that dispatches queries to a worker thread.
+ *
+ * @template T - the worker type
+ * @template R - extra init data shape
+ */
 export class GenericSqliteWorkerDriver<
   T extends IGenericWorker,
   R extends Record<string, unknown>,
@@ -80,6 +86,11 @@ type PendingStream = {
   canceled?: boolean
 }
 
+/**
+ * {@link DatabaseConnection} that communicates with a worker thread.
+ *
+ * Supports both `executeQuery` and `streamQuery`.
+ */
 class GenericSqliteWorkerConnection implements DatabaseConnection {
   private pendingRuns = new Map<string, PendingRun>()
   private pendingStreams = new Map<string, PendingStream>()

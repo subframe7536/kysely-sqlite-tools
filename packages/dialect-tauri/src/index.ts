@@ -3,12 +3,14 @@ import { buildQueryFn, GenericSqliteDialect, parseBigInt } from 'kysely-generic-
 import type { TauriSqliteDialectConfig } from './type'
 
 export type { TauriSqliteDialectConfig } from './type'
+
 /**
- * https://github.com/tauri-apps/plugins-workspace/tree/dev/plugins/sql
+ * SQLite dialect for Tauri v2, using the
+ * {@link https://github.com/tauri-apps/plugins-workspace/tree/dev/plugins/sql | official SQL plugin}.
  */
 export class TauriSqliteDialect extends GenericSqliteDialect {
   /**
-   * SQLite dialect for Tauri, using [official sql plugin](https://github.com/tauri-apps/plugins-workspace/tree/dev/plugins/sql)
+   * @param config - {@link TauriSqliteDialectConfig}
    */
   constructor(config: TauriSqliteDialectConfig) {
     const { database, onCreateConnection } = config

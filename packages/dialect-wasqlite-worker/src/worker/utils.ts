@@ -13,8 +13,16 @@ import { createWebOnMessageCallback } from 'kysely-generic-sqlite/worker-helper-
 
 import type { InitData } from '../type'
 
+/**
+ * Factory signature for creating a {@link SQLiteDBCore}.
+ */
 export type CreateDatabaseFn = (init: InitData) => Promisable<SQLiteDBCore>
 
+/**
+ * Default database factory.
+ *
+ * Automatically selects OPFS or IndexedDB storage based on the init data.
+ */
 export const defaultCreateDatabaseFn: CreateDatabaseFn = async ({ fileName, url, useOPFS }) => {
   return initSQLiteCore(
     (useOPFS
@@ -23,11 +31,19 @@ export const defaultCreateDatabaseFn: CreateDatabaseFn = async ({ fileName, url,
   )
 }
 
+/**
+ * Create a function that maps raw row arrays to objects using column names.
+ */
 function createRowMapper(sqlite: SQLiteDBCore['sqlite'], stmt: number) {
   const cols = sqlite.column_names(stmt)
   return (row: any[]) => Object.fromEntries(cols.map((key, i) => [key, row[i]]))
 }
 
+/**
+ * Prepare a SQL statement and bind parameters.
+ *
+ * Returns the statement handle and a release function.
+ */
 async function prepareStatement(
   db: SQLiteDBCore,
   sql: string,
@@ -57,10 +73,12 @@ async function prepareStatement(
 }
 
 /**
- * Handle worker message, support custom message handler,
- * built-in: {@link defaultCreateDatabaseFn}
+ * Handle worker messages, with optional custom message handler.
+ *
+ * Uses {@link defaultCreateDatabaseFn} by default.
+ *
  * @example
- * in `worker.ts`
+ * In `worker.ts`:
  * ```ts
  * import { customFunctionCore, exportDatabase } from '@subframe7536/sqlite-wasm'
  * import { createOnMessageCallback, defaultCreateDatabaseFn } from 'kysely-wasqlite-worker'
@@ -89,6 +107,9 @@ export function createOnMessageCallback(
   }, message)
 }
 
+/**
+ * Build a {@link IGenericSqlite} executor from a {@link SQLiteDBCore}.
+ */
 export function createSqliteExecutor(db: SQLiteDBCore): IGenericSqlite<SQLiteDBCore> {
   return {
     db,

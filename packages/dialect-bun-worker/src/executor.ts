@@ -4,6 +4,12 @@ import type Database from 'bun:sqlite'
 import type { IGenericSqlite } from 'kysely-generic-sqlite'
 import { parseBigInt } from 'kysely-generic-sqlite'
 
+/**
+ * Create a {@link IGenericSqlite} executor backed by `bun:sqlite`.
+ *
+ * When `cache` is `true`, uses `db.query()` for statement caching;
+ * otherwise uses `db.prepare()`.
+ */
 export function createSqliteExecutor(db: Database, cache: boolean): IGenericSqlite<Database> {
   const fn = cache ? 'query' : 'prepare'
   const getStmt = (sql: string): Statement => db[fn](sql)
@@ -29,6 +35,13 @@ export function createSqliteExecutor(db: Database, cache: boolean): IGenericSqli
     iterator: (_, sql, parameters) => iterateData(getStmt(sql), parameters),
   }
 }
+/**
+ * Iterate over query results lazily.
+ *
+ * Requires Bun >= 1.1.31 for `stmt.iterate()` support.
+ *
+ * @yields rows as plain objects
+ */
 async function* iterateData(
   stmt: Statement,
   parameters?: readonly unknown[],

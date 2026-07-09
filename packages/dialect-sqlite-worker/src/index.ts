@@ -9,22 +9,33 @@ import { createNodeMitt, handleNodeWorker } from 'kysely-generic-sqlite/worker-h
 
 export * from './worker/utils'
 
+/**
+ * Configuration for {@link SqliteWorkerDialect}.
+ */
 export interface SqliteWorkerDialectConfig extends IBaseSqliteDialectConfig {
   /**
-   * DB file path or existing buffer
+   * SQLite database file path or an existing buffer.
    */
   source: string | Buffer | (() => Promisable<string | Buffer>)
   /**
-   * `better-sqlite3` initiate option
+   * Options forwarded to the `better-sqlite3` constructor.
    */
   dbOption?: Options
   /**
-   * Custom worker path
+   * Path to a custom worker script.
+   *
+   * When omitted the built-in worker is used.
    */
   workerPath?: string
 }
 
+/**
+ * SQLite dialect for Node.js using `better-sqlite3` running in a worker thread.
+ */
 export class SqliteWorkerDialect extends GenericSqliteWorkerDialect<Worker, {}> {
+  /**
+   * @param config - {@link SqliteWorkerDialectConfig}
+   */
   constructor(config: SqliteWorkerDialectConfig) {
     let { source, dbOption, onCreateConnection, workerPath } = config
     super(async () => {

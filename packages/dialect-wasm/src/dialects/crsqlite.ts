@@ -3,12 +3,19 @@ import { access, buildQueryFn, GenericSqliteDialect } from 'kysely-generic-sqlit
 
 import type { CrSqliteDatabase } from './types'
 
+/**
+ * Configuration for {@link CrSqliteDialect}.
+ */
 export interface CrSqliteDialectConfig extends IBaseSqliteDialectConfig {
   database: CrSqliteDatabase | (() => Promisable<CrSqliteDatabase>)
 }
+
+/**
+ * SQLite dialect for {@link https://vlcn.io/js/wasm | cr-sqlite} (vlcn.io/wasm).
+ */
 export class CrSqliteDialect extends GenericSqliteDialect {
   /**
-   * dialect for [vlcn.io/wasm](https://vlcn.io/js/wasm)
+   * @param config - {@link CrSqliteDialectConfig}
    */
   constructor(config: CrSqliteDialectConfig) {
     super(async () => {

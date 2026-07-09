@@ -8,7 +8,23 @@ Generic Kysely dialect for SQLite, supporting execution in the main thread or a 
 ## Install
 
 ```sh
+npm install kysely kysely-generic-sqlite
+```
+
+```sh
+yarn add kysely kysely-generic-sqlite
+```
+
+```sh
+pnpm add kysely kysely-generic-sqlite
+```
+
+```sh
 bun add kysely kysely-generic-sqlite
+```
+
+```sh
+deno add npm:kysely npm:kysely-generic-sqlite
 ```
 
 ## Usage

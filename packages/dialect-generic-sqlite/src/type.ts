@@ -5,10 +5,20 @@ import type {
   RootOperationNode,
 } from 'kysely'
 
+/**
+ * A value or a Promise of that value.
+ */
 export type Promisable<T> = T | Promise<T>
 
+/**
+ * Factory that returns (possibly asynchronously) an executor or dialect
+ * component.
+ */
 export type SqliteExecutorFactory<T> = (options?: AbortableOperationOptions) => Promisable<T>
 
+/**
+ * Minimal executor interface that `buildQueryFn` and `buildQueryFnAlt` require.
+ */
 export interface IGenericSqliteExecutor {
   /**
    * Executes a SQL query and returns all resulting rows.
@@ -35,6 +45,11 @@ export interface IGenericSqliteExecutor {
 
 /**
  * Interface for generic sqlite
+ */
+/**
+ * Generic SQLite executor contract.
+ *
+ * Every dialect adapter must provide an object conforming to this interface.
  */
 export interface IGenericSqlite<DB = unknown> {
   /**
@@ -76,11 +91,17 @@ export interface IGenericSqlite<DB = unknown> {
   ) => IterableIterator<unknown> | AsyncIterableIterator<unknown>
 }
 
+/**
+ * Callback invoked when a new database connection is established.
+ */
 export type OnCreateConnection = (
   connection: DatabaseConnection,
   options?: AbortableOperationOptions,
 ) => Promisable<void>
 
+/**
+ * Base configuration shared by all dialect configs.
+ */
 export interface IBaseSqliteDialectConfig {
   /**
    * Optional callback function that is invoked when a new database connection is created.

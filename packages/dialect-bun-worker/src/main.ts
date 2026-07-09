@@ -7,6 +7,11 @@ import type { BunSqliteDialectConfig } from './type'
 
 export type { BunSqliteDialectConfig } from './type'
 
+/**
+ * SQLite dialect for Bun, backed by `bun:sqlite`.
+ *
+ * Runs SQL on the main thread.
+ */
 export class BunSqliteDialect extends GenericSqliteDialect {
   constructor(config?: BunSqliteDialectConfig) {
     const {
