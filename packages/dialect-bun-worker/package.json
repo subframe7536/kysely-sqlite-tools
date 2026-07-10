@@ -31,10 +31,10 @@
   "typesVersions": {
     "*": {
       "normal": [
-        "./dist/normal.d.ts"
+        "./dist/normal.d.mts"
       ],
       "worker": [
-        "./dist/worker.d.ts"
+        "./dist/worker.d.mts"
       ]
     }
   },

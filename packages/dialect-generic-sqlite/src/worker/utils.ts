@@ -1,7 +1,15 @@
 import type { IGenericSqlite, Promisable } from '../type'
 
 import type { InitFn, MainToWorkerMsg, MessageHandleFn, WorkerToMainMsg } from './types'
-import { cancelEvent, closeEvent, dataEvent, endEvent, initEvent, runEvent } from './types'
+import {
+  cancelAckEvent,
+  cancelEvent,
+  closeEvent,
+  dataEvent,
+  endEvent,
+  initEvent,
+  runEvent,
+} from './types'
 
 /**
  * Create generic message handler
@@ -36,6 +44,7 @@ export function createGenericOnMessageCallback<T extends Record<string, unknown>
             [...activeStreams].map(async ([queryId, iterator]) => {
               canceledStreams.add(queryId)
               await iterator.return?.()
+              post([cancelAckEvent, queryId, null, null] satisfies WorkerToMainMsg)
             }),
           )
           await db.close()
@@ -46,6 +55,7 @@ export function createGenericOnMessageCallback<T extends Record<string, unknown>
           const queryId = data1
           canceledStreams.add(queryId)
           await activeStreams.get(queryId)?.return?.()
+          post([cancelAckEvent, queryId, null, null] satisfies WorkerToMainMsg)
           break
         }
 

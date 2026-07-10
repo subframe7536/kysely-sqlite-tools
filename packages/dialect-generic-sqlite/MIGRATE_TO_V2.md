@@ -1,174 +1,204 @@
-## Migrate from v1.2.x to v2.0.0
+# `kysely-generic-sqlite` v1.2.x → v2 migration guide
 
-This guide lists every breaking change between `v1.2.1` and `v2.0.0`. It is organized so an automated agent can apply each rule mechanically — every rule has a **before** (v1) and **after** (v2) code sample.
+Scope: this document only covers `kysely-generic-sqlite`. It is written for automated migration agents and humans reviewing their changes.
+
+## Agent workflow
+
+1. Read the repository's package manager files and TypeScript sources.
+2. Apply the rules below in order.
+3. Prefer public package exports over deep imports.
+4. Run the project's existing typecheck and tests.
+5. Do not change package versions unless the migration task explicitly asks for it.
+
+## Migration checklist
+
+- [ ] Set the `kysely` peer dependency range to `>=0.29`.
+- [ ] Remove code that depends on `BaseSqliteDriver` owning a connection mutex.
+- [ ] Update `BaseSqliteDriver.init` overrides/usages to accept optional `AbortableOperationOptions`.
+- [ ] Update `IGenericSqlite.query` implementations to require `parameters` and accept optional Kysely AST `node`.
+- [ ] Update `OnCreateConnection` callbacks to accept the optional `options` argument.
+- [ ] Update executor factories to accept optional `options`.
+- [ ] Update custom worker protocol handlers for `queryId`, `chunkSize`, stream cancellation, and cancellation acknowledgements.
+- [ ] Update custom `MessageHandleFn` callbacks to the v2 positional signature.
+- [ ] Update custom `streamQuery` implementations to accept `chunkSize` and `options`.
+- [ ] Replace ad-hoc lazy value resolution with `access` where useful.
+- [ ] Ensure `run(sql, parameters)` executes the real SQL when using `buildQueryFn`.
 
 ---
 
-### Rule 1 — Bump Kysely peer dependency
+## Rule 1: Kysely peer dependency is `>=0.29`
 
-`kysely` peer range changed from `>=0.26` to `>=0.29`. Update `package.json`:
+### Find
 
 ```jsonc
-// ❌ v1.2.1
 { "peerDependencies": { "kysely": ">=0.26" } }
+```
 
-// ✅ v2
+### Replace with
+
+```jsonc
 { "peerDependencies": { "kysely": ">=0.29" } }
 ```
 
-v2 relies on `SqliteAdapter.supportsMultipleConnections` (added in Kysely 0.29) to serialize access to the single SQLite connection. The `ConnectionMutex` that v1 maintained internally is removed (see Rule 2).
+### Reason
+
+v2 relies on Kysely's single-connection serialization support instead of the v1 dialect-owned mutex.
 
 ---
 
-### Rule 2 — `BaseSqliteDriver` mutex removed; `releaseConnection` is a no-op
+## Rule 2: `BaseSqliteDriver` no longer owns the connection mutex
 
-v1 had a private `ConnectionMutex` that serialized `acquireConnection` / `releaseConnection`. v2 removes it — Kysely ≥ 0.29 handles this at the adapter level.
+### Find
 
-If you extend `BaseSqliteDriver` directly:
+- Subclasses overriding `releaseConnection` only to unlock a mutex.
+- Tests or wrappers that call `driver.releaseConnection()` expecting it to unlock queued work.
+- Direct references to the old private `ConnectionMutex` behavior.
+
+### Replace with
 
 ```ts
-// ❌ v1.2.1 — override releaseConnection to unlock
 class MyDriver extends BaseSqliteDriver {
-  // acquireConnection() locks, releaseConnection() unlocks — both handle mutex
-}
-
-// ✅ v2 — releaseConnection is already implemented as a no-op; do NOT override it
-class MyDriver extends BaseSqliteDriver {
-  // acquireConnection() returns this.conn! directly
-  // releaseConnection() — inherited no-op, do not touch
+  // acquireConnection() returns the single connection.
+  // releaseConnection() is inherited as a no-op.
 }
 ```
 
-If you were calling `driver.releaseConnection()` in tests or wrapper code expecting it to unlock — remove those calls; they are harmless no-ops in v2.
+### Notes
+
+`releaseConnection()` still exists for the Kysely driver contract, but it does not unlock anything in v2.
 
 ---
 
-### Rule 3 — `BaseSqliteDriver.init` signature changed
+## Rule 3: `BaseSqliteDriver.init` accepts optional operation options
+
+### v1 shape
 
 ```ts
-// ❌ v1.2.1
 abstract class BaseSqliteDriver {
-  init: () => Promise<void> // public property, assigned in constructor
-  constructor(init: () => Promise<void>) {
-    /* ... */
-  }
-}
-
-// ✅ v2
-abstract class BaseSqliteDriver {
-  constructor(public init: (options?: AbortableOperationOptions) => Promise<void>) {}
+  init: () => Promise<void>
 }
 ```
 
-`init` is now a **constructor parameter property** (still public, still assignable). The key differences:
+### v2 shape
 
-- It now receives an optional `options?: AbortableOperationOptions` (with an `AbortSignal`).
-- The v1 constructor ran `import('kysely').then(...)` as a side effect to bind savepoint methods dynamically. v2 imports `createQueryId` statically and defines savepoint methods as concrete class members — no dynamic import side effect.
+```ts
+abstract class BaseSqliteDriver {
+  init: (options?: AbortableOperationOptions) => Promise<void>
+}
+```
 
-If you were calling `driver.init()` with no arguments — **no change needed**, the `options` parameter is optional.
+### Migration action
+
+If a subclass, test double, or wrapper types `init`, add the optional argument. Call sites that use `driver.init()` without arguments do not need to change.
 
 ---
 
-### Rule 4 — `IGenericSqlite.query` gained a 4th parameter `node`
+## Rule 4: `IGenericSqlite.query` receives required parameters and optional AST node
+
+### v1 shape
 
 ```ts
-// ❌ v1.2.1
 interface IGenericSqlite<DB> {
   query(
     isSelect: boolean,
     sql: string,
-    parameters?: any[] | readonly any[], // optional
-  ): Promisable<QueryResult<any>>
-}
-
-// ✅ v2
-interface IGenericSqlite<DB> {
-  query(
-    isSelect: boolean,
-    sql: string,
-    parameters: any[] | readonly any[], // required
-    node?: RootOperationNode, // new — Kysely query AST
+    parameters?: any[] | readonly any[],
   ): Promisable<QueryResult<any>>
 }
 ```
 
-Two changes in this signature:
-
-1. **`parameters` is now required** (was optional). If you pass `undefined`, change it to `[]`.
-2. **New 4th parameter `node`** — the Kysely query AST node, used by `isReadOrReturningQuery` to detect `RETURNING` clauses. If you hand-roll an executor, forward it; if you ignore it the dialect still works but raw-SQL `RETURNING` detection degrades.
+### v2 shape
 
 ```ts
-// ✅ v2 — hand-rolled executor
+interface IGenericSqlite<DB> {
+  query(
+    isSelect: boolean,
+    sql: string,
+    parameters: any[] | readonly any[],
+    node?: RootOperationNode,
+  ): Promisable<QueryResult<any>>
+}
+```
+
+### Migration actions
+
+1. Replace `parameters?` with required `parameters`.
+2. Pass `[]` instead of `undefined` when there are no parameters.
+3. Add the optional `node` argument.
+4. Forward `node` to `buildQueryFn` when using that helper.
+
+```ts
 const executor: IGenericSqlite = {
   query: (isSelect, sql, parameters, node) => {
-    // pass node through if using buildQueryFn
     return buildQueryFn(exec)(isSelect, sql, parameters, node)
   },
 }
 ```
 
+### Reason
+
+The AST node lets v2 detect `RETURNING` reliably without relying only on SQL text or Kysely's `isSelect` flag.
+
 ---
 
-### Rule 5 — `OnCreateConnection` callback receives a second argument
+## Rule 5: `OnCreateConnection` receives operation options
+
+### v1 shape
 
 ```ts
-// ❌ v1.2.1
 type OnCreateConnection = (connection: DatabaseConnection) => Promisable<void>
+```
 
-// ✅ v2
+### v2 shape
+
+```ts
 type OnCreateConnection = (
   connection: DatabaseConnection,
   options?: AbortableOperationOptions,
 ) => Promisable<void>
 ```
 
-All callbacks passed as the second constructor argument to `GenericSqliteDialect`, `GenericSqliteWorkerDialect`, or any `IBaseSqliteDialectConfig.onCreateConnection` now receive kysely's `AbortableOperationOptions` as the second parameter. Update callback signatures:
+### Migration action
+
+Update typed callbacks passed to `GenericSqliteDialect`, `GenericSqliteWorkerDialect`, or `IBaseSqliteDialectConfig.onCreateConnection`.
 
 ```ts
-// ❌ v1.2.1
-const dialect = new GenericSqliteDialect(factory, async (conn) => {
-  await conn.executeQuery(CompiledQuery.raw('PRAGMA journal_mode=WAL'))
-})
-
-// ✅ v2
 const dialect = new GenericSqliteDialect(factory, async (conn, options) => {
-  await conn.executeQuery(CompiledQuery.raw('PRAGMA journal_mode=WAL'))
+  await conn.executeQuery(CompiledQuery.raw('PRAGMA journal_mode=WAL'), options)
 })
 ```
 
-If you ignore the second parameter, the callback still works — just add `, _options` or `options?` to satisfy the type.
+If the callback ignores options, use `_options` or omit a type annotation and let TypeScript infer compatibility.
 
 ---
 
-### Rule 6 — Executor factory receives `options`
+## Rule 6: Executor factories receive operation options
+
+### v1 shape
 
 ```ts
-// ❌ v1.2.1
 type Factory = () => Promisable<IGenericSqlite>
+```
 
-// ✅ v2
+### v2 shape
+
+```ts
 type SqliteExecutorFactory<T> = (options?: AbortableOperationOptions) => Promisable<T>
 ```
 
-The factory passed to `GenericSqliteDialect` / `GenericSqliteWorkerDialect` constructors now receives `options`. If your factory ignores it, no change needed. If you have a type annotation, update to `SqliteExecutorFactory<IGenericSqlite>`.
+### Migration action
+
+Update explicit factory type annotations. Factory functions that ignore the parameter remain valid.
 
 ---
 
-### Rule 7 — Worker message format: `queryId` added for correlation
+## Rule 7: Worker protocol tuples include `queryId`, stream chunk size, and cancellation acknowledgement
 
-**v1.2.1 worker messages had no query ID.** `RunMsg` and `StreamMsg` were:
+This rule only applies to custom worker transports or custom `onmessage` implementations. Code that uses the provided helper functions should not need protocol tuple changes.
 
-```ts
-// ❌ v1.2.1
-type RunMsg = [type, isSelect: boolean, sql: string, parameters?: readonly unknown[]]
-type StreamMsg = [type, isSelect: boolean, sql: string, parameters?: readonly unknown[]]
-```
-
-**v2 adds `queryId`** as the second element, `chunkSize` to `StreamMsg`, and a
-stream cancellation message:
+### Main-to-worker messages
 
 ```ts
-// ✅ v2
 type RunMsg = [
   type,
   queryId: string,
@@ -176,6 +206,7 @@ type RunMsg = [
   sql: string,
   parameters: readonly unknown[],
 ]
+
 type StreamMsg = [
   type,
   queryId: string,
@@ -184,34 +215,40 @@ type StreamMsg = [
   parameters: readonly unknown[],
   chunkSize?: number,
 ]
+
 type CancelMsg = [type, queryId: string]
 ```
 
-`CancelMsg` is sent when the main thread stops consuming a worker stream before
-the worker sends `endEvent`, including aborts, early iterator close, and
-connection close. Custom worker protocol implementations must call `return()` on
-the active iterator for that `queryId` and suppress the normal end response.
-
-**Worker-side handler (`createGenericOnMessageCallback`) message destructuring changed:**
+### Worker-to-main stream messages
 
 ```ts
-// ❌ v1.2.1 — 3 data args
-return async ([type, data1, data2, data3]) => {
-  /* ... */
-}
+// One raw row per data event.
+type DataMsg<Row> = [type, queryId: string, data: Row, err: null]
 
-// ✅ v2 — 5 data args (queryId, isSelect, sql, params, chunkSize)
-return async ([type, data1, data2, data3, data4, data5]) => {
-  /* ... */
-}
+type EndMsg = [type, queryId: string, data: null, err: unknown]
+type CancelAckMsg = [type, queryId: string, data: null, err: unknown]
 ```
 
-If you wrote a custom `onmessage` handler that manually destructures the tuple, update the arity and positions. If you use `createNodeOnMessageCallback` / `createWebOnMessageCallback` (the recommended path), this is handled for you.
+### Migration actions
 
-**`MessageHandleFn` data args also expanded:**
+1. Add `queryId` as the second tuple element for run and stream requests.
+2. Forward `chunkSize` from `StreamMsg` to iterator-capable executors.
+3. Treat `dataEvent` as one raw row, not `QueryResult[]`.
+4. On `CancelMsg`, call `return()` on the active iterator for that `queryId`.
+5. Send the cancellation acknowledgement only after `iterator.return()` has completed.
+6. Suppress the normal stream end message for cancelled streams.
+
+### Reason
+
+The main thread must keep the worker-backed connection promise tied to the real worker execution lifetime. Cancellation acknowledgement prevents local stream cleanup from finishing before the worker has released the underlying SQLite statement.
+
+---
+
+## Rule 8: `MessageHandleFn` uses six positional parameters
+
+### v1 shape
 
 ```ts
-// ❌ v1.2.1
 type MessageHandleFn<DB> = (
   exec: IGenericSqlite<DB>,
   type: string,
@@ -219,8 +256,11 @@ type MessageHandleFn<DB> = (
   data2: unknown,
   data3: unknown,
 ) => Promisable<any>
+```
 
-// ✅ v2
+### v2 shape
+
+```ts
 type MessageHandleFn<DB> = (
   exec: IGenericSqlite<DB>,
   type: string,
@@ -231,129 +271,97 @@ type MessageHandleFn<DB> = (
 ) => Promisable<any>
 ```
 
----
+### Migration action
 
-### Rule 8 — `streamQuery` signature on connections changed
-
-Both `GenericSqliteConnection` and `GenericSqliteWorkerConnection`:
+Update custom message handlers to accept the fourth data argument.
 
 ```ts
-// ❌ v1.2.1
-async *streamQuery<R>(
-  { parameters, query, sql }: CompiledQuery
-): AsyncIterableIterator<QueryResult<R>>
+const handleCustomMessage: MessageHandleFn = async (exec, type, data1, data2, data3, data4) => {
+  return undefined
+}
+```
 
-// ✅ v2
+---
+
+## Rule 9: `streamQuery` accepts `chunkSize` and operation options
+
+### v1 shape
+
+```ts
 async *streamQuery<R>(
-  { parameters, query, sql, queryId }: CompiledQuery,
-  chunkSize?: number,
-  options?: AbortableOperationOptions
+  { parameters, query, sql }: CompiledQuery,
 ): AsyncIterableIterator<QueryResult<R>>
 ```
 
-v2 adds `chunkSize` forwarding and `AbortSignal` support via `options?.signal`. If you implement a custom `DatabaseConnection`, update the signature and wire the abort listener.
+### v2 shape
 
-For worker-backed connections, aborting or closing the async iterator also sends
-`CancelMsg` to the worker so the worker-side iterator can stop and release its
-statement. If you use `GenericSqliteWorkerDialect`, this is already implemented.
-If you wrote your own worker connection, mirror this behavior instead of only
-rejecting the main-thread promise.
+```ts
+async *streamQuery<R>(
+  { parameters, query, sql, queryId }: CompiledQuery,
+  chunkSize?: number,
+  options?: AbortableOperationOptions,
+): AsyncIterableIterator<QueryResult<R>>
+```
+
+### Migration actions
+
+1. Add `queryId` when destructuring the compiled query if your implementation needs stream correlation.
+2. Add `chunkSize?: number`.
+3. Add `options?: AbortableOperationOptions`.
+4. Respect `options.signal` for abort behavior.
+5. For worker-backed streams, use the cancellation acknowledgement protocol from Rule 7.
 
 ---
 
-### Rule 9 — `buildQueryFn` / `buildQueryFnAlt` routing and `IGenericSqliteExecutor.run` behavior changed
+## Rule 10: `buildQueryFn` and `buildQueryFnAlt` route queries differently
 
-Three related changes: `buildQueryFn` now uses AST-aware routing, `buildQueryFnAlt` gained SQL-level detection, and `IGenericSqliteExecutor.run`'s return type expanded to match.
-
-**`IGenericSqliteExecutor.run` return type:**
+### `IGenericSqliteExecutor.run` return type
 
 ```ts
-// ❌ v1.2.1
-interface IGenericSqliteExecutor {
-  run(sql, params): Promisable<Pick<QueryResult<any>, 'insertId' | 'numAffectedRows'>>
-}
-
-// ✅ v2
 interface IGenericSqliteExecutor {
   run(
-    sql,
-    params,
+    sql: string,
+    params: readonly unknown[],
   ): Promisable<Pick<QueryResult<any>, 'insertId' | 'numAffectedRows'> & { rows?: any[] }>
 }
 ```
 
-**`buildQueryFn` routing:**
+### Migration actions
 
-| aspect              | v1.2.1                                              | v2                                              |
-| ------------------- | --------------------------------------------------- | ----------------------------------------------- |
-| Detection           | `isSelect` boolean only                             | `isReadOrReturningQuery(node, sql)` — AST-aware |
-| Write path          | `exec.run('select 1')` for metadata                 | `exec.run(sql, parameters)` with actual SQL     |
-| `returning` support | No (v1 `buildQueryFn` ran everything through `all`) | Yes — Kysely AST RETURNING detected             |
+1. Ensure `run(sql, params)` executes the supplied SQL.
+2. Do not keep v1 implementations that only execute `select 1` for metadata.
+3. If using `buildQueryFn`, forward the AST `node` from `IGenericSqlite.query`.
+4. If using `buildQueryFnAlt`, verify raw SQL `SELECT` statements work when routed through `all`.
 
-```ts
-// ❌ v1.2.1 — buildQueryFn sent ALL queries through exec.all
-// ✅ v2 — buildQueryFn routes: read/returning → exec.all, write → exec.run
-```
+### Routing changes
 
-If your `run` implementation already executes the SQL and returns metadata from it, **no change needed** — the extra `rows` property is optional. However, v1's `buildQueryFn` called `exec.run('select 1')` (a dummy query that only fetched `last_insert_rowid` and `changes` without executing the real SQL). In v2, `buildQueryFn` calls `exec.run(sql, parameters)` — your `run` implementation must now **execute the actual SQL** and return the resulting metadata.
-
-**`buildQueryFnAlt` routing also enhanced:**
-
-`buildQueryFnAlt` is a simpler alternative that does **not** support Kysely AST `returning` detection. Its detection logic was also broadened:
-
-```ts
-// ❌ v1.2.1 — pure boolean routing
-return async (isSelect, sql, parameters) =>
-  isSelect
-    ? { rows: await exec.all(sql, parameters) }
-    : { rows: [], ...(await exec.run(sql, parameters)) }
-
-// ✅ v2 — boolean + SQL prefix routing
-return async (isSelect, sql, parameters) =>
-  isSelect || sql.toLowerCase().startsWith('select')
-    ? { rows: await exec.all(sql, parameters) }
-    : { rows: [], ...(await exec.run(sql, parameters)) }
-```
-
-The `sql.toLowerCase().startsWith('select')` guard catches raw SQL `SELECT` statements that arrive with `isSelect === false`. In practice this is safe — `all` is a superset of `run` — but if your `all` and `run` implementations have materially different side effects, verify that raw SELECTs routed through `all` still work as expected.
+| Helper            | v1 behavior                  | v2 behavior                                       |
+| ----------------- | ---------------------------- | ------------------------------------------------- |
+| `buildQueryFn`    | Mostly `isSelect`-driven     | Uses AST/text detection for read/returning SQL    |
+| `buildQueryFnAlt` | `isSelect`-driven            | Uses `isSelect` plus SQL `select` prefix fallback |
+| write path        | metadata workaround possible | executes the real write SQL                       |
 
 ---
 
-### Rule 10 — New exports (add to imports)
+## Rule 11: Prefer documented public exports
 
-These were internal or absent in v1.2.1 and are now public:
+### Public exports added or promoted in v2
 
-| Export                   | Import from                    | Purpose                                                |
-| ------------------------ | ------------------------------ | ------------------------------------------------------ |
-| `access`                 | `kysely-generic-sqlite`        | Resolve `T \| (() => Promisable<T>)` to `Promise<T>`   |
-| `isReadOrReturningQuery` | `kysely-generic-sqlite`        | Detect SELECT / PRAGMA / VALUES / WITH / RETURNING     |
-| `SqliteExecutorFactory`  | `kysely-generic-sqlite`        | Type for `(options?) => Promisable<T>`                 |
-| Worker protocol messages | `kysely-generic-sqlite/worker` | Types and event constants for custom worker transports |
+| Export                   | Import from                    | Purpose                             |
+| ------------------------ | ------------------------------ | ----------------------------------- |
+| `access`                 | `kysely-generic-sqlite`        | Resolve lazy values to `Promise<T>` |
+| `isReadOrReturningQuery` | `kysely-generic-sqlite`        | Detect read or returning SQL        |
+| `SqliteExecutorFactory`  | `kysely-generic-sqlite`        | Type executor factories             |
+| Worker protocol exports  | `kysely-generic-sqlite/worker` | Build custom worker transports      |
 
-The `access` helper replaces the common v1 pattern:
+### Migration action
+
+Replace duplicated lazy-resolution code when appropriate:
 
 ```ts
-// ❌ v1.2.1
-const db = typeof config.database === 'function' ? await config.database() : config.database
-
-// ✅ v2
 import { access } from 'kysely-generic-sqlite'
+
 const db = await access(config.database)
 ```
 
----
-
-### Quick migration checklist
-
-- [ ] `package.json`: bump `kysely` peer to `>=0.29`
-- [ ] Remove any `releaseConnection()` calls that expected unlocking behavior
-- [ ] If extending `BaseSqliteDriver`: update `init` to accept `(options?)`; do not override `releaseConnection`
-- [ ] `IGenericSqlite.query`: change `parameters?` → `parameters` (required); add 4th `node?` parameter
-- [ ] `OnCreateConnection` callbacks: add second `options?` parameter
-- [ ] Executor factories: accept `options?` parameter (or use `SqliteExecutorFactory<T>`)
-- [ ] Worker `onmessage` handlers: update tuple destructuring for `queryId` position
-- [ ] Custom worker stream protocol: handle `CancelMsg` and call `return()` on the active iterator
-- [ ] Custom `MessageHandleFn`: add 4th data arg
-- [ ] Custom `DatabaseConnection.streamQuery`: add `chunkSize?` and `options?` parameters
-- [ ] Replace `typeof x === 'function' ? await x() : x` with `await access(x)`
-- [ ] If using `buildQueryFn`: ensure `run` handles the real write SQL, not just `'select 1'`
+Avoid deep imports from `dist` or package-internal source files.

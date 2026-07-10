@@ -31,13 +31,13 @@
   "typesVersions": {
     "*": {
       "worker": [
-        "./dist/worker.d.ts"
+        "./dist/worker.d.mts"
       ],
       "worker-helper-node": [
-        "./dist/worker-helper-node.d.ts"
+        "./dist/worker-helper-node.d.mts"
       ],
       "worker-helper-web": [
-        "./dist/worker-helper-web.d.ts"
+        "./dist/worker-helper-web.d.mts"
       ]
     }
   },

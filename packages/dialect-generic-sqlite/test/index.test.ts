@@ -7,6 +7,7 @@ import { buildQueryFn, GenericSqliteDialect, parseBigInt } from '../src'
 import { createGenericOnMessageCallback, GenericSqliteWorkerDialect } from '../src/worker'
 import type { IGenericEventEmitter } from '../src/worker'
 import {
+  cancelAckEvent,
   cancelEvent,
   closeEvent,
   dataEvent,
@@ -226,7 +227,37 @@ describe('generic sqlite dialect test', () => {
     await expect(driver.destroy()).resolves.toBeUndefined()
   })
 
-  it('rejects aborted worker queries and ignores late responses', async () => {
+  it('does not dispatch already-aborted worker queries', async () => {
+    const mitt = createTestMitt()
+    const messages: unknown[][] = []
+    const driver = new GenericSqliteWorkerDialect(() => ({
+      mitt,
+      worker: {
+        postMessage: (message) => {
+          const msg = message as unknown[]
+          messages.push(msg)
+          if (msg[0] === initEvent || msg[0] === closeEvent) {
+            mitt.emit(msg[0] as string, null, null, null)
+          }
+        },
+        terminate: () => {},
+      },
+      handle: () => {},
+    })).createDriver()
+
+    await driver.init()
+    const controller = new AbortController()
+    controller.abort()
+    const connection = await driver.acquireConnection()
+
+    await expect(
+      connection.executeQuery(CompiledQuery.raw('select 1'), { signal: controller.signal }),
+    ).rejects.toThrow('Query aborted')
+    expect(messages.some(([type]) => type === runEvent)).toBe(false)
+    await driver.destroy()
+  })
+
+  it('keeps dispatched worker queries pending after abort until worker responds', async () => {
     const mitt = createTestMitt()
     let capturedMessage: unknown[] | undefined
     const driver = new GenericSqliteWorkerDialect(() => ({
@@ -254,12 +285,20 @@ describe('generic sqlite dialect test', () => {
     })
 
     controller.abort()
-
-    await expect(promise).rejects.toThrow('Query aborted')
+    await Promise.resolve()
+    let settled = false
+    promise
+      .finally(() => {
+        settled = true
+      })
+      .catch(() => {})
+    await Promise.resolve()
+    expect(settled).toBe(false)
     expect(capturedMessage?.[0]).toBe(runEvent)
 
     mitt.emit(runEvent, capturedMessage?.[1], { rows: [{ id: 1 }] }, null)
 
+    await expect(promise).resolves.toStrictEqual({ rows: [{ id: 1 }] })
     await expect(driver.destroy()).resolves.toBeUndefined()
   })
 
@@ -290,12 +329,14 @@ describe('generic sqlite dialect test', () => {
       signal: controller.signal,
     })
     const next = stream.next()
+    await Promise.resolve()
     const streamMsg = messages.find(([type]) => type === dataEvent)
 
     controller.abort()
+    expect(messages).toContainEqual([cancelEvent, streamMsg?.[1]])
+    mitt.emit(cancelAckEvent, streamMsg?.[1], null, null)
 
     await expect(next).rejects.toThrow('Query aborted')
-    expect(messages).toContainEqual([cancelEvent, streamMsg?.[1]])
 
     await expect(driver.destroy()).resolves.toBeUndefined()
   })
@@ -350,6 +391,7 @@ describe('generic sqlite dialect test', () => {
     expect(messages).toStrictEqual([
       [initEvent, null, null, null],
       [dataEvent, 'stream-a', { id: 1 }, null],
+      [cancelAckEvent, 'stream-a', null, null],
     ])
     expect(messages.some(([type]) => type === endEvent)).toBe(false)
   })

@@ -78,10 +78,10 @@ export interface INodeWorkerDialectConfig<T extends Record<string, unknown>> ext
  *
  * const worker = new Worker('./worker.js')
  * const dialect = new GenericSqliteWorkerDialect(
- *   () => {
+ *   () => ({
  *     worker,
  *     mitt: createNodeMitt(),
- *     handle: handleWebWorker,
+ *     handle: handleNodeWorker,
  *   }),
  * )
  * ```

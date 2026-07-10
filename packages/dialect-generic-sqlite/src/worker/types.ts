@@ -8,6 +8,7 @@ export const closeEvent = '2'
 export const dataEvent = '3'
 export const endEvent = '4'
 export const cancelEvent = '5'
+export const cancelAckEvent = '6'
 
 export type InitMsg<T extends Record<string, unknown>> = [type: typeof initEvent, data: T]
 
@@ -38,17 +39,23 @@ export type MainToWorkerMsg<T extends Record<string, unknown>> =
   | StreamMsg
   | CancelMsg
 
-export type WorkerToMainMsg = {
-  [K in keyof Events]: [type: `${K}`, queryId: string | null, data: Events[K], err: unknown]
-}[keyof Events]
+export type WorkerToMainMsg<Row = unknown> = {
+  [K in keyof Events<Row>]: [
+    type: `${K}`,
+    queryId: string | null,
+    data: Events<Row>[K],
+    err: unknown,
+  ]
+}[keyof Events<Row>]
 
-type Events = {
+type Events<Row> = {
   0: null
   1: QueryResult<any> | null
   2: null
-  3: QueryResult<any>[] | null
+  3: Row | null
   4: null
   5: null
+  6: null
 }
 
 /** Minimal interface for a worker (web or Node.js). */

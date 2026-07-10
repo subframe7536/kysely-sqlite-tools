@@ -51,7 +51,7 @@ export const handleWebWorker: HandleMessageFn<globalThis.Worker> = (worker, cb) 
  *
  * const worker = new Worker(new URL('./worker.js', import.meta.url), { type: 'module' })
  * const dialect = new GenericSqliteWorkerDialect(
- *   () => {
+ *   () => ({
  *     worker,
  *     mitt: mitt(),
  *     handle: handleWebWorker,

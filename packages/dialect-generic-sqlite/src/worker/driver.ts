@@ -19,7 +19,15 @@ import type {
   RunMsg,
   StreamMsg,
 } from './types'
-import { cancelEvent, closeEvent, dataEvent, endEvent, initEvent, runEvent } from './types'
+import {
+  cancelAckEvent,
+  cancelEvent,
+  closeEvent,
+  dataEvent,
+  endEvent,
+  initEvent,
+  runEvent,
+} from './types'
 
 /**
  * {@link Driver} that dispatches queries to a worker thread.
@@ -84,6 +92,8 @@ type PendingStream = {
   error?: unknown
   completed?: boolean
   canceled?: boolean
+  cancelAck?: Promise<void>
+  resolveCancelAck?: () => void
 }
 
 /**
@@ -145,6 +155,17 @@ class GenericSqliteWorkerConnection implements DatabaseConnection {
         this.pushStreamResult(queryId, state, [undefined, true])
       }
     })
+
+    this.mitt.on(cancelAckEvent, (queryId: string | undefined, _data: any, err: unknown) => {
+      if (!queryId) {
+        return
+      }
+      const state = this.pendingStreams.get(queryId)
+      if (!state) {
+        return
+      }
+      this.resolveStreamCancellation(state, err)
+    })
   }
 
   close(): void {
@@ -156,7 +177,9 @@ class GenericSqliteWorkerConnection implements DatabaseConnection {
     for (const [queryId, state] of this.pendingStreams) {
       this.cancelStream(queryId, state)
       this.rejectStream(queryId, state, err)
+      this.resolveStreamCancellation(state, err)
     }
+    this.pendingStreams.clear()
   }
 
   async *streamQuery<R>(
@@ -171,14 +194,19 @@ class GenericSqliteWorkerConnection implements DatabaseConnection {
     const streamState: PendingStream = { queue: [] }
     this.pendingStreams.set(queryId.queryId, streamState)
 
-    this.worker.postMessage([
-      dataEvent,
-      queryId.queryId,
-      SelectQueryNode.is(query),
-      sql,
-      parameters,
-      chunkSize,
-    ] satisfies StreamMsg)
+    try {
+      this.worker.postMessage([
+        dataEvent,
+        queryId.queryId,
+        SelectQueryNode.is(query),
+        sql,
+        parameters,
+        chunkSize,
+      ] satisfies StreamMsg)
+    } catch (error) {
+      this.pendingStreams.delete(queryId.queryId)
+      throw error
+    }
 
     const onAbort = (): void => {
       this.cancelStream(queryId.queryId, streamState)
@@ -197,7 +225,7 @@ class GenericSqliteWorkerConnection implements DatabaseConnection {
       }
     } finally {
       options?.signal?.removeEventListener('abort', onAbort)
-      this.cancelStream(queryId.queryId, streamState)
+      await this.cancelStream(queryId.queryId, streamState)
       this.pendingStreams.delete(queryId.queryId)
     }
   }
@@ -211,13 +239,15 @@ class GenericSqliteWorkerConnection implements DatabaseConnection {
       throw new Error('Query aborted')
     }
 
+    const queryKey = queryId.queryId
     return new Promise((resolve, reject) => {
-      const queryKey = queryId.queryId
       let cleanup = (): void => {}
-      const onAbort = (): void => {
-        cleanup()
-        reject(new Error('Query aborted'))
-      }
+      // After dispatch, this promise represents the actual worker execution lifetime.
+      // Rejecting it on abort would let Kysely release the single-connection mutex
+      // while SQLite may still be executing in the worker. Kysely races the user-facing
+      // operation against the AbortSignal; this underlying promise settles only when
+      // the worker sends its success/error response.
+      const onAbort = (): void => {}
       cleanup = (): void => {
         this.pendingRuns.delete(queryKey)
         options?.signal?.removeEventListener('abort', onAbort)
@@ -279,20 +309,28 @@ class GenericSqliteWorkerConnection implements DatabaseConnection {
     }
   }
 
-  private cancelStream(queryId: string, state: PendingStream): void {
+  private cancelStream(queryId: string, state: PendingStream): Promise<void> {
     if (state.completed || state.canceled) {
-      return
+      return state.cancelAck ?? Promise.resolve()
     }
     state.canceled = true
+    state.cancelAck = new Promise<void>((resolve) => {
+      state.resolveCancelAck = resolve
+    })
     try {
       this.worker.postMessage([cancelEvent, queryId] satisfies CancelMsg)
     } catch {
       // Ignore cancellation delivery failures so cleanup never masks the original stream result.
+      this.resolveStreamCancellation(state)
     }
+    return state.cancelAck
   }
 
   private rejectStream(queryId: string, state: PendingStream, err: unknown): void {
-    this.pendingStreams.delete(queryId)
+    if (!state.canceled) {
+      this.pendingStreams.delete(queryId)
+    }
+    state.completed = true
     state.queue.length = 0
     state.error = err
     if (state.wait) {
@@ -300,5 +338,13 @@ class GenericSqliteWorkerConnection implements DatabaseConnection {
       state.wait = undefined
       reject(err)
     }
+  }
+
+  private resolveStreamCancellation(state: PendingStream, _err?: unknown): void {
+    // Cancellation acknowledgements are cleanup bookkeeping. Resolve even if the
+    // worker reports an error or is shutting down so iterator cleanup cannot hang
+    // or replace the stream's original result/error.
+    state.resolveCancelAck?.()
+    state.resolveCancelAck = undefined
   }
 }
