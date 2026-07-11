@@ -26,9 +26,17 @@ export class GenericSqliteDriver extends BaseSqliteDriver {
     onCreateConnection?: OnCreateConnection,
   ) {
     super(async (options) => {
-      this.db = await executor(options)
-      this.conn = new GenericSqliteConnection(this.db)
-      await onCreateConnection?.(this.conn, options)
+      const db = await executor(options)
+      this.db = db
+      this.conn = new GenericSqliteConnection(db)
+      try {
+        await onCreateConnection?.(this.conn, options)
+      } catch (error) {
+        this.conn = undefined
+        this.db = undefined
+        await db.close()
+        throw error
+      }
     })
   }
 
@@ -60,11 +68,11 @@ export class GenericSqliteConnection implements DatabaseConnection {
     }
   }
 
-  async executeQuery<R>({
-    parameters,
-    query,
-    sql,
-  }: CompiledQuery<unknown>): Promise<QueryResult<R>> {
+  async executeQuery<R>(
+    { parameters, query, sql }: CompiledQuery<unknown>,
+    options?: AbortableOperationOptions,
+  ): Promise<QueryResult<R>> {
+    options?.signal?.throwIfAborted()
     return await this.db.query(SelectQueryNode.is(query), sql, parameters, query)
   }
 }

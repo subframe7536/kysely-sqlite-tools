@@ -125,7 +125,11 @@ export class GenericSqliteWorkerConnection implements DatabaseConnection {
     this.pending.clear()
   }
 
-  async executeQuery<R>(compiledQuery: CompiledQuery<unknown>): Promise<QueryResult<R>> {
+  async executeQuery<R>(
+    compiledQuery: CompiledQuery<unknown>,
+    options?: AbortableOperationOptions,
+  ): Promise<QueryResult<R>> {
+    options?.signal?.throwIfAborted()
     const { parameters, sql, query } = compiledQuery
     const response = await this.send({
       type: 'execute',
@@ -142,11 +146,12 @@ export class GenericSqliteWorkerConnection implements DatabaseConnection {
   async *streamQuery<R>(
     { parameters, sql, query, queryId }: CompiledQuery,
     chunkSize: number,
-    _options?: AbortableOperationOptions,
+    options?: AbortableOperationOptions,
   ): AsyncIterableIterator<QueryResult<R>> {
     if (!Number.isInteger(chunkSize) || chunkSize <= 0) {
       throw new RangeError('chunkSize must be a positive integer')
     }
+    options?.signal?.throwIfAborted()
     const id = queryId.queryId
     this.streams.add(id)
     let done = false
@@ -163,6 +168,7 @@ export class GenericSqliteWorkerConnection implements DatabaseConnection {
         if (response.type !== 'stream') {
           throw new Error('Invalid stream response')
         }
+        options?.signal?.throwIfAborted()
         if (response.rows.length) {
           yield { rows: response.rows as R[] }
         }
@@ -170,6 +176,7 @@ export class GenericSqliteWorkerConnection implements DatabaseConnection {
         if (done) {
           return
         }
+        options?.signal?.throwIfAborted()
         response = await this.send({ type: 'pull', streamId: id, chunkSize })
       }
     } finally {

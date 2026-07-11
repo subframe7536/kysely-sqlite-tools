@@ -4,7 +4,7 @@ import { describe, expect, it } from 'vitest'
 
 import { testCase } from '../../test-utils'
 import { buildQueryFn, GenericSqliteDialect, parseBigInt } from '../src'
-import { GenericSqliteWorkerDialect } from '../src/worker'
+import { GenericSqliteWorkerConnection, GenericSqliteWorkerDialect } from '../src/worker'
 import type { WorkerHandlers, WorkerResponse } from '../src/worker'
 import { createGenericOnMessageCallback } from '../src/worker/utils'
 
@@ -48,12 +48,42 @@ describe('generic sqlite dialect', () => {
     expect(calls[0]).toMatch(/^run:/)
   })
 
+  it('closes the executor when connection setup fails', async () => {
+    let closed = 0
+    const dialect = new GenericSqliteDialect(
+      () => ({
+        db: {},
+        close: () => {
+          closed++
+        },
+        query: () => ({ rows: [] }),
+      }),
+      async () => {
+        throw new Error('connection setup failed')
+      },
+    )
+    const driver = dialect.createDriver()
+
+    await expect(driver.init()).rejects.toThrow('connection setup failed')
+    expect(closed).toBe(1)
+
+    await driver.destroy()
+    expect(closed).toBe(1)
+  })
+
   it('pulls worker rows in batches without buffering the whole stream', async () => {
+    let iteratorChunkSize: number | undefined
     const { dialect } = createInMemoryWorkerDialect(async () => ({
       db: {},
       close: () => {},
       query: () => ({ rows: [] }),
-      *iterator() {
+      *iterator(
+        _isSelect: boolean,
+        _sql: string,
+        _parameters: readonly unknown[],
+        chunkSize?: number,
+      ) {
+        iteratorChunkSize = chunkSize
         yield { id: 1 }
         yield { id: 2 }
         yield { id: 3 }
@@ -67,6 +97,55 @@ describe('generic sqlite dialect', () => {
       batches.push(result.rows)
     }
     expect(batches).toStrictEqual([[{ id: 1 }, { id: 2 }], [{ id: 3 }]])
+    expect(iteratorChunkSize).toBe(2)
+    await driver.destroy()
+  })
+
+  it('does not send an already-aborted query to the worker', async () => {
+    const controller = new AbortController()
+    controller.abort(new Error('query aborted'))
+    const connection = new GenericSqliteWorkerConnection({
+      postMessage: () => {
+        throw new Error('worker should not receive an aborted query')
+      },
+      terminate: () => {},
+    })
+
+    await expect(
+      connection.executeQuery(CompiledQuery.raw('select 1'), { signal: controller.signal }),
+    ).rejects.toThrow('query aborted')
+  })
+
+  it('cancels a worker stream when its operation signal is aborted', async () => {
+    let returned = false
+    const { dialect } = createInMemoryWorkerDialect(async () => ({
+      db: {},
+      close: () => {},
+      query: () => ({ rows: [] }),
+      iterator: () => ({
+        next: async () => ({ done: false, value: { id: 1 } }),
+        return: async () => {
+          returned = true
+          return { done: true, value: undefined }
+        },
+        [Symbol.asyncIterator]() {
+          return this
+        },
+      }),
+    }))
+    const driver = dialect.createDriver()
+    await driver.init()
+    const connection = await driver.acquireConnection()
+    const controller = new AbortController()
+    const stream = connection.streamQuery(CompiledQuery.raw('select 1'), 1, {
+      signal: controller.signal,
+    })
+
+    await stream.next()
+    controller.abort(new Error('stream aborted'))
+
+    await expect(stream.next()).rejects.toThrow('stream aborted')
+    expect(returned).toBe(true)
     await driver.destroy()
   })
 

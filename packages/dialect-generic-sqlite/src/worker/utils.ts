@@ -113,7 +113,7 @@ export function createGenericOnMessageCallback<T extends Record<string, unknown>
             }
             streams.set(
               message.streamId,
-              db.iterator(message.isSelect, message.sql, message.parameters),
+              db.iterator(message.isSelect, message.sql, message.parameters, message.chunkSize),
             )
             await pull(message.id, message.streamId, message.chunkSize)
             return
