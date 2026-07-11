@@ -62,6 +62,12 @@ export interface IGenericSqlite<DB = unknown> {
   close: () => Promisable<any>
 
   /**
+   * Interrupts the currently executing query when the underlying SQLite
+   * implementation supports it.
+   */
+  cancelQuery?: () => Promisable<void>
+
+  /**
    * Basic function for executing SQL queries and get query result
    * @param isSelect Whether the sql is SELECT query
    * @param sql The SQL query string to execute.

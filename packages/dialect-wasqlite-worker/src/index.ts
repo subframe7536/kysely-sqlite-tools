@@ -1,7 +1,6 @@
 import { isModuleWorkerSupport, isOpfsSupported } from '@subframe7536/sqlite-wasm'
 import { GenericSqliteWorkerDialect } from 'kysely-generic-sqlite/worker'
 import { handleWebWorker } from 'kysely-generic-sqlite/worker-helper-web'
-import { mitt } from 'zen-mitt'
 
 import type { InitData, WaSqliteWorkerDialectConfig } from './type'
 
@@ -20,12 +19,10 @@ export class WaSqliteWorkerDialect extends GenericSqliteWorkerDialect<globalThis
    * @param config - {@link WaSqliteWorkerDialectConfig}
    */
   constructor(config: WaSqliteWorkerDialectConfig) {
-    const { onCreateConnection, worker, fileName, preferOPFS, url, message } = config
+    const { onCreateConnection, worker, fileName, preferOPFS, url } = config
     super(async () => {
       const supportModule = isModuleWorkerSupport()
       const useOPFS = preferOPFS ? await isOpfsSupported() : false
-      const m = mitt()
-      await message?.(m)
       return {
         data: {
           fileName,
@@ -39,7 +36,6 @@ export class WaSqliteWorkerDialect extends GenericSqliteWorkerDialect<globalThis
           : supportModule
             ? new Worker(new URL('worker.js', import.meta.url), { type: 'module' })
             : new Worker(new URL('worker.js', import.meta.url)),
-        mitt: m,
         handle: handleWebWorker,
       }
     }, onCreateConnection)

@@ -132,9 +132,6 @@ importers:
       kysely-generic-sqlite:
         specifier: workspace:*
         version: link:../dialect-generic-sqlite
-      zen-mitt:
-        specifier: ^3.1.0
-        version: 3.1.0
     devDependencies:
       '@subframe7536/sqlite-wasm':
         specifier: 'catalog:'
@@ -1474,9 +1471,6 @@ packages:
     engines: {node: '>= 14.6'}
     hasBin: true
 
-  zen-mitt@3.1.0:
-    resolution: {integrity: sha512-I0KUcnQb9rnx1/Cu9xtlJPj2e2r+yb3putg2Tjx9mjY2pVTnAzH4N/KwnIpnG+RQCz3VPj33NftGis4ug5s/2g==}
-
 snapshots:
 
   '@babel/code-frame@7.29.7':
@@ -2559,5 +2553,3 @@ snapshots:
   yallist@3.1.1: {}
 
   yaml@2.9.0: {}
-
-  zen-mitt@3.1.0: {}

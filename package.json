@@ -19,7 +19,7 @@
     "release": "pnpm install && bumpp package.json packages/dialect*/package.json",
     "play": "pnpm --dir playground dev",
     "play:build": "pnpm build && pnpm --dir playground build",
-    "test": "vitest run",
+    "test": "vitest run && pnpm run test:bun",
     "typecheck": "tsc --noEmit && pnpm --dir playground exec tsc --noEmit",
     "format": "oxfmt",
     "lint": "oxlint",

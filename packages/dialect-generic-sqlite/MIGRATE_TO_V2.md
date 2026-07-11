@@ -2,6 +2,13 @@
 
 Scope: this document only covers `kysely-generic-sqlite`. It is written for automated migration agents and humans reviewing their changes.
 
+> [!important]
+> The worker protocol was replaced during the v2 beta. Numeric tuple events,
+> `mitt`, and `MessageHandleFn` no longer exist. Use the exported tagged
+> `WorkerRequest`/`WorkerResponse` types, `WorkerRequestHandler`, and
+> `GenericSqliteWorkerConnection.request()` instead. The built-in Node and Web
+> helpers implement the protocol and should be preferred over manual transport code.
+
 ## Agent workflow
 
 1. Read the repository's package manager files and TypeScript sources.

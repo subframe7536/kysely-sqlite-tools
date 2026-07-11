@@ -5,7 +5,7 @@ import type { Options } from 'better-sqlite3'
 import { access } from 'kysely-generic-sqlite'
 import type { IBaseSqliteDialectConfig, Promisable } from 'kysely-generic-sqlite'
 import { GenericSqliteWorkerDialect } from 'kysely-generic-sqlite/worker'
-import { createNodeMitt, handleNodeWorker } from 'kysely-generic-sqlite/worker-helper-node'
+import { handleNodeWorker } from 'kysely-generic-sqlite/worker-helper-node'
 
 export * from './worker/utils'
 
@@ -53,7 +53,6 @@ export class SqliteWorkerDialect extends GenericSqliteWorkerDialect<Worker, {}> 
       })
       return {
         handle: handleNodeWorker,
-        mitt: createNodeMitt(),
         worker,
       }
     }, onCreateConnection)

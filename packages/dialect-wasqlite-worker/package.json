@@ -38,8 +38,7 @@
     "build": "tsdown"
   },
   "dependencies": {
-    "kysely-generic-sqlite": "workspace:*",
-    "zen-mitt": "^3.1.0"
+    "kysely-generic-sqlite": "workspace:*"
   },
   "devDependencies": {
     "@subframe7536/sqlite-wasm": "catalog:",

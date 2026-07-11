@@ -1,5 +1,4 @@
 import { GenericSqliteWorkerDialect } from 'kysely-generic-sqlite/worker'
-import { createNodeMitt } from 'kysely-generic-sqlite/worker-helper-node'
 import { handleWebWorker } from 'kysely-generic-sqlite/worker-helper-web'
 
 import type { BunWorkerDialectConfig, InitData } from './type'
@@ -27,7 +26,6 @@ export class BunWorkerDialect extends GenericSqliteWorkerDialect<globalThis.Work
     super(
       () => ({
         data: { cache: cacheStatement, fileName, opt },
-        mitt: createNodeMitt(),
         handle: handleWebWorker,
         worker,
       }),

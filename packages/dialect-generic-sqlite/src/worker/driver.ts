@@ -1,6 +1,7 @@
 import type {
   AbortableOperationOptions,
   CompiledQuery,
+  ControlConnectionProvider,
   DatabaseConnection,
   QueryResult,
 } from 'kysely'
@@ -10,341 +11,253 @@ import { BaseSqliteDriver } from '../base'
 import type { OnCreateConnection, SqliteExecutorFactory } from '../type'
 
 import type {
-  CancelMsg,
-  CloseMsg,
-  IGenericEventEmitter,
   IGenericSqliteWorkerExecutor,
   IGenericWorker,
-  InitMsg,
-  RunMsg,
-  StreamMsg,
+  WorkerRequest,
+  WorkerResponse,
 } from './types'
-import {
-  cancelAckEvent,
-  cancelEvent,
-  closeEvent,
-  dataEvent,
-  endEvent,
-  initEvent,
-  runEvent,
-} from './types'
+import { deserializeWorkerError } from './utils'
 
-/**
- * {@link Driver} that dispatches queries to a worker thread.
- *
- * @template T - the worker type
- * @template R - extra init data shape
- */
+type Pending = {
+  resolve: (response: Exclude<WorkerResponse, { type: 'error' }>) => void
+  reject: (error: Error) => void
+}
+type OutgoingRequest = WorkerRequest extends infer U
+  ? U extends { id: string }
+    ? Omit<U, 'id'> & { id?: string }
+    : never
+  : never
+
 export class GenericSqliteWorkerDriver<
   T extends IGenericWorker,
   R extends Record<string, unknown>,
 > extends BaseSqliteDriver {
   private worker?: T
-  private mitt?: IGenericEventEmitter
+  private connection?: GenericSqliteWorkerConnection
+  private dispose?: () => void
+  private closing?: Promise<void>
+
   constructor(
     executor: SqliteExecutorFactory<IGenericSqliteWorkerExecutor<T, R>>,
     onCreateConnection?: OnCreateConnection,
   ) {
     super(async (options) => {
-      const exec = await executor(options)
-      this.mitt = exec.mitt
-      this.worker = exec.worker
-
-      exec.handle(this.worker, ([type, ...msg]) => this.mitt!.emit(type, ...msg))
-
-      const initAck = new Promise<void>((resolve, reject) => {
-        this.mitt!.once(initEvent, (_qid, _data, err) => (err ? reject(err) : resolve()))
-      })
-
-      this.worker.postMessage([initEvent, exec.data || ({} as any)] satisfies InitMsg<R>)
-
-      await initAck
-
-      this.conn = new GenericSqliteWorkerConnection(this.worker, this.mitt)
-      await onCreateConnection?.(this.conn, options)
+      let exec: IGenericSqliteWorkerExecutor<T, R> | undefined
+      try {
+        exec = await executor(options)
+        this.worker = exec.worker
+        this.connection = new GenericSqliteWorkerConnection(exec.worker)
+        this.dispose = exec.handle(exec.worker, {
+          message: (message) => this.connection?.handle(message),
+          error: (error) => this.connection?.fail(error),
+          close: (error) => this.connection?.fail(error ?? new Error('Worker closed')),
+        })
+        const ready = await this.connection.send({ type: 'init', data: exec.data ?? ({} as R) })
+        if (ready.type !== 'ready') {
+          throw new Error('Invalid worker initialization response')
+        }
+        this.connection.enableCancellation(ready.canCancelQuery)
+        this.conn = this.connection
+        await onCreateConnection?.(this.connection, options)
+      } catch (error) {
+        this.connection?.fail(error)
+        this.dispose?.()
+        this.dispose = undefined
+        await this.worker?.terminate()
+        this.worker = undefined
+        this.connection = undefined
+        this.conn = undefined
+        throw error
+      }
     })
   }
 
   async destroy(): Promise<void> {
-    if (!this.worker) {
+    this.closing ??= this.destroyInner()
+    return this.closing
+  }
+
+  private async destroyInner(): Promise<void> {
+    const connection = this.connection
+    const worker = this.worker
+    try {
+      await connection?.close()
+    } finally {
+      this.dispose?.()
+      this.dispose = undefined
+      await worker?.terminate()
+      this.worker = undefined
+      this.connection = undefined
+      this.conn = undefined
+    }
+  }
+}
+
+export class GenericSqliteWorkerConnection implements DatabaseConnection {
+  private readonly pending = new Map<string, Pending>()
+  private readonly streams = new Set<string>()
+  private sequence = 0
+  private failed?: Error
+  private closing?: Promise<void>
+  private activeExecute?: string
+  cancelQuery?: (controlConnectionProvider: ControlConnectionProvider) => Promise<void>
+
+  constructor(private readonly worker: IGenericWorker) {}
+
+  enableCancellation(enabled: boolean): void {
+    if (!enabled) {
       return
     }
-    const closeAck = new Promise<void>((resolve, reject) =>
-      this.mitt?.once(closeEvent, (_qid, _data, err) => (err ? reject(err) : resolve())),
-    )
-
-    this.worker.postMessage([closeEvent] satisfies CloseMsg)
-
-    return closeAck.finally(() => {
-      ;(this.conn as GenericSqliteWorkerConnection)?.close()
-      this.worker?.terminate()
-      this.mitt?.off()
-      this.mitt = this.worker = undefined
-    })
-  }
-}
-
-type PendingRun = { resolve: (data: any) => void; reject: (err: any) => void }
-type StreamResult<R> = [data: QueryResult<R> | undefined, done: boolean]
-type PendingStream = {
-  queue: StreamResult<any>[]
-  wait?: PendingRun
-  error?: unknown
-  completed?: boolean
-  canceled?: boolean
-  cancelAck?: Promise<void>
-  resolveCancelAck?: () => void
-}
-
-/**
- * {@link DatabaseConnection} that communicates with a worker thread.
- *
- * Supports both `executeQuery` and `streamQuery`.
- */
-class GenericSqliteWorkerConnection implements DatabaseConnection {
-  private pendingRuns = new Map<string, PendingRun>()
-  private pendingStreams = new Map<string, PendingStream>()
-
-  constructor(
-    readonly worker: IGenericWorker,
-    readonly mitt: IGenericEventEmitter,
-  ) {
-    // Central dispatcher — register once, route by queryId
-    this.mitt.on(runEvent, (queryId: string | undefined, data: any, err: unknown) => {
-      if (!queryId) {
-        return
+    this.cancelQuery = async () => {
+      const id = this.activeExecute
+      if (id) {
+        await this.send({ type: 'cancel', target: 'query', queryId: id })
       }
-      const pending = this.pendingRuns.get(queryId)
-      if (!pending) {
-        return
-      }
-      this.pendingRuns.delete(queryId)
-      if (err) {
-        pending.reject(err)
-      } else {
-        pending.resolve(data)
-      }
-    })
-
-    this.mitt.on(dataEvent, (queryId: string | undefined, data: any, err: unknown) => {
-      if (!queryId) {
-        return
-      }
-      const state = this.pendingStreams.get(queryId)
-      if (!state) {
-        return
-      }
-      if (err) {
-        this.rejectStream(queryId, state, err)
-      } else {
-        this.pushStreamResult(queryId, state, [{ rows: [data] }, false])
-      }
-    })
-
-    this.mitt.on(endEvent, (queryId: string | undefined, _data: any, err: unknown) => {
-      if (!queryId) {
-        return
-      }
-      const state = this.pendingStreams.get(queryId)
-      if (!state) {
-        return
-      }
-      if (err) {
-        this.rejectStream(queryId, state, err)
-      } else {
-        this.pushStreamResult(queryId, state, [undefined, true])
-      }
-    })
-
-    this.mitt.on(cancelAckEvent, (queryId: string | undefined, _data: any, err: unknown) => {
-      if (!queryId) {
-        return
-      }
-      const state = this.pendingStreams.get(queryId)
-      if (!state) {
-        return
-      }
-      this.resolveStreamCancellation(state, err)
-    })
+    }
   }
 
-  close(): void {
-    const err = new Error('Connection closed')
-    for (const [, pending] of this.pendingRuns) {
-      pending.reject(err)
+  handle(response: WorkerResponse): void {
+    const pending = this.pending.get(response.id)
+    if (!pending) {
+      return
     }
-    this.pendingRuns.clear()
-    for (const [queryId, state] of this.pendingStreams) {
-      this.cancelStream(queryId, state)
-      this.rejectStream(queryId, state, err)
-      this.resolveStreamCancellation(state, err)
+    if (response.type === 'error') {
+      this.pending.delete(response.id)
+      pending.reject(deserializeWorkerError(response.error))
+      return
     }
-    this.pendingStreams.clear()
+    this.pending.delete(response.id)
+    pending.resolve(response)
+  }
+
+  fail(error: unknown): void {
+    if (this.failed) {
+      return
+    }
+    this.failed = error instanceof Error ? error : new Error(String(error))
+    for (const pending of this.pending.values()) {
+      pending.reject(this.failed)
+    }
+    this.pending.clear()
+  }
+
+  async executeQuery<R>(compiledQuery: CompiledQuery<unknown>): Promise<QueryResult<R>> {
+    const { parameters, sql, query } = compiledQuery
+    const response = await this.send({
+      type: 'execute',
+      isSelect: SelectQueryNode.is(query),
+      sql,
+      parameters,
+    })
+    if (response.type !== 'result') {
+      throw new Error('Invalid execute response')
+    }
+    return response.result as QueryResult<R>
   }
 
   async *streamQuery<R>(
     { parameters, sql, query, queryId }: CompiledQuery,
-    chunkSize?: number,
-    options?: AbortableOperationOptions,
+    chunkSize: number,
+    _options?: AbortableOperationOptions,
   ): AsyncIterableIterator<QueryResult<R>> {
-    if (options?.signal?.aborted) {
-      return
+    if (!Number.isInteger(chunkSize) || chunkSize <= 0) {
+      throw new RangeError('chunkSize must be a positive integer')
     }
-
-    const streamState: PendingStream = { queue: [] }
-    this.pendingStreams.set(queryId.queryId, streamState)
-
+    const id = queryId.queryId
+    this.streams.add(id)
+    let done = false
     try {
-      this.worker.postMessage([
-        dataEvent,
-        queryId.queryId,
-        SelectQueryNode.is(query),
+      let response = await this.send({
+        type: 'stream',
+        streamId: id,
+        isSelect: SelectQueryNode.is(query),
         sql,
         parameters,
         chunkSize,
-      ] satisfies StreamMsg)
-    } catch (error) {
-      this.pendingStreams.delete(queryId.queryId)
-      throw error
-    }
-
-    const onAbort = (): void => {
-      this.cancelStream(queryId.queryId, streamState)
-      this.rejectStream(queryId.queryId, streamState, new Error('Query aborted'))
-    }
-    options?.signal?.addEventListener('abort', onAbort, { once: true })
-
-    try {
+      })
       while (true) {
-        const [data, isDone] = await this.nextStreamResult<R>(streamState)
-
-        if (isDone) {
+        if (response.type !== 'stream') {
+          throw new Error('Invalid stream response')
+        }
+        if (response.rows.length) {
+          yield { rows: response.rows as R[] }
+        }
+        done = response.done
+        if (done) {
           return
         }
-        yield data!
+        response = await this.send({ type: 'pull', streamId: id, chunkSize })
       }
     } finally {
-      options?.signal?.removeEventListener('abort', onAbort)
-      await this.cancelStream(queryId.queryId, streamState)
-      this.pendingStreams.delete(queryId.queryId)
-    }
-  }
-
-  async executeQuery<R>(
-    compiledQuery: CompiledQuery<unknown>,
-    options?: AbortableOperationOptions,
-  ): Promise<QueryResult<R>> {
-    const { parameters, sql, query, queryId } = compiledQuery
-    if (options?.signal?.aborted) {
-      throw new Error('Query aborted')
-    }
-
-    const queryKey = queryId.queryId
-    return new Promise((resolve, reject) => {
-      let cleanup = (): void => {}
-      // After dispatch, this promise represents the actual worker execution lifetime.
-      // Rejecting it on abort would let Kysely release the single-connection mutex
-      // while SQLite may still be executing in the worker. Kysely races the user-facing
-      // operation against the AbortSignal; this underlying promise settles only when
-      // the worker sends its success/error response.
-      const onAbort = (): void => {}
-      cleanup = (): void => {
-        this.pendingRuns.delete(queryKey)
-        options?.signal?.removeEventListener('abort', onAbort)
-      }
-      const settle =
-        <T>(callback: (value: T) => void) =>
-        (value: T): void => {
-          cleanup()
-          callback(value)
+      this.streams.delete(id)
+      if (!done && !this.failed) {
+        try {
+          await this.send({ type: 'cancel', target: 'stream', streamId: id })
+        } catch {
+          // Preserve the original stream error or cancellation reason.
         }
-
-      this.pendingRuns.set(queryKey, {
-        resolve: settle(resolve),
-        reject: settle(reject),
-      })
-      options?.signal?.addEventListener('abort', onAbort, { once: true })
-
-      try {
-        this.worker.postMessage([
-          runEvent,
-          queryKey,
-          SelectQueryNode.is(query),
-          sql,
-          parameters,
-        ] satisfies RunMsg)
-      } catch (error) {
-        cleanup()
-        reject(error)
       }
-    })
+    }
   }
 
-  private nextStreamResult<R>(state: PendingStream): Promise<StreamResult<R>> {
-    const queued = state.queue.shift()
-    if (queued) {
-      return Promise.resolve(queued)
+  async request<T = unknown>(type: string, payload?: unknown): Promise<T> {
+    const response = await this.send({ type: 'custom', name: type, payload })
+    if (response.type !== 'custom') {
+      throw new Error('Invalid custom response')
     }
-    if (state.error) {
-      return Promise.reject(state.error)
-    }
-    return new Promise((resolve, reject) => {
-      state.wait = { resolve, reject }
-    })
+    return response.result as T
   }
 
-  private pushStreamResult(queryId: string, state: PendingStream, result: StreamResult<any>): void {
-    if (result[1]) {
-      state.completed = true
-    }
-    if (state.wait) {
-      const { resolve } = state.wait
-      state.wait = undefined
-      resolve(result)
+  async close(): Promise<void> {
+    this.closing ??= this.closeInner()
+    return this.closing
+  }
+
+  private async closeInner(): Promise<void> {
+    await Promise.all(
+      [...this.streams].map(
+        async (streamId) => await this.send({ type: 'cancel', target: 'stream', streamId }),
+      ),
+    )
+    if (this.failed) {
       return
     }
-    state.queue.push(result)
-    if (result[1]) {
-      this.pendingStreams.delete(queryId)
+    const response = await this.send({ type: 'close' })
+    if (response.type !== 'closed') {
+      throw new Error('Invalid close response')
     }
   }
 
-  private cancelStream(queryId: string, state: PendingStream): Promise<void> {
-    if (state.completed || state.canceled) {
-      return state.cancelAck ?? Promise.resolve()
+  send(message: OutgoingRequest): Promise<Exclude<WorkerResponse, { type: 'error' }>> {
+    if (this.failed) {
+      return Promise.reject(this.failed)
     }
-    state.canceled = true
-    state.cancelAck = new Promise<void>((resolve) => {
-      state.resolveCancelAck = resolve
+    const id = message.id ?? `generic-sqlite-${++this.sequence}`
+    const request = { ...message, id } as WorkerRequest
+    if (request.type === 'execute') {
+      this.activeExecute = id
+    }
+    return new Promise((resolve, reject) => {
+      this.pending.set(id, {
+        resolve: (response) => {
+          if (this.activeExecute === id) {
+            this.activeExecute = undefined
+          }
+          resolve(response)
+        },
+        reject: (error) => {
+          if (this.activeExecute === id) {
+            this.activeExecute = undefined
+          }
+          reject(error)
+        },
+      })
+      try {
+        this.worker.postMessage(request)
+      } catch (error) {
+        this.pending.delete(id)
+        this.fail(error)
+      }
     })
-    try {
-      this.worker.postMessage([cancelEvent, queryId] satisfies CancelMsg)
-    } catch {
-      // Ignore cancellation delivery failures so cleanup never masks the original stream result.
-      this.resolveStreamCancellation(state)
-    }
-    return state.cancelAck
-  }
-
-  private rejectStream(queryId: string, state: PendingStream, err: unknown): void {
-    if (!state.canceled) {
-      this.pendingStreams.delete(queryId)
-    }
-    state.completed = true
-    state.queue.length = 0
-    state.error = err
-    if (state.wait) {
-      const { reject } = state.wait
-      state.wait = undefined
-      reject(err)
-    }
-  }
-
-  private resolveStreamCancellation(state: PendingStream, _err?: unknown): void {
-    // Cancellation acknowledgements are cleanup bookkeeping. Resolve even if the
-    // worker reports an error or is shutting down so iterator cleanup cannot hang
-    // or replace the stream's original result/error.
-    state.resolveCancelAck?.()
-    state.resolveCancelAck = undefined
   }
 }
