@@ -33,19 +33,17 @@ describe('generic sqlite dialect', () => {
 
   it('allows callers to classify ambiguous raw SQL', async () => {
     const calls: string[] = []
-    const query = buildQueryFn(
-      {
-        all: (sql) => {
-          calls.push(`all:${sql}`)
-          return []
-        },
-        run: (sql) => {
-          calls.push(`run:${sql}`)
-          return { insertId: 1n, numAffectedRows: 1n }
-        },
+    const query = buildQueryFn({
+      isQuery: () => false,
+      all: (sql) => {
+        calls.push(`all:${sql}`)
+        return []
       },
-      { classifyQuery: ({ sql }) => (sql.startsWith('with') ? 'write' : undefined) },
-    )
+      run: (sql) => {
+        calls.push(`run:${sql}`)
+        return { insertId: 1n, numAffectedRows: 1n }
+      },
+    })
     await query(false, 'with x(v) as (select 1) insert into test(v) select v from x', [])
     expect(calls[0]).toMatch(/^run:/)
   })

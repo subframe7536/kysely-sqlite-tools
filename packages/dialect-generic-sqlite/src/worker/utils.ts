@@ -81,17 +81,7 @@ export function createGenericOnMessageCallback<T extends Record<string, unknown>
 
   return async (message) => {
     if (message.type === 'cancel') {
-      if (message.target === 'query') {
-        let error: SerializedWorkerError | undefined
-        try {
-          await db?.cancelQuery?.()
-        } catch (cause) {
-          error = serializeWorkerError(cause)
-        }
-        send({ type: 'cancelled', id: message.id, ...(error ? { error } : {}) })
-      } else {
-        await cancel(message.id, message.streamId)
-      }
+      await cancel(message.id, message.streamId)
       return
     }
     await enqueue(async () => {
@@ -102,7 +92,7 @@ export function createGenericOnMessageCallback<T extends Record<string, unknown>
         switch (message.type) {
           case 'init':
             db = await init(message.data)
-            send({ type: 'ready', id: message.id, canCancelQuery: Boolean(db.cancelQuery) })
+            send({ type: 'ready', id: message.id })
             return
           case 'execute':
             if (!db) {

@@ -1,7 +1,6 @@
 import type {
   AbortableOperationOptions,
   CompiledQuery,
-  ControlConnectionProvider,
   DatabaseConnection,
   QueryResult,
 } from 'kysely'
@@ -56,7 +55,6 @@ export class GenericSqliteWorkerDriver<
         if (ready.type !== 'ready') {
           throw new Error('Invalid worker initialization response')
         }
-        this.connection.enableCancellation(ready.canCancelQuery)
         this.conn = this.connection
         await onCreateConnection?.(this.connection, options)
       } catch (error) {
@@ -99,22 +97,8 @@ export class GenericSqliteWorkerConnection implements DatabaseConnection {
   private sequence = 0
   private failed?: Error
   private closing?: Promise<void>
-  private activeExecute?: string
-  cancelQuery?: (controlConnectionProvider: ControlConnectionProvider) => Promise<void>
 
   constructor(private readonly worker: IGenericWorker) {}
-
-  enableCancellation(enabled: boolean): void {
-    if (!enabled) {
-      return
-    }
-    this.cancelQuery = async () => {
-      const id = this.activeExecute
-      if (id) {
-        await this.send({ type: 'cancel', target: 'query', queryId: id })
-      }
-    }
-  }
 
   handle(response: WorkerResponse): void {
     const pending = this.pending.get(response.id)
@@ -192,7 +176,7 @@ export class GenericSqliteWorkerConnection implements DatabaseConnection {
       this.streams.delete(id)
       if (!done && !this.failed) {
         try {
-          await this.send({ type: 'cancel', target: 'stream', streamId: id })
+          await this.send({ type: 'cancel', streamId: id })
         } catch {
           // Preserve the original stream error or cancellation reason.
         }
@@ -215,9 +199,7 @@ export class GenericSqliteWorkerConnection implements DatabaseConnection {
 
   private async closeInner(): Promise<void> {
     await Promise.all(
-      [...this.streams].map(
-        async (streamId) => await this.send({ type: 'cancel', target: 'stream', streamId }),
-      ),
+      [...this.streams].map(async (streamId) => await this.send({ type: 'cancel', streamId })),
     )
     if (this.failed) {
       return
@@ -234,23 +216,10 @@ export class GenericSqliteWorkerConnection implements DatabaseConnection {
     }
     const id = message.id ?? `generic-sqlite-${++this.sequence}`
     const request = { ...message, id } as WorkerRequest
-    if (request.type === 'execute') {
-      this.activeExecute = id
-    }
     return new Promise((resolve, reject) => {
       this.pending.set(id, {
-        resolve: (response) => {
-          if (this.activeExecute === id) {
-            this.activeExecute = undefined
-          }
-          resolve(response)
-        },
-        reject: (error) => {
-          if (this.activeExecute === id) {
-            this.activeExecute = undefined
-          }
-          reject(error)
-        },
+        resolve,
+        reject,
       })
       try {
         this.worker.postMessage(request)

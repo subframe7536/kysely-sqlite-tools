@@ -1,236 +1,249 @@
 # kysely-generic-sqlite
 
-Generic Kysely dialect for SQLite, supporting execution in the main thread or a worker.
+Build a Kysely SQLite dialect for any SQLite client, running on the main thread
+or in a Node.js/Web Worker.
 
-> [!important]
-> To migrate from v1.2.1 to v2.0.0, see [MIGRATE_TO_V2.md](./MIGRATE_TO_V2.md)
+This package provides the Kysely driver, connection lifecycle, query routing,
+and worker RPC. You provide the small adapter that executes SQL against your
+SQLite client.
 
-## Install
+> [!IMPORTANT]
+> Upgrading from v1.2.1? Follow [MIGRATE_TO_V2.md](./MIGRATE_TO_V2.md). The v2
+> worker protocol is not compatible with v1.
 
-```sh
-npm install kysely kysely-generic-sqlite
-```
+## Requirements and installation
 
-```sh
-yarn add kysely kysely-generic-sqlite
-```
+- Kysely `>=0.29`
+- A SQLite client for the target runtime
 
 ```sh
 pnpm add kysely kysely-generic-sqlite
 ```
 
-```sh
-bun add kysely kysely-generic-sqlite
-```
+Equivalent `npm`, `yarn`, `bun`, and `deno add npm:` commands also work.
 
-```sh
-deno add npm:kysely npm:kysely-generic-sqlite
-```
+## Choose an integration
 
-## Usage
+| Requirement                                 | Use                                        |
+| ------------------------------------------- | ------------------------------------------ |
+| Execute in the current thread               | `GenericSqliteDialect`                     |
+| Execute in a Node.js worker thread          | `GenericSqliteWorkerDialect` + Node helper |
+| Execute in a Web Worker                     | `GenericSqliteWorkerDialect` + Web helper  |
+| Implement a completely custom Kysely driver | `BaseSqliteDialect` / `BaseSqliteDriver`   |
 
-This is an abstraction for the SQLite dialect, so the dialect does not work out-of-the-box.
+## 1. Implement an executor
 
-Below is the guide to create a new dialect, using `better-sqlite3` as an example.
+An executor owns the native database and implements `query`, `close`, and
+optionally `iterator`.
 
-### Executor
-
-First of all, you need to create a function that returns a `IGenericSqlite`
+The safest approach is to use statement metadata when the client exposes it:
 
 ```ts
-import type { Database } from 'better-sqlite3'
-import { parseBigInt } from 'kysely-generic-sqlite'
+import Database from 'better-sqlite3'
 import type { IGenericSqlite } from 'kysely-generic-sqlite'
+import { parseBigInt } from 'kysely-generic-sqlite'
 
-function createSqliteExecutor(db: Database): IGenericSqlite<Database> {
-  const getStmt = (sql: string) => db.prepare(sql)
+export function createExecutor(fileName: string): IGenericSqlite<Database.Database> {
+  const db = new Database(fileName)
 
   return {
     db,
-    query: (_isSelect, sql, parameters, _node) => {
-      const stmt = getStmt(sql)
-      if (stmt.reader) {
-        return { rows: stmt.all(parameters) }
+    query: (_isSelect, sql, parameters) => {
+      const statement = db.prepare(sql)
+      if (statement.reader) {
+        // `reader` calls `sqlite3_column_count` to check if the statement returns rows
+        return { rows: statement.all(parameters) }
       }
-      const { changes, lastInsertRowid } = stmt.run(parameters)
+
+      const result = statement.run(parameters)
       return {
         rows: [],
-        numAffectedRows: parseBigInt(changes),
-        insertId: parseBigInt(lastInsertRowid),
+        insertId: parseBigInt(result.lastInsertRowid),
+        numAffectedRows: parseBigInt(result.changes),
       }
+    },
+    iterator: (_isSelect, sql, parameters) => {
+      return db.prepare(sql).iterate(parameters) as IterableIterator<unknown>
     },
     close: () => db.close(),
-    iterator: (isSelect, sql, parameters) => {
-      if (!isSelect) {
-        throw new Error('Only support select in stream()')
-      }
-      return getStmt(sql).iterate(parameters) as any
-    },
   }
 }
 ```
 
-For client that does not support `stmt.reader`, there are 2 utils with same parameters:
+### Use `buildQueryFn` helper
 
-- `buildQueryFn`: Support `returning` when the query is built by Kysely, get `insertId` and `numAffectedRows` from `exec.run`
-- `buildQueryFnAlt`: Do not support `returning`
-
-`buildQueryFn` detects `returning` from Kysely's query AST. Raw SQL `INSERT`, `UPDATE`, or `DELETE` statements with a `RETURNING` clause are not detected as returning queries and are executed with `exec.run`.
+`buildQueryFn` simplifies creating query functions when the client has separate read and write APIs or the client does not expose statement metadata. Its `isQuery(sql, node)` callback decides which API to call.
 
 ```ts
 import type { IGenericSqlite } from 'kysely-generic-sqlite'
+import { buildQueryFn, defaultIsQuery, parseBigInt } from 'kysely-generic-sqlite'
 
-import Database from 'bun:sqlite'
-import { buildQueryFn, parseBigInt } from 'kysely-generic-sqlite'
+function classifySql(sql: string): boolean {
+  return /^\s*(select|pragma|explain|values)\b/i.test(sql)
+}
 
-function createSqliteExecutor(db: Database, cache: boolean): IGenericSqlite<Database> {
-  const fn = cache ? 'query' : 'prepare'
-  const getStmt = (sql: string) => db[fn](sql)
-
+export function createExecutor(client: SqliteClient): IGenericSqlite<SqliteClient> {
   return {
-    db,
+    db: client,
     query: buildQueryFn({
-      all: (sql, parameters) => getStmt(sql).all(...(parameters || [])),
-      run: (sql, parameters) => {
-        const { changes, lastInsertRowid } = getStmt(sql).run(...(parameters || []))
+      isQuery: (sql, node) => (node ? defaultIsQuery(sql, node) : classifySql(sql)),
+      all: (sql, parameters) => client.all(sql, parameters ?? []),
+      run: async (sql, parameters) => {
+        const result = await client.run(sql, parameters ?? [])
         return {
-          insertId: parseBigInt(lastInsertRowid),
-          numAffectedRows: parseBigInt(changes),
+          insertId: parseBigInt(result.lastInsertRowid),
+          numAffectedRows: parseBigInt(result.changes),
         }
       },
     }),
-    close: () => db.close(),
+    close: () => client.close(),
   }
 }
 ```
 
-### Run SQLs In Current Thread
+`defaultIsQuery` recognizes Kysely AST nodes for `SELECT` and writes with
+`RETURNING`. It returns `false` when `node` is unavailable. Raw SQL and worker
+requests have no AST, so provide an `isQuery` classifier if they can return rows.
+For complex SQL (`WITH`, comments, or client-specific syntax), prefer the
+client's parser or statement metadata over the simple regular expression above.
 
-To create a dialect that run SQLs in current thread, you can use built-in dialect `GenericSqliteDialect`:
+## 2. Run on the main thread
 
 ```ts
-import type { DatabaseConnection } from 'kysely'
-
 import { CompiledQuery, Kysely } from 'kysely'
 import { GenericSqliteDialect } from 'kysely-generic-sqlite'
 
 const dialect = new GenericSqliteDialect(
-  createSqliteExecutor,
-  // optional on created callback
-  (conn) => {
-    await conn.executeQuery(CompiledQuery.raw('PRAGMA optimize'))
+  () => createExecutor('app.db'),
+  async (connection, options) => {
+    await connection.executeQuery(CompiledQuery.raw('PRAGMA optimize'), options)
   },
 )
 
-const db = new Kysely<YourDB>({ dialect })
+const db = new Kysely<DatabaseSchema>({ dialect })
 ```
 
-### Run SQLs In NodeJS Worker Thread
+The executor factory and connection callback receive optional Kysely
+`AbortableOperationOptions`. Functions that do not need them may omit the
+parameter.
 
-To create a dialect that run SQLs in nodejs's `worker_threads`, you can use built-in dialect `GenericSqliteWorkerDialect`:
+Streaming is available when the executor implements `iterator`. The dialect
+forwards Kysely's `chunkSize` as an optional hint and stops iteration after the
+operation signal is aborted.
+
+## 3. Run in a Node.js worker
+
+Main thread:
 
 ```ts
 import { Worker } from 'node:worker_threads'
 
+import { Kysely } from 'kysely'
 import { GenericSqliteWorkerDialect } from 'kysely-generic-sqlite/worker'
 import { createNodeWorkerExecutor } from 'kysely-generic-sqlite/worker-helper-node'
 
-const worker = new Worker('./worker.js')
+const worker = new Worker(new URL('./database-worker.js', import.meta.url))
 const dialect = new GenericSqliteWorkerDialect(
   createNodeWorkerExecutor({
     worker,
-    // Optional extra data.
-    // You can also transport data using `require('node:worker_threads').workerData`
-    // or directly define in worker file
-    data: { fileName: ':memory:' },
+    data: { fileName: 'app.db' },
   }),
-  // optional on created callback
-  (conn) => {
-    await conn.executeQuery(CompiledQuery.raw('PRAGMA optimize'))
-  },
 )
+
+const db = new Kysely<DatabaseSchema>({ dialect })
 ```
 
-in `worker.ts` (Node)
+Worker entry:
 
 ```ts
-import type { Database } from 'better-sqlite3'
-
-import BetterSqlite3Database from 'better-sqlite3'
 import { createNodeOnMessageCallback } from 'kysely-generic-sqlite/worker-helper-node'
 
-createNodeOnMessageCallback<{ fileName: string }>((data) => createSqliteExecutor(data.fileName))
+createNodeOnMessageCallback<{ fileName: string }>(({ fileName }) => createExecutor(fileName))
 ```
 
-### Run SQLs In Web Worker
+The helper handles initialization, request correlation, batched streams,
+cancellation, errors, and orderly shutdown.
 
-To create a dialect that run SQLs in web worker, you can use built-in dialect `GenericSqliteWorkerDialect`:
+## 4. Run in a Web Worker
+
+Main thread:
 
 ```ts
+import { Kysely } from 'kysely'
 import { GenericSqliteWorkerDialect } from 'kysely-generic-sqlite/worker'
 import { createWebWorkerExecutor } from 'kysely-generic-sqlite/worker-helper-web'
 
-const worker = new Worker(new URL('./worker.js', import.meta.url), { type: 'module' })
+const worker = new Worker(new URL('./database-worker.js', import.meta.url), {
+  type: 'module',
+})
 const dialect = new GenericSqliteWorkerDialect(
   createWebWorkerExecutor({
     worker,
-    // Optional extra data.
-    data: { fileName: ':memory:' },
+    data: { fileName: 'app.db' },
   }),
-  // optional on created callback
-  (conn) => {
-    await conn.executeQuery(CompiledQuery.raw('PRAGMA optimize'))
-  },
 )
+
+const db = new Kysely<DatabaseSchema>({ dialect })
 ```
 
-in `worker.ts`
+Worker entry:
 
 ```ts
 import { createWebOnMessageCallback } from 'kysely-generic-sqlite/worker-helper-web'
 
-async function createSqliteExecutor(fileName: string) {
-  // your implemention...
-}
-
-createWebOnMessageCallback<{ fileName: string }>((data) => {
-  const db = createSqliteExecutor(data.fileName)
-
-  // more handle with db instance...
-
-  return db
-})
+createWebOnMessageCallback<{ fileName: string }>(({ fileName }) => createExecutor(fileName))
 ```
 
-### Worker Streams And Custom Requests
+No event emitter is required. Worker streams are pull-based: one batch is in
+flight at a time, and early exit waits for the worker to release its iterator.
 
-Worker streams use pull-based batches, so at most one batch is in flight. The
-built-in helpers cancel and release active iterators when a stream is aborted,
-closed early, or the connection is destroyed.
+## 5. Custom worker requests
 
-For custom worker RPC, pass a `WorkerRequestHandler` to the worker helper and
-capture the `GenericSqliteWorkerConnection` from `onCreateConnection`:
+Register a `WorkerRequestHandler` in the worker and capture the created
+connection on the main thread.
+
+Worker entry:
 
 ```ts
-import {
-  GenericSqliteWorkerConnection,
-  type WorkerRequestHandler,
-} from 'kysely-generic-sqlite/worker'
+import type { WorkerRequestHandler } from 'kysely-generic-sqlite/worker'
+import { createNodeOnMessageCallback } from 'kysely-generic-sqlite/worker-helper-node'
 
-const custom: WorkerRequestHandler = (exec, { type, payload }) => {
-  if (type === 'optimize') return exec.db.pragma('optimize')
+const handleCustomRequest: WorkerRequestHandler<NativeDatabase> = (executor, { type, payload }) => {
+  if (type === 'optimize') {
+    return executor.db.optimize(payload)
+  }
   throw new Error(`Unknown request: ${type}`)
 }
 
-let connection: GenericSqliteWorkerConnection
-const dialect = new GenericSqliteWorkerDialect(createNodeWorkerExecutor({ worker }), (conn) => {
-  connection = conn as GenericSqliteWorkerConnection
-})
-
-await connection.request('optimize', { source: 'ui' })
+createNodeOnMessageCallback(createExecutor, handleCustomRequest)
 ```
 
-### Use Basic Dialect
+Main thread:
+
+```ts
+import type { GenericSqliteWorkerConnection } from 'kysely-generic-sqlite/worker'
+import { GenericSqliteWorkerDialect } from 'kysely-generic-sqlite/worker'
+
+let connection: GenericSqliteWorkerConnection | undefined
+
+const dialect = new GenericSqliteWorkerDialect(
+  createNodeWorkerExecutor({ worker }),
+  (createdConnection) => {
+    connection = createdConnection as GenericSqliteWorkerConnection
+  },
+)
+
+const result = await connection!.request<OptimizeResult>('optimize', {
+  source: 'startup',
+})
+```
+
+Custom requests are serialized with database work. Unknown requests reject with
+an error returned from the worker.
+
+## 6. Build a custom dialect or transport
+
+For a custom Kysely driver, compose the base dialect:
 
 ```ts
 import { BaseSqliteDialect } from 'kysely-generic-sqlite'
@@ -238,7 +251,24 @@ import { BaseSqliteDialect } from 'kysely-generic-sqlite'
 const dialect = new BaseSqliteDialect(() => new YourCustomDriver())
 ```
 
-## Dialects Based On This dialect
+For a custom worker transport, implement
+`IGenericSqliteWorkerExecutor`/`HandleWorkerFn`. Use the exported
+`WorkerRequest` and `WorkerResponse` unions as the wire protocol; the required
+lifecycle and cancellation semantics are documented in
+[MIGRATE_TO_V2.md](./MIGRATE_TO_V2.md#4-worker-api-replace-do-not-patch).
+
+## Public entry points
+
+| Entry point                                | Main exports                                                                                    |
+| ------------------------------------------ | ----------------------------------------------------------------------------------------------- |
+| `kysely-generic-sqlite`                    | Dialects, drivers, executor types, `buildQueryFn`, `defaultIsQuery`, `parseBigInt`, `access`    |
+| `kysely-generic-sqlite/worker`             | Worker dialect/driver/connection, protocol types, generic message callback, error serialization |
+| `kysely-generic-sqlite/worker-helper-node` | Node worker executor and message callback                                                       |
+| `kysely-generic-sqlite/worker-helper-web`  | Web Worker executor and message callback                                                        |
+
+Avoid deep imports from `dist` or `src`; only the entry points above are public.
+
+## Related dialects
 
 - [kysely-dialect-tauri](https://github.com/subframe7536/kysely-sqlite-tools/tree/master/packages/dialect-tauri)
 - [kysely-sqlite-worker](https://github.com/subframe7536/kysely-sqlite-tools/tree/master/packages/dialect-sqlite-worker)

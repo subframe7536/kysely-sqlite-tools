@@ -48,8 +48,7 @@ export type WorkerRequest<T extends Record<string, unknown> = Record<string, unk
       chunkSize: number
     }
   | { type: 'pull'; id: string; streamId: string; chunkSize: number }
-  | { type: 'cancel'; id: string; target: 'query'; queryId: string }
-  | { type: 'cancel'; id: string; target: 'stream'; streamId: string }
+  | { type: 'cancel'; id: string; streamId: string }
   | { type: 'close'; id: string }
   | { type: 'custom'; id: string; name: string; payload: unknown }
 
@@ -60,7 +59,7 @@ export type SerializedWorkerError = {
 }
 
 export type WorkerResponse =
-  | { type: 'ready'; id: string; canCancelQuery: boolean }
+  | { type: 'ready'; id: string }
   | { type: 'result'; id: string; result: QueryResult<unknown> }
   | { type: 'stream'; id: string; rows: unknown[]; done: boolean }
   | { type: 'cancelled'; id: string; error?: SerializedWorkerError }

@@ -1,162 +1,101 @@
-# `kysely-generic-sqlite` v1.2.x → v2 migration guide
+# Migrate `kysely-generic-sqlite` from v1.2.1 to v2
 
-Scope: this document only covers `kysely-generic-sqlite`. It is written for automated migration agents and humans reviewing their changes.
+This guide is a source-level comparison of tag `v1.2.1` with v2. It covers only
+`kysely-generic-sqlite` and is organized so a migration agent can apply and
+verify each change independently.
 
-> [!important]
-> The worker protocol was replaced during the v2 beta. Numeric tuple events,
-> `mitt`, and `MessageHandleFn` no longer exist. Use the exported tagged
-> `WorkerRequest`/`WorkerResponse` types, `WorkerRequestHandler`, and
-> `GenericSqliteWorkerConnection.request()` instead. The built-in Node and Web
-> helpers implement the protocol and should be preferred over manual transport code.
+## Migration procedure
 
-## Agent workflow
+1. Upgrade `kysely` to `>=0.29`.
+2. Migrate the main-thread executor contract.
+3. Migrate worker code, if the project uses it.
+4. Remove all imports of the deleted v1 symbols listed below.
+5. Typecheck and run tests, including writes with `RETURNING`, streaming, early
+   stream exit, worker failure, and shutdown while work is active.
 
-1. Read the repository's package manager files and TypeScript sources.
-2. Apply the rules below in order.
-3. Prefer public package exports over deep imports.
-4. Run the project's existing typecheck and tests.
-5. Do not change package versions unless the migration task explicitly asks for it.
+## Complete compatibility checklist
 
-## Migration checklist
+- [ ] `kysely` satisfies `>=0.29`.
+- [ ] Every `IGenericSqlite.query` accepts required `parameters` and optional `node`.
+- [ ] Every `IGenericSqlite.iterator` accepts required `parameters` and optional `chunkSize`.
+- [ ] `buildQueryFnAlt` is replaced.
+- [ ] Every `buildQueryFn` write path executes the supplied SQL, not `select 1`.
+- [ ] Ambiguous or raw SQL is classified with `isQuery` where necessary.
+- [ ] Executor factories and connection callbacks accept optional operation options when explicitly typed.
+- [ ] Custom drivers no longer rely on `BaseSqliteDriver`'s v1 mutex.
+- [ ] Worker executors no longer provide `mitt`.
+- [ ] Numeric worker messages and v1 event constants are removed.
+- [ ] Custom worker calls use `WorkerRequestHandler` and `connection.request()`.
+- [ ] Custom worker transports subscribe to message, error, and close events and return a disposer.
+- [ ] Worker streams use positive batch sizes and support early cancellation.
 
-- [ ] Set the `kysely` peer dependency range to `>=0.29`.
-- [ ] Remove code that depends on `BaseSqliteDriver` owning a connection mutex.
-- [ ] Update `BaseSqliteDriver.init` overrides/usages to accept optional `AbortableOperationOptions`.
-- [ ] Update `IGenericSqlite.query` implementations to require `parameters` and accept optional Kysely AST `node`.
-- [ ] Update `OnCreateConnection` callbacks to accept the optional `options` argument.
-- [ ] Update executor factories to accept optional `options`.
-- [ ] Update custom worker protocol handlers for `queryId`, `chunkSize`, stream cancellation, and cancellation acknowledgements.
-- [ ] Update custom `MessageHandleFn` callbacks to the v2 positional signature.
-- [ ] Update custom `streamQuery` implementations to accept `chunkSize` and `options`.
-- [ ] Replace ad-hoc lazy value resolution with `access` where useful.
-- [ ] Ensure `run(sql, parameters)` executes the real SQL when using `buildQueryFn`.
+## 1. Dependency and driver lifecycle
 
----
+### Kysely peer version
 
-## Rule 1: Kysely peer dependency is `>=0.29`
-
-### Find
-
-```jsonc
-{ "peerDependencies": { "kysely": ">=0.26" } }
+```diff
+- "kysely": ">=0.26"
++ "kysely": ">=0.29"
 ```
 
-### Replace with
+v2 delegates single-connection serialization to Kysely. The private mutex in
+`BaseSqliteDriver` was removed: `acquireConnection()` returns the single
+connection immediately and `releaseConnection()` is a no-op. Remove subclasses,
+tests, or wrappers that expect `releaseConnection()` to unlock queued work.
 
-```jsonc
-{ "peerDependencies": { "kysely": ">=0.29" } }
-```
-
-### Reason
-
-v2 relies on Kysely's single-connection serialization support instead of the v1 dialect-owned mutex.
-
----
-
-## Rule 2: `BaseSqliteDriver` no longer owns the connection mutex
-
-### Find
-
-- Subclasses overriding `releaseConnection` only to unlock a mutex.
-- Tests or wrappers that call `driver.releaseConnection()` expecting it to unlock queued work.
-- Direct references to the old private `ConnectionMutex` behavior.
-
-### Replace with
+`BaseSqliteDriver.init` now has this shape:
 
 ```ts
-class MyDriver extends BaseSqliteDriver {
-  // acquireConnection() returns the single connection.
-  // releaseConnection() is inherited as a no-op.
-}
+init: (options?: AbortableOperationOptions) => Promise<void>
 ```
 
-### Notes
+Savepoint methods are always installed in v2; they are no longer initialized by
+a dynamic Kysely import. Custom drivers should continue assigning `this.conn`
+during `init` and releasing their resources in `destroy`.
 
-`releaseConnection()` still exists for the Kysely driver contract, but it does not unlock anything in v2.
+## 2. Main-thread executor API
 
----
+### `IGenericSqlite.query`
 
-## Rule 3: `BaseSqliteDriver.init` accepts optional operation options
+```diff
+ query(
+   isSelect: boolean,
+   sql: string,
+-  parameters?: any[] | readonly any[],
++  parameters: any[] | readonly any[],
++  node?: RootOperationNode,
+ ): Promisable<QueryResult<any>>
+```
 
-### v1 shape
+Kysely always supplies `parameters`; use `[]` for direct calls with no bindings.
+The main-thread connection passes the operation node so an executor can identify
+`SELECT` and data-changing statements with `RETURNING`. Worker execution does
+not transfer the AST, so `node` is `undefined` there.
+
+### `IGenericSqlite.iterator`
+
+```diff
+ iterator?(
+   isSelect: boolean,
+   sql: string,
+-  parameters?: any[] | readonly any[],
++  parameters: any[] | readonly any[],
++  chunkSize?: number,
+ ): IterableIterator<unknown> | AsyncIterableIterator<unknown>
+```
+
+Use `chunkSize` as a performance hint when the SQLite client supports batching.
+The main-thread connection stops iteration when its operation signal is aborted.
+
+### Factories and connection callbacks
+
+Replace explicit zero-argument factory types with:
 
 ```ts
-abstract class BaseSqliteDriver {
-  init: () => Promise<void>
-}
+type SqliteExecutorFactory<T> = (options?: AbortableOperationOptions) => Promisable<T>
 ```
 
-### v2 shape
-
-```ts
-abstract class BaseSqliteDriver {
-  init: (options?: AbortableOperationOptions) => Promise<void>
-}
-```
-
-### Migration action
-
-If a subclass, test double, or wrapper types `init`, add the optional argument. Call sites that use `driver.init()` without arguments do not need to change.
-
----
-
-## Rule 4: `IGenericSqlite.query` receives required parameters and optional AST node
-
-### v1 shape
-
-```ts
-interface IGenericSqlite<DB> {
-  query(
-    isSelect: boolean,
-    sql: string,
-    parameters?: any[] | readonly any[],
-  ): Promisable<QueryResult<any>>
-}
-```
-
-### v2 shape
-
-```ts
-interface IGenericSqlite<DB> {
-  query(
-    isSelect: boolean,
-    sql: string,
-    parameters: any[] | readonly any[],
-    node?: RootOperationNode,
-  ): Promisable<QueryResult<any>>
-}
-```
-
-### Migration actions
-
-1. Replace `parameters?` with required `parameters`.
-2. Pass `[]` instead of `undefined` when there are no parameters.
-3. Add the optional `node` argument.
-4. Forward `node` to `buildQueryFn` when using that helper.
-
-```ts
-const executor: IGenericSqlite = {
-  query: (isSelect, sql, parameters, node) => {
-    return buildQueryFn(exec)(isSelect, sql, parameters, node)
-  },
-}
-```
-
-### Reason
-
-The AST node lets v2 detect `RETURNING` reliably without relying only on SQL text or Kysely's `isSelect` flag.
-
----
-
-## Rule 5: `OnCreateConnection` receives operation options
-
-### v1 shape
-
-```ts
-type OnCreateConnection = (connection: DatabaseConnection) => Promisable<void>
-```
-
-### v2 shape
+`OnCreateConnection` also receives the same optional options:
 
 ```ts
 type OnCreateConnection = (
@@ -165,210 +104,175 @@ type OnCreateConnection = (
 ) => Promisable<void>
 ```
 
-### Migration action
+Functions that ignore the new optional argument remain assignable.
 
-Update typed callbacks passed to `GenericSqliteDialect`, `GenericSqliteWorkerDialect`, or `IBaseSqliteDialectConfig.onCreateConnection`.
+## 3. Query routing helpers
+
+### `buildQueryFnAlt` was removed
+
+Replace both v1 helpers with `buildQueryFn`. v2 calls exactly one executor
+method for each statement:
+
+- `all(sql, parameters)` when `isQuery(sql, node)` is true.
+- `run(sql, parameters)` otherwise.
+
+The v1 `buildQueryFn` executed every SQL string through `all`, then called
+`run('select 1')` to fetch write metadata. That workaround is gone. A v2 `run`
+implementation must execute the original `sql` argument and return
+`insertId`/`numAffectedRows`; it may also return `rows`.
 
 ```ts
-const dialect = new GenericSqliteDialect(factory, async (conn, options) => {
-  await conn.executeQuery(CompiledQuery.raw('PRAGMA journal_mode=WAL'), options)
+const query = buildQueryFn({
+  isQuery: (sql, node) => (node ? defaultIsQuery(sql, node) : classifySql(sql)),
+  all: (sql, parameters) => client.all(sql, parameters),
+  run: async (sql, parameters) => {
+    const result = await client.run(sql, parameters)
+    return {
+      insertId: parseBigInt(result.lastInsertRowid),
+      numAffectedRows: parseBigInt(result.changes),
+    }
+  },
 })
 ```
 
-If the callback ignores options, use `_options` or omit a type annotation and let TypeScript infer compatibility.
+The default classifier, exported as `defaultIsQuery`, recognizes Kysely AST
+nodes for `SELECT` and `INSERT`/`UPDATE`/`DELETE ... RETURNING`. With no AST it
+returns `false`. Supply `isQuery` when the executor must support raw `SELECT`,
+`PRAGMA`, `WITH`, vendor-specific statements, or reads inside a worker.
 
----
+The new root export `access(valueOrFactory)` resolves a direct value or a lazy,
+possibly asynchronous factory. It is optional convenience, not a required
+migration.
 
-## Rule 6: Executor factories receive operation options
+## 4. Worker API: replace, do not patch
 
-### v1 shape
+### Removed v1 API
+
+Delete imports and usages of:
+
+- `initEvent`, `runEvent`, `closeEvent`, `dataEvent`, and `endEvent`
+- `InitMsg`, `RunMsg`, `StreamMsg`, `CloseMsg`, `MainToWorkerMsg`, and `WorkerToMainMsg`
+- `IGenericEventEmitter`, `HandleMessageFn`, and `MessageHandleFn`
+- `createNodeMitt`
+- the `mitt` property on `IGenericSqliteWorkerExecutor` and Web worker config
+
+### Replacement API
+
+The public `kysely-generic-sqlite/worker` entry point exports:
+
+- `WorkerRequest` and `WorkerResponse`: the discriminated object protocol.
+- `WorkerHandlers` and `HandleWorkerFn`: transport event wiring.
+- `WorkerRequestHandler`: custom request handling inside the worker.
+- `GenericSqliteWorkerConnection`: execution, streaming, cancellation, and custom requests.
+- `serializeWorkerError` and `deserializeWorkerError`: error transport helpers.
+
+Prefer `createNodeWorkerExecutor`/`createNodeOnMessageCallback` or
+`createWebWorkerExecutor`/`createWebOnMessageCallback`. They implement the
+protocol and worker lifecycle without application-owned event emitters.
+
+### Custom requests
+
+Replace arbitrary event names and positional `data1`...`data3` arguments with a
+named request and one payload:
 
 ```ts
-type Factory = () => Promisable<IGenericSqlite>
+// worker.ts
+import type { WorkerRequestHandler } from 'kysely-generic-sqlite/worker'
+import { createNodeOnMessageCallback } from 'kysely-generic-sqlite/worker-helper-node'
+
+const handleCustomRequest: WorkerRequestHandler<MyDatabase> = (executor, { type, payload }) => {
+  if (type === 'optimize') {
+    return executor.db.pragma('optimize')
+  }
+  throw new Error(`Unknown request: ${type}`)
+}
+
+createNodeOnMessageCallback(createExecutor, handleCustomRequest)
 ```
 
-### v2 shape
-
 ```ts
-type SqliteExecutorFactory<T> = (options?: AbortableOperationOptions) => Promisable<T>
+// main.ts
+import type { GenericSqliteWorkerConnection } from 'kysely-generic-sqlite/worker'
+
+let connection: GenericSqliteWorkerConnection | undefined
+
+const dialect = new GenericSqliteWorkerDialect(
+  createNodeWorkerExecutor({ worker }),
+  (createdConnection) => {
+    connection = createdConnection as GenericSqliteWorkerConnection
+  },
+)
+
+await connection!.request('optimize', { source: 'startup' })
 ```
 
-### Migration action
+The promise returned by `request<T>()` resolves with the handler result and
+rejects with a deserialized worker error.
 
-Update explicit factory type annotations. Factory functions that ignore the parameter remain valid.
+### Custom transports
 
----
-
-## Rule 7: Worker protocol tuples include `queryId`, stream chunk size, and cancellation acknowledgement
-
-This rule only applies to custom worker transports or custom `onmessage` implementations. Code that uses the provided helper functions should not need protocol tuple changes.
-
-### Main-to-worker messages
+`handle` no longer receives one message callback. It receives lifecycle
+handlers and must return an unsubscribe function:
 
 ```ts
-type RunMsg = [
-  type,
-  queryId: string,
-  isSelect: boolean,
-  sql: string,
-  parameters: readonly unknown[],
-]
+const handle: HandleWorkerFn<MyWorker> = (worker, handlers) => {
+  worker.onMessage(handlers.message)
+  worker.onError(handlers.error)
+  worker.onClose(handlers.close)
 
-type StreamMsg = [
-  type,
-  queryId: string,
-  isSelect: boolean,
-  sql: string,
-  parameters: readonly unknown[],
-  chunkSize?: number,
-]
-
-type CancelMsg = [type, queryId: string]
-```
-
-### Worker-to-main stream messages
-
-```ts
-// One raw row per data event.
-type DataMsg<Row> = [type, queryId: string, data: Row, err: null]
-
-type EndMsg = [type, queryId: string, data: null, err: unknown]
-type CancelAckMsg = [type, queryId: string, data: null, err: unknown]
-```
-
-### Migration actions
-
-1. Add `queryId` as the second tuple element for run and stream requests.
-2. Forward `chunkSize` from `StreamMsg` to iterator-capable executors.
-3. Treat `dataEvent` as one raw row, not `QueryResult[]`.
-4. On `CancelMsg`, call `return()` on the active iterator for that `queryId`.
-5. Send the cancellation acknowledgement only after `iterator.return()` has completed.
-6. Suppress the normal stream end message for cancelled streams.
-
-### Reason
-
-The main thread must keep the worker-backed connection promise tied to the real worker execution lifetime. Cancellation acknowledgement prevents local stream cleanup from finishing before the worker has released the underlying SQLite statement.
-
----
-
-## Rule 8: `MessageHandleFn` uses six positional parameters
-
-### v1 shape
-
-```ts
-type MessageHandleFn<DB> = (
-  exec: IGenericSqlite<DB>,
-  type: string,
-  data1: unknown,
-  data2: unknown,
-  data3: unknown,
-) => Promisable<any>
-```
-
-### v2 shape
-
-```ts
-type MessageHandleFn<DB> = (
-  exec: IGenericSqlite<DB>,
-  type: string,
-  data1: unknown,
-  data2: unknown,
-  data3: unknown,
-  data4: unknown,
-) => Promisable<any>
-```
-
-### Migration action
-
-Update custom message handlers to accept the fourth data argument.
-
-```ts
-const handleCustomMessage: MessageHandleFn = async (exec, type, data1, data2, data3, data4) => {
-  return undefined
+  return () => {
+    worker.offMessage(handlers.message)
+    worker.offError(handlers.error)
+    worker.offClose(handlers.close)
+  }
 }
 ```
 
----
+`IGenericWorker.postMessage` now accepts `unknown`, and `terminate` may be
+asynchronous. A transport error or unexpected close rejects every pending
+operation.
 
-## Rule 9: `streamQuery` accepts `chunkSize` and operation options
+### Protocol behavior for manual implementations
 
-### v1 shape
+Only implement the wire protocol manually when the built-in callbacks cannot be
+used. Use the exported union types as the source of truth. Required behavior:
 
-```ts
-async *streamQuery<R>(
-  { parameters, query, sql }: CompiledQuery,
-): AsyncIterableIterator<QueryResult<R>>
+1. Correlate every request and response with `id`.
+2. Reply to `init` with `ready`.
+3. Serialize thrown values into the `error` response.
+4. Serialize worker operations so `close` waits for queued execution.
+5. Stream in pull-based batches using `streamId`, `chunkSize`, and `pull`.
+6. On stream cancellation, call the iterator's `return()` before replying with
+   `cancelled`, even if cleanup throws.
+7. On close, return all active iterators, close the executor, then reply with
+   `closed`.
+
+Worker `streamQuery` requires a positive integer `chunkSize` and yields one
+`QueryResult` per received batch. Early return sends a cancellation request and
+waits for its acknowledgement. This replaces v1's unbounded row push and global
+event listeners, which could not safely correlate concurrent work.
+
+## 5. Public API difference table
+
+| v1.2.1 API or behavior                              | v2 replacement                                     |
+| --------------------------------------------------- | -------------------------------------------------- |
+| `buildQueryFnAlt`                                   | `buildQueryFn` with optional `isQuery`             |
+| `buildQueryFn` probes writes with `run('select 1')` | `run(sql, parameters)` executes the real statement |
+| Optional executor parameters                        | Required parameters; Kysely supplies an array      |
+| No operation node in `query`                        | Optional `RootOperationNode` on the main thread    |
+| Zero-argument factories/callbacks                   | Optional `AbortableOperationOptions`               |
+| Driver-owned connection mutex                       | Kysely single-connection serialization             |
+| Numeric tuple worker protocol                       | `WorkerRequest`/`WorkerResponse` objects           |
+| `mitt`/`IGenericEventEmitter`                       | Internal request map keyed by `id`                 |
+| `MessageHandleFn` positional custom messages        | `WorkerRequestHandler` plus `connection.request()` |
+| Worker pushes an entire stream                      | Pull-based batches and acknowledged cancellation   |
+| Message-only transport hook                         | Message/error/close handlers plus disposer         |
+| Synchronous `terminate(): void` contract            | `terminate(): Promisable<unknown>`                 |
+
+## 6. Verification commands
+
+Run relative tests to validate. Also search for stale v1 symbols:
+
+```sh
+rg 'buildQueryFnAlt|createNodeMitt|IGenericEventEmitter|HandleMessageFn|MessageHandleFn|initEvent|runEvent|dataEvent|endEvent|closeEvent|\bmitt\b'
 ```
-
-### v2 shape
-
-```ts
-async *streamQuery<R>(
-  { parameters, query, sql, queryId }: CompiledQuery,
-  chunkSize?: number,
-  options?: AbortableOperationOptions,
-): AsyncIterableIterator<QueryResult<R>>
-```
-
-### Migration actions
-
-1. Add `queryId` when destructuring the compiled query if your implementation needs stream correlation.
-2. Add `chunkSize?: number`.
-3. Add `options?: AbortableOperationOptions`.
-4. Respect `options.signal` for abort behavior.
-5. For worker-backed streams, use the cancellation acknowledgement protocol from Rule 7.
-
----
-
-## Rule 10: `buildQueryFn` and `buildQueryFnAlt` route queries differently
-
-### `IGenericSqliteExecutor.run` return type
-
-```ts
-interface IGenericSqliteExecutor {
-  run(
-    sql: string,
-    params: readonly unknown[],
-  ): Promisable<Pick<QueryResult<any>, 'insertId' | 'numAffectedRows'> & { rows?: any[] }>
-}
-```
-
-### Migration actions
-
-1. Ensure `run(sql, params)` executes the supplied SQL.
-2. Do not keep v1 implementations that only execute `select 1` for metadata.
-3. If using `buildQueryFn`, forward the AST `node` from `IGenericSqlite.query`.
-4. If using `buildQueryFnAlt`, verify raw SQL `SELECT` statements work when routed through `all`.
-
-### Routing changes
-
-| Helper            | v1 behavior                  | v2 behavior                                       |
-| ----------------- | ---------------------------- | ------------------------------------------------- |
-| `buildQueryFn`    | Mostly `isSelect`-driven     | Uses AST/text detection for read/returning SQL    |
-| `buildQueryFnAlt` | `isSelect`-driven            | Uses `isSelect` plus SQL `select` prefix fallback |
-| write path        | metadata workaround possible | executes the real write SQL                       |
-
----
-
-## Rule 11: Prefer documented public exports
-
-### Public exports added or promoted in v2
-
-| Export                   | Import from                    | Purpose                             |
-| ------------------------ | ------------------------------ | ----------------------------------- |
-| `access`                 | `kysely-generic-sqlite`        | Resolve lazy values to `Promise<T>` |
-| `isReadOrReturningQuery` | `kysely-generic-sqlite`        | Detect read or returning SQL        |
-| `SqliteExecutorFactory`  | `kysely-generic-sqlite`        | Type executor factories             |
-| Worker protocol exports  | `kysely-generic-sqlite/worker` | Build custom worker transports      |
-
-### Migration action
-
-Replace duplicated lazy-resolution code when appropriate:
-
-```ts
-import { access } from 'kysely-generic-sqlite'
-
-const db = await access(config.database)
-```
-
-Avoid deep imports from `dist` or package-internal source files.

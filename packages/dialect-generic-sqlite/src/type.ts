@@ -17,9 +17,16 @@ export type Promisable<T> = T | Promise<T>
 export type SqliteExecutorFactory<T> = (options?: AbortableOperationOptions) => Promisable<T>
 
 /**
- * Minimal executor interface that `buildQueryFn` and `buildQueryFnAlt` require.
+ * Minimal executor interface that `buildQueryFn` requires.
  */
 export interface IGenericSqliteExecutor {
+  /**
+   * Decides whether a Kysely operation returns rows. Raw SQL, PRAGMA and WITH
+   * statements can be classified using `sql`. In a worker dialect, `node` is
+   * always `undefined` because operation nodes are not transferred to workers.
+   */
+  isQuery?: (sql: string, node: RootOperationNode | undefined) => boolean
+
   /**
    * Executes a SQL query and returns all resulting rows.
    * @param sql - The SQL query string to execute.
@@ -60,12 +67,6 @@ export interface IGenericSqlite<DB = unknown> {
    * Closes the database connection.
    */
   close: () => Promisable<any>
-
-  /**
-   * Interrupts the currently executing query when the underlying SQLite
-   * implementation supports it.
-   */
-  cancelQuery?: () => Promisable<void>
 
   /**
    * Basic function for executing SQL queries and get query result
