@@ -28,8 +28,8 @@ in `worker.ts`
 ```ts
 import { createOnMessageCallback, defaultCreateDatabaseFn } from 'kysely-bun-worker'
 
-createOnMessageCallback(async (...args) => {
-  const db = defaultCreateDatabaseFn(...args)
+createOnMessageCallback((fileName, options) => {
+  const db = defaultCreateDatabaseFn(fileName, options)
   db.loadExtension(/* ... */)
   return db
 })
@@ -37,7 +37,7 @@ createOnMessageCallback(async (...args) => {
 
 ### Normal Dialect
 
-In v1.1.0, you can use `BunSqliteDialect` to run SQLs in main thread
+Use `BunSqliteDialect` to run SQL on the main thread.
 
 ```ts
 import { BunSqliteDialect } from 'kysely-bun-worker/normal'

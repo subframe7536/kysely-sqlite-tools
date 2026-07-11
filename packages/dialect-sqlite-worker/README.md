@@ -28,15 +28,16 @@ in `worker.ts`
 import { createOnMessageCallback, defaultCreateDatabaseFn } from 'kysely-sqlite-worker'
 
 createOnMessageCallback(
-  async (...args) => {
-    const db = defaultCreateDatabaseFn(...args)
+  (fileName, options) => {
+    const db = defaultCreateDatabaseFn(fileName, options)
     db.loadExtension(/* ... */)
     return db
   },
-  ([type, exec, data1, data2, data3]) => {
+  (executor, { type, payload }) => {
     if (type === 'export') {
-      return exec.db.export()
+      return executor.db.export()
     }
+    throw new Error(`Unknown worker request: ${type}`)
   },
 )
 ```
@@ -52,10 +53,17 @@ export type SqliteWorkerDialectConfig = {
   /**
    * better-sqlite3 initiate option
    */
-  option?: Options
-  onCreateConnection?: (connection: DatabaseConnection) => Promisable<void>
+  dbOption?: Options
+  workerPath?: string
+  onCreateConnection?: (
+    connection: DatabaseConnection,
+    options?: AbortableOperationOptions,
+  ) => Promisable<void>
 }
 ```
+
+Custom worker requests use `connection.request(type, payload)` from the main
+thread. They are serialized with SQL execution.
 
 ## Notice
 

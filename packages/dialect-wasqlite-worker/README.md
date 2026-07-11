@@ -34,15 +34,16 @@ import { customFunctionCore, exportDatabase } from '@subframe7536/sqlite-wasm'
 import { createOnMessageCallback, defaultCreateDatabaseFn } from 'kysely-wasqlite-worker'
 
 createOnMessageCallback(
-  async (...args) => {
-    const sqliteDB = await defaultCreateDatabaseFn(...args)
+  async (init) => {
+    const sqliteDB = await defaultCreateDatabaseFn(init)
     customFunctionCore(sqliteDB, 'myFunction', (a, b) => a + b)
     return sqliteDB
   },
-  ([type, exec, data1, data2, data3]) => {
+  (executor, { type, payload }) => {
     if (type === 'export') {
-      return exportDatabase(exec.db)
+      return exportDatabase(executor.db)
     }
+    throw new Error(`Unknown worker request: ${type}`)
   },
 )
 ```
@@ -88,14 +89,15 @@ export interface WaSqliteWorkerDialectConfig {
    *   : new URL(`@subframe7536/sqlite-wasm/dist/wa-sqlite.wasm`, import.meta.url).href
    */
   url?: string | ((useAsyncWasm: boolean) => string)
-  /**
-   * Handle custom messages for event emitter
-   * @param mitt event emitter
-   */
-  message?: (mitt: IGenericEventEmitter) => Promisable<void>
-  onCreateConnection?: (connection: DatabaseConnection) => Promisable<void>
+  onCreateConnection?: (
+    connection: DatabaseConnection,
+    options?: AbortableOperationOptions,
+  ) => Promisable<void>
 }
 ```
+
+Custom worker requests use `connection.request(type, payload)` from the main
+thread. They are serialized with SQL execution.
 
 see more in [playground](../../playground/src/modules/wasqliteWorker.ts)
 

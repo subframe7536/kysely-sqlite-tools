@@ -32,15 +32,16 @@ export const defaultCreateDatabaseFn: CreateDatabaseFn = (fileName, options) =>
  * import { createOnMessageCallback, defaultCreateDatabaseFn } from 'kysely-sqlite-worker'
  *
  * createOnMessageCallback(
- *   async (...args) => {
- *     const db = defaultCreateDatabaseFn(...args)
+ *   (fileName, options) => {
+ *     const db = defaultCreateDatabaseFn(fileName, options)
  *     db.loadExtension(...)
  *     return db
  *   },
- *   ([type, exec, data1, data2, data3]) => {
+ *   (executor, { type, payload }) => {
  *     if (type === 'export') {
- *       return exec.db.export()
+ *       return executor.db.export()
  *     }
+ *     throw new Error(`Unknown worker request: ${type}`)
  *   },
  * )
  * ```

@@ -84,15 +84,16 @@ async function prepareStatement(
  * import { createOnMessageCallback, defaultCreateDatabaseFn } from 'kysely-wasqlite-worker'
  *
  * createOnMessageCallback(
- *   async (...args) => {
- *     const sqliteDB = await defaultCreateDatabaseFn(...args)
+ *   async (init) => {
+ *     const sqliteDB = await defaultCreateDatabaseFn(init)
  *     customFunctionCore(sqliteDB, 'customFunction', (a, b) => a + b)
  *     return sqliteDB
  *   },
- *   ([type, exec, data1, data2, data3]) => {
+ *   (executor, { type, payload }) => {
  *     if (type === 'export') {
- *       return exportDatabase(exec.db)
+ *       return exportDatabase(executor.db)
  *     }
+ *     throw new Error(`Unknown worker request: ${type}`)
  *   }
  * )
  * ```
