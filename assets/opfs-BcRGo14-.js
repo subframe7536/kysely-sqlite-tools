@@ -1,6 +1,6 @@
-import { _ as _assertClassBrand, a as SQLITE_IOERR_ACCESS, c as SQLITE_IOERR_DELETE, f as SQLITE_IOERR_TRUNCATE, l as SQLITE_IOERR_FSTAT, n as FacadeVFS, s as SQLITE_IOERR_CLOSE, t as Module, u as SQLITE_IOERR_FSYNC, v as _classPrivateMethodInitSpec, y as _defineProperty } from "./worker-Bn65awoT.js";
-//#region ../node_modules/.pnpm/@subframe7536+sqlite-wasm@1.3.0/node_modules/@subframe7536/sqlite-wasm/dist/opfs.js
-var _OPFSCoopSyncVFS_brand;
+import { _ as _assertClassBrand, a as SQLITE_IOERR_ACCESS, c as SQLITE_IOERR_DELETE, f as SQLITE_IOERR_TRUNCATE, l as SQLITE_IOERR_FSTAT, n as FacadeVFS, s as SQLITE_IOERR_CLOSE, t as Module, u as SQLITE_IOERR_FSYNC, v as _classPrivateMethodInitSpec, y as _defineProperty } from "./worker-CN5bCYsx.js";
+//#region ../node_modules/.pnpm/@subframe7536+sqlite-wasm@1.3.1/node_modules/@subframe7536/sqlite-wasm/dist/opfs.js
+var _OPFSCoopSyncVFS$1_brand;
 const DEFAULT_TEMPORARY_FILES = 10;
 const LOCK_NOTIFY_INTERVAL = 1e3;
 const DB_RELATED_FILE_SUFFIXES = [
@@ -92,15 +92,15 @@ var PersistentFile = class {
 		this.fileHandle = fileHandle;
 	}
 };
-var OPFSCoopSyncVFS = (_OPFSCoopSyncVFS_brand = /* @__PURE__ */ new WeakSet(), class OPFSCoopSyncVFS extends FacadeVFS {
+var OPFSCoopSyncVFS$1 = (_OPFSCoopSyncVFS$1_brand = /* @__PURE__ */ new WeakSet(), class OPFSCoopSyncVFS$1 extends FacadeVFS {
 	static async create(name, module) {
-		const vfs = new OPFSCoopSyncVFS(name, module);
-		await Promise.all([vfs.isReady(), _assertClassBrand(_OPFSCoopSyncVFS_brand, vfs, _initialize).call(vfs, DEFAULT_TEMPORARY_FILES)]);
+		const vfs = new OPFSCoopSyncVFS$1(name, module);
+		await Promise.all([vfs.isReady(), _assertClassBrand(_OPFSCoopSyncVFS$1_brand, vfs, _initialize).call(vfs, DEFAULT_TEMPORARY_FILES)]);
 		return vfs;
 	}
 	constructor(name, module) {
 		super(name, module);
-		_classPrivateMethodInitSpec(this, _OPFSCoopSyncVFS_brand);
+		_classPrivateMethodInitSpec(this, _OPFSCoopSyncVFS$1_brand);
 		_defineProperty(
 			this,
 			/** @type {Map<number, File>} */
@@ -159,11 +159,11 @@ var OPFSCoopSyncVFS = (_OPFSCoopSyncVFS_brand = /* @__PURE__ */ new WeakSet(), c
 							for (const directory of directories) dirHandle = await dirHandle.getDirectoryHandle(directory, { create });
 							for (const suffix of DB_RELATED_FILE_SUFFIXES) {
 								const fileHandle = await dirHandle.getFileHandle(filename + suffix, { create });
-								await _assertClassBrand(_OPFSCoopSyncVFS_brand, this, _createPersistentFile).call(this, fileHandle);
+								await _assertClassBrand(_OPFSCoopSyncVFS$1_brand, this, _createPersistentFile).call(this, fileHandle);
 							}
 							const file = new File(path, flags);
 							file.persistentFile = this.persistentFiles.get(path);
-							await _assertClassBrand(_OPFSCoopSyncVFS_brand, this, _requestAccessHandle).call(this, file);
+							await _assertClassBrand(_OPFSCoopSyncVFS$1_brand, this, _requestAccessHandle).call(this, file);
 						} catch (e) {
 							const persistentFile = new PersistentFile(null);
 							this.persistentFiles.set(path, persistentFile);
@@ -178,7 +178,7 @@ var OPFSCoopSyncVFS = (_OPFSCoopSyncVFS_brand = /* @__PURE__ */ new WeakSet(), c
 					this._module.retryOps.push((async () => {
 						const file = new File(path, flags);
 						file.persistentFile = this.persistentFiles.get(path);
-						await _assertClassBrand(_OPFSCoopSyncVFS_brand, this, _requestAccessHandle).call(this, file);
+						await _assertClassBrand(_OPFSCoopSyncVFS$1_brand, this, _requestAccessHandle).call(this, file);
 					})());
 					return 5;
 				}
@@ -244,7 +244,7 @@ var OPFSCoopSyncVFS = (_OPFSCoopSyncVFS_brand = /* @__PURE__ */ new WeakSet(), c
 			const file = this.mapIdToFile.get(fileId);
 			this.mapIdToFile.delete(fileId);
 			if (file?.flags & 256) {
-				if (file.persistentFile?.handleLockReleaser) _assertClassBrand(_OPFSCoopSyncVFS_brand, this, _releaseAccessHandle).call(this, file);
+				if (file.persistentFile?.handleLockReleaser) _assertClassBrand(_OPFSCoopSyncVFS$1_brand, this, _releaseAccessHandle).call(this, file);
 			} else if (file?.flags & 8) {
 				file.accessHandle.truncate(0);
 				this.accessiblePaths.delete(file.path);
@@ -269,7 +269,7 @@ var OPFSCoopSyncVFS = (_OPFSCoopSyncVFS_brand = /* @__PURE__ */ new WeakSet(), c
 		try {
 			const file = this.mapIdToFile.get(fileId);
 			const bytesRead = (file.accessHandle || file.persistentFile.accessHandle).read(pData.subarray(), { at: iOffset });
-			if (file.flags & 256 && !file.persistentFile.isFileLocked) _assertClassBrand(_OPFSCoopSyncVFS_brand, this, _releaseAccessHandle).call(this, file);
+			if (file.flags & 256 && !file.persistentFile.isFileLocked) _assertClassBrand(_OPFSCoopSyncVFS$1_brand, this, _releaseAccessHandle).call(this, file);
 			if (bytesRead < pData.byteLength) {
 				pData.fill(0, bytesRead);
 				return 522;
@@ -358,10 +358,10 @@ var OPFSCoopSyncVFS = (_OPFSCoopSyncVFS_brand = /* @__PURE__ */ new WeakSet(), c
 			file.persistentFile.handleRequestChannel.onmessage = () => {
 				this.log?.(`received notification for ${file.path}`);
 				if (file.persistentFile.isFileLocked) file.persistentFile.isHandleRequested = true;
-				else _assertClassBrand(_OPFSCoopSyncVFS_brand, this, _releaseAccessHandle).call(this, file);
+				else _assertClassBrand(_OPFSCoopSyncVFS$1_brand, this, _releaseAccessHandle).call(this, file);
 				file.persistentFile.handleRequestChannel.onmessage = null;
 			};
-			_assertClassBrand(_OPFSCoopSyncVFS_brand, this, _requestAccessHandle).call(this, file);
+			_assertClassBrand(_OPFSCoopSyncVFS$1_brand, this, _requestAccessHandle).call(this, file);
 			this.log?.("returning SQLITE_BUSY");
 			file.persistentFile.isLockBusy = true;
 			return 5;
@@ -379,7 +379,7 @@ var OPFSCoopSyncVFS = (_OPFSCoopSyncVFS_brand = /* @__PURE__ */ new WeakSet(), c
 		if (lockType === 0) {
 			if (!file.persistentFile.isLockBusy) {
 				if (file.persistentFile.isHandleRequested) {
-					_assertClassBrand(_OPFSCoopSyncVFS_brand, this, _releaseAccessHandle).call(this, file);
+					_assertClassBrand(_OPFSCoopSyncVFS$1_brand, this, _releaseAccessHandle).call(this, file);
 					file.persistentFile.isHandleRequested = false;
 				}
 				file.persistentFile.isFileLocked = false;
@@ -476,7 +476,7 @@ function _requestAccessHandle(file) {
 	if (!file.persistentFile.isRequestInProgress) {
 		file.persistentFile.isRequestInProgress = true;
 		this._module.retryOps.push((async () => {
-			file.persistentFile.handleLockReleaser = await _assertClassBrand(_OPFSCoopSyncVFS_brand, this, _acquireLock).call(this, file.persistentFile);
+			file.persistentFile.handleLockReleaser = await _assertClassBrand(_OPFSCoopSyncVFS$1_brand, this, _acquireLock).call(this, file.persistentFile);
 			try {
 				this.log?.(`creating access handles for ${file.path}`);
 				await Promise.all(DB_RELATED_FILE_SUFFIXES.map(async (suffix) => {
@@ -485,7 +485,7 @@ function _requestAccessHandle(file) {
 				}));
 			} catch (e) {
 				this.log?.(`failed to create access handles for ${file.path}`, e);
-				_assertClassBrand(_OPFSCoopSyncVFS_brand, this, _releaseAccessHandle).call(this, file);
+				_assertClassBrand(_OPFSCoopSyncVFS$1_brand, this, _releaseAccessHandle).call(this, file);
 				throw e;
 			} finally {
 				file.persistentFile.isRequestInProgress = false;
@@ -540,6 +540,7 @@ function extractString(dataView, offset) {
 	}
 	return null;
 }
+const OPFSCoopSyncVFS = OPFSCoopSyncVFS$1;
 /**
 * Store data in [OPFS](https://developer.mozilla.org/en-US/docs/Web/API/File_System_API/Origin_private_file_system) through [FileSystemSyncAccessHandle](https://developer.mozilla.org/en-US/docs/Web/API/FileSystemSyncAccessHandle),
 * use `OPFSCoopSyncVFS` with `wa-sqlite.wasm`, smaller and faster than all other persist storages

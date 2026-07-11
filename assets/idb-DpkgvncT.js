@@ -1,864 +1,5 @@
-//#region \0@oxc-project+runtime@0.137.0/helpers/esm/typeof.js
-function _typeof(o) {
-	"@babel/helpers - typeof";
-	return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function(o) {
-		return typeof o;
-	} : function(o) {
-		return o && "function" == typeof Symbol && o.constructor === Symbol && o !== Symbol.prototype ? "symbol" : typeof o;
-	}, _typeof(o);
-}
-//#endregion
-//#region \0@oxc-project+runtime@0.137.0/helpers/esm/toPrimitive.js
-function toPrimitive(t, r) {
-	if ("object" != _typeof(t) || !t) return t;
-	var e = t[Symbol.toPrimitive];
-	if (void 0 !== e) {
-		var i = e.call(t, r || "default");
-		if ("object" != _typeof(i)) return i;
-		throw new TypeError("@@toPrimitive must return a primitive value.");
-	}
-	return ("string" === r ? String : Number)(t);
-}
-//#endregion
-//#region \0@oxc-project+runtime@0.137.0/helpers/esm/toPropertyKey.js
-function toPropertyKey(t) {
-	var i = toPrimitive(t, "string");
-	return "symbol" == _typeof(i) ? i : i + "";
-}
-//#endregion
-//#region \0@oxc-project+runtime@0.137.0/helpers/esm/defineProperty.js
-function _defineProperty(e, r, t) {
-	return (r = toPropertyKey(r)) in e ? Object.defineProperty(e, r, {
-		value: t,
-		enumerable: !0,
-		configurable: !0,
-		writable: !0
-	}) : e[r] = t, e;
-}
-//#endregion
-//#region \0@oxc-project+runtime@0.137.0/helpers/esm/checkPrivateRedeclaration.js
-function _checkPrivateRedeclaration(e, t) {
-	if (t.has(e)) throw new TypeError("Cannot initialize the same private elements twice on an object");
-}
-//#endregion
-//#region \0@oxc-project+runtime@0.137.0/helpers/esm/classPrivateMethodInitSpec.js
-function _classPrivateMethodInitSpec(e, a) {
-	_checkPrivateRedeclaration(e, a), a.add(e);
-}
-//#endregion
-//#region \0@oxc-project+runtime@0.137.0/helpers/esm/assertClassBrand.js
-function _assertClassBrand(e, t, n) {
-	if ("function" == typeof e ? e === t : e.has(t)) return arguments.length < 3 ? t : n;
-	throw new TypeError("Private element is not present on this object");
-}
-//#endregion
-//#region \0@oxc-project+runtime@0.137.0/helpers/esm/classPrivateFieldInitSpec.js
-function _classPrivateFieldInitSpec(e, t, a) {
-	_checkPrivateRedeclaration(e, t), t.set(e, a);
-}
-//#endregion
-//#region \0@oxc-project+runtime@0.137.0/helpers/esm/classPrivateFieldGet2.js
-function _classPrivateFieldGet2(s, a) {
-	return s.get(_assertClassBrand(s, a));
-}
-//#endregion
-//#region \0@oxc-project+runtime@0.137.0/helpers/esm/classPrivateFieldSet2.js
-function _classPrivateFieldSet2(s, a, r) {
-	return s.set(_assertClassBrand(s, a), r), r;
-}
-//#endregion
-//#region ../node_modules/.pnpm/@subframe7536+sqlite-wasm@1.3.0/node_modules/@subframe7536/sqlite-wasm/dist/FacadeVFS-XQtZprLW.js
-var _Class_brand, _module, _array, _Class_brand2, _module2, _type, _view, _Class_brand3;
-let _Symbol$iterator;
-const SQLITE_IOERR_ACCESS = 3338;
-const SQLITE_IOERR_CHECKRESERVEDLOCK = 3594;
-const SQLITE_IOERR_CLOSE = 4106;
-const SQLITE_IOERR_DELETE = 2570;
-const SQLITE_IOERR_FSTAT = 1802;
-const SQLITE_IOERR_FSYNC = 1034;
-const SQLITE_IOERR_LOCK = 3850;
-const SQLITE_IOERR_TRUNCATE = 1546;
-const SQLITE_IOERR_UNLOCK = 2058;
-const SQLITE_OPEN_TRANSIENT_DB = 1024;
-const SQLITE_OPEN_MAIN_JOURNAL = 2048;
-const SQLITE_OPEN_TEMP_JOURNAL = 4096;
-const SQLITE_OPEN_SUBJOURNAL = 8192;
-const SQLITE_OPEN_SUPER_JOURNAL = 16384;
-const SQLITE_OPEN_WAL = 524288;
-const SQLITE_IOCAP_UNDELETABLE_WHEN_OPEN = 2048;
-const SQLITE_IOCAP_BATCH_ATOMIC = 16384;
-const DEFAULT_SECTOR_SIZE = 512;
-var Base = class {
-	/**
-	* @param {string} name 
-	* @param {object} module 
-	*/
-	constructor(name, module) {
-		_defineProperty(this, "name", void 0);
-		_defineProperty(this, "mxPathname", 64);
-		_defineProperty(this, "_module", void 0);
-		this.name = name;
-		this._module = module;
-	}
-	/**
-	* @returns {void|Promise<void>} 
-	*/
-	close() {}
-	/**
-	* @returns {boolean|Promise<boolean>}
-	*/
-	isReady() {
-		return true;
-	}
-	/**
-	* Overload in subclasses to indicate which methods are asynchronous.
-	* @param {string} methodName 
-	* @returns {boolean}
-	*/
-	hasAsyncMethod(methodName) {
-		return false;
-	}
-	/**
-	* @param {number} pVfs 
-	* @param {number} zName 
-	* @param {number} pFile 
-	* @param {number} flags 
-	* @param {number} pOutFlags 
-	* @returns {number|Promise<number>}
-	*/
-	xOpen(pVfs, zName, pFile, flags, pOutFlags) {
-		return 14;
-	}
-	/**
-	* @param {number} pVfs 
-	* @param {number} zName 
-	* @param {number} syncDir 
-	* @returns {number|Promise<number>}
-	*/
-	xDelete(pVfs, zName, syncDir) {
-		return 0;
-	}
-	/**
-	* @param {number} pVfs 
-	* @param {number} zName 
-	* @param {number} flags 
-	* @param {number} pResOut 
-	* @returns {number|Promise<number>}
-	*/
-	xAccess(pVfs, zName, flags, pResOut) {
-		return 0;
-	}
-	/**
-	* @param {number} pVfs 
-	* @param {number} zName 
-	* @param {number} nOut 
-	* @param {number} zOut 
-	* @returns {number|Promise<number>}
-	*/
-	xFullPathname(pVfs, zName, nOut, zOut) {
-		return 0;
-	}
-	/**
-	* @param {number} pVfs 
-	* @param {number} nBuf 
-	* @param {number} zBuf 
-	* @returns {number|Promise<number>}
-	*/
-	xGetLastError(pVfs, nBuf, zBuf) {
-		return 0;
-	}
-	/**
-	* @param {number} pFile 
-	* @returns {number|Promise<number>}
-	*/
-	xClose(pFile) {
-		return 0;
-	}
-	/**
-	* @param {number} pFile 
-	* @param {number} pData 
-	* @param {number} iAmt 
-	* @param {number} iOffsetLo 
-	* @param {number} iOffsetHi 
-	* @returns {number|Promise<number>}
-	*/
-	xRead(pFile, pData, iAmt, iOffsetLo, iOffsetHi) {
-		return 0;
-	}
-	/**
-	* @param {number} pFile 
-	* @param {number} pData 
-	* @param {number} iAmt 
-	* @param {number} iOffsetLo 
-	* @param {number} iOffsetHi 
-	* @returns {number|Promise<number>}
-	*/
-	xWrite(pFile, pData, iAmt, iOffsetLo, iOffsetHi) {
-		return 0;
-	}
-	/**
-	* @param {number} pFile 
-	* @param {number} sizeLo 
-	* @param {number} sizeHi 
-	* @returns {number|Promise<number>}
-	*/
-	xTruncate(pFile, sizeLo, sizeHi) {
-		return 0;
-	}
-	/**
-	* @param {number} pFile 
-	* @param {number} flags 
-	* @returns {number|Promise<number>}
-	*/
-	xSync(pFile, flags) {
-		return 0;
-	}
-	/**
-	* 
-	* @param {number} pFile 
-	* @param {number} pSize 
-	* @returns {number|Promise<number>}
-	*/
-	xFileSize(pFile, pSize) {
-		return 0;
-	}
-	/**
-	* @param {number} pFile 
-	* @param {number} lockType 
-	* @returns {number|Promise<number>}
-	*/
-	xLock(pFile, lockType) {
-		return 0;
-	}
-	/**
-	* @param {number} pFile 
-	* @param {number} lockType 
-	* @returns {number|Promise<number>}
-	*/
-	xUnlock(pFile, lockType) {
-		return 0;
-	}
-	/**
-	* @param {number} pFile 
-	* @param {number} pResOut 
-	* @returns {number|Promise<number>}
-	*/
-	xCheckReservedLock(pFile, pResOut) {
-		return 0;
-	}
-	/**
-	* @param {number} pFile 
-	* @param {number} op 
-	* @param {number} pArg 
-	* @returns {number|Promise<number>}
-	*/
-	xFileControl(pFile, op, pArg) {
-		return 12;
-	}
-	/**
-	* @param {number} pFile 
-	* @returns {number|Promise<number>}
-	*/
-	xSectorSize(pFile) {
-		return DEFAULT_SECTOR_SIZE;
-	}
-	/**
-	* @param {number} pFile 
-	* @returns {number|Promise<number>}
-	*/
-	xDeviceCharacteristics(pFile) {
-		return 0;
-	}
-};
-[
-	256,
-	SQLITE_OPEN_MAIN_JOURNAL,
-	512,
-	SQLITE_OPEN_TEMP_JOURNAL,
-	SQLITE_OPEN_TRANSIENT_DB,
-	SQLITE_OPEN_SUBJOURNAL,
-	SQLITE_OPEN_SUPER_JOURNAL,
-	SQLITE_OPEN_WAL
-].reduce((mask, element) => mask | element);
-const AsyncFunction$1 = Object.getPrototypeOf(async function() {}).constructor;
-var FacadeVFS = (_Class_brand = /* @__PURE__ */ new WeakSet(), class extends Base {
-	/**
-	* @param {string} name 
-	* @param {object} module 
-	*/
-	constructor(name, module) {
-		super(name, module);
-		_classPrivateMethodInitSpec(this, _Class_brand);
-	}
-	/**
-	* Override to indicate which methods are asynchronous.
-	* @param {string} methodName 
-	* @returns {boolean}
-	*/
-	hasAsyncMethod(methodName) {
-		const jMethodName = `j${methodName.slice(1)}`;
-		return this[jMethodName] instanceof AsyncFunction$1;
-	}
-	/**
-	* Return the filename for a file id for use by mixins.
-	* @param {number} pFile 
-	* @returns {string}
-	*/
-	getFilename(pFile) {
-		throw new Error("unimplemented");
-	}
-	/**
-	* @param {string?} filename 
-	* @param {number} pFile 
-	* @param {number} flags 
-	* @param {DataView} pOutFlags 
-	* @returns {number|Promise<number>}
-	*/
-	jOpen(filename, pFile, flags, pOutFlags) {
-		return 14;
-	}
-	/**
-	* @param {string} filename 
-	* @param {number} syncDir 
-	* @returns {number|Promise<number>}
-	*/
-	jDelete(filename, syncDir) {
-		return 0;
-	}
-	/**
-	* @param {string} filename 
-	* @param {number} flags 
-	* @param {DataView} pResOut 
-	* @returns {number|Promise<number>}
-	*/
-	jAccess(filename, flags, pResOut) {
-		return 0;
-	}
-	/**
-	* @param {string} filename 
-	* @param {Uint8Array} zOut 
-	* @returns {number|Promise<number>}
-	*/
-	jFullPathname(filename, zOut) {
-		const { read, written } = new TextEncoder().encodeInto(filename, zOut);
-		if (read < filename.length) return 10;
-		if (written >= zOut.length) return 10;
-		zOut[written] = 0;
-		return 0;
-	}
-	/**
-	* @param {Uint8Array} zBuf 
-	* @returns {number|Promise<number>}
-	*/
-	jGetLastError(zBuf) {
-		return 0;
-	}
-	/**
-	* @param {number} pFile 
-	* @returns {number|Promise<number>}
-	*/
-	jClose(pFile) {
-		return 0;
-	}
-	/**
-	* @param {number} pFile 
-	* @param {Uint8Array} pData 
-	* @param {number} iOffset 
-	* @returns {number|Promise<number>}
-	*/
-	jRead(pFile, pData, iOffset) {
-		pData.fill(0);
-		return 522;
-	}
-	/**
-	* @param {number} pFile 
-	* @param {Uint8Array} pData 
-	* @param {number} iOffset 
-	* @returns {number|Promise<number>}
-	*/
-	jWrite(pFile, pData, iOffset) {
-		return 778;
-	}
-	/**
-	* @param {number} pFile 
-	* @param {number} size 
-	* @returns {number|Promise<number>}
-	*/
-	jTruncate(pFile, size) {
-		return 0;
-	}
-	/**
-	* @param {number} pFile 
-	* @param {number} flags 
-	* @returns {number|Promise<number>}
-	*/
-	jSync(pFile, flags) {
-		return 0;
-	}
-	/**
-	* @param {number} pFile 
-	* @param {DataView} pSize
-	* @returns {number|Promise<number>}
-	*/
-	jFileSize(pFile, pSize) {
-		return 0;
-	}
-	/**
-	* @param {number} pFile 
-	* @param {number} lockType 
-	* @returns {number|Promise<number>}
-	*/
-	jLock(pFile, lockType) {
-		return 0;
-	}
-	/**
-	* @param {number} pFile 
-	* @param {number} lockType 
-	* @returns {number|Promise<number>}
-	*/
-	jUnlock(pFile, lockType) {
-		return 0;
-	}
-	/**
-	* @param {number} pFile 
-	* @param {DataView} pResOut 
-	* @returns {number|Promise<number>}
-	*/
-	jCheckReservedLock(pFile, pResOut) {
-		pResOut.setInt32(0, 0, true);
-		return 0;
-	}
-	/**
-	* @param {number} pFile
-	* @param {number} op
-	* @param {DataView} pArg
-	* @returns {number|Promise<number>}
-	*/
-	jFileControl(pFile, op, pArg) {
-		return 12;
-	}
-	/**
-	* @param {number} pFile
-	* @returns {number|Promise<number>}
-	*/
-	jSectorSize(pFile) {
-		return super.xSectorSize(pFile);
-	}
-	/**
-	* @param {number} pFile
-	* @returns {number|Promise<number>}
-	*/
-	jDeviceCharacteristics(pFile) {
-		return 0;
-	}
-	/**
-	* @param {number} pVfs 
-	* @param {number} zName 
-	* @param {number} pFile 
-	* @param {number} flags 
-	* @param {number} pOutFlags 
-	* @returns {number|Promise<number>}
-	*/
-	xOpen(pVfs, zName, pFile, flags, pOutFlags) {
-		const filename = _assertClassBrand(_Class_brand, this, _decodeFilename).call(this, zName, flags);
-		const pOutFlagsView = _assertClassBrand(_Class_brand, this, _makeTypedDataView).call(this, "Int32", pOutFlags);
-		this["log"]?.("jOpen", filename, pFile, "0x" + flags.toString(16));
-		return this.jOpen(filename, pFile, flags, pOutFlagsView);
-	}
-	/**
-	* @param {number} pVfs 
-	* @param {number} zName 
-	* @param {number} syncDir 
-	* @returns {number|Promise<number>}
-	*/
-	xDelete(pVfs, zName, syncDir) {
-		const filename = this._module.UTF8ToString(zName);
-		this["log"]?.("jDelete", filename, syncDir);
-		return this.jDelete(filename, syncDir);
-	}
-	/**
-	* @param {number} pVfs 
-	* @param {number} zName 
-	* @param {number} flags 
-	* @param {number} pResOut 
-	* @returns {number|Promise<number>}
-	*/
-	xAccess(pVfs, zName, flags, pResOut) {
-		const filename = this._module.UTF8ToString(zName);
-		const pResOutView = _assertClassBrand(_Class_brand, this, _makeTypedDataView).call(this, "Int32", pResOut);
-		this["log"]?.("jAccess", filename, flags);
-		return this.jAccess(filename, flags, pResOutView);
-	}
-	/**
-	* @param {number} pVfs 
-	* @param {number} zName 
-	* @param {number} nOut 
-	* @param {number} zOut 
-	* @returns {number|Promise<number>}
-	*/
-	xFullPathname(pVfs, zName, nOut, zOut) {
-		const filename = this._module.UTF8ToString(zName);
-		const zOutArray = this._module.HEAPU8.subarray(zOut, zOut + nOut);
-		this["log"]?.("jFullPathname", filename, nOut);
-		return this.jFullPathname(filename, zOutArray);
-	}
-	/**
-	* @param {number} pVfs 
-	* @param {number} nBuf 
-	* @param {number} zBuf 
-	* @returns {number|Promise<number>}
-	*/
-	xGetLastError(pVfs, nBuf, zBuf) {
-		const zBufArray = this._module.HEAPU8.subarray(zBuf, zBuf + nBuf);
-		this["log"]?.("jGetLastError", nBuf);
-		return this.jGetLastError(zBufArray);
-	}
-	/**
-	* @param {number} pFile 
-	* @returns {number|Promise<number>}
-	*/
-	xClose(pFile) {
-		this["log"]?.("jClose", pFile);
-		return this.jClose(pFile);
-	}
-	/**
-	* @param {number} pFile 
-	* @param {number} pData 
-	* @param {number} iAmt 
-	* @param {number} iOffsetLo 
-	* @param {number} iOffsetHi 
-	* @returns {number|Promise<number>}
-	*/
-	xRead(pFile, pData, iAmt, iOffsetLo, iOffsetHi) {
-		const pDataArray = _assertClassBrand(_Class_brand, this, _makeDataArray).call(this, pData, iAmt);
-		const iOffset = delegalize(iOffsetLo, iOffsetHi);
-		this["log"]?.("jRead", pFile, iAmt, iOffset);
-		return this.jRead(pFile, pDataArray, iOffset);
-	}
-	/**
-	* @param {number} pFile 
-	* @param {number} pData 
-	* @param {number} iAmt 
-	* @param {number} iOffsetLo 
-	* @param {number} iOffsetHi 
-	* @returns {number|Promise<number>}
-	*/
-	xWrite(pFile, pData, iAmt, iOffsetLo, iOffsetHi) {
-		const pDataArray = _assertClassBrand(_Class_brand, this, _makeDataArray).call(this, pData, iAmt);
-		const iOffset = delegalize(iOffsetLo, iOffsetHi);
-		this["log"]?.("jWrite", pFile, pDataArray, iOffset);
-		return this.jWrite(pFile, pDataArray, iOffset);
-	}
-	/**
-	* @param {number} pFile 
-	* @param {number} sizeLo 
-	* @param {number} sizeHi 
-	* @returns {number|Promise<number>}
-	*/
-	xTruncate(pFile, sizeLo, sizeHi) {
-		const size = delegalize(sizeLo, sizeHi);
-		this["log"]?.("jTruncate", pFile, size);
-		return this.jTruncate(pFile, size);
-	}
-	/**
-	* @param {number} pFile 
-	* @param {number} flags 
-	* @returns {number|Promise<number>}
-	*/
-	xSync(pFile, flags) {
-		this["log"]?.("jSync", pFile, flags);
-		return this.jSync(pFile, flags);
-	}
-	/**
-	* 
-	* @param {number} pFile 
-	* @param {number} pSize 
-	* @returns {number|Promise<number>}
-	*/
-	xFileSize(pFile, pSize) {
-		const pSizeView = _assertClassBrand(_Class_brand, this, _makeTypedDataView).call(this, "BigInt64", pSize);
-		this["log"]?.("jFileSize", pFile);
-		return this.jFileSize(pFile, pSizeView);
-	}
-	/**
-	* @param {number} pFile 
-	* @param {number} lockType 
-	* @returns {number|Promise<number>}
-	*/
-	xLock(pFile, lockType) {
-		this["log"]?.("jLock", pFile, lockType);
-		return this.jLock(pFile, lockType);
-	}
-	/**
-	* @param {number} pFile 
-	* @param {number} lockType 
-	* @returns {number|Promise<number>}
-	*/
-	xUnlock(pFile, lockType) {
-		this["log"]?.("jUnlock", pFile, lockType);
-		return this.jUnlock(pFile, lockType);
-	}
-	/**
-	* @param {number} pFile 
-	* @param {number} pResOut 
-	* @returns {number|Promise<number>}
-	*/
-	xCheckReservedLock(pFile, pResOut) {
-		const pResOutView = _assertClassBrand(_Class_brand, this, _makeTypedDataView).call(this, "Int32", pResOut);
-		this["log"]?.("jCheckReservedLock", pFile);
-		return this.jCheckReservedLock(pFile, pResOutView);
-	}
-	/**
-	* @param {number} pFile 
-	* @param {number} op 
-	* @param {number} pArg 
-	* @returns {number|Promise<number>}
-	*/
-	xFileControl(pFile, op, pArg) {
-		const pArgView = new DataView(this._module.HEAPU8.buffer, this._module.HEAPU8.byteOffset + pArg);
-		this["log"]?.("jFileControl", pFile, op, pArgView);
-		return this.jFileControl(pFile, op, pArgView);
-	}
-	/**
-	* @param {number} pFile 
-	* @returns {number|Promise<number>}
-	*/
-	xSectorSize(pFile) {
-		this["log"]?.("jSectorSize", pFile);
-		return this.jSectorSize(pFile);
-	}
-	/**
-	* @param {number} pFile 
-	* @returns {number|Promise<number>}
-	*/
-	xDeviceCharacteristics(pFile) {
-		this["log"]?.("jDeviceCharacteristics", pFile);
-		return this.jDeviceCharacteristics(pFile);
-	}
-});
-/**
-* Wrapped DataView for pointer arguments.
-* Pointers to a single value are passed using a DataView-like class.
-* This wrapper class prevents use of incorrect type or endianness, and
-* reacquires the underlying buffer when the WebAssembly memory is resized.
-* @param {'Int32'|'BigInt64'} type 
-* @param {number} byteOffset 
-* @returns {DataView}
-*/
-function _makeTypedDataView(type, byteOffset) {
-	return new DataViewProxy(this._module, byteOffset, type);
-}
-/**
-* Wrapped Uint8Array for buffer arguments.
-* Memory blocks are passed as a Uint8Array-like class. This wrapper
-* class reacquires the underlying buffer when the WebAssembly memory
-* is resized.
-* @param {number} byteOffset 
-* @param {number} byteLength 
-* @returns {Uint8Array}
-*/
-function _makeDataArray(byteOffset, byteLength) {
-	return new Uint8ArrayProxy(this._module, byteOffset, byteLength);
-}
-function _decodeFilename(zName, flags) {
-	if (flags & 64) {
-		let pName = zName;
-		let state = 1;
-		const charCodes = [];
-		while (state) {
-			const charCode = this._module.HEAPU8[pName++];
-			if (charCode) charCodes.push(charCode);
-			else {
-				if (!this._module.HEAPU8[pName]) state = null;
-				switch (state) {
-					case 1:
-						charCodes.push("?".charCodeAt(0));
-						state = 2;
-						break;
-					case 2:
-						charCodes.push("=".charCodeAt(0));
-						state = 3;
-						break;
-					case 3:
-						charCodes.push("&".charCodeAt(0));
-						state = 2;
-						break;
-				}
-			}
-		}
-		return new TextDecoder().decode(new Uint8Array(charCodes));
-	}
-	return zName ? this._module.UTF8ToString(zName) : null;
-}
-function delegalize(lo32, hi32) {
-	return hi32 * 4294967296 + lo32 + (lo32 < 0 ? 2 ** 32 : 0);
-}
-var Uint8ArrayProxy = (_module = /* @__PURE__ */ new WeakMap(), _array = /* @__PURE__ */ new WeakMap(), _Class_brand2 = /* @__PURE__ */ new WeakSet(), _Symbol$iterator = Symbol.iterator, class {
-	/**
-	* @param {*} module
-	* @param {number} byteOffset 
-	* @param {number} byteLength 
-	*/
-	constructor(module, byteOffset, byteLength) {
-		_classPrivateMethodInitSpec(this, _Class_brand2);
-		_classPrivateFieldInitSpec(this, _module, void 0);
-		_classPrivateFieldInitSpec(this, _array, /* @__PURE__ */ new Uint8Array());
-		_classPrivateFieldSet2(_module, this, module);
-		this.byteOffset = byteOffset;
-		this.length = this.byteLength = byteLength;
-	}
-	get buffer() {
-		return _get_array.call(_assertClassBrand(_Class_brand2, this)).buffer;
-	}
-	at(index) {
-		return _get_array.call(_assertClassBrand(_Class_brand2, this)).at(index);
-	}
-	copyWithin(target, start, end) {
-		_get_array.call(_assertClassBrand(_Class_brand2, this)).copyWithin(target, start, end);
-	}
-	entries() {
-		return _get_array.call(_assertClassBrand(_Class_brand2, this)).entries();
-	}
-	every(predicate) {
-		return _get_array.call(_assertClassBrand(_Class_brand2, this)).every(predicate);
-	}
-	fill(value, start, end) {
-		_get_array.call(_assertClassBrand(_Class_brand2, this)).fill(value, start, end);
-	}
-	filter(predicate) {
-		return _get_array.call(_assertClassBrand(_Class_brand2, this)).filter(predicate);
-	}
-	find(predicate) {
-		return _get_array.call(_assertClassBrand(_Class_brand2, this)).find(predicate);
-	}
-	findIndex(predicate) {
-		return _get_array.call(_assertClassBrand(_Class_brand2, this)).findIndex(predicate);
-	}
-	findLast(predicate) {
-		return _get_array.call(_assertClassBrand(_Class_brand2, this)).findLast(predicate);
-	}
-	findLastIndex(predicate) {
-		return _get_array.call(_assertClassBrand(_Class_brand2, this)).findLastIndex(predicate);
-	}
-	forEach(callback) {
-		_get_array.call(_assertClassBrand(_Class_brand2, this)).forEach(callback);
-	}
-	includes(value, start) {
-		return _get_array.call(_assertClassBrand(_Class_brand2, this)).includes(value, start);
-	}
-	indexOf(value, start) {
-		return _get_array.call(_assertClassBrand(_Class_brand2, this)).indexOf(value, start);
-	}
-	join(separator) {
-		return _get_array.call(_assertClassBrand(_Class_brand2, this)).join(separator);
-	}
-	keys() {
-		return _get_array.call(_assertClassBrand(_Class_brand2, this)).keys();
-	}
-	lastIndexOf(value, start) {
-		return _get_array.call(_assertClassBrand(_Class_brand2, this)).lastIndexOf(value, start);
-	}
-	map(callback) {
-		return _get_array.call(_assertClassBrand(_Class_brand2, this)).map(callback);
-	}
-	reduce(callback, initialValue) {
-		return _get_array.call(_assertClassBrand(_Class_brand2, this)).reduce(callback, initialValue);
-	}
-	reduceRight(callback, initialValue) {
-		return _get_array.call(_assertClassBrand(_Class_brand2, this)).reduceRight(callback, initialValue);
-	}
-	reverse() {
-		_get_array.call(_assertClassBrand(_Class_brand2, this)).reverse();
-	}
-	set(array, offset) {
-		_get_array.call(_assertClassBrand(_Class_brand2, this)).set(array, offset);
-	}
-	slice(start, end) {
-		return _get_array.call(_assertClassBrand(_Class_brand2, this)).slice(start, end);
-	}
-	some(predicate) {
-		return _get_array.call(_assertClassBrand(_Class_brand2, this)).some(predicate);
-	}
-	sort(compareFn) {
-		_get_array.call(_assertClassBrand(_Class_brand2, this)).sort(compareFn);
-	}
-	subarray(begin, end) {
-		return _get_array.call(_assertClassBrand(_Class_brand2, this)).subarray(begin, end);
-	}
-	toLocaleString(locales, options) {
-		return _get_array.call(_assertClassBrand(_Class_brand2, this)).toLocaleString(locales, options);
-	}
-	toReversed() {
-		return _get_array.call(_assertClassBrand(_Class_brand2, this)).toReversed();
-	}
-	toSorted(compareFn) {
-		return _get_array.call(_assertClassBrand(_Class_brand2, this)).toSorted(compareFn);
-	}
-	toString() {
-		return _get_array.call(_assertClassBrand(_Class_brand2, this)).toString();
-	}
-	values() {
-		return _get_array.call(_assertClassBrand(_Class_brand2, this)).values();
-	}
-	with(index, value) {
-		return _get_array.call(_assertClassBrand(_Class_brand2, this)).with(index, value);
-	}
-	[_Symbol$iterator]() {
-		return _get_array.call(_assertClassBrand(_Class_brand2, this))[Symbol.iterator]();
-	}
-});
-function _get_array() {
-	if (_classPrivateFieldGet2(_array, this).buffer.byteLength === 0) _classPrivateFieldSet2(_array, this, _classPrivateFieldGet2(_module, this).HEAPU8.subarray(this.byteOffset, this.byteOffset + this.byteLength));
-	return _classPrivateFieldGet2(_array, this);
-}
-var DataViewProxy = (_module2 = /* @__PURE__ */ new WeakMap(), _type = /* @__PURE__ */ new WeakMap(), _view = /* @__PURE__ */ new WeakMap(), _Class_brand3 = /* @__PURE__ */ new WeakSet(), class {
-	/**
-	* @param {*} module
-	* @param {number} byteOffset 
-	* @param {'Int32'|'BigInt64'} type
-	*/
-	constructor(module, byteOffset, type) {
-		_classPrivateMethodInitSpec(this, _Class_brand3);
-		_classPrivateFieldInitSpec(this, _module2, void 0);
-		_classPrivateFieldInitSpec(this, _type, void 0);
-		_classPrivateFieldInitSpec(this, _view, /* @__PURE__ */ new DataView(/* @__PURE__ */ new ArrayBuffer(0)));
-		_classPrivateFieldSet2(_module2, this, module);
-		this.byteOffset = byteOffset;
-		_classPrivateFieldSet2(_type, this, type);
-	}
-	get buffer() {
-		return _get_view.call(_assertClassBrand(_Class_brand3, this)).buffer;
-	}
-	get byteLength() {
-		return _classPrivateFieldGet2(_type, this) === "Int32" ? 4 : 8;
-	}
-	getInt32(byteOffset, littleEndian) {
-		if (_classPrivateFieldGet2(_type, this) !== "Int32") throw new Error("invalid type");
-		if (!littleEndian) throw new Error("must be little endian");
-		return _get_view.call(_assertClassBrand(_Class_brand3, this)).getInt32(byteOffset, littleEndian);
-	}
-	setInt32(byteOffset, value, littleEndian) {
-		if (_classPrivateFieldGet2(_type, this) !== "Int32") throw new Error("invalid type");
-		if (!littleEndian) throw new Error("must be little endian");
-		_get_view.call(_assertClassBrand(_Class_brand3, this)).setInt32(byteOffset, value, littleEndian);
-	}
-	getBigInt64(byteOffset, littleEndian) {
-		if (_classPrivateFieldGet2(_type, this) !== "BigInt64") throw new Error("invalid type");
-		if (!littleEndian) throw new Error("must be little endian");
-		return _get_view.call(_assertClassBrand(_Class_brand3, this)).getBigInt64(byteOffset, littleEndian);
-	}
-	setBigInt64(byteOffset, value, littleEndian) {
-		if (_classPrivateFieldGet2(_type, this) !== "BigInt64") throw new Error("invalid type");
-		if (!littleEndian) throw new Error("must be little endian");
-		_get_view.call(_assertClassBrand(_Class_brand3, this)).setBigInt64(byteOffset, value, littleEndian);
-	}
-});
-function _get_view() {
-	if (_classPrivateFieldGet2(_view, this).buffer.byteLength === 0) _classPrivateFieldSet2(_view, this, new DataView(_classPrivateFieldGet2(_module2, this).HEAPU8.buffer, _classPrivateFieldGet2(_module2, this).HEAPU8.byteOffset + this.byteOffset));
-	return _classPrivateFieldGet2(_view, this);
-}
-//#endregion
-//#region ../node_modules/.pnpm/@subframe7536+sqlite-wasm@1.3.0/node_modules/@subframe7536/sqlite-wasm/dist/wa-sqlite-DfKPyFeY.js
+import { _ as _assertClassBrand, a as SQLITE_IOERR_ACCESS, c as SQLITE_IOERR_DELETE, d as SQLITE_IOERR_LOCK, f as SQLITE_IOERR_TRUNCATE, g as _classPrivateFieldInitSpec, h as _classPrivateFieldGet2, i as SQLITE_IOCAP_UNDELETABLE_WHEN_OPEN, l as SQLITE_IOERR_FSTAT, m as _classPrivateFieldSet2, n as FacadeVFS, o as SQLITE_IOERR_CHECKRESERVEDLOCK, p as SQLITE_IOERR_UNLOCK, r as SQLITE_IOCAP_BATCH_ATOMIC, s as SQLITE_IOERR_CLOSE, u as SQLITE_IOERR_FSYNC, v as _classPrivateMethodInitSpec, y as _defineProperty } from "./worker-CN5bCYsx.js";
+//#region ../node_modules/.pnpm/@subframe7536+sqlite-wasm@1.3.1/node_modules/@subframe7536/sqlite-wasm/dist/wa-sqlite-async-DXJkldif.js
 var Module = (() => {
 	return (async function(moduleArg = {}) {
 		var moduleRtn;
@@ -969,8 +110,8 @@ var Module = (() => {
 		}
 		var wasmBinaryFile;
 		function findWasmBinary() {
-			if (Module["locateFile"]) return locateFile("wa-sqlite.wasm");
-			return new URL("" + new URL("wa-sqlite-CRP71yW3.wasm", import.meta.url).href, "" + import.meta.url).href;
+			if (Module["locateFile"]) return locateFile("wa-sqlite-async.wasm");
+			return new URL("" + new URL("wa-sqlite-async-ac_ajG-V.wasm", import.meta.url).href, "" + import.meta.url).href;
 		}
 		function getBinarySync(file) {
 			if (file == wasmBinaryFile && wasmBinary) return new Uint8Array(wasmBinary);
@@ -1009,6 +150,7 @@ var Module = (() => {
 		async function createWasm() {
 			function receiveInstance(instance, module) {
 				wasmExports = instance.exports;
+				wasmExports = Asyncify.instrumentWasmExports(wasmExports);
 				wasmMemory = wasmExports["pa"];
 				updateMemoryViews();
 				wasmTable = wasmExports["jf"];
@@ -1653,6 +795,7 @@ var Module = (() => {
 			var arrayBuffer = await readAsync(url);
 			return new Uint8Array(arrayBuffer);
 		};
+		asyncLoad.isAsync = true;
 		var FS_createDataFile = (...args) => FS.createDataFile(...args);
 		var preloadPlugins = [];
 		var FS_handledByPreloadPlugin = (byteArray, fullname, finish, onerror) => {
@@ -3413,16 +2556,25 @@ var Module = (() => {
 				return e.errno;
 			}
 		}
-		function _fd_sync(fd) {
+		var _fd_sync = function(fd) {
 			try {
 				var stream = SYSCALLS.getStreamFromFD(fd);
-				if (stream.stream_ops?.fsync) return stream.stream_ops.fsync(stream);
-				return 0;
+				return Asyncify.handleSleep((wakeUp) => {
+					var mount = stream.node.mount;
+					if (!mount.type.syncfs) {
+						wakeUp(0);
+						return;
+					}
+					mount.type.syncfs(mount, false, (err) => {
+						wakeUp(err ? 29 : 0);
+					});
+				});
 			} catch (e) {
 				if (typeof FS == "undefined" || !(e.name === "ErrnoError")) throw e;
 				return e.errno;
 			}
-		}
+		};
+		_fd_sync.isAsync = true;
 		var doWritev = (stream, iov, iovcnt, offset) => {
 			var ret = 0;
 			for (var i = 0; i < iovcnt; i++) {
@@ -3476,99 +2628,118 @@ var Module = (() => {
 		function _ipp_async(...args) {
 			return adapters_support(true, ...args);
 		}
+		_ipp_async.isAsync = true;
 		function _ippipppp(...args) {
 			return adapters_support(false, ...args);
 		}
 		function _ippipppp_async(...args) {
 			return adapters_support(true, ...args);
 		}
+		_ippipppp_async.isAsync = true;
 		function _ippp(...args) {
 			return adapters_support(false, ...args);
 		}
 		function _ippp_async(...args) {
 			return adapters_support(true, ...args);
 		}
+		_ippp_async.isAsync = true;
 		function _ipppi(...args) {
 			return adapters_support(false, ...args);
 		}
 		function _ipppi_async(...args) {
 			return adapters_support(true, ...args);
 		}
+		_ipppi_async.isAsync = true;
 		function _ipppiii(...args) {
 			return adapters_support(false, ...args);
 		}
 		function _ipppiii_async(...args) {
 			return adapters_support(true, ...args);
 		}
+		_ipppiii_async.isAsync = true;
 		function _ipppiiip(...args) {
 			return adapters_support(false, ...args);
 		}
 		function _ipppiiip_async(...args) {
 			return adapters_support(true, ...args);
 		}
+		_ipppiiip_async.isAsync = true;
 		function _ipppip(...args) {
 			return adapters_support(false, ...args);
 		}
 		function _ipppip_async(...args) {
 			return adapters_support(true, ...args);
 		}
+		_ipppip_async.isAsync = true;
 		function _ipppj(...args) {
 			return adapters_support(false, ...args);
 		}
 		function _ipppj_async(...args) {
 			return adapters_support(true, ...args);
 		}
+		_ipppj_async.isAsync = true;
 		function _ipppp(...args) {
 			return adapters_support(false, ...args);
 		}
 		function _ipppp_async(...args) {
 			return adapters_support(true, ...args);
 		}
+		_ipppp_async.isAsync = true;
 		function _ippppi(...args) {
 			return adapters_support(false, ...args);
 		}
 		function _ippppi_async(...args) {
 			return adapters_support(true, ...args);
 		}
+		_ippppi_async.isAsync = true;
 		function _ippppij(...args) {
 			return adapters_support(false, ...args);
 		}
 		function _ippppij_async(...args) {
 			return adapters_support(true, ...args);
 		}
+		_ippppij_async.isAsync = true;
 		function _ippppip(...args) {
 			return adapters_support(false, ...args);
 		}
 		function _ippppip_async(...args) {
 			return adapters_support(true, ...args);
 		}
+		_ippppip_async.isAsync = true;
 		function _ipppppip(...args) {
 			return adapters_support(false, ...args);
 		}
 		function _ipppppip_async(...args) {
 			return adapters_support(true, ...args);
 		}
+		_ipppppip_async.isAsync = true;
 		function _vppippii(...args) {
 			return adapters_support(false, ...args);
 		}
 		function _vppippii_async(...args) {
 			return adapters_support(true, ...args);
 		}
+		_vppippii_async.isAsync = true;
 		function _vppp(...args) {
 			return adapters_support(false, ...args);
 		}
 		function _vppp_async(...args) {
 			return adapters_support(true, ...args);
 		}
+		_vppp_async.isAsync = true;
 		function _vpppip(...args) {
 			return adapters_support(false, ...args);
 		}
 		function _vpppip_async(...args) {
 			return adapters_support(true, ...args);
 		}
-		var uleb128Encode = (n, target) => {
-			if (n < 128) target.push(n);
-			else target.push(n % 128 | 128, n >> 7);
+		_vpppip_async.isAsync = true;
+		var runAndAbortIfError = (func) => {
+			try {
+				return func();
+			} catch (e) {
+				abort(e);
+			}
 		};
 		var sigToWasmTypes = (sig) => {
 			var typeNames = {
@@ -3585,6 +2756,154 @@ var Module = (() => {
 			};
 			for (var i = 1; i < sig.length; ++i) type.parameters.push(typeNames[sig[i]]);
 			return type;
+		};
+		var runtimeKeepalivePush = () => {
+			runtimeKeepaliveCounter += 1;
+		};
+		var runtimeKeepalivePop = () => {
+			runtimeKeepaliveCounter -= 1;
+		};
+		var Asyncify = {
+			instrumentWasmImports(imports) {
+				var importPattern = /^(ipp|ipp_async|ippp|ippp_async|vppp|vppp_async|ipppj|ipppj_async|ipppi|ipppi_async|ipppp|ipppp_async|ipppip|ipppip_async|vpppip|vpppip_async|ippppi|ippppi_async|ippppij|ippppij_async|ipppiii|ipppiii_async|ippppip|ippppip_async|ippipppp|ippipppp_async|ipppppip|ipppppip_async|ipppiiip|ipppiiip_async|vppippii|vppippii_async|invoke_.*|__asyncjs__.*)$/;
+				for (let [x, original] of Object.entries(imports)) if (typeof original == "function") original.isAsync || importPattern.test(x);
+			},
+			instrumentWasmExports(exports) {
+				var ret = {};
+				for (let [x, original] of Object.entries(exports)) if (typeof original == "function") ret[x] = (...args) => {
+					Asyncify.exportCallStack.push(x);
+					try {
+						return original(...args);
+					} finally {
+						if (!ABORT) {
+							Asyncify.exportCallStack.pop();
+							Asyncify.maybeStopUnwind();
+						}
+					}
+				};
+				else ret[x] = original;
+				return ret;
+			},
+			State: {
+				Normal: 0,
+				Unwinding: 1,
+				Rewinding: 2,
+				Disabled: 3
+			},
+			state: 0,
+			StackSize: 16384,
+			currData: null,
+			handleSleepReturnValue: 0,
+			exportCallStack: [],
+			callStackNameToId: {},
+			callStackIdToName: {},
+			callStackId: 0,
+			asyncPromiseHandlers: null,
+			sleepCallbacks: [],
+			getCallStackId(funcName) {
+				var id = Asyncify.callStackNameToId[funcName];
+				if (id === void 0) {
+					id = Asyncify.callStackId++;
+					Asyncify.callStackNameToId[funcName] = id;
+					Asyncify.callStackIdToName[id] = funcName;
+				}
+				return id;
+			},
+			maybeStopUnwind() {
+				if (Asyncify.currData && Asyncify.state === Asyncify.State.Unwinding && Asyncify.exportCallStack.length === 0) {
+					Asyncify.state = Asyncify.State.Normal;
+					runAndAbortIfError(_asyncify_stop_unwind);
+					if (typeof Fibers != "undefined") Fibers.trampoline();
+				}
+			},
+			whenDone() {
+				return new Promise((resolve, reject) => {
+					Asyncify.asyncPromiseHandlers = {
+						resolve,
+						reject
+					};
+				});
+			},
+			allocateData() {
+				var ptr = _malloc(12 + Asyncify.StackSize);
+				Asyncify.setDataHeader(ptr, ptr + 12, Asyncify.StackSize);
+				Asyncify.setDataRewindFunc(ptr);
+				return ptr;
+			},
+			setDataHeader(ptr, stack, stackSize) {
+				HEAPU32[ptr >> 2] = stack;
+				HEAPU32[ptr + 4 >> 2] = stack + stackSize;
+			},
+			setDataRewindFunc(ptr) {
+				var bottomOfCallStack = Asyncify.exportCallStack[0];
+				var rewindId = Asyncify.getCallStackId(bottomOfCallStack);
+				HEAP32[ptr + 8 >> 2] = rewindId;
+			},
+			getDataRewindFuncName(ptr) {
+				var id = HEAP32[ptr + 8 >> 2];
+				return Asyncify.callStackIdToName[id];
+			},
+			getDataRewindFunc(name) {
+				return wasmExports[name];
+			},
+			doRewind(ptr) {
+				var name = Asyncify.getDataRewindFuncName(ptr);
+				return Asyncify.getDataRewindFunc(name)();
+			},
+			handleSleep(startAsync) {
+				if (ABORT) return;
+				if (Asyncify.state === Asyncify.State.Normal) {
+					var reachedCallback = false;
+					var reachedAfterCallback = false;
+					startAsync((handleSleepReturnValue = 0) => {
+						if (ABORT) return;
+						Asyncify.handleSleepReturnValue = handleSleepReturnValue;
+						reachedCallback = true;
+						if (!reachedAfterCallback) return;
+						Asyncify.state = Asyncify.State.Rewinding;
+						runAndAbortIfError(() => _asyncify_start_rewind(Asyncify.currData));
+						if (typeof MainLoop != "undefined" && MainLoop.func) MainLoop.resume();
+						var asyncWasmReturnValue, isError = false;
+						try {
+							asyncWasmReturnValue = Asyncify.doRewind(Asyncify.currData);
+						} catch (err) {
+							asyncWasmReturnValue = err;
+							isError = true;
+						}
+						var handled = false;
+						if (!Asyncify.currData) {
+							var asyncPromiseHandlers = Asyncify.asyncPromiseHandlers;
+							if (asyncPromiseHandlers) {
+								Asyncify.asyncPromiseHandlers = null;
+								(isError ? asyncPromiseHandlers.reject : asyncPromiseHandlers.resolve)(asyncWasmReturnValue);
+								handled = true;
+							}
+						}
+						if (isError && !handled) throw asyncWasmReturnValue;
+					});
+					reachedAfterCallback = true;
+					if (!reachedCallback) {
+						Asyncify.state = Asyncify.State.Unwinding;
+						Asyncify.currData = Asyncify.allocateData();
+						if (typeof MainLoop != "undefined" && MainLoop.func) MainLoop.pause();
+						runAndAbortIfError(() => _asyncify_start_unwind(Asyncify.currData));
+					}
+				} else if (Asyncify.state === Asyncify.State.Rewinding) {
+					Asyncify.state = Asyncify.State.Normal;
+					runAndAbortIfError(_asyncify_stop_rewind);
+					_free(Asyncify.currData);
+					Asyncify.currData = null;
+					Asyncify.sleepCallbacks.forEach(callUserCallback);
+				} else abort(`invalid state: ${Asyncify.state}`);
+				return Asyncify.handleSleepReturnValue;
+			},
+			handleAsync: (startAsync) => Asyncify.handleSleep((wakeUp) => {
+				startAsync().then(wakeUp);
+			})
+		};
+		var uleb128Encode = (n, target) => {
+			if (n < 128) target.push(n);
+			else target.push(n % 128 | 128, n >> 7);
 		};
 		var generateFuncType = (sig, target) => {
 			var sigRet = sig.slice(0, 1);
@@ -3706,12 +3025,18 @@ var Module = (() => {
 					cArgs[i] = converter(args[i]);
 				} else cArgs[i] = args[i];
 			}
+			var previousAsync = Asyncify.currData;
 			var ret = func(...cArgs);
 			function onDone(ret) {
+				runtimeKeepalivePop();
 				if (stack !== 0) stackRestore(stack);
 				return convertReturnValue(ret);
 			}
+			var asyncMode = opts?.async;
+			runtimeKeepalivePush();
+			if (Asyncify.currData != previousAsync) return Asyncify.whenDone().then(onDone);
 			ret = onDone(ret);
+			if (asyncMode) return Promise.resolve(ret);
 			return ret;
 		};
 		var cwrap = (ident, returnType, argTypes, opts) => {
@@ -4143,8 +3468,8 @@ var Module = (() => {
 		Module["_sqlite3_compileoption_used"] = wasmExports["We"];
 		Module["_sqlite3_compileoption_get"] = wasmExports["Xe"];
 		Module["_sqlite3_sourceid"] = wasmExports["Ye"];
-		Module["_malloc"] = wasmExports["Ze"];
-		Module["_free"] = wasmExports["_e"];
+		var _malloc = Module["_malloc"] = wasmExports["Ze"];
+		var _free = Module["_free"] = wasmExports["_e"];
 		Module["_RegisterExtensionFunctions"] = wasmExports["$e"];
 		Module["_getSqliteFree"] = wasmExports["af"];
 		var _main = Module["_main"] = wasmExports["bf"];
@@ -4160,15 +3485,34 @@ var Module = (() => {
 		var __emscripten_stack_restore = wasmExports["nf"];
 		var __emscripten_stack_alloc = wasmExports["of"];
 		var _emscripten_stack_get_current = wasmExports["pf"];
+		Module["dynCall_vi"] = wasmExports["dynCall_vi"];
+		Module["dynCall_iiiii"] = wasmExports["dynCall_iiiii"];
+		Module["dynCall_viii"] = wasmExports["dynCall_viii"];
+		Module["dynCall_iii"] = wasmExports["dynCall_iii"];
+		Module["dynCall_iiii"] = wasmExports["dynCall_iiii"];
+		Module["dynCall_iiiiiii"] = wasmExports["dynCall_iiiiiii"];
+		Module["dynCall_ii"] = wasmExports["dynCall_ii"];
+		Module["dynCall_vii"] = wasmExports["dynCall_vii"];
+		Module["dynCall_iiiiii"] = wasmExports["dynCall_iiiiii"];
+		Module["dynCall_viiii"] = wasmExports["dynCall_viiii"];
+		Module["dynCall_iiiiiiiii"] = wasmExports["dynCall_iiiiiiiii"];
 		Module["dynCall_vijii"] = wasmExports["dynCall_vijii"];
+		Module["dynCall_viiiii"] = wasmExports["dynCall_viiiii"];
 		Module["dynCall_iiiij"] = wasmExports["dynCall_iiiij"];
 		Module["dynCall_viji"] = wasmExports["dynCall_viji"];
 		Module["dynCall_viiiij"] = wasmExports["dynCall_viiiij"];
 		Module["dynCall_iij"] = wasmExports["dynCall_iij"];
+		Module["dynCall_v"] = wasmExports["dynCall_v"];
 		Module["dynCall_iijii"] = wasmExports["dynCall_iijii"];
 		Module["dynCall_iiji"] = wasmExports["dynCall_iiji"];
+		Module["dynCall_i"] = wasmExports["dynCall_i"];
 		Module["dynCall_iiiiiij"] = wasmExports["dynCall_iiiiiij"];
 		Module["dynCall_ji"] = wasmExports["dynCall_ji"];
+		Module["dynCall_iiiiiiii"] = wasmExports["dynCall_iiiiiiii"];
+		var _asyncify_start_unwind = wasmExports["qf"];
+		var _asyncify_stop_unwind = wasmExports["rf"];
+		var _asyncify_start_rewind = wasmExports["sf"];
+		var _asyncify_stop_rewind = wasmExports["tf"];
 		Module["_sqlite3_version"] = 5472;
 		function callMain() {
 			var entryFunction = _main;
@@ -4440,867 +3784,1048 @@ var Module = (() => {
 	});
 })();
 //#endregion
-//#region ../node_modules/.pnpm/@subframe7536+sqlite-wasm@1.3.0/node_modules/@subframe7536/sqlite-wasm/dist/index.js
-const MAX_INT64 = 9223372036854775807n;
-const MIN_INT64 = -9223372036854775808n;
-const AsyncFunction = Object.getPrototypeOf(async function() {}).constructor;
-var SQLiteError = class extends Error {
-	constructor(message, code) {
-		super(message);
-		this.code = code;
-	}
+//#region ../node_modules/.pnpm/@subframe7536+sqlite-wasm@1.3.1/node_modules/@subframe7536/sqlite-wasm/dist/WebLocksMixin-GJSIWwOL.js
+/** @type {LockOptions} */ const SHARED = { mode: "shared" };
+/** @type {LockOptions} */ const POLL_SHARED = {
+	ifAvailable: true,
+	mode: "shared"
 };
-const async = true;
+/** @type {LockOptions} */ const POLL_EXCLUSIVE = {
+	ifAvailable: true,
+	mode: "exclusive"
+};
+const POLICIES = [
+	"exclusive",
+	"shared",
+	"shared+hint"
+];
 /**
-* Builds a Javascript API from the Emscripten module. This API is still
-* low-level and closely corresponds to the C API exported by the module,
-* but differs in some specifics like throwing exceptions on errors.
-* @param {*} Module SQLite Emscripten module
-* @returns {SQLiteAPI}
+* @typedef LockState
+* @property {string} baseName
+* @property {number} type
+* @property {boolean} writeHint
+* 
+* These properties are functions that release a specific lock.
+* @property {(() => void)?} [gate]
+* @property {(() => void)?} [access]
+* @property {(() => void)?} [reserved]
+* @property {(() => void)?} [hint]
 */
-function Factory(Module) {
-	/** @type {SQLiteAPI} */ const sqlite3 = {};
-	Module.retryOps = [];
-	Module.pendingOps = [];
-	const sqliteFreeAddress = Module._getSqliteFree();
-	const tmp = Module._malloc(8);
-	const tmpPtr = [tmp, tmp + 4];
-	const textEncoder = new TextEncoder();
-	function createUTF8(s) {
-		if (typeof s !== "string") return 0;
-		const utf8 = textEncoder.encode(s);
-		const zts = Module._sqlite3_malloc(utf8.byteLength + 1);
-		Module.HEAPU8.set(utf8, zts);
-		Module.HEAPU8[zts + utf8.byteLength] = 0;
-		return zts;
-	}
-	/**
-	* Concatenate 32-bit numbers into a 64-bit (signed) BigInt.
-	* @param {number} lo32
-	* @param {number} hi32
-	* @returns {bigint}
-	*/
-	function cvt32x2ToBigInt(lo32, hi32) {
-		return BigInt(hi32) << 32n | BigInt(lo32) & 4294967295n;
-	}
-	/**
-	* Concatenate 32-bit numbers and return as number or BigInt, depending
-	* on the value.
-	* @param {number} lo32 
-	* @param {number} hi32 
-	* @returns {number|bigint}
-	*/
-	const cvt32x2AsSafe = (function() {
-		const hiMax = BigInt(Number.MAX_SAFE_INTEGER) >> 32n;
-		const hiMin = BigInt(Number.MIN_SAFE_INTEGER) >> 32n;
-		return function(lo32, hi32) {
-			if (hi32 > hiMax || hi32 < hiMin) return cvt32x2ToBigInt(lo32, hi32);
-			else return hi32 * 4294967296 + (lo32 & 2147483647) - (lo32 & 2147483648);
-		};
-	})();
-	const databases = /* @__PURE__ */ new Set();
-	function verifyDatabase(db) {
-		if (!databases.has(db)) throw new SQLiteError("not a database", 21);
-	}
-	const mapStmtToDB = /* @__PURE__ */ new Map();
-	function verifyStatement(stmt) {
-		if (!mapStmtToDB.has(stmt)) throw new SQLiteError("not a statement", 21);
-	}
-	sqlite3.bind_collection = function(stmt, bindings) {
-		verifyStatement(stmt);
-		const isArray = Array.isArray(bindings);
-		const nBindings = sqlite3.bind_parameter_count(stmt);
-		for (let i = 1; i <= nBindings; ++i) {
-			const value = bindings[isArray ? i - 1 : sqlite3.bind_parameter_name(stmt, i)];
-			if (value !== void 0) sqlite3.bind(stmt, i, value);
+/**
+* Mix-in for FacadeVFS that implements the SQLite VFS locking protocol.
+* @param {*} superclass FacadeVFS (or subclass)
+* @returns 
+*/
+const WebLocksMixin = (superclass) => {
+	var _options, _mapIdToState, _Class_brand;
+	return _options = /* @__PURE__ */ new WeakMap(), _mapIdToState = /* @__PURE__ */ new WeakMap(), _Class_brand = /* @__PURE__ */ new WeakSet(), class extends superclass {
+		constructor(name, module, options) {
+			super(name, module, options);
+			_classPrivateMethodInitSpec(this, _Class_brand);
+			_classPrivateFieldInitSpec(this, _options, {
+				lockPolicy: "exclusive",
+				lockTimeout: Infinity
+			});
+			_classPrivateFieldInitSpec(this, _mapIdToState, /* @__PURE__ */ new Map());
+			Object.assign(_classPrivateFieldGet2(_options, this), options);
+			if (POLICIES.indexOf(_classPrivateFieldGet2(_options, this).lockPolicy) === -1) throw new Error(`WebLocksMixin: invalid lock mode: ${options.lockPolicy}`);
 		}
-		return 0;
-	};
-	sqlite3.bind = function(stmt, i, value) {
-		verifyStatement(stmt);
-		switch (typeof value) {
-			case "number": if (value === (value | 0)) return sqlite3.bind_int(stmt, i, value);
-			else return sqlite3.bind_double(stmt, i, value);
-			case "string": return sqlite3.bind_text(stmt, i, value);
-			case "boolean": return sqlite3.bind_int(stmt, i, value ? 1 : 0);
-			default: if (value instanceof Uint8Array || Array.isArray(value)) return sqlite3.bind_blob(stmt, i, value);
-			else if (value === null) return sqlite3.bind_null(stmt, i);
-			else if (typeof value === "bigint") return sqlite3.bind_int64(stmt, i, value);
-			else if (value === void 0) return 27;
-			else {
-				console.warn("unknown binding converted to null", value);
-				return sqlite3.bind_null(stmt, i);
-			}
-		}
-	};
-	sqlite3.bind_blob = (function() {
-		const fname = "sqlite3_bind_blob";
-		const f = Module.cwrap(fname, ...decl("nnnnn:n"));
-		return function(stmt, i, value) {
-			verifyStatement(stmt);
-			const byteLength = value.byteLength ?? value.length;
-			const ptr = Module._sqlite3_malloc(byteLength);
-			Module.HEAPU8.subarray(ptr).set(value);
-			return check(fname, f(stmt, i, ptr, byteLength, sqliteFreeAddress), mapStmtToDB.get(stmt));
-		};
-	})();
-	sqlite3.bind_parameter_count = (function() {
-		const f = Module.cwrap("sqlite3_bind_parameter_count", ...decl("n:n"));
-		return function(stmt) {
-			verifyStatement(stmt);
-			return f(stmt);
-		};
-	})();
-	sqlite3.bind_double = (function() {
-		const fname = "sqlite3_bind_double";
-		const f = Module.cwrap(fname, ...decl("nnn:n"));
-		return function(stmt, i, value) {
-			verifyStatement(stmt);
-			return check(fname, f(stmt, i, value), mapStmtToDB.get(stmt));
-		};
-	})();
-	sqlite3.bind_int = (function() {
-		const fname = "sqlite3_bind_int";
-		const f = Module.cwrap(fname, ...decl("nnn:n"));
-		return function(stmt, i, value) {
-			verifyStatement(stmt);
-			if (value > 2147483647 || value < -2147483648) return 25;
-			return check(fname, f(stmt, i, value), mapStmtToDB.get(stmt));
-		};
-	})();
-	sqlite3.bind_int64 = (function() {
-		const fname = "sqlite3_bind_int64";
-		const f = Module.cwrap(fname, ...decl("nnnn:n"));
-		return function(stmt, i, value) {
-			verifyStatement(stmt);
-			if (value > MAX_INT64 || value < MIN_INT64) return 25;
-			const lo32 = value & 4294967295n;
-			const hi32 = value >> 32n;
-			return check(fname, f(stmt, i, Number(lo32), Number(hi32)), mapStmtToDB.get(stmt));
-		};
-	})();
-	sqlite3.bind_null = (function() {
-		const fname = "sqlite3_bind_null";
-		const f = Module.cwrap(fname, ...decl("nn:n"));
-		return function(stmt, i) {
-			verifyStatement(stmt);
-			return check(fname, f(stmt, i), mapStmtToDB.get(stmt));
-		};
-	})();
-	sqlite3.bind_parameter_name = (function() {
-		const f = Module.cwrap("sqlite3_bind_parameter_name", ...decl("n:s"));
-		return function(stmt, i) {
-			verifyStatement(stmt);
-			return f(stmt, i);
-		};
-	})();
-	sqlite3.bind_text = (function() {
-		const fname = "sqlite3_bind_text";
-		const f = Module.cwrap(fname, ...decl("nnnnn:n"));
-		return function(stmt, i, value) {
-			verifyStatement(stmt);
-			return check(fname, f(stmt, i, createUTF8(value), -1, sqliteFreeAddress), mapStmtToDB.get(stmt));
-		};
-	})();
-	sqlite3.changes = (function() {
-		const f = Module.cwrap("sqlite3_changes", ...decl("n:n"));
-		return function(db) {
-			verifyDatabase(db);
-			return f(db);
-		};
-	})();
-	sqlite3.clear_bindings = (function() {
-		const fname = "sqlite3_clear_bindings";
-		const f = Module.cwrap(fname, ...decl("n:n"));
-		return function(stmt) {
-			verifyStatement(stmt);
-			return check(fname, f(stmt), mapStmtToDB.get(stmt));
-		};
-	})();
-	sqlite3.close = (function() {
-		const fname = "sqlite3_close";
-		const f = Module.cwrap(fname, ...decl("n:n"), { async });
-		return async function(db) {
-			verifyDatabase(db);
-			const result = await f(db);
-			databases.delete(db);
-			return check(fname, result, db);
-		};
-	})();
-	sqlite3.column = function(stmt, iCol) {
-		verifyStatement(stmt);
-		const type = sqlite3.column_type(stmt, iCol);
-		switch (type) {
-			case 4: return sqlite3.column_blob(stmt, iCol);
-			case 2: return sqlite3.column_double(stmt, iCol);
-			case 1: return cvt32x2AsSafe(sqlite3.column_int(stmt, iCol), Module.getTempRet0());
-			case 5: return null;
-			case 3: return sqlite3.column_text(stmt, iCol);
-			default: throw new SQLiteError("unknown type", type);
-		}
-	};
-	sqlite3.column_blob = (function() {
-		const f = Module.cwrap("sqlite3_column_blob", ...decl("nn:n"));
-		return function(stmt, iCol) {
-			verifyStatement(stmt);
-			const nBytes = sqlite3.column_bytes(stmt, iCol);
-			const address = f(stmt, iCol);
-			return Module.HEAPU8.subarray(address, address + nBytes);
-		};
-	})();
-	sqlite3.column_bytes = (function() {
-		const f = Module.cwrap("sqlite3_column_bytes", ...decl("nn:n"));
-		return function(stmt, iCol) {
-			verifyStatement(stmt);
-			return f(stmt, iCol);
-		};
-	})();
-	sqlite3.column_count = (function() {
-		const f = Module.cwrap("sqlite3_column_count", ...decl("n:n"));
-		return function(stmt) {
-			verifyStatement(stmt);
-			return f(stmt);
-		};
-	})();
-	sqlite3.column_double = (function() {
-		const f = Module.cwrap("sqlite3_column_double", ...decl("nn:n"));
-		return function(stmt, iCol) {
-			verifyStatement(stmt);
-			return f(stmt, iCol);
-		};
-	})();
-	sqlite3.column_int = (function() {
-		const f = Module.cwrap("sqlite3_column_int64", ...decl("nn:n"));
-		return function(stmt, iCol) {
-			verifyStatement(stmt);
-			return f(stmt, iCol);
-		};
-	})();
-	sqlite3.column_int64 = (function() {
-		const f = Module.cwrap("sqlite3_column_int64", ...decl("nn:n"));
-		return function(stmt, iCol) {
-			verifyStatement(stmt);
-			return cvt32x2ToBigInt(f(stmt, iCol), Module.getTempRet0());
-		};
-	})();
-	sqlite3.column_name = (function() {
-		const f = Module.cwrap("sqlite3_column_name", ...decl("nn:s"));
-		return function(stmt, iCol) {
-			verifyStatement(stmt);
-			return f(stmt, iCol);
-		};
-	})();
-	sqlite3.column_names = function(stmt) {
-		const columns = [];
-		const nColumns = sqlite3.column_count(stmt);
-		for (let i = 0; i < nColumns; ++i) columns.push(sqlite3.column_name(stmt, i));
-		return columns;
-	};
-	sqlite3.column_text = (function() {
-		const f = Module.cwrap("sqlite3_column_text", ...decl("nn:s"));
-		return function(stmt, iCol) {
-			verifyStatement(stmt);
-			return f(stmt, iCol);
-		};
-	})();
-	sqlite3.column_type = (function() {
-		const f = Module.cwrap("sqlite3_column_type", ...decl("nn:n"));
-		return function(stmt, iCol) {
-			verifyStatement(stmt);
-			return f(stmt, iCol);
-		};
-	})();
-	sqlite3.create_function = function(db, zFunctionName, nArg, eTextRep, pApp, xFunc, xStep, xFinal) {
-		verifyDatabase(db);
-		function adapt(f) {
-			return f instanceof AsyncFunction ? (async (ctx, n, values) => f(ctx, Module.HEAP32.subarray(values / 4, values / 4 + n))) : ((ctx, n, values) => f(ctx, Module.HEAP32.subarray(values / 4, values / 4 + n)));
-		}
-		return check("sqlite3_create_function", Module.create_function(db, zFunctionName, nArg, eTextRep, pApp, xFunc && adapt(xFunc), xStep && adapt(xStep), xFinal), db);
-	};
-	sqlite3.data_count = (function() {
-		const f = Module.cwrap("sqlite3_data_count", ...decl("n:n"));
-		return function(stmt) {
-			verifyStatement(stmt);
-			return f(stmt);
-		};
-	})();
-	sqlite3.exec = async function(db, sql, callback) {
-		for await (const stmt of sqlite3.statements(db, sql)) {
-			let columns;
-			while (await sqlite3.step(stmt) === 100) if (callback) {
-				columns = columns ?? sqlite3.column_names(stmt);
-				await callback(sqlite3.row(stmt), columns);
-			}
-		}
-		return 0;
-	};
-	sqlite3.finalize = (function() {
-		const f = Module.cwrap("sqlite3_finalize", ...decl("n:n"), { async });
-		return async function(stmt) {
-			const result = await f(stmt);
-			mapStmtToDB.delete(stmt);
-			return result;
-		};
-	})();
-	sqlite3.get_autocommit = (function() {
-		const f = Module.cwrap("sqlite3_get_autocommit", ...decl("n:n"));
-		return function(db) {
-			return f(db);
-		};
-	})();
-	sqlite3.libversion = (function() {
-		const f = Module.cwrap("sqlite3_libversion", ...decl(":s"));
-		return function() {
-			return f();
-		};
-	})();
-	sqlite3.libversion_number = (function() {
-		const f = Module.cwrap("sqlite3_libversion_number", ...decl(":n"));
-		return function() {
-			return f();
-		};
-	})();
-	sqlite3.limit = (function() {
-		const f = Module.cwrap("sqlite3_limit", ...decl("nnn:n"));
-		return function(db, id, newVal) {
-			return f(db, id, newVal);
-		};
-	})();
-	sqlite3.open_v2 = (function() {
-		const fname = "sqlite3_open_v2";
-		const f = Module.cwrap(fname, ...decl("snnn:n"), { async });
-		return async function(zFilename, flags, zVfs) {
-			flags = flags || 6;
-			zVfs = createUTF8(zVfs);
+		/**
+		* @param {number} fileId 
+		* @param {number} lockType 
+		* @returns {Promise<number>}
+		*/
+		async jLock(fileId, lockType) {
 			try {
-				const rc = await retry(() => f(zFilename, tmpPtr[0], flags, zVfs));
-				const db = Module.getValue(tmpPtr[0], "*");
-				databases.add(db);
-				Module.ccall("RegisterExtensionFunctions", "void", ["number"], [db]);
-				check(fname, rc);
-				return db;
-			} finally {
-				Module._sqlite3_free(zVfs);
+				const lockState = _assertClassBrand(_Class_brand, this, _getLockState).call(this, fileId);
+				if (lockType <= lockState.type) return 0;
+				switch (_classPrivateFieldGet2(_options, this).lockPolicy) {
+					case "exclusive": return await _assertClassBrand(_Class_brand, this, _lockExclusive).call(this, lockState, lockType);
+					case "shared":
+					case "shared+hint": return await _assertClassBrand(_Class_brand, this, _lockShared).call(this, lockState, lockType);
+				}
+			} catch (e) {
+				console.error("WebLocksMixin: lock error", e);
+				return SQLITE_IOERR_LOCK;
 			}
-		};
-	})();
-	sqlite3.progress_handler = function(db, nProgressOps, handler, userData) {
-		verifyDatabase(db);
-		Module.progress_handler(db, nProgressOps, handler, userData);
+		}
+		/**
+		* @param {number} fileId 
+		* @param {number} lockType 
+		* @returns {Promise<number>}
+		*/
+		async jUnlock(fileId, lockType) {
+			try {
+				const lockState = _assertClassBrand(_Class_brand, this, _getLockState).call(this, fileId);
+				if (!(lockType < lockState.type)) return 0;
+				switch (_classPrivateFieldGet2(_options, this).lockPolicy) {
+					case "exclusive": return await _assertClassBrand(_Class_brand, this, _unlockExclusive).call(this, lockState, lockType);
+					case "shared":
+					case "shared+hint": return await _assertClassBrand(_Class_brand, this, _unlockShared).call(this, lockState, lockType);
+				}
+			} catch (e) {
+				console.error("WebLocksMixin: unlock error", e);
+				return SQLITE_IOERR_UNLOCK;
+			}
+		}
+		/**
+		* @param {number} fileId 
+		* @param {DataView} pResOut 
+		* @returns {Promise<number>}
+		*/
+		async jCheckReservedLock(fileId, pResOut) {
+			try {
+				const lockState = _assertClassBrand(_Class_brand, this, _getLockState).call(this, fileId);
+				switch (_classPrivateFieldGet2(_options, this).lockPolicy) {
+					case "exclusive": return _assertClassBrand(_Class_brand, this, _checkReservedExclusive).call(this, lockState, pResOut);
+					case "shared":
+					case "shared+hint": return await _assertClassBrand(_Class_brand, this, _checkReservedShared).call(this, lockState, pResOut);
+				}
+			} catch (e) {
+				console.error("WebLocksMixin: check reserved lock error", e);
+				return SQLITE_IOERR_CHECKRESERVEDLOCK;
+			}
+			pResOut.setInt32(0, 0, true);
+			return 0;
+		}
+		/**
+		* @param {number} fileId
+		* @param {number} op
+		* @param {DataView} pArg
+		* @returns {number|Promise<number>}
+		*/
+		jFileControl(fileId, op, pArg) {
+			if (op === WebLocksMixin.WRITE_HINT_OP_CODE && _classPrivateFieldGet2(_options, this).lockPolicy === "shared+hint") {
+				const lockState = _assertClassBrand(_Class_brand, this, _getLockState).call(this, fileId);
+				lockState.writeHint = true;
+			}
+			return 12;
+		}
 	};
-	sqlite3.reset = (function() {
-		const fname = "sqlite3_reset";
-		const f = Module.cwrap(fname, ...decl("n:n"), { async });
-		return async function(stmt) {
-			verifyStatement(stmt);
-			return check(fname, await f(stmt), mapStmtToDB.get(stmt));
-		};
-	})();
-	sqlite3.result = function(context, value) {
-		switch (typeof value) {
-			case "number":
-				if (value === (value | 0)) sqlite3.result_int(context, value);
-				else sqlite3.result_double(context, value);
+	function _getLockState(fileId) {
+		let lockState = _classPrivateFieldGet2(_mapIdToState, this).get(fileId);
+		if (!lockState) {
+			lockState = {
+				baseName: this.getFilename(fileId),
+				type: 0,
+				writeHint: false
+			};
+			_classPrivateFieldGet2(_mapIdToState, this).set(fileId, lockState);
+		}
+		return lockState;
+	}
+	/**
+	* @param {LockState} lockState 
+	* @param {number} lockType 
+	* @returns 
+	*/
+	async function _lockExclusive(lockState, lockType) {
+		if (!lockState.access) {
+			if (!await _assertClassBrand(_Class_brand, this, _acquire).call(this, lockState, "access")) return 5;
+			console.assert(!!lockState.access);
+		}
+		lockState.type = lockType;
+		return 0;
+	}
+	/**
+	* @param {LockState} lockState 
+	* @param {number} lockType 
+	* @returns {number}
+	*/
+	function _unlockExclusive(lockState, lockType) {
+		if (lockType === 0) {
+			lockState.access?.();
+			console.assert(!lockState.access);
+		}
+		lockState.type = lockType;
+		return 0;
+	}
+	/**
+	* @param {LockState} lockState 
+	* @param {DataView} pResOut 
+	* @returns {number}
+	*/
+	function _checkReservedExclusive(lockState, pResOut) {
+		pResOut.setInt32(0, 0, true);
+		return 0;
+	}
+	/**
+	* @param {LockState} lockState 
+	* @param {number} lockType 
+	* @returns 
+	*/
+	async function _lockShared(lockState, lockType) {
+		switch (lockState.type) {
+			case 0:
+				switch (lockType) {
+					case 1:
+						if (lockState.writeHint) {
+							if (!await _assertClassBrand(_Class_brand, this, _acquire).call(this, lockState, "hint")) return 5;
+						}
+						if (!await _assertClassBrand(_Class_brand, this, _acquire).call(this, lockState, "gate", SHARED)) {
+							lockState.hint?.();
+							return 5;
+						}
+						await _assertClassBrand(_Class_brand, this, _acquire).call(this, lockState, "access", SHARED);
+						lockState.gate();
+						console.assert(!lockState.gate);
+						console.assert(!!lockState.access);
+						console.assert(!lockState.reserved);
+						break;
+					default: throw new Error("unsupported lock transition");
+				}
 				break;
-			case "string":
-				sqlite3.result_text(context, value);
+			case 1:
+				switch (lockType) {
+					case 2:
+						if (_classPrivateFieldGet2(_options, this).lockPolicy === "shared+hint") {
+							if (!lockState.hint && !await _assertClassBrand(_Class_brand, this, _acquire).call(this, lockState, "hint", POLL_EXCLUSIVE)) return 5;
+						}
+						if (!await _assertClassBrand(_Class_brand, this, _acquire).call(this, lockState, "reserved", POLL_EXCLUSIVE)) {
+							lockState.hint?.();
+							return 5;
+						}
+						lockState.access();
+						console.assert(!lockState.gate);
+						console.assert(!lockState.access);
+						console.assert(!!lockState.reserved);
+						break;
+					case 4:
+						if (!await _assertClassBrand(_Class_brand, this, _acquire).call(this, lockState, "gate")) return 5;
+						lockState.access();
+						if (!await _assertClassBrand(_Class_brand, this, _acquire).call(this, lockState, "access")) {
+							lockState.gate();
+							return 5;
+						}
+						console.assert(!!lockState.gate);
+						console.assert(!!lockState.access);
+						console.assert(!lockState.reserved);
+						break;
+					default: throw new Error("unsupported lock transition");
+				}
 				break;
-			default:
-				if (value instanceof Uint8Array || Array.isArray(value)) sqlite3.result_blob(context, value);
-				else if (value === null) sqlite3.result_null(context);
-				else if (typeof value === "bigint") return sqlite3.result_int64(context, value);
+			case 2:
+				switch (lockType) {
+					case 4:
+						if (!await _assertClassBrand(_Class_brand, this, _acquire).call(this, lockState, "gate")) return 5;
+						if (!await _assertClassBrand(_Class_brand, this, _acquire).call(this, lockState, "access")) {
+							lockState.gate();
+							return 5;
+						}
+						console.assert(!!lockState.gate);
+						console.assert(!!lockState.access);
+						console.assert(!!lockState.reserved);
+						break;
+					default: throw new Error("unsupported lock transition");
+				}
+				break;
+		}
+		lockState.type = lockType;
+		return 0;
+	}
+	/**
+	* @param {LockState} lockState 
+	* @param {number} lockType 
+	* @returns 
+	*/
+	async function _unlockShared(lockState, lockType) {
+		if (lockType === 0) {
+			lockState.access?.();
+			lockState.gate?.();
+			lockState.reserved?.();
+			lockState.hint?.();
+			lockState.writeHint = false;
+			console.assert(!lockState.access);
+			console.assert(!lockState.gate);
+			console.assert(!lockState.reserved);
+			console.assert(!lockState.hint);
+		} else switch (lockState.type) {
+			case 4:
+				lockState.access();
+				await _assertClassBrand(_Class_brand, this, _acquire).call(this, lockState, "access", SHARED);
+				lockState.gate();
+				lockState.reserved?.();
+				lockState.hint?.();
+				console.assert(!!lockState.access);
+				console.assert(!lockState.gate);
+				console.assert(!lockState.reserved);
+				break;
+			case 2:
+				await _assertClassBrand(_Class_brand, this, _acquire).call(this, lockState, "access", SHARED);
+				lockState.reserved();
+				lockState.hint?.();
+				console.assert(!!lockState.access);
+				console.assert(!lockState.gate);
+				console.assert(!lockState.reserved);
+				break;
+		}
+		lockState.type = lockType;
+		return 0;
+	}
+	/**
+	* @param {LockState} lockState 
+	* @param {DataView} pResOut 
+	* @returns {Promise<number>}
+	*/
+	async function _checkReservedShared(lockState, pResOut) {
+		if (await _assertClassBrand(_Class_brand, this, _acquire).call(this, lockState, "reserved", POLL_SHARED)) {
+			lockState.reserved();
+			pResOut.setInt32(0, 0, true);
+		} else pResOut.setInt32(0, 1, true);
+		return 0;
+	}
+	/**
+	* @param {LockState} lockState 
+	* @param {'gate'|'access'|'reserved'|'hint'} name
+	* @param {LockOptions} options 
+	* @returns {Promise<boolean>}
+	*/
+	function _acquire(lockState, name, options = {}) {
+		console.assert(!lockState[name]);
+		return new Promise((resolve) => {
+			if (!options.ifAvailable && _classPrivateFieldGet2(_options, this).lockTimeout < Infinity) {
+				const controller = new AbortController();
+				options = Object.assign({}, options, { signal: controller.signal });
+				setTimeout(() => {
+					controller.abort();
+					resolve?.(false);
+				}, _classPrivateFieldGet2(_options, this).lockTimeout);
+			}
+			const lockName = `lock##${lockState.baseName}##${name}`;
+			navigator.locks.request(lockName, options, (lock) => {
+				if (lock) return new Promise((release) => {
+					lockState[name] = () => {
+						release();
+						lockState[name] = null;
+					};
+					resolve(true);
+					resolve = null;
+				});
 				else {
-					console.warn("unknown result converted to null", value);
-					sqlite3.result_null(context);
+					lockState[name] = null;
+					resolve(false);
+					resolve = null;
 				}
-				break;
-		}
-	};
-	sqlite3.result_blob = (function() {
-		const f = Module.cwrap("sqlite3_result_blob", ...decl("nnnn:n"));
-		return function(context, value) {
-			const byteLength = value.byteLength ?? value.length;
-			const ptr = Module._sqlite3_malloc(byteLength);
-			Module.HEAPU8.subarray(ptr).set(value);
-			f(context, ptr, byteLength, sqliteFreeAddress);
-		};
-	})();
-	sqlite3.result_double = (function() {
-		const f = Module.cwrap("sqlite3_result_double", ...decl("nn:n"));
-		return function(context, value) {
-			f(context, value);
-		};
-	})();
-	sqlite3.result_int = (function() {
-		const f = Module.cwrap("sqlite3_result_int", ...decl("nn:n"));
-		return function(context, value) {
-			f(context, value);
-		};
-	})();
-	sqlite3.result_int64 = (function() {
-		const f = Module.cwrap("sqlite3_result_int64", ...decl("nnn:n"));
-		return function(context, value) {
-			if (value > MAX_INT64 || value < MIN_INT64) return 25;
-			const lo32 = value & 4294967295n;
-			const hi32 = value >> 32n;
-			f(context, Number(lo32), Number(hi32));
-		};
-	})();
-	sqlite3.result_null = (function() {
-		const f = Module.cwrap("sqlite3_result_null", ...decl("n:n"));
-		return function(context) {
-			f(context);
-		};
-	})();
-	sqlite3.result_text = (function() {
-		const f = Module.cwrap("sqlite3_result_text", ...decl("nnnn:n"));
-		return function(context, value) {
-			f(context, createUTF8(value), -1, sqliteFreeAddress);
-		};
-	})();
-	sqlite3.row = function(stmt) {
-		const row = [];
-		const nColumns = sqlite3.data_count(stmt);
-		for (let i = 0; i < nColumns; ++i) {
-			const value = sqlite3.column(stmt, i);
-			row.push(value?.buffer === Module.HEAPU8.buffer ? value.slice() : value);
-		}
-		return row;
-	};
-	sqlite3.set_authorizer = function(db, xAuth, pApp) {
-		verifyDatabase(db);
-		function cvtArgs(_, iAction, p3, p4, p5, p6) {
-			return [
-				_,
-				iAction,
-				Module.UTF8ToString(p3),
-				Module.UTF8ToString(p4),
-				Module.UTF8ToString(p5),
-				Module.UTF8ToString(p6)
-			];
-		}
-		function adapt(f) {
-			return f instanceof AsyncFunction ? (async (_, iAction, p3, p4, p5, p6) => f(...cvtArgs(_, iAction, p3, p4, p5, p6))) : ((_, iAction, p3, p4, p5, p6) => f(...cvtArgs(_, iAction, p3, p4, p5, p6)));
-		}
-		return check("sqlite3_set_authorizer", Module.set_authorizer(db, adapt(xAuth), pApp), db);
-	};
-	sqlite3.sql = (function() {
-		const f = Module.cwrap("sqlite3_sql", ...decl("n:s"));
-		return function(stmt) {
-			verifyStatement(stmt);
-			return f(stmt);
-		};
-	})();
-	sqlite3.statements = function(db, sql, options = {}) {
-		const prepare = Module.cwrap("sqlite3_prepare_v3", "number", [
-			"number",
-			"number",
-			"number",
-			"number",
-			"number",
-			"number"
-		], { async: true });
-		return (async function* () {
-			const onFinally = [];
-			try {
-				const utf8 = textEncoder.encode(sql);
-				const allocSize = utf8.byteLength - utf8.byteLength % 4 + 12;
-				const pzHead = Module._sqlite3_malloc(allocSize);
-				const pzEnd = pzHead + utf8.byteLength + 1;
-				onFinally.push(() => Module._sqlite3_free(pzHead));
-				Module.HEAPU8.set(utf8, pzHead);
-				Module.HEAPU8[pzEnd - 1] = 0;
-				const pStmt = pzHead + allocSize - 8;
-				const pzTail = pzHead + allocSize - 4;
-				let stmt;
-				function maybeFinalize() {
-					if (stmt && !options.unscoped) sqlite3.finalize(stmt);
-					stmt = 0;
-				}
-				onFinally.push(maybeFinalize);
-				Module.setValue(pzTail, pzHead, "*");
-				do {
-					maybeFinalize();
-					const zTail = Module.getValue(pzTail, "*");
-					const rc = await retry(() => {
-						return prepare(db, zTail, pzEnd - pzTail, options.flags || 0, pStmt, pzTail);
-					});
-					if (rc !== 0) check("sqlite3_prepare_v3", rc, db);
-					stmt = Module.getValue(pStmt, "*");
-					if (stmt) {
-						mapStmtToDB.set(stmt, db);
-						yield stmt;
-					}
-				} while (stmt);
-			} finally {
-				while (onFinally.length) onFinally.pop()();
-			}
-		})();
-	};
-	sqlite3.step = (function() {
-		const fname = "sqlite3_step";
-		const f = Module.cwrap(fname, ...decl("n:n"), { async });
-		return async function(stmt) {
-			verifyStatement(stmt);
-			return check(fname, await retry(() => f(stmt)), mapStmtToDB.get(stmt), [100, 101]);
-		};
-	})();
-	sqlite3.commit_hook = function(db, xCommitHook) {
-		verifyDatabase(db);
-		Module.commit_hook(db, xCommitHook);
-	};
-	sqlite3.update_hook = function(db, xUpdateHook) {
-		verifyDatabase(db);
-		function cvtArgs(iUpdateType, dbName, tblName, lo32, hi32) {
-			return [
-				iUpdateType,
-				Module.UTF8ToString(dbName),
-				Module.UTF8ToString(tblName),
-				cvt32x2ToBigInt(lo32, hi32)
-			];
-		}
-		function adapt(f) {
-			return f instanceof AsyncFunction ? (async (iUpdateType, dbName, tblName, lo32, hi32) => f(...cvtArgs(iUpdateType, dbName, tblName, lo32, hi32))) : ((iUpdateType, dbName, tblName, lo32, hi32) => f(...cvtArgs(iUpdateType, dbName, tblName, lo32, hi32)));
-		}
-		Module.update_hook(db, adapt(xUpdateHook));
-	};
-	sqlite3.value = function(pValue) {
-		const type = sqlite3.value_type(pValue);
-		switch (type) {
-			case 4: return sqlite3.value_blob(pValue);
-			case 2: return sqlite3.value_double(pValue);
-			case 1: return cvt32x2AsSafe(sqlite3.value_int(pValue), Module.getTempRet0());
-			case 5: return null;
-			case 3: return sqlite3.value_text(pValue);
-			default: throw new SQLiteError("unknown type", type);
-		}
-	};
-	sqlite3.value_blob = (function() {
-		const f = Module.cwrap("sqlite3_value_blob", ...decl("n:n"));
-		return function(pValue) {
-			const nBytes = sqlite3.value_bytes(pValue);
-			const address = f(pValue);
-			return Module.HEAPU8.subarray(address, address + nBytes);
-		};
-	})();
-	sqlite3.value_bytes = (function() {
-		const f = Module.cwrap("sqlite3_value_bytes", ...decl("n:n"));
-		return function(pValue) {
-			return f(pValue);
-		};
-	})();
-	sqlite3.value_double = (function() {
-		const f = Module.cwrap("sqlite3_value_double", ...decl("n:n"));
-		return function(pValue) {
-			return f(pValue);
-		};
-	})();
-	sqlite3.value_int = (function() {
-		const f = Module.cwrap("sqlite3_value_int64", ...decl("n:n"));
-		return function(pValue) {
-			return f(pValue);
-		};
-	})();
-	sqlite3.value_int64 = (function() {
-		const f = Module.cwrap("sqlite3_value_int64", ...decl("n:n"));
-		return function(pValue) {
-			return cvt32x2ToBigInt(f(pValue), Module.getTempRet0());
-		};
-	})();
-	sqlite3.value_text = (function() {
-		const f = Module.cwrap("sqlite3_value_text", ...decl("n:s"));
-		return function(pValue) {
-			return f(pValue);
-		};
-	})();
-	sqlite3.value_type = (function() {
-		const f = Module.cwrap("sqlite3_value_type", ...decl("n:n"));
-		return function(pValue) {
-			return f(pValue);
-		};
-	})();
-	sqlite3.vfs_register = function(vfs, makeDefault) {
-		return check("sqlite3_vfs_register", Module.vfs_register(vfs, makeDefault));
-	};
-	function check(fname, result, db = null, allowed = [0]) {
-		if (allowed.includes(result)) return result;
-		throw new SQLiteError(db ? Module.ccall("sqlite3_errmsg", "string", ["number"], [db]) : fname, result);
+			}).catch((e) => {
+				if (e.name !== "AbortError") throw e;
+			});
+		});
 	}
-	async function retry(f) {
-		let rc;
-		for (let retryCount = 0; retryCount < 2; ++retryCount) {
-			if (Module.retryOps.length) try {
-				await Promise.all(Module.retryOps);
-			} finally {
-				Module.retryOps = [];
-			}
-			rc = await f();
-			if (rc === 0 || Module.retryOps.length === 0) {
-				if (Module.pendingOps.length) try {
-					await Promise.all(Module.pendingOps);
-				} catch (e) {
-					console.error("Error in pendingOps:", e);
-					return e.code || 1;
-				} finally {
-					Module.pendingOps = [];
-				}
-				return rc;
-			}
-		}
-		return rc;
-	}
-	return sqlite3;
-}
-function decl(s) {
-	const result = [];
-	const m = s.match(/([ns@]*):([nsv@])/);
-	switch (m[2]) {
-		case "n":
-			result.push("number");
-			break;
-		case "s":
-			result.push("string");
-			break;
-		case "v":
-			result.push(null);
-			break;
-	}
-	const args = [];
-	for (let c of m[1]) switch (c) {
-		case "n":
-			args.push("number");
-			break;
-		case "s":
-			args.push("string");
-			break;
-	}
-	result.push(args);
-	return result;
-}
-new Uint8Array([
-	83,
-	81,
-	76,
-	105,
-	116,
-	101,
-	32,
-	102,
-	111,
-	114,
-	109,
-	97,
-	116,
-	32,
-	51,
-	0
-]);
-async function close(core) {
-	await core.sqlite.close(core.pointer);
-}
-function changes(core) {
-	return core.sqliteModule._sqlite3_changes(core.pointer);
-}
-function lastInsertRowId(core) {
-	return core.sqliteModule._sqlite3_last_insert_rowid(core.pointer);
-}
-function parseOpenV2Flag(readonly) {
-	return readonly ? 1 : 6;
-}
-/**
-* Load SQLite database without utils
-*
-* Presets: `useMemoryStorage`, `useIdbStorage`, `useOpfsStorage`
-* @param options {@link InitSQLiteOptions}
-*/
-async function initSQLiteCore(options) {
-	const { path, sqliteModule, vfsFn, vfsOptions, readonly, beforeOpen } = await options;
-	const sqlite = Factory(sqliteModule);
-	const vfs = await vfsFn(path, sqliteModule, vfsOptions);
-	sqlite.vfs_register(vfs, true);
-	await beforeOpen?.(vfs, path);
-	const pointer = await sqlite.open_v2(path, parseOpenV2Flag(readonly));
-	return {
-		db: pointer,
-		path,
-		pointer,
-		sqlite,
-		sqliteModule,
-		vfs
-	};
-}
-//#endregion
-//#region ../packages/dialect-generic-sqlite/dist/utils-B22HCdc4.mjs
-/**
-* Create generic message handler
-* @param init Function that init sqlite executor
-* @param post Function that post message to main thread
-* @param message Handle custom messages. If returning data is not `undefined` and `null`, it will be set as second element of first param
-*/
-function createGenericOnMessageCallback(init, post, message) {
-	let db;
-	return async ([type, data1, data2, data3, data4, data5]) => {
-		const ret = [
-			type,
-			null,
-			null,
-			null
-		];
-		try {
-			switch (type) {
-				case "0":
-					db = await init(data1);
-					break;
-				case "1":
-					ret[1] = data1;
-					ret[2] = await db.query(data2, data3, data4);
-					break;
-				case "2":
-					await db.close();
-					break;
-				case "3": {
-					ret[1] = data1;
-					if (!db.iterator) throw new Error("streamQuery() is not supported.");
-					const it = db.iterator(data2, data3, data4, data5);
-					for await (const row of it) post([
-						type,
-						data1,
-						row,
-						null
-					]);
-					ret[0] = "4";
-					break;
-				}
-				default: if (message) {
-					const data = await message(db, type, data1, data2, data3, data4);
-					if (data !== void 0 && data !== null) ret[2] = data;
-				} else throw new Error(`Unknown message type: ${type}`);
-			}
-		} catch (error) {
-			ret[3] = error;
-		}
-		post(ret);
-	};
-}
-//#endregion
-//#region ../packages/dialect-generic-sqlite/dist/worker-helper-web.mjs
-function createWebOnMessageCallback(init, message) {
-	const cb = createGenericOnMessageCallback(init, (value) => globalThis.postMessage(value), message);
-	globalThis.onmessage = ({ data }) => cb(data);
-}
-//#endregion
-//#region ../packages/dialect-generic-sqlite/dist/base-CsEzCtSy.mjs
-function parseBigInt(num) {
-	return num === void 0 || num === null ? void 0 : BigInt(num);
-}
-//#endregion
-//#region ../packages/dialect-wasqlite-worker/dist/utils-Cc2O-UZy.js
-const defaultCreateDatabaseFn = async ({ fileName, url, useOPFS }) => {
-	return initSQLiteCore((useOPFS ? (await import("./opfs-BomJMjax.js")).useOpfsStorage : (await import("./idb-DNltG12M.js")).useIdbStorage)(fileName, { url }));
 };
-function createRowMapper(sqlite, stmt) {
-	const cols = sqlite.column_names(stmt);
-	return (row) => Object.fromEntries(cols.map((key, i) => [key, row[i]]));
+WebLocksMixin.WRITE_HINT_OP_CODE = -9999;
+//#endregion
+//#region ../node_modules/.pnpm/@subframe7536+sqlite-wasm@1.3.1/node_modules/@subframe7536/sqlite-wasm/dist/idb.js
+var _isReady, _idb, _IDBBatchAtomicVFS$1_brand, _database, _chain, _txComplete, _request, _txPending, _IDBContext_brand;
+const RETRYABLE_ERRORS = /* @__PURE__ */ new Set(["TransactionInactiveError", "InvalidStateError"]);
+/**
+* @typedef Metadata
+* @property {string} name
+* @property {number} fileSize
+* @property {number} version
+* @property {number} [pendingVersion]
+*/
+var File = class {
+	constructor(path, flags, metadata) {
+		_defineProperty(
+			this,
+			/** @type {string} */
+			"path",
+			void 0
+		);
+		_defineProperty(
+			this,
+			/** @type {number} */
+			"flags",
+			void 0
+		);
+		_defineProperty(
+			this,
+			/** @type {Metadata} */
+			"metadata",
+			void 0
+		);
+		_defineProperty(
+			this,
+			/** @type {number} */
+			"fileSize",
+			0
+		);
+		_defineProperty(
+			this,
+			/** @type {boolean} */
+			"needsMetadataSync",
+			false
+		);
+		_defineProperty(
+			this,
+			/** @type {Metadata} */
+			"rollback",
+			null
+		);
+		_defineProperty(
+			this,
+			/** @type {Set<number>} */
+			"changedPages",
+			/* @__PURE__ */ new Set()
+		);
+		_defineProperty(
+			this,
+			/** @type {string} */
+			"synchronous",
+			"full"
+		);
+		_defineProperty(
+			this,
+			/** @type {IDBTransactionOptions} */
+			"txOptions",
+			{ durability: "strict" }
+		);
+		this.path = path;
+		this.flags = flags;
+		this.metadata = metadata;
+	}
+};
+var IDBBatchAtomicVFS$1 = (_isReady = /* @__PURE__ */ new WeakMap(), _idb = /* @__PURE__ */ new WeakMap(), _IDBBatchAtomicVFS$1_brand = /* @__PURE__ */ new WeakSet(), class IDBBatchAtomicVFS$1 extends WebLocksMixin(FacadeVFS) {
+	static async create(name, module, options) {
+		const vfs = new IDBBatchAtomicVFS$1(name, module, options);
+		await vfs.isReady();
+		return vfs;
+	}
+	constructor(name, module, options = {}) {
+		super(name, module, options);
+		_classPrivateMethodInitSpec(this, _IDBBatchAtomicVFS$1_brand);
+		_defineProperty(
+			this,
+			/** @type {Map<number, File>} */
+			"mapIdToFile",
+			/* @__PURE__ */ new Map()
+		);
+		_defineProperty(this, "lastError", null);
+		_defineProperty(this, "log", null);
+		_classPrivateFieldInitSpec(this, _isReady, void 0);
+		_classPrivateFieldInitSpec(this, _idb, void 0);
+		_classPrivateFieldSet2(_isReady, this, _assertClassBrand(_IDBBatchAtomicVFS$1_brand, this, _initialize).call(this, options.idbName ?? name));
+	}
+	close() {
+		_classPrivateFieldGet2(_idb, this).close();
+	}
+	async isReady() {
+		await super.isReady();
+		await _classPrivateFieldGet2(_isReady, this);
+	}
+	getFilename(fileId) {
+		const pathname = this.mapIdToFile.get(fileId).path;
+		return `IDB(${this.name}):${pathname}`;
+	}
+	/**
+	* @param {string?} zName 
+	* @param {number} fileId 
+	* @param {number} flags 
+	* @param {DataView} pOutFlags 
+	* @returns {Promise<number>}
+	*/
+	async jOpen(zName, fileId, flags, pOutFlags) {
+		try {
+			const path = new URL(zName || Math.random().toString(36).slice(2), "file://").pathname;
+			let meta = await _classPrivateFieldGet2(_idb, this).q(({ metadata }) => metadata.get(path));
+			if (!meta && flags & 4) {
+				meta = {
+					name: path,
+					fileSize: 0,
+					version: 0
+				};
+				await _classPrivateFieldGet2(_idb, this).q(({ metadata }) => metadata.put(meta), "rw");
+			}
+			if (!meta) throw new Error(`File ${path} not found`);
+			const file = new File(path, flags, meta);
+			this.mapIdToFile.set(fileId, file);
+			pOutFlags.setInt32(0, flags, true);
+			return 0;
+		} catch (e) {
+			this.lastError = e;
+			return 14;
+		}
+	}
+	/**
+	* @param {string} zName 
+	* @param {number} syncDir 
+	* @returns {Promise<number>}
+	*/
+	async jDelete(zName, syncDir) {
+		try {
+			const path = new URL(zName, "file://").pathname;
+			_classPrivateFieldGet2(_idb, this).q(({ metadata, blocks }) => {
+				const range = IDBKeyRange.bound([path, -Infinity], [path, Infinity]);
+				blocks.delete(range);
+				metadata.delete(path);
+			}, "rw");
+			if (syncDir) await _classPrivateFieldGet2(_idb, this).sync(false);
+			return 0;
+		} catch (e) {
+			this.lastError = e;
+			return SQLITE_IOERR_DELETE;
+		}
+	}
+	/**
+	* @param {string} zName 
+	* @param {number} flags 
+	* @param {DataView} pResOut 
+	* @returns {Promise<number>}
+	*/
+	async jAccess(zName, flags, pResOut) {
+		try {
+			const path = new URL(zName, "file://").pathname;
+			const meta = await _classPrivateFieldGet2(_idb, this).q(({ metadata }) => metadata.get(path));
+			pResOut.setInt32(0, meta ? 1 : 0, true);
+			return 0;
+		} catch (e) {
+			this.lastError = e;
+			return SQLITE_IOERR_ACCESS;
+		}
+	}
+	/**
+	* @param {number} fileId 
+	* @returns {Promise<number>}
+	*/
+	async jClose(fileId) {
+		try {
+			const file = this.mapIdToFile.get(fileId);
+			this.mapIdToFile.delete(fileId);
+			if (file.flags & 8) await _classPrivateFieldGet2(_idb, this).q(({ metadata, blocks }) => {
+				metadata.delete(file.path);
+				blocks.delete(IDBKeyRange.bound([file.path, 0], [file.path, Infinity]));
+			}, "rw");
+			if (file.needsMetadataSync) _classPrivateFieldGet2(_idb, this).q(({ metadata }) => metadata.put(file.metadata), "rw");
+			await _classPrivateFieldGet2(_idb, this).sync(file.synchronous === "full");
+			return 0;
+		} catch (e) {
+			this.lastError = e;
+			return SQLITE_IOERR_CLOSE;
+		}
+	}
+	/**
+	* @param {number} fileId 
+	* @param {Uint8Array} pData 
+	* @param {number} iOffset
+	* @returns {Promise<number>}
+	*/
+	async jRead(fileId, pData, iOffset) {
+		try {
+			const file = this.mapIdToFile.get(fileId);
+			let pDataOffset = 0;
+			while (pDataOffset < pData.byteLength) {
+				const fileOffset = iOffset + pDataOffset;
+				const block = await _classPrivateFieldGet2(_idb, this).q(({ blocks }) => {
+					const range = IDBKeyRange.bound([file.path, -fileOffset], [file.path, Infinity]);
+					return blocks.get(range);
+				});
+				if (!block || block.data.byteLength - block.offset <= fileOffset) {
+					pData.fill(0, pDataOffset);
+					return 522;
+				}
+				const dst = pData.subarray(pDataOffset);
+				const srcOffset = fileOffset + block.offset;
+				const nBytesToCopy = Math.min(Math.max(block.data.byteLength - srcOffset, 0), dst.byteLength);
+				dst.set(block.data.subarray(srcOffset, srcOffset + nBytesToCopy));
+				pDataOffset += nBytesToCopy;
+			}
+			return 0;
+		} catch (e) {
+			this.lastError = e;
+			return 266;
+		}
+	}
+	/**
+	* @param {number} fileId 
+	* @param {Uint8Array} pData 
+	* @param {number} iOffset
+	* @returns {number}
+	*/
+	jWrite(fileId, pData, iOffset) {
+		try {
+			const file = this.mapIdToFile.get(fileId);
+			if (file.flags & 256) {
+				if (!file.rollback) {
+					const pending = Object.assign({ pendingVersion: file.metadata.version - 1 }, file.metadata);
+					_classPrivateFieldGet2(_idb, this).q(({ metadata }) => metadata.put(pending), "rw", file.txOptions);
+					file.rollback = Object.assign({}, file.metadata);
+					file.metadata.version--;
+				}
+			}
+			if (file.flags & 256) file.changedPages.add(iOffset);
+			const data = pData.slice();
+			const version = file.metadata.version;
+			if (!(iOffset < file.metadata.fileSize) || file.flags & 256 || file.flags & 512) {
+				const block = {
+					path: file.path,
+					offset: -iOffset,
+					version,
+					data: pData.slice()
+				};
+				_classPrivateFieldGet2(_idb, this).q(({ blocks }) => {
+					blocks.put(block);
+					file.changedPages.add(iOffset);
+				}, "rw", file.txOptions);
+			} else _classPrivateFieldGet2(_idb, this).q(async ({ blocks }) => {
+				const range = IDBKeyRange.bound([file.path, -iOffset], [file.path, Infinity]);
+				const block = await blocks.get(range);
+				block.data.subarray(iOffset + block.offset).set(data);
+				blocks.put(block);
+			}, "rw", file.txOptions);
+			if (file.metadata.fileSize < iOffset + pData.length) {
+				file.metadata.fileSize = iOffset + pData.length;
+				file.needsMetadataSync = true;
+			}
+			return 0;
+		} catch (e) {
+			this.lastError = e;
+			return 778;
+		}
+	}
+	/**
+	* @param {number} fileId 
+	* @param {number} iSize 
+	* @returns {number}
+	*/
+	jTruncate(fileId, iSize) {
+		try {
+			const file = this.mapIdToFile.get(fileId);
+			if (iSize < file.metadata.fileSize) {
+				_classPrivateFieldGet2(_idb, this).q(({ blocks }) => {
+					const range = IDBKeyRange.bound([file.path, -Infinity], [
+						file.path,
+						-iSize,
+						Infinity
+					]);
+					blocks.delete(range);
+				}, "rw", file.txOptions);
+				file.metadata.fileSize = iSize;
+				file.needsMetadataSync = true;
+			}
+			return 0;
+		} catch (e) {
+			this.lastError = e;
+			return SQLITE_IOERR_TRUNCATE;
+		}
+	}
+	/**
+	* @param {number} fileId 
+	* @param {number} flags 
+	* @returns {Promise<number>}
+	*/
+	async jSync(fileId, flags) {
+		try {
+			const file = this.mapIdToFile.get(fileId);
+			if (file.needsMetadataSync) {
+				_classPrivateFieldGet2(_idb, this).q(({ metadata }) => metadata.put(file.metadata), "rw", file.txOptions);
+				file.needsMetadataSync = false;
+			}
+			if (file.flags & 256) {
+				if (file.synchronous === "full") await _classPrivateFieldGet2(_idb, this).sync(true);
+			} else await _classPrivateFieldGet2(_idb, this).sync(file.synchronous === "full");
+			return 0;
+		} catch (e) {
+			this.lastError = e;
+			return SQLITE_IOERR_FSYNC;
+		}
+	}
+	/**
+	* @param {number} fileId 
+	* @param {DataView} pSize64 
+	* @returns {number}
+	*/
+	jFileSize(fileId, pSize64) {
+		try {
+			const file = this.mapIdToFile.get(fileId);
+			pSize64.setBigInt64(0, BigInt(file.metadata.fileSize), true);
+			return 0;
+		} catch (e) {
+			this.lastError = e;
+			return SQLITE_IOERR_FSTAT;
+		}
+	}
+	/**
+	* @param {number} fileId 
+	* @param {number} lockType 
+	* @returns {Promise<number>}
+	*/
+	async jLock(fileId, lockType) {
+		const file = this.mapIdToFile.get(fileId);
+		const result = await super.jLock(fileId, lockType);
+		if (lockType === 1) file.metadata = await _classPrivateFieldGet2(_idb, this).q(async ({ metadata, blocks }) => {
+			/** @type {Metadata} */ const m = await metadata.get(file.path);
+			if (m.pendingVersion) {
+				console.warn(`removing failed transaction ${m.pendingVersion}`);
+				await new Promise((resolve, reject) => {
+					const range = IDBKeyRange.bound([m.name, -Infinity], [m.name, Infinity]);
+					const request = blocks.openCursor(range);
+					request.onsuccess = () => {
+						const cursor = request.result;
+						if (cursor) {
+							if (cursor.value.version < m.version) cursor.delete();
+							cursor.continue();
+						} else resolve();
+					};
+					request.onerror = () => reject(request.error);
+				});
+				delete m.pendingVersion;
+				metadata.put(m);
+			}
+			return m;
+		}, "rw", file.txOptions);
+		return result;
+	}
+	/**
+	* @param {number} fileId 
+	* @param {number} lockType 
+	* @returns {Promise<number>}
+	*/
+	async jUnlock(fileId, lockType) {
+		if (lockType === 0) {
+			const file = this.mapIdToFile.get(fileId);
+			await _classPrivateFieldGet2(_idb, this).sync(file.synchronous === "full");
+		}
+		return super.jUnlock(fileId, lockType);
+	}
+	/**
+	* @param {number} fileId
+	* @param {number} op
+	* @param {DataView} pArg
+	* @returns {number|Promise<number>}
+	*/
+	jFileControl(fileId, op, pArg) {
+		try {
+			const file = this.mapIdToFile.get(fileId);
+			switch (op) {
+				case 14:
+					const key = extractString(pArg, 4);
+					const value = extractString(pArg, 8);
+					this.log?.("xFileControl", file.path, "PRAGMA", key, value);
+					switch (key.toLowerCase()) {
+						case "page_size":
+							if (file.flags & 256) {
+								if (value && file.metadata.fileSize) return 1;
+							}
+							break;
+						case "synchronous":
+							if (value) switch (value.toLowerCase()) {
+								case "0":
+								case "off":
+									file.synchronous = "off";
+									file.txOptions = { durability: "relaxed" };
+									break;
+								case "1":
+								case "normal":
+									file.synchronous = "normal";
+									file.txOptions = { durability: "relaxed" };
+									break;
+								case "2":
+								case "3":
+								case "full":
+								case "extra":
+									file.synchronous = "full";
+									file.txOptions = { durability: "strict" };
+									break;
+							}
+							break;
+						case "write_hint": return super.jFileControl(fileId, WebLocksMixin.WRITE_HINT_OP_CODE, null);
+					}
+					break;
+				case 21:
+					this.log?.("xFileControl", file.path, "SYNC");
+					if (file.rollback) {
+						const commitMetadata = Object.assign({}, file.metadata);
+						const prevFileSize = file.rollback.fileSize;
+						_classPrivateFieldGet2(_idb, this).q(({ metadata, blocks }) => {
+							metadata.put(commitMetadata);
+							for (const offset of file.changedPages) if (offset < prevFileSize) {
+								const range = IDBKeyRange.bound([
+									file.path,
+									-offset,
+									commitMetadata.version
+								], [
+									file.path,
+									-offset,
+									Infinity
+								], true);
+								blocks.delete(range);
+							}
+							file.changedPages.clear();
+						}, "rw", file.txOptions);
+						file.needsMetadataSync = false;
+						file.rollback = null;
+					}
+					break;
+				case 31:
+					this.log?.("xFileControl", file.path, "BEGIN_ATOMIC_WRITE");
+					return 0;
+				case 32:
+					this.log?.("xFileControl", file.path, "COMMIT_ATOMIC_WRITE");
+					return 0;
+				case 33:
+					this.log?.("xFileControl", file.path, "ROLLBACK_ATOMIC_WRITE");
+					file.metadata = file.rollback;
+					const rollbackMetadata = Object.assign({}, file.metadata);
+					_classPrivateFieldGet2(_idb, this).q(({ metadata, blocks }) => {
+						metadata.put(rollbackMetadata);
+						for (const offset of file.changedPages) blocks.delete([
+							file.path,
+							-offset,
+							rollbackMetadata.version - 1
+						]);
+						file.changedPages.clear();
+					}, "rw", file.txOptions);
+					file.needsMetadataSync = false;
+					file.rollback = null;
+					return 0;
+			}
+		} catch (e) {
+			this.lastError = e;
+			return 10;
+		}
+		return super.jFileControl(fileId, op, pArg);
+	}
+	/**
+	* @param {number} pFile
+	* @returns {number|Promise<number>}
+	*/
+	jDeviceCharacteristics(pFile) {
+		return 0 | SQLITE_IOCAP_BATCH_ATOMIC | SQLITE_IOCAP_UNDELETABLE_WHEN_OPEN;
+	}
+	/**
+	* @param {Uint8Array} zBuf 
+	* @returns {number|Promise<number>}
+	*/
+	jGetLastError(zBuf) {
+		if (this.lastError) {
+			console.error(this.lastError);
+			const outputArray = zBuf.subarray(0, zBuf.byteLength - 1);
+			const { written } = new TextEncoder().encodeInto(this.lastError.message, outputArray);
+			zBuf[written] = 0;
+		}
+		return 0;
+	}
+});
+async function _initialize(name) {
+	_classPrivateFieldSet2(_idb, this, await IDBContext.create(name));
 }
-async function prepareStatement(db, sql, parameters) {
-	const iterator = db.sqlite.statements(db.pointer, sql)[Symbol.asyncIterator]();
-	const { value: stmt, done } = await iterator.next();
-	if (done || !stmt) {
-		await iterator.return?.();
-		throw new Error(`No statement returned for sql: ${sql}`);
+function extractString(dataView, offset) {
+	const p = dataView.getUint32(offset, true);
+	if (p) {
+		const chars = new Uint8Array(dataView.buffer, p);
+		return new TextDecoder().decode(chars.subarray(0, chars.indexOf(0)));
 	}
-	try {
-		if (parameters.length) db.sqlite.bind_collection(stmt, parameters);
-	} catch (error) {
-		await iterator.return?.();
-		throw error;
+	return null;
+}
+var IDBContext = (_database = /* @__PURE__ */ new WeakMap(), _chain = /* @__PURE__ */ new WeakMap(), _txComplete = /* @__PURE__ */ new WeakMap(), _request = /* @__PURE__ */ new WeakMap(), _txPending = /* @__PURE__ */ new WeakMap(), _IDBContext_brand = /* @__PURE__ */ new WeakSet(), class IDBContext {
+	static async create(name) {
+		return new IDBContext(await new Promise((resolve, reject) => {
+			const request = indexedDB.open(name, 6);
+			request.onupgradeneeded = async (event) => {
+				const db = request.result;
+				if (event.oldVersion) console.log(`Upgrading IndexedDB from version ${event.oldVersion}`);
+				switch (event.oldVersion) {
+					case 0: db.createObjectStore("blocks", { keyPath: [
+						"path",
+						"offset",
+						"version"
+					] }).createIndex("version", ["path", "version"]);
+					case 5:
+						const tx = request.transaction;
+						tx.objectStore("blocks").deleteIndex("version");
+						const metadata = db.createObjectStore("metadata", { keyPath: "name" });
+						await new Promise((resolve, reject) => {
+							let lastBlock = {};
+							const request = tx.objectStore("blocks").openCursor();
+							request.onsuccess = () => {
+								const cursor = request.result;
+								if (cursor) {
+									const block = cursor.value;
+									if (typeof block.offset !== "number" || block.path === lastBlock.path && block.offset === lastBlock.offset) cursor.delete();
+									else if (block.offset === 0) {
+										metadata.put({
+											name: block.path,
+											fileSize: block.fileSize,
+											version: block.version
+										});
+										delete block.fileSize;
+										cursor.update(block);
+									}
+									lastBlock = block;
+									cursor.continue();
+								} else resolve();
+							};
+							request.onerror = () => reject(request.error);
+						});
+						break;
+				}
+			};
+			request.onsuccess = () => resolve(request.result);
+			request.onerror = () => reject(request.error);
+		}));
 	}
-	return {
-		stmt,
-		release: async () => await iterator.return?.()
-	};
+	constructor(database) {
+		_classPrivateMethodInitSpec(this, _IDBContext_brand);
+		_classPrivateFieldInitSpec(this, _database, void 0);
+		_classPrivateFieldInitSpec(this, _chain, null);
+		_classPrivateFieldInitSpec(this, _txComplete, Promise.resolve());
+		_classPrivateFieldInitSpec(this, _request, null);
+		_classPrivateFieldInitSpec(this, _txPending, /* @__PURE__ */ new WeakSet());
+		_defineProperty(this, "log", null);
+		_classPrivateFieldSet2(_database, this, database);
+	}
+	close() {
+		_classPrivateFieldGet2(_database, this).close();
+	}
+	/**
+	* @param {(stores: Object.<string, IDBObjectStore>) => any} f 
+	* @param {'ro'|'rw'} mode 
+	* @returns {Promise<any>}
+	*/
+	q(f, mode = "ro", options = {}) {
+		/** @type {IDBTransactionMode} */
+		const txMode = mode === "ro" ? "readonly" : "readwrite";
+		const txOptions = Object.assign({ 
+		/** @type {IDBTransactionDurability} */ durability: "default" }, options);
+		_classPrivateFieldSet2(_chain, this, (_classPrivateFieldGet2(_chain, this) || Promise.resolve()).then(() => _assertClassBrand(_IDBContext_brand, this, _q).call(this, f, txMode, txOptions)));
+		return _classPrivateFieldGet2(_chain, this);
+	}
+	/**
+	* Object store methods that return an IDBRequest, except for cursor
+	* creation, are wrapped to return a Promise. In addition, the
+	* request is used internally for chaining.
+	* @param {IDBObjectStore} objectStore 
+	* @returns 
+	*/
+	proxyStoreOrIndex(objectStore) {
+		return new Proxy(objectStore, { get: (target, property, receiver) => {
+			const result = Reflect.get(target, property, receiver);
+			if (typeof result === "function") return (...args) => {
+				const maybeRequest = Reflect.apply(result, target, args);
+				if (maybeRequest instanceof IDBRequest && !property.endsWith("Cursor")) {
+					_classPrivateFieldSet2(_request, this, maybeRequest);
+					maybeRequest.addEventListener("error", () => {
+						console.error(maybeRequest.error);
+						maybeRequest.transaction.abort();
+					}, { once: true });
+					return wrap(maybeRequest);
+				}
+				return maybeRequest;
+			};
+			return result;
+		} });
+	}
+	/**
+	* @param {boolean} durable 
+	*/
+	async sync(durable) {
+		if (_classPrivateFieldGet2(_chain, this)) {
+			await _classPrivateFieldGet2(_chain, this);
+			if (durable) await _classPrivateFieldGet2(_txComplete, this);
+			this.reset();
+		}
+	}
+	reset() {
+		_classPrivateFieldSet2(_chain, this, null);
+		_classPrivateFieldSet2(_txComplete, this, Promise.resolve());
+		_classPrivateFieldSet2(_request, this, null);
+	}
+});
+/**
+* @param {(stores: Object.<string, IDBObjectStore>) => any} f 
+* @param {IDBTransactionMode} mode 
+* @param {IDBTransactionOptions} options
+* @returns {Promise<any>}
+*/
+async function _q(f, mode, options) {
+	/** @type {IDBTransaction} */ let tx;
+	if (_classPrivateFieldGet2(_request, this) && _classPrivateFieldGet2(_txPending, this).has(_classPrivateFieldGet2(_request, this).transaction) && _classPrivateFieldGet2(_request, this).transaction.mode >= mode && _classPrivateFieldGet2(_request, this).transaction.durability === options.durability) {
+		tx = _classPrivateFieldGet2(_request, this).transaction;
+		if (_classPrivateFieldGet2(_request, this).readyState === "pending") await new Promise((resolve) => {
+			_classPrivateFieldGet2(_request, this).addEventListener("success", resolve, { once: true });
+			_classPrivateFieldGet2(_request, this).addEventListener("error", resolve, { once: true });
+		});
+	}
+	for (let i = 0; i < 2; ++i) {
+		if (!tx) {
+			await _classPrivateFieldGet2(_txComplete, this);
+			tx = _classPrivateFieldGet2(_database, this).transaction(_classPrivateFieldGet2(_database, this).objectStoreNames, mode, options);
+			this.log?.("IDBTransaction open", mode);
+			_classPrivateFieldGet2(_txPending, this).add(tx);
+			_classPrivateFieldSet2(_txComplete, this, new Promise((resolve, reject) => {
+				tx.addEventListener("complete", () => {
+					this.log?.("IDBTransaction complete");
+					_classPrivateFieldGet2(_txPending, this).delete(tx);
+					resolve();
+				});
+				tx.addEventListener("abort", () => {
+					_classPrivateFieldGet2(_txPending, this).delete(tx);
+					reject(/* @__PURE__ */ new Error("transaction aborted"));
+				});
+			}));
+		}
+		try {
+			const objectStores = [...tx.objectStoreNames].map((name) => {
+				return [name, this.proxyStoreOrIndex(tx.objectStore(name))];
+			});
+			return await f(Object.fromEntries(objectStores));
+		} catch (e) {
+			if (!i && RETRYABLE_ERRORS.has(e.name)) {
+				this.log?.(`${e.name}, retrying`);
+				tx = null;
+				continue;
+			}
+			throw e;
+		}
+	}
 }
 /**
-* Handle worker message, support custom message handler,
-* built-in: {@link defaultCreateDatabaseFn}
+* @param {IDBRequest} request 
+* @returns {Promise}
+*/
+function wrap(request) {
+	return new Promise((resolve, reject) => {
+		request.onsuccess = () => resolve(request.result);
+		request.onerror = () => reject(request.error);
+	});
+}
+const IDBBatchAtomicVFS = IDBBatchAtomicVFS$1;
+/**
+* Store data in `IndexedDB`,
+* use `IDBBatchAtomicVFS` with `wa-sqlite-async.wasm`,
+* larger than sync version, better compatibility
+* @param fileName db file name
+* @param options options
 * @example
-* in `worker.ts`
 * ```ts
-* import { customFunctionCore, exportDatabase } from '@subframe7536/sqlite-wasm'
-* import { createOnMessageCallback, defaultCreateDatabaseFn } from 'kysely-wasqlite-worker'
+* import { initSQLite } from '@subframe7536/sqlite-wasm'
+* import { useIdbStorage } from '@subframe7536/sqlite-wasm/idb'
 *
-* createOnMessageCallback(
-*   async (...args) => {
-*     const sqliteDB = await defaultCreateDatabaseFn(...args)
-*     customFunctionCore(sqliteDB, 'customFunction', (a, b) => a + b)
-*     return sqliteDB
-*   },
-*   ([type, exec, data1, data2, data3]) => {
-*     if (type === 'export') {
-*       return exportDatabase(exec.db)
-*     }
-*   }
+* // optional url
+* const url = 'https://cdn.jsdelivr.net/npm/@subframe7536/sqlite-wasm@0.5.0/wa-sqlite-async.wasm'
+* const url1 = 'https://cdn.jsdelivr.net/gh/subframe7536/sqlite-wasm@v0.5.0/wa-sqlite-fts5/wa-sqlite-async.wasm'
+*
+* const { run, changes, lastInsertRowId, close } = await initSQLite(
+*   useIdbStorage('test.db', { url })
 * )
 * ```
 */
-function createOnMessageCallback(create, message) {
-	createWebOnMessageCallback(async (initData) => {
-		return createSqliteExecutor(await create(initData));
-	}, message);
-}
-function createSqliteExecutor(db) {
+async function useIdbStorage(fileName, options = {}) {
+	const { url, lockPolicy = "shared+hint", lockTimeout = Infinity, ...rest } = options;
+	const sqliteModule = await Module(url ? { locateFile: () => url } : void 0);
+	const idbName = fileName.endsWith(".db") ? fileName : `${fileName}.db`;
+	const vfsOptions = {
+		idbName,
+		lockPolicy,
+		lockTimeout
+	};
 	return {
-		db,
-		close: async () => await close(db),
-		query: async (_isSelect, sql, parameters) => {
-			const { stmt, release } = await prepareStatement(db, sql, parameters);
-			try {
-				if (db.sqlite.column_count(stmt) === 0) {
-					await db.sqlite.step(stmt);
-					return {
-						rows: [],
-						insertId: parseBigInt(lastInsertRowId(db)),
-						numAffectedRows: parseBigInt(changes(db))
-					};
-				}
-				const mapRow = createRowMapper(db.sqlite, stmt);
-				const result = [];
-				let idx = 0;
-				while (await db.sqlite.step(stmt) === 100) result[idx++] = mapRow(db.sqlite.row(stmt));
-				return { rows: result };
-			} finally {
-				await release();
-			}
-		},
-		async *iterator(_isSelect, sql, parameters, chunkSize = 1) {
-			const { stmt, release } = await prepareStatement(db, sql, parameters);
-			try {
-				const cache = new Array(chunkSize);
-				let idx = 0;
-				const mapRow = createRowMapper(db.sqlite, stmt);
-				while (1) {
-					const result = await db.sqlite.step(stmt);
-					if (result === 100) {
-						cache[idx] = mapRow(db.sqlite.row(stmt));
-						if (++idx === chunkSize) {
-							for (let i = 0; i < idx; i++) yield cache[i];
-							idx = 0;
-						}
-						continue;
-					}
-					if (result === 101) {
-						for (let i = 0; i < idx; i++) yield cache[i];
-						return;
-					}
-				}
-			} finally {
-				await release();
-			}
-		}
+		path: idbName,
+		sqliteModule,
+		vfsFn: IDBBatchAtomicVFS.create,
+		vfsOptions,
+		...rest
 	};
 }
 //#endregion
-//#region ../packages/dialect-wasqlite-worker/dist/worker.js
-createOnMessageCallback(defaultCreateDatabaseFn);
-//#endregion
-export { _assertClassBrand as _, SQLITE_IOERR_ACCESS as a, SQLITE_IOERR_DELETE as c, SQLITE_IOERR_LOCK as d, SQLITE_IOERR_TRUNCATE as f, _classPrivateFieldInitSpec as g, _classPrivateFieldGet2 as h, SQLITE_IOCAP_UNDELETABLE_WHEN_OPEN as i, SQLITE_IOERR_FSTAT as l, _classPrivateFieldSet2 as m, FacadeVFS as n, SQLITE_IOERR_CHECKRESERVEDLOCK as o, SQLITE_IOERR_UNLOCK as p, SQLITE_IOCAP_BATCH_ATOMIC as r, SQLITE_IOERR_CLOSE as s, Module as t, SQLITE_IOERR_FSYNC as u, _classPrivateMethodInitSpec as v, _defineProperty as y };
+export { useIdbStorage };
