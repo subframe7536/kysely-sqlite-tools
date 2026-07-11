@@ -23,14 +23,34 @@ jobs:
           node-version: 24
           cache: 'pnpm'
 
+      - uses: oven-sh/setup-bun@v2
+
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
       - name: Build
         run: pnpm build
 
-      - name: QA
-        run: pnpm qa
+      - name: Lint check
+        run: pnpm lint:check
+
+      - name: Format check
+        run: pnpm format:check
+
+      - name: Typecheck
+        run: pnpm typecheck
+
+      - name: Vitest tests
+        run: pnpm test
+
+      - name: Bun tests
+        run: pnpm test:bun
+
+      - name: Package smoke tests
+        run: pnpm smoke:packages
+
+      - name: Verify checks did not mutate files
+        run: git diff --exit-code
 
       - name: Update npm
         run: npm install -g npm@latest

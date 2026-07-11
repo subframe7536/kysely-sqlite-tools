@@ -8,7 +8,7 @@ import {
 import { SQLITE_ROW, SQLITE_DONE } from '@subframe7536/sqlite-wasm/constant'
 import { parseBigInt } from 'kysely-generic-sqlite'
 import type { IGenericSqlite, Promisable } from 'kysely-generic-sqlite'
-import type { MessageHandleFn } from 'kysely-generic-sqlite/worker'
+import type { WorkerRequestHandler } from 'kysely-generic-sqlite/worker'
 import { createWebOnMessageCallback } from 'kysely-generic-sqlite/worker-helper-web'
 
 import type { InitData } from '../type'
@@ -99,12 +99,12 @@ async function prepareStatement(
  */
 export function createOnMessageCallback(
   create: CreateDatabaseFn,
-  message?: MessageHandleFn<SQLiteDBCore>,
+  custom?: WorkerRequestHandler<SQLiteDBCore>,
 ): void {
   createWebOnMessageCallback<InitData, SQLiteDBCore>(async (initData) => {
     const core = await create(initData!)
     return createSqliteExecutor(core)
-  }, message)
+  }, custom)
 }
 
 /**

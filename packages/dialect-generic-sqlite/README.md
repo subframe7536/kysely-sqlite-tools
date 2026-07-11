@@ -169,14 +169,11 @@ To create a dialect that run SQLs in web worker, you can use built-in dialect `G
 ```ts
 import { GenericSqliteWorkerDialect } from 'kysely-generic-sqlite/worker'
 import { createWebWorkerExecutor } from 'kysely-generic-sqlite/worker-helper-web'
-import { mitt } from 'zen-mitt'
 
 const worker = new Worker(new URL('./worker.js', import.meta.url), { type: 'module' })
 const dialect = new GenericSqliteWorkerDialect(
   createWebWorkerExecutor({
     worker,
-    // Event Emitter to handle worker messages
-    mitt: mitt(),
     // Optional extra data.
     data: { fileName: ':memory:' },
   }),
@@ -205,67 +202,32 @@ createWebOnMessageCallback<{ fileName: string }>((data) => {
 })
 ```
 
-### Worker Stream Cancellation
+### Worker Streams And Custom Requests
 
-`GenericSqliteWorkerDialect` cancels active worker streams when a stream is aborted,
-closed early, or the connection is closed. The built-in
-`createNodeOnMessageCallback` and `createWebOnMessageCallback` helpers handle
-this automatically.
+Worker streams use pull-based batches, so at most one batch is in flight. The
+built-in helpers cancel and release active iterators when a stream is aborted,
+closed early, or the connection is destroyed.
 
-If you implement the worker protocol manually, handle the `cancelEvent` message
-and call `return()` on the active iterator for the matching query id:
+For custom worker RPC, pass a `WorkerRequestHandler` to the worker helper and
+capture the `GenericSqliteWorkerConnection` from `onCreateConnection`:
 
 ```ts
-import { cancelEvent } from 'kysely-generic-sqlite/worker'
+import {
+  GenericSqliteWorkerConnection,
+  type WorkerRequestHandler,
+} from 'kysely-generic-sqlite/worker'
 
-const activeStreams = new Map<string, AsyncIterator<unknown> | Iterator<unknown>>()
-
-async function onMessage([type, queryId]: [string, string]) {
-  if (type === cancelEvent) {
-    await activeStreams.get(queryId)?.return?.()
-    activeStreams.delete(queryId)
-  }
+const custom: WorkerRequestHandler = (exec, { type, payload }) => {
+  if (type === 'optimize') return exec.db.pragma('optimize')
+  throw new Error(`Unknown request: ${type}`)
 }
-```
 
-### Send Custom Messages To Worker
-
-dialect:
-
-```ts
-import { GenericSqliteWorkerDialect } from 'kysely-generic-sqlite/worker'
-import { createNodeMitt, handleNodeWorker } from 'kysely-generic-sqlite/worker-helper-node'
-
-const outer = createNodeMitt()
-const dialect = new GenericSqliteWorkerDialect(async () => {
-  const m = createNodeMitt()
-  m.on('test', console.log)
-  outer.on('call-test', () => m.emit('test', 'your-data'))
-  return {
-    worker: new Worker('./worker.js'),
-    mitt: m,
-    handle: handleNodeWorker,
-  }
+let connection: GenericSqliteWorkerConnection
+const dialect = new GenericSqliteWorkerDialect(createNodeWorkerExecutor({ worker }), (conn) => {
+  connection = conn as GenericSqliteWorkerConnection
 })
-```
 
-in `worker.ts`
-
-```ts
-import type { Database } from 'better-sqlite3'
-
-import { createNodeOnMessageCallback } from 'kysely-generic-sqlite/worker-helper-node'
-
-createNodeOnMessageCallback<{}, Database>(
-  (data) => createSqliteExecutor(':memory:'),
-  (exec, type, data1, data2, data3, data4) => {
-    if (type === 'test') {
-      exec.db.pragma('optimize')
-      console.log(data1) // 'your-data'
-      return 'CUSTOM'
-    }
-  },
-)
+await connection.request('optimize', { source: 'ui' })
 ```
 
 ### Use Basic Dialect

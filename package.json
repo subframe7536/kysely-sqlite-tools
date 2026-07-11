@@ -19,12 +19,15 @@
     "release": "pnpm install && bumpp package.json packages/dialect*/package.json",
     "play": "pnpm --dir playground dev",
     "play:build": "pnpm build && pnpm --dir playground build",
-    "test": "pnpm build && vitest run",
+    "test": "vitest run && pnpm run test:bun",
     "typecheck": "tsc --noEmit && pnpm --dir playground exec tsc --noEmit",
     "format": "oxfmt",
     "lint": "oxlint",
     "qa": "pnpm build && oxlint --fix && oxfmt && tsc --noEmit && pnpm --dir playground exec tsc --noEmit",
-    "test:bun": "pnpm --filter kysely-generic-sqlite build && pnpm --filter kysely-bun-worker test"
+    "test:bun": "pnpm --filter kysely-generic-sqlite build && pnpm --filter kysely-bun-worker test",
+    "lint:check": "oxlint",
+    "format:check": "oxfmt --check",
+    "smoke:packages": "node scripts/package-smoke.mjs"
   },
   "devDependencies": {
     "@sqlite.org/sqlite-wasm": "3.53.0-build1",

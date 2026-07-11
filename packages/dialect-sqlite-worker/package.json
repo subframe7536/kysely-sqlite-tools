@@ -30,7 +30,7 @@
   "typesVersions": {
     "*": {
       "worker": [
-        "./dist/worker.d.ts"
+        "./dist/worker.d.mts"
       ]
     }
   },

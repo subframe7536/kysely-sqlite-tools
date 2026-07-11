@@ -25,6 +25,25 @@ import {
 
 import type { IGenericSqlite, IGenericSqliteExecutor, Promisable } from './type'
 
+export type QueryClassification = 'read' | 'write'
+
+export interface QueryClassifierContext {
+  isSelect: boolean
+  node?: RootOperationNode
+  sql: string
+}
+
+export type QueryClassifier = (context: QueryClassifierContext) => QueryClassification | undefined
+
+export interface BuildQueryFnOptions {
+  /**
+   * Classifies raw SQL that Kysely's AST cannot decide. SQLite PRAGMA, WITH and
+   * raw SQL are intentionally not parsed by this package; provide this callback
+   * when their default prefix heuristic is not appropriate for your executor.
+   */
+  classifyQuery?: QueryClassifier
+}
+
 export class BaseSqliteDialect implements Dialect {
   /**
    * Base class that implements {@link Dialect}
@@ -147,9 +166,12 @@ export async function access<T>(data: T | (() => Promisable<T>)): Promise<T> {
  * When `isSelectQueryNode` is true or sql starts with `select`, call `exec.all`, otherwise call `exec.run`.
  * This is a simple implementation that does not support `returning`.
  */
-export function buildQueryFnAlt(exec: IGenericSqliteExecutor): IGenericSqlite['query'] {
-  return async (isSelect, sql, parameters) =>
-    isSelect || sql.toLowerCase().startsWith('select')
+export function buildQueryFnAlt(
+  exec: IGenericSqliteExecutor,
+  options: BuildQueryFnOptions = {},
+): IGenericSqlite['query'] {
+  return async (isSelect, sql, parameters, node) =>
+    isReadQuery(isSelect, node, sql, options)
       ? { rows: await exec.all(sql, parameters) }
       : { rows: [], ...(await exec.run(sql, parameters)) }
 }
@@ -164,9 +186,12 @@ export function buildQueryFnAlt(exec: IGenericSqliteExecutor): IGenericSqlite['q
  * `INSERT`, `UPDATE`, or `DELETE` statements with a `RETURNING` clause are
  * treated as write queries and executed with `exec.run`.
  */
-export function buildQueryFn(exec: IGenericSqliteExecutor): IGenericSqlite['query'] {
-  return async (_isSelect, sql, parameters, node) => {
-    if (isReadOrReturningQuery(node, sql)) {
+export function buildQueryFn(
+  exec: IGenericSqliteExecutor,
+  options: BuildQueryFnOptions = {},
+): IGenericSqlite['query'] {
+  return async (isSelect, sql, parameters, node) => {
+    if (isReadOrReturningQuery(node, sql, isSelect, options)) {
       const rows = await exec.all(sql, parameters)
       return { rows }
     }
@@ -187,18 +212,35 @@ export function parseBigInt(num: number | bigint | null | undefined): bigint | u
  *
  * Limitation: raw SQL `returning` clauses are not inspected.
  */
-export function isReadOrReturningQuery(node: RootOperationNode | undefined, sql: string): boolean {
+export function isReadOrReturningQuery(
+  node: RootOperationNode | undefined,
+  sql: string,
+  isSelect = false,
+  options: BuildQueryFnOptions = {},
+): boolean {
   if (node) {
     if (SelectQueryNode.is(node)) {
       return true
     }
-    if (
-      (InsertQueryNode.is(node) || UpdateQueryNode.is(node) || DeleteQueryNode.is(node)) &&
-      node.returning
-    ) {
-      return true
+    if (InsertQueryNode.is(node) || UpdateQueryNode.is(node) || DeleteQueryNode.is(node)) {
+      return Boolean(node.returning)
     }
   }
+  return isReadQuery(isSelect, undefined, sql, options)
+}
 
+function isReadQuery(
+  isSelect: boolean,
+  node: RootOperationNode | undefined,
+  sql: string,
+  options: BuildQueryFnOptions,
+): boolean {
+  if (isSelect || (node && SelectQueryNode.is(node))) {
+    return true
+  }
+  const classification = options.classifyQuery?.({ isSelect, node, sql })
+  if (classification) {
+    return classification === 'read'
+  }
   return /^\s*(select|pragma|values|with)\b/i.test(sql)
 }

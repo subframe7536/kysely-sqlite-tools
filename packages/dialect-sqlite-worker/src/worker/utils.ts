@@ -4,7 +4,7 @@ import type BetterSqlite3 from 'better-sqlite3'
 import Database from 'better-sqlite3'
 import type { IGenericSqlite, Promisable } from 'kysely-generic-sqlite'
 import { parseBigInt } from 'kysely-generic-sqlite'
-import type { MessageHandleFn } from 'kysely-generic-sqlite/worker'
+import type { WorkerRequestHandler } from 'kysely-generic-sqlite/worker'
 import { createNodeOnMessageCallback } from 'kysely-generic-sqlite/worker-helper-node'
 
 /**
@@ -47,13 +47,13 @@ export const defaultCreateDatabaseFn: CreateDatabaseFn = (fileName, options) =>
  */
 export function createOnMessageCallback(
   create: CreateDatabaseFn,
-  message?: MessageHandleFn<BetterSqlite3.Database>,
+  custom?: WorkerRequestHandler<BetterSqlite3.Database>,
 ): void {
   const { src, option } = workerData
   createNodeOnMessageCallback<{}, BetterSqlite3.Database>(async () => {
     const db = await create(src, option)
     return createSqliteExecutor(db)
-  }, message)
+  }, custom)
 }
 
 /**
