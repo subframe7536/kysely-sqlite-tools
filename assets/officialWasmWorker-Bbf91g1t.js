@@ -31263,7 +31263,7 @@ var SqliteAdapter = class extends DialectAdapterBase {
 	async releaseMigrationLock(_db, _opt) {}
 };
 //#endregion
-//#region ../packages/dialect-generic-sqlite/dist/base-Cnc78_Y9.mjs
+//#region ../packages/dialect-generic-sqlite/dist/base-lEEOncz7.mjs
 var BaseSqliteDialect = class {
 	/**
 	* Base class that implements {@link Dialect}
@@ -31353,9 +31353,17 @@ var GenericSqliteDriver = class extends BaseSqliteDriver {
 	*/
 	constructor(executor, onCreateConnection) {
 		super(async (options) => {
-			this.db = await executor(options);
-			this.conn = new GenericSqliteConnection(this.db);
-			await onCreateConnection?.(this.conn, options);
+			const db = await executor(options);
+			this.db = db;
+			this.conn = new GenericSqliteConnection(db);
+			try {
+				await onCreateConnection?.(this.conn, options);
+			} catch (error) {
+				this.conn = void 0;
+				this.db = void 0;
+				await db.close();
+				throw error;
+			}
 		});
 		_defineProperty(
 			this,
@@ -31384,7 +31392,8 @@ var GenericSqliteConnection = class {
 			yield { rows: [row] };
 		}
 	}
-	async executeQuery({ parameters, query, sql }) {
+	async executeQuery({ parameters, query, sql }, options) {
+		options?.signal?.throwIfAborted();
 		return await this.db.query(SelectQueryNode.is(query), sql, parameters, query);
 	}
 };
