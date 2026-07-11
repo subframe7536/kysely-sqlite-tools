@@ -35,9 +35,9 @@ Common workspace commands:
 ```sh
 pnpm dev       # watch-build all dialect packages
 pnpm build     # build all dialect packages
-pnpm qa        # lint, format, and typecheck
-pnpm test      # build, then run shared Vitest suites
-pnpm test:bun  # run the kysely-bun-worker-specific bun:test suite
+pnpm qa                                      # build, lint, format, and typecheck
+pnpm build && pnpm test                       # build, then run all test suites
+pnpm --filter kysely-bun-worker test          # run the Bun-specific suite
 ```
 
 ## Release and publish

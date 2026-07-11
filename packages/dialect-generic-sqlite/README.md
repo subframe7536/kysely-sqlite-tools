@@ -86,7 +86,7 @@ export function createExecutor(client: SqliteClient): IGenericSqlite<SqliteClien
   return {
     db: client,
     query: buildQueryFn({
-      isQuery: (sql, node) => (node ? defaultIsQuery(sql, node) : classifySql(sql)),
+      isQuery: (sql, node) => defaultIsQuery(sql, node) || classifySql(sql),
       all: (sql, parameters) => client.all(sql, parameters ?? []),
       run: async (sql, parameters) => {
         const result = await client.run(sql, parameters ?? [])
@@ -102,10 +102,15 @@ export function createExecutor(client: SqliteClient): IGenericSqlite<SqliteClien
 ```
 
 `defaultIsQuery` recognizes Kysely AST nodes for `SELECT` and writes with
-`RETURNING`. It returns `false` when `node` is unavailable. Raw SQL and worker
-requests have no AST, so provide an `isQuery` classifier if they can return rows.
-For complex SQL (`WITH`, comments, or client-specific syntax), prefer the
-client's parser or statement metadata over the simple regular expression above.
+`RETURNING`. It intentionally returns `false` for `RawNode` (including raw
+`SELECT` and `PRAGMA`) and when `node` is unavailable in a worker request.
+Provide an `isQuery` classifier when those statements can return rows. For
+complex SQL (`WITH`, comments, or client-specific syntax), prefer the client's
+parser or statement metadata over the simple regular expression above.
+
+`run` may optionally return `rows` in addition to `insertId` and
+`numAffectedRows`. `buildQueryFn` forwards those rows, allowing executors whose
+write API returns a result set to support `RETURNING` and similar statements.
 
 ## 2. Run on the main thread
 

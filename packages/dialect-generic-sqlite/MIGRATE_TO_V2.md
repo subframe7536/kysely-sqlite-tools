@@ -119,11 +119,13 @@ method for each statement:
 The v1 `buildQueryFn` executed every SQL string through `all`, then called
 `run('select 1')` to fetch write metadata. That workaround is gone. A v2 `run`
 implementation must execute the original `sql` argument and return
-`insertId`/`numAffectedRows`; it may also return `rows`.
+`insertId`/`numAffectedRows`; it may also return `rows`. `buildQueryFn` forwards
+those rows, allowing a write API that returns result sets to support
+`RETURNING` and similar statements.
 
 ```ts
 const query = buildQueryFn({
-  isQuery: (sql, node) => (node ? defaultIsQuery(sql, node) : classifySql(sql)),
+  isQuery: (sql, node) => defaultIsQuery(sql, node) || classifySql(sql),
   all: (sql, parameters) => client.all(sql, parameters),
   run: async (sql, parameters) => {
     const result = await client.run(sql, parameters)
@@ -136,9 +138,10 @@ const query = buildQueryFn({
 ```
 
 The default classifier, exported as `defaultIsQuery`, recognizes Kysely AST
-nodes for `SELECT` and `INSERT`/`UPDATE`/`DELETE ... RETURNING`. With no AST it
-returns `false`. Supply `isQuery` when the executor must support raw `SELECT`,
-`PRAGMA`, `WITH`, vendor-specific statements, or reads inside a worker.
+nodes for `SELECT` and `INSERT`/`UPDATE`/`DELETE ... RETURNING`. It returns
+`false` for `RawNode`, including raw `SELECT` and `PRAGMA`, and when workers do
+not receive an AST. Supply `isQuery` when the executor must support raw reads,
+`WITH`, vendor-specific statements, or reads inside a worker.
 
 The new root export `access(valueOrFactory)` resolves a direct value or a lazy,
 possibly asynchronous factory. It is optional convenience, not a required

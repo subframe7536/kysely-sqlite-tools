@@ -21,9 +21,11 @@ export type SqliteExecutorFactory<T> = (options?: AbortableOperationOptions) => 
  */
 export interface IGenericSqliteExecutor {
   /**
-   * Decides whether a Kysely operation returns rows. Raw SQL, PRAGMA and WITH
-   * statements can be classified using `sql`. In a worker dialect, `node` is
-   * always `undefined` because operation nodes are not transferred to workers.
+   * Decides whether a Kysely operation returns rows. The default classifier
+   * does not parse SQL, so this callback is required when raw SQL, PRAGMA, or
+   * other statements without a recognized Kysely operation node return rows.
+   * In a worker dialect, `node` is always `undefined` because operation nodes
+   * are not transferred to workers.
    */
   isQuery?: (sql: string, node: RootOperationNode | undefined) => boolean
 
@@ -37,6 +39,9 @@ export interface IGenericSqliteExecutor {
   /**
    * Executes a SQL query that modifies the database (e.g., `INSERT`, `UPDATE`, `DELETE`),
    * returns the number of changes and the last inserted row ID.
+   *
+   * It may also return `rows` when the statement produces rows, such as a `RETURNING`
+   * clause or a client-specific write statement with a result set.
    * @param sql - The SQL query string to execute.
    * @param parameters - Optional array of parameters to bind to the query.
    */

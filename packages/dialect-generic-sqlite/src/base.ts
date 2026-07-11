@@ -146,6 +146,11 @@ export async function access<T>(data: T | (() => Promisable<T>)): Promise<T> {
  *
  * Uses {@link IGenericSqliteExecutor.isQuery} to decide whether to call
  * `exec.all` or `exec.run`, default is {@link defaultIsQuery}.
+ *
+ * The default only recognizes Kysely `SELECT` nodes and data-changing nodes with
+ * `RETURNING`; it intentionally treats raw SQL and worker requests as writes.
+ * Provide `isQuery` when those statements can return rows. A `run` result may
+ * include optional `rows`, which are forwarded unchanged.
  */
 export function buildQueryFn(exec: IGenericSqliteExecutor): IGenericSqlite['query'] {
   const isQuery = exec.isQuery ?? defaultIsQuery
@@ -162,6 +167,14 @@ export function parseBigInt(num: number | bigint | null | undefined): bigint | u
   return num === undefined || num === null ? undefined : BigInt(num)
 }
 
+/**
+ * Classifies Kysely AST nodes that are known to return rows.
+ *
+ * This intentionally does not parse SQL. It returns `false` for `RawNode`,
+ * including raw `SELECT` or `PRAGMA` statements, and for worker requests where
+ * the operation node is unavailable. Supply a custom `isQuery` callback when
+ * those statements need to use `all`.
+ */
 export function defaultIsQuery(_sql: string, node: RootOperationNode | undefined): boolean {
   if (node) {
     if (SelectQueryNode.is(node)) {
