@@ -1,4 +1,4 @@
-import Database from 'bun:sqlite'
+import { Database } from 'bun:sqlite'
 
 import { GenericSqliteDialect } from 'kysely-generic-sqlite'
 
