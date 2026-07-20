@@ -18,7 +18,9 @@ describe('bun sqlite package', () => {
         stdout: 'pipe',
       })
 
-      const output = new TextDecoder().decode(result.stderr)
+      const stdout = new TextDecoder().decode(result.stdout)
+      const stderr = new TextDecoder().decode(result.stderr)
+      const output = [stdout, stderr].filter(Boolean).join('\n')
       expect(result.exitCode, output).toBe(0)
     } finally {
       rmSync(projectDir, { force: true, recursive: true })
