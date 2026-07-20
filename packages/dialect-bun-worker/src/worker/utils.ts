@@ -1,4 +1,4 @@
-import Database from 'bun:sqlite'
+import { Database } from 'bun:sqlite'
 
 import type { Promisable } from 'kysely-generic-sqlite'
 import type { WorkerRequestHandler } from 'kysely-generic-sqlite/worker'

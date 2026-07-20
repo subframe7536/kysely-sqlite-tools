@@ -55,7 +55,7 @@
   },
   "scripts": {
     "dev": "tsdown --watch",
-    "test": "bun test",
+    "test": "tsdown && bun test",
     "test:dev": "tsdown && bun test",
     "build": "tsdown"
   },
