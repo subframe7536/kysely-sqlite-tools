@@ -75,6 +75,11 @@ describe('dialect test', () => {
     })
 
     try {
+      await db.schema.createTable('value').addColumn('value', 'integer').execute()
+      await db.insertInto('value').values({ value: 2 }).execute()
+      await expect(db.selectFrom('value').selectAll().execute()).resolves.toStrictEqual([
+        { value: 2 },
+      ])
       await expect(sql.raw('select 1 as value').execute(db)).resolves.toStrictEqual({
         rows: [{ value: 1 }],
       })
