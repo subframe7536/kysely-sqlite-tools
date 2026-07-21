@@ -13,9 +13,9 @@ export interface WaSqliteWorkerDialectConfig extends IBaseSqliteDialectConfig {
   /**
    * Custom SQLite worker
    *
-   * The built-in worker uses the packaged worker entry.
-   * It prefers module workers when the runtime supports them.
-   * You can still provide a custom worker if you need explicit worker options.
+   * The built-in worker uses the packaged ESM worker entry and requires module worker support.
+   * Provide a custom worker factory that returns a classic-compatible bundled worker
+   * when supporting browsers without module workers.
    * @param supportModuleWorker whether the runtime supports `{ type: 'module' }` workers
    * @example
    * (supportModuleWorker) => supportModuleWorker

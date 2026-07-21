@@ -19,7 +19,7 @@ export class WaSqliteWorkerDialect extends GenericSqliteWorkerDialect<globalThis
    * @param config - {@link WaSqliteWorkerDialectConfig}
    */
   constructor(config: WaSqliteWorkerDialectConfig) {
-    const { onCreateConnection, worker, fileName, preferOPFS, url } = config
+    const { onCreateConnection, worker, fileName, preferOPFS = true, url } = config
     super(async () => {
       const supportModule = isModuleWorkerSupport()
       const useOPFS = preferOPFS ? await isOpfsSupported() : false
@@ -33,11 +33,19 @@ export class WaSqliteWorkerDialect extends GenericSqliteWorkerDialect<globalThis
           ? worker instanceof globalThis.Worker
             ? worker
             : worker(supportModule)
-          : supportModule
-            ? new Worker(new URL('worker.js', import.meta.url), { type: 'module' })
-            : new Worker(new URL('worker.js', import.meta.url)),
+          : createBuiltInWorker(supportModule),
         handle: handleWebWorker,
       }
     }, onCreateConnection)
   }
+}
+
+function createBuiltInWorker(supportModuleWorker: boolean): Worker {
+  if (!supportModuleWorker) {
+    throw new Error(
+      'WaSqliteWorkerDialect requires module worker support for the built-in worker. Provide config.worker with a classic-compatible bundled worker for this browser.',
+    )
+  }
+
+  return new Worker(new URL('worker.js', import.meta.url), { type: 'module' })
 }
