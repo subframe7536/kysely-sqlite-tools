@@ -1,5 +1,9 @@
-import type { IBaseSqliteDialectConfig, Promisable } from 'kysely-generic-sqlite'
-import { access, buildQueryFn, GenericSqliteDialect } from 'kysely-generic-sqlite'
+import type {
+  IBaseSqliteDialectConfig,
+  IGenericSqliteExecutor,
+  Promisable,
+} from 'kysely-generic-sqlite'
+import { access, buildQueryFn, defaultIsQuery, GenericSqliteDialect } from 'kysely-generic-sqlite'
 
 import type { CrSqliteDatabase } from './types'
 
@@ -8,6 +12,9 @@ import type { CrSqliteDatabase } from './types'
  */
 export interface CrSqliteDialectConfig extends IBaseSqliteDialectConfig {
   database: CrSqliteDatabase | (() => Promisable<CrSqliteDatabase>)
+
+  /** Optional classifier for raw SQL statements that return rows. */
+  isQuery?: IGenericSqliteExecutor['isQuery']
 }
 
 /**
@@ -24,6 +31,7 @@ export class CrSqliteDialect extends GenericSqliteDialect {
         db,
         close: () => db.close(),
         query: buildQueryFn({
+          isQuery: (sql, node) => defaultIsQuery(sql, node) || Boolean(config.isQuery?.(sql, node)),
           all: async (sql, parameters) => {
             return await db.execO(sql, parameters as any)
           },

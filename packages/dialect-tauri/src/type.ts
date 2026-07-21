@@ -1,5 +1,9 @@
 import type Database from '@tauri-apps/plugin-sql'
-import type { IBaseSqliteDialectConfig, Promisable } from 'kysely-generic-sqlite'
+import type {
+  IBaseSqliteDialectConfig,
+  IGenericSqliteExecutor,
+  Promisable,
+} from 'kysely-generic-sqlite'
 
 /**
  * Configuration for {@link TauriSqliteDialect}.
@@ -15,10 +19,18 @@ export interface TauriSqliteDialectConfig extends IBaseSqliteDialectConfig {
    *
    * const kysely = new Kysely<DB>({
    *   dialect: new TauriSqlDialect({
-   *     database: prefix => Database.load(`${prefix}${await appDataDir()}test.db`)
+   *     database: async (prefix) => Database.load(`${prefix}${await appDataDir()}test.db`)
    *   }),
    * })
    * ```
    */
-  database: Database | ((prefix: 'sqlite:') => Promisable<Database>)
+  database: Promisable<Database> | ((prefix: 'sqlite:') => Promisable<Database>)
+
+  /**
+   * Optional classifier for raw SQL statements that return rows.
+   *
+   * The default does not parse raw SQL; provide this when executing row-returning
+   * raw statements such as `sql.raw('select 1')`.
+   */
+  isQuery?: IGenericSqliteExecutor['isQuery']
 }
