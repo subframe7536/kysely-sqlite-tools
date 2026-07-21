@@ -19,16 +19,40 @@ import { Kysely } from 'kysely'
 
 const kysely = new Kysely<DB>({
   dialect: new TauriSqliteDialect({
-    database: (prefix) => Database.load(`${prefix}${await appDataDir()}test.db`),
+    database: async (prefix) => Database.load(`${prefix}${await appDataDir()}test.db`),
   }),
 })
 ```
+
+You can also pass the `Database.load(...)` promise directly:
+
+```ts
+const kysely = new Kysely<DB>({
+  dialect: new TauriSqliteDialect({
+    database: Database.load('sqlite:test.db'),
+  }),
+})
+```
+
+Raw SQL is conservatively treated as a write unless you classify row-returning statements:
+
+```ts
+const kysely = new Kysely<DB>({
+  dialect: new TauriSqliteDialect({
+    database: Database.load('sqlite:test.db'),
+    isQuery: (sql) => sql === 'select 1 as value',
+  }),
+})
+```
+
+Classify any additional row-returning raw statements you rely on, including PRAGMAs or dialect-specific statements.
 
 ## Config
 
 ```ts
 export interface TauriSqliteDialectConfig {
   database: Promisable<TauriSqlDB> | ((prefix: 'sqlite:') => Promisable<TauriSqlDB>)
+  isQuery?: IGenericSqliteExecutor['isQuery']
   /**
    * Called once when the first query is executed.
    *

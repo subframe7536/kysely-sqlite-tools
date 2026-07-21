@@ -1,5 +1,9 @@
-import type { IBaseSqliteDialectConfig, Promisable } from 'kysely-generic-sqlite'
-import { access, buildQueryFn, GenericSqliteDialect } from 'kysely-generic-sqlite'
+import type {
+  IBaseSqliteDialectConfig,
+  IGenericSqliteExecutor,
+  Promisable,
+} from 'kysely-generic-sqlite'
+import { access, buildQueryFn, defaultIsQuery, GenericSqliteDialect } from 'kysely-generic-sqlite'
 
 import type { NodeWasmDatabase } from './types'
 
@@ -8,6 +12,9 @@ import type { NodeWasmDatabase } from './types'
  */
 export interface NodeWasmDialectConfig extends IBaseSqliteDialectConfig {
   database: NodeWasmDatabase | (() => Promisable<NodeWasmDatabase>)
+
+  /** Optional classifier for raw SQL statements that return rows. */
+  isQuery?: IGenericSqliteExecutor['isQuery']
 }
 
 /**
@@ -25,6 +32,7 @@ export class NodeWasmDialect extends GenericSqliteDialect {
         db,
         close: () => db.close(),
         query: buildQueryFn({
+          isQuery: (sql, node) => defaultIsQuery(sql, node) || Boolean(config.isQuery?.(sql, node)),
           all: (sql, parameters) => {
             return db.all(sql, parameters as any)
           },

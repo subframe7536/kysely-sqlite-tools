@@ -1,4 +1,5 @@
 import Database from 'better-sqlite3'
+import { Kysely, sql } from 'kysely'
 import { describe, expect, it } from 'vitest'
 
 import { testCase } from '../../test-utils'
@@ -32,6 +33,12 @@ class TauriSqliteMock {
   }
 }
 
+interface RawDb {
+  value: {
+    value: number
+  }
+}
+
 describe('tauri sqlite dialect test', () => {
   it('mock tauri sqlite plugin', async () => {
     const dialect = new TauriSqliteDialect({
@@ -39,5 +46,30 @@ describe('tauri sqlite dialect test', () => {
     })
 
     await testCase(dialect, expect, false)
+  })
+
+  it('awaits a direct promise database', async () => {
+    const dialect = new TauriSqliteDialect({
+      database: Promise.resolve(new TauriSqliteMock() as never),
+    })
+
+    await testCase(dialect, expect, false)
+  })
+
+  it('executes classified raw select statements through select', async () => {
+    const db = new Kysely<RawDb>({
+      dialect: new TauriSqliteDialect({
+        database: new TauriSqliteMock() as never,
+        isQuery: (querySql) => querySql === 'select 1 as value',
+      }),
+    })
+
+    try {
+      await expect(sql.raw('select 1 as value').execute(db)).resolves.toStrictEqual({
+        rows: [{ value: 1 }],
+      })
+    } finally {
+      await db.destroy()
+    }
   })
 })

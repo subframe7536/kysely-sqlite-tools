@@ -148,12 +148,12 @@ Scope: `packages/dialect-wasqlite-worker/src/index.ts`, `packages/dialect-wasqli
 
 At the planned commit, `sql.raw('select 1 as value')` returned `rows: []` in all three adapters. The CrSqlite reproduction called `execA` for both the raw SELECT and `last_insert_rowid()`; it never called `execO`.
 
-- [ ] Add an optional `isQuery` classifier to `TauriSqliteDialectConfig`, `NodeWasmDialectConfig`, and `CrSqliteDialectConfig`, reusing the exact `IGenericSqliteExecutor['isQuery']` signature.
-- [ ] Pass the classifier into each `buildQueryFn` call.
-- [ ] Keep the conservative default unchanged. Do not parse SQL with a prefix regex because comments, CTEs, PRAGMAs, and write statements with `RETURNING` make that behavior unreliable.
-- [ ] Document a raw SELECT example for the affected public adapters, including that users must classify any additional row-returning raw statements they rely on.
-- [ ] Add adapter-level tests that execute `sql.raw('select 1 as value')` with a supplied classifier and assert `[{ value: 1 }]`. Also assert normal Kysely SELECT and mutation behavior remains unchanged.
-- [ ] Add a CrSqlite mock assertion proving the classified query calls `execO`, not `execA`.
+- [x] Add an optional `isQuery` classifier to `TauriSqliteDialectConfig`, `NodeWasmDialectConfig`, and `CrSqliteDialectConfig`, reusing the exact `IGenericSqliteExecutor['isQuery']` signature.
+- [x] Pass the classifier into each `buildQueryFn` call.
+- [x] Keep the conservative default unchanged. Do not parse SQL with a prefix regex because comments, CTEs, PRAGMAs, and write statements with `RETURNING` make that behavior unreliable.
+- [x] Document a raw SELECT example for the affected public adapters, including that users must classify any additional row-returning raw statements they rely on.
+- [x] Add adapter-level tests that execute `sql.raw('select 1 as value')` with a supplied classifier and assert `[{ value: 1 }]`. Also assert normal Kysely SELECT and mutation behavior remains unchanged.
+- [x] Add a CrSqlite mock assertion proving the classified query calls `execO`, not `execA`.
 
 Verification:
 
@@ -170,10 +170,10 @@ Scope: the three adapter config/source files, their README/JSDoc, and their exis
 
 The README declares `database: Promisable<TauriSqlDB> | ((prefix) => Promisable<TauriSqlDB>)` at `packages/dialect-tauri/README.md:29-38`, but the source type only allows a database instance or callback at `packages/dialect-tauri/src/type.ts:7-23`. Runtime code at `packages/dialect-tauri/src/index.ts:16-18` awaits only the callback branch. Passing `Database.load(...)` directly therefore stores the Promise as `db`, and the first SELECT fails with `TypeError: db.select is not a function`.
 
-- [ ] Make the source type match the documented contract by accepting `Promisable<Database>` directly as well as the prefix callback.
-- [ ] Await both branches before building the executor. Preserve the `'sqlite:'` argument for callback users.
-- [ ] Add a Tauri test that supplies `Promise.resolve(mockDatabase)` directly and verifies a query succeeds.
-- [ ] Correct the README and source JSDoc examples so any callback using `await appDataDir()` is declared `async`.
+- [x] Make the source type match the documented contract by accepting `Promisable<Database>` directly as well as the prefix callback.
+- [x] Await both branches before building the executor. Preserve the `'sqlite:'` argument for callback users.
+- [x] Add a Tauri test that supplies `Promise.resolve(mockDatabase)` directly and verifies a query succeeds.
+- [x] Correct the README and source JSDoc examples so any callback using `await appDataDir()` is declared `async`.
 
 Verification:
 
