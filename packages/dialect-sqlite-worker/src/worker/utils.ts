@@ -19,7 +19,16 @@ export type CreateDatabaseFn = (
  * Default database factory — creates a new `better-sqlite3` Database instance.
  */
 export const defaultCreateDatabaseFn: CreateDatabaseFn = (fileName, options) =>
-  new Database(fileName, options)
+  new Database(normalizeDatabaseSource(fileName), options)
+
+function normalizeDatabaseSource(
+  source?: string | Buffer | Uint8Array,
+): string | Buffer | undefined {
+  if (typeof source === 'string' || source === undefined || Buffer.isBuffer(source)) {
+    return source
+  }
+  return Buffer.from(source)
+}
 
 /**
  * Handle worker messages, with optional custom message handler.
@@ -52,7 +61,7 @@ export function createOnMessageCallback(
 ): void {
   const { src, option } = workerData
   createNodeOnMessageCallback<{}, BetterSqlite3.Database>(async () => {
-    const db = await create(src, option)
+    const db = await create(normalizeDatabaseSource(src), option)
     return createSqliteExecutor(db)
   }, custom)
 }
