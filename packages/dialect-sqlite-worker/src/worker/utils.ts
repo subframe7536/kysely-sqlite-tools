@@ -61,7 +61,7 @@ export function createOnMessageCallback(
 ): void {
   const { src, option } = workerData
   createNodeOnMessageCallback<{}, BetterSqlite3.Database>(async () => {
-    const db = await create(src, option)
+    const db = await create(normalizeDatabaseSource(src), option)
     return createSqliteExecutor(db)
   }, custom)
 }

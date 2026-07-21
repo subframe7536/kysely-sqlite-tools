@@ -1,9 +1,18 @@
+import { mkdtemp, rm, writeFile } from 'node:fs/promises'
+import { tmpdir } from 'node:os'
+import { dirname, join } from 'node:path'
+import { fileURLToPath, pathToFileURL } from 'node:url'
+
 import Database from 'better-sqlite3'
 import { Kysely } from 'kysely'
 import { describe, expect, it } from 'vitest'
 
 import { testCase } from '../../test-utils'
 import { SqliteWorkerDialect } from '../dist/index.mjs'
+
+const distIndexUrl = pathToFileURL(
+  join(dirname(fileURLToPath(import.meta.url)), '../dist/index.mjs'),
+).href
 
 interface SeededDb {
   seed: {
@@ -44,6 +53,49 @@ describe('sqlite worker dialect test', () => {
       ])
     } finally {
       await db.destroy()
+    }
+  })
+
+  it('passes Buffer database sources to custom worker create callbacks', async () => {
+    const source = new Database(':memory:')
+    source.exec(`
+      create table seed (id integer primary key, name text not null);
+      insert into seed (id, name) values (1, 'from custom worker');
+    `)
+    const serialized = source.serialize()
+    source.close()
+
+    const tempDir = await mkdtemp(join(tmpdir(), 'kysely-sqlite-worker-'))
+    const workerPath = join(tempDir, 'custom-worker.mjs')
+
+    await writeFile(
+      workerPath,
+      `
+        import { createOnMessageCallback, defaultCreateDatabaseFn } from ${JSON.stringify(distIndexUrl)}
+
+        createOnMessageCallback((source, options) => {
+          if (!Buffer.isBuffer(source)) {
+            throw new Error('expected Buffer source')
+          }
+          return defaultCreateDatabaseFn(source, options)
+        })
+      `,
+    )
+
+    const db = new Kysely<SeededDb>({
+      dialect: new SqliteWorkerDialect({
+        source: serialized,
+        workerPath,
+      }),
+    })
+
+    try {
+      await expect(db.selectFrom('seed').selectAll().execute()).resolves.toStrictEqual([
+        { id: 1, name: 'from custom worker' },
+      ])
+    } finally {
+      await db.destroy()
+      await rm(tempDir, { recursive: true })
     }
   })
 
