@@ -55,6 +55,21 @@ you can choose to use `native file system` as backend storage, which is no need 
 
 you can choose to use `IndexedDB` as backend storage
 
+### Raw row-returning SQL
+
+`NodeWasmDialect` and `CrSqliteDialect` use conservative raw SQL handling. Raw statements are treated as writes unless you provide an `isQuery` classifier for statements that return rows:
+
+```ts
+const db = new Kysely<DB>({
+  dialect: new NodeWasmDialect({
+    database,
+    isQuery: (sql) => sql === 'select 1 as value',
+  }),
+})
+```
+
+Use the same option with `CrSqliteDialect`. Classify any additional row-returning raw statements you rely on, including PRAGMAs or dialect-specific statements.
+
 ### Type
 
 see in jsdoc

@@ -7,6 +7,8 @@ export type DBOptions = Exclude<ConstructorParameters<typeof Database>[1], undef
 /**
  * Configuration for {@link BunWorkerDialect}.
  */
+export type BunWorkerFactory = () => Worker
+
 export interface BunWorkerDialectConfig extends IBaseSqliteDialectConfig {
   /**
    * DB file path
@@ -25,9 +27,13 @@ export interface BunWorkerDialectConfig extends IBaseSqliteDialectConfig {
    */
   cacheStatement?: boolean
   /**
-   * custom worker, default is a worker that use bun:sqlite
+   * Custom worker instance or factory.
+   *
+   * A worker instance cannot be recreated after a failed initialization because
+   * the driver terminates failed workers. Use a factory when retryable custom
+   * worker initialization is required.
    */
-  worker?: Worker
+  worker?: Worker | BunWorkerFactory
 }
 
 /**

@@ -35,6 +35,16 @@ createOnMessageCallback((fileName, options) => {
 })
 ```
 
+When passing a custom worker, prefer a factory if initialization may be retried:
+
+```ts
+const dialect = new BunWorkerDialect({
+  worker: () => new Worker(new URL('./worker.ts', import.meta.url), { type: 'module' }),
+})
+```
+
+A worker instance is still supported, but it cannot be recreated after the driver terminates it during failed initialization.
+
 ### Normal Dialect
 
 Use `BunSqliteDialect` to run SQL on the main thread.
@@ -65,9 +75,13 @@ export type BunWorkerDialectConfig = {
    */
   cacheStatement?: boolean
   /**
-   * custom worker, default is a worker that use bun:sqlite
+   * Custom worker instance or factory.
+   *
+   * A worker instance cannot be recreated after a failed initialization because
+   * the driver terminates failed workers. Use a factory when retryable custom
+   * worker initialization is required.
    */
-  worker?: Worker
+  worker?: Worker | (() => Worker)
   /**
    * DB constructor options
    * @default { create: true }
