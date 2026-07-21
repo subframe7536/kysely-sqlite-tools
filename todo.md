@@ -11,8 +11,8 @@ All seven reported issues are reproducible. Item 6 is an adapter API gap rather 
 | DONE   | P0       | Merge duplicate Bun SQLite type imports                            | S      | Low      | High       |
 | TODO   | P1       | Preserve `Buffer` database sources across the Node worker boundary | S      | Low      | High       |
 | DONE   | P1       | Recreate the default Bun worker after failed initialization        | S      | Medium   | High       |
-| TODO   | P1       | Apply the documented `preferOPFS: true` default                    | S      | Low      | High       |
-| TODO   | P1       | Remove the invalid built-in classic-worker fallback                | S      | Medium   | High       |
+| DONE   | P1       | Apply the documented `preferOPFS: true` default                    | S      | Low      | High       |
+| DONE   | P1       | Remove the invalid built-in classic-worker fallback                | S      | Medium   | High       |
 | TODO   | P2       | Expose raw-query classification in Tauri, NodeWasm, and CrSqlite   | M      | Medium   | High       |
 | TODO   | P2       | Await direct Promise database values in the Tauri dialect          | S      | Low      | High       |
 
@@ -95,10 +95,10 @@ preferOPFS omitted -> useOPFS false
 preferOPFS true    -> useOPFS true
 ```
 
-- [ ] Default `preferOPFS` to `true` during configuration destructuring.
-- [ ] Preserve explicit `preferOPFS: false` as the opt-out that skips OPFS detection and uses IndexedDB.
-- [ ] Add tests that mock `isOpfsSupported`: omitted preference with support returns `useOPFS: true`; explicit false returns `useOPFS: false` and does not require OPFS support.
-- [ ] Assert the `url` callback still receives `useAsyncWasm = !useOPFS` for both branches.
+- [x] Default `preferOPFS` to `true` during configuration destructuring.
+- [x] Preserve explicit `preferOPFS: false` as the opt-out that skips OPFS detection and uses IndexedDB.
+- [x] Add tests that mock `isOpfsSupported`: omitted preference with support returns `useOPFS: true`; explicit false returns `useOPFS: false` and does not require OPFS support.
+- [x] Assert the `url` callback still receives `useAsyncWasm = !useOPFS` for both branches.
 
 Verification:
 
@@ -120,11 +120,11 @@ Verified classic-script parse result:
 SyntaxError: Cannot use import statement outside a module
 ```
 
-- [ ] Keep the built-in worker on the module-worker path only.
-- [ ] When module workers are unsupported and no custom worker is provided, throw an actionable error that tells the caller to provide `config.worker` with a classic-compatible bundled worker.
-- [ ] Preserve the custom worker factory call with `supportModuleWorker === false`; this remains the supported legacy-browser escape hatch.
-- [ ] Add tests for: built-in module worker construction, explicit failure without module support, and a custom factory receiving false and supplying a usable worker.
-- [ ] Update the wa-sqlite README/JSDoc so it never implies that the packaged ESM worker can run as a classic script.
+- [x] Keep the built-in worker on the module-worker path only.
+- [x] When module workers are unsupported and no custom worker is provided, throw an actionable error that tells the caller to provide `config.worker` with a classic-compatible bundled worker.
+- [x] Preserve the custom worker factory call with `supportModuleWorker === false`; this remains the supported legacy-browser escape hatch.
+- [x] Add tests for: built-in module worker construction, explicit failure without module support, and a custom factory receiving false and supplying a usable worker.
+- [x] Update the wa-sqlite README/JSDoc so it never implies that the packaged ESM worker can run as a classic script.
 
 Verification:
 
