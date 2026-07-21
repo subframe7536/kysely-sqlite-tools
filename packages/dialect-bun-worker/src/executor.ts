@@ -1,5 +1,4 @@
-import type { Statement } from 'bun:sqlite'
-import type { Database } from 'bun:sqlite'
+import type { Database, Statement } from 'bun:sqlite'
 
 import type { IGenericSqlite } from 'kysely-generic-sqlite'
 import { parseBigInt } from 'kysely-generic-sqlite'

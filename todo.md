@@ -8,9 +8,9 @@ All seven reported issues are reproducible. Item 6 is an adapter API gap rather 
 
 | Status | Priority | Issue                                                              | Effort | Fix risk | Confidence |
 | ------ | -------- | ------------------------------------------------------------------ | ------ | -------- | ---------- |
-| TODO   | P0       | Merge duplicate Bun SQLite type imports                            | S      | Low      | High       |
+| DONE   | P0       | Merge duplicate Bun SQLite type imports                            | S      | Low      | High       |
 | TODO   | P1       | Preserve `Buffer` database sources across the Node worker boundary | S      | Low      | High       |
-| TODO   | P1       | Recreate the default Bun worker after failed initialization        | S      | Medium   | High       |
+| DONE   | P1       | Recreate the default Bun worker after failed initialization        | S      | Medium   | High       |
 | DONE   | P1       | Apply the documented `preferOPFS: true` default                    | S      | Low      | High       |
 | DONE   | P1       | Remove the invalid built-in classic-worker fallback                | S      | Medium   | High       |
 | TODO   | P2       | Expose raw-query classification in Tauri, NodeWasm, and CrSqlite   | M      | Medium   | High       |
@@ -25,9 +25,9 @@ All seven reported issues are reproducible. Item 6 is an adapter API gap rather 
 
 ## 1. Merge duplicate Bun SQLite type imports
 
-- [ ] Replace the two `bun:sqlite` type-only imports in `packages/dialect-bun-worker/src/executor.ts:1-2` with one import containing both `Database` and `Statement`.
-- [ ] Do not change runtime imports or executor behavior.
-- [ ] Run `pnpm lint:check`; it must exit 0 with no `import(no-duplicates)` diagnostic.
+- [x] Replace the two `bun:sqlite` type-only imports in `packages/dialect-bun-worker/src/executor.ts:1-2` with one import containing both `Database` and `Statement`.
+- [x] Do not change runtime imports or executor behavior.
+- [x] Run `pnpm lint:check`; it must exit 0 with no `import(no-duplicates)` diagnostic.
 
 Observed failure:
 
@@ -68,11 +68,11 @@ FIRST_ERROR setup failed
 SECOND_TIMEOUT ATTEMPTS 1
 ```
 
-- [ ] Move default worker construction into the executor passed to `super`, so every initialization attempt owns a fresh default worker.
-- [ ] Preserve one worker per successful driver lifetime; do not create a worker per query.
-- [ ] Decide the custom-worker retry contract explicitly. The preferred backward-compatible API is to continue accepting a `Worker` instance and additionally accept a worker factory for callers that need retryable custom workers. Document that an instance cannot be recreated after termination.
-- [ ] Add a Bun regression test where `onCreateConnection` fails once, the first query rejects with that error, and a second query on the same `Kysely` instance succeeds within a bounded timeout.
-- [ ] Assert the callback runs twice and destroy the database in `finally`.
+- [x] Move default worker construction into the executor passed to `super`, so every initialization attempt owns a fresh default worker.
+- [x] Preserve one worker per successful driver lifetime; do not create a worker per query.
+- [x] Decide the custom-worker retry contract explicitly. The preferred backward-compatible API is to continue accepting a `Worker` instance and additionally accept a worker factory for callers that need retryable custom workers. Document that an instance cannot be recreated after termination.
+- [x] Add a Bun regression test where `onCreateConnection` fails once, the first query rejects with that error, and a second query on the same `Kysely` instance succeeds within a bounded timeout.
+- [x] Assert the callback runs twice and destroy the database in `finally`.
 
 Verification:
 
