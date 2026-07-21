@@ -22960,7 +22960,7 @@ var WaSqliteWorkerDialect = class extends GenericSqliteWorkerDialect {
 	* @param config - {@link WaSqliteWorkerDialectConfig}
 	*/
 	constructor(config) {
-		const { onCreateConnection, worker, fileName, preferOPFS, url } = config;
+		const { onCreateConnection, worker, fileName, preferOPFS = true, url } = config;
 		super(async () => {
 			const supportModule = isModuleWorkerSupport();
 			const useOPFS = preferOPFS ? await isOpfsSupported() : false;
@@ -22970,20 +22970,20 @@ var WaSqliteWorkerDialect = class extends GenericSqliteWorkerDialect {
 					useOPFS,
 					url: typeof url === "function" ? url(!useOPFS) : url
 				},
-				worker: worker ? worker instanceof globalThis.Worker ? worker : worker(supportModule) : supportModule ? new Worker(new URL(
-					/* @vite-ignore */
-					"" + new URL("worker-Dv4J5XCc.js", import.meta.url).href,
-					"" + import.meta.url
-				), { type: "module" }) : new Worker(new URL(
-					/* @vite-ignore */
-					"" + new URL("worker-Dv4J5XCc.js", import.meta.url).href,
-					"" + import.meta.url
-				)),
+				worker: worker ? worker instanceof globalThis.Worker ? worker : worker(supportModule) : createBuiltInWorker(supportModule),
 				handle: handleWebWorker
 			};
 		}, onCreateConnection);
 	}
 };
+function createBuiltInWorker(supportModuleWorker) {
+	if (!supportModuleWorker) throw new Error("WaSqliteWorkerDialect requires module worker support for the built-in worker. Provide config.worker with a classic-compatible bundled worker for this browser.");
+	return new Worker(new URL(
+		/* @vite-ignore */
+		"" + new URL("worker-Dv4J5XCc.js", import.meta.url).href,
+		"" + import.meta.url
+	), { type: "module" });
+}
 //#endregion
 //#region src/modules/wasqliteWorker.ts
 function runWaSqliteWorker() {
